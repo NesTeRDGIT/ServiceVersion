@@ -10,6 +10,12 @@
         <Setter Property="Background" Value="#FFD6FCD2"></Setter>
     </Style>
 
+    <Style TargetType="Window" x:Key="StyleWindow1">
+        <Setter Property="Icon" Value="/Image/doctor.ico" ></Setter>
+        <Setter Property="Background" Value="#FFD6FCD2"></Setter>
+    </Style>
+
+
     <Style x:Key="MainButton" TargetType ="Button" >
         <Style.Setters>
             <Setter Property="Background" >
