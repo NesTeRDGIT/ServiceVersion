@@ -1,0 +1,167 @@
+﻿<Window x:Class="ClientServiceWPF.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientServiceWPF"
+        xmlns:class="clr-namespace:ClientServiceWPF.Class"
+        mc:Ignorable="d"
+        xmlns:serviceLoaderMedpomData="clr-namespace:ServiceLoaderMedpomData;assembly=ServiceLoaderMedpomData"
+        Name="this"
+        Title="Управление службой MedpomService" Height="612" Width="974" Closing="this_Closing" StateChanged="this_StateChanged" Style="{DynamicResource StyleWindow}">
+    <Window.Resources>
+        <CollectionViewSource x:Key="CollectionViewSourceLOG" Source="{Binding ElementName=this, Path=Entries}" d:DesignSource="{d:DesignInstance {x:Type serviceLoaderMedpomData:EntriesMy}, CreateList=True}" ></CollectionViewSource>
+        <CollectionViewSource x:Key="CollectionViewSourceStatusOP" Source="{Binding ElementName=this, Path=ListOP}" d:DesignSource="{d:DesignInstance {x:Type local:StatusOper}, CreateList=True}" ></CollectionViewSource>
+    </Window.Resources>
+    <Grid>
+        <GroupBox x:Name="groupBoxLog" Header="Лог событий" Margin="0,27,398,0">
+            <Grid>
+                <ListView x:Name="listView" ItemsSource="{Binding Source={StaticResource CollectionViewSourceLOG}}" Margin="0,0,0,28">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="" Width="Auto">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Image Width="15" Height="15">
+                                            <Image.Style>
+                                                <Style TargetType="Image">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding Type}" Value="{x:Static serviceLoaderMedpomData:TypeEntries.error}">
+                                                            <Setter Property="Source" Value="Image/error.png"></Setter>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Type}" Value="{x:Static serviceLoaderMedpomData:TypeEntries.message}">
+                                                            <Setter Property="Source" Value="Image/ArrowRight.png"></Setter>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding Type}" Value="{x:Static serviceLoaderMedpomData:TypeEntries.warning}">
+                                                            <Setter Property="Source" Value="Image/alert.png"></Setter>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Image.Style>
+                                        </Image>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Дата и время" DisplayMemberBinding="{Binding TimeGenerated, StringFormat=dd.MM.yyyy HH:mm}" Width="Auto" />
+                            <GridViewColumn Header="Текст" DisplayMemberBinding="{Binding Message}" Width="Auto" />
+
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <TextBox x:Name="textBoxCountLog" HorizontalAlignment="Right" Height="23" Margin="0,0,29,0" TextWrapping="Wrap" Text="50" VerticalAlignment="Bottom" Width="42" HorizontalContentAlignment="Right"/>
+                <Button x:Name="buttonRefreshLog"  HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="24" RenderTransformOrigin="0.267,0.1" Height="23" Click="buttonRefreshLog_Click" Style="{DynamicResource ButtonUpd}"/>
+            </Grid>
+        </GroupBox>
+        <Menu Height="Auto" VerticalAlignment="Top">
+            <MenuItem Header="Действия">
+                <MenuItem Header="Подключить" x:Name="MenuItemConnect" Click="MenuItemConnect_Click"></MenuItem>
+                <MenuItem Header="Отключить" x:Name="MenuItemDisconnect" Click="MenuItemDisconnect_Click" ></MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="Закрыть программу" x:Name="MenuItemCloseApp" Click="MenuItemCloseApp_Click" ></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Дополнительно">
+                <MenuItem Header="Мониторинг реестров" x:Name="MenuItemMonitor" Click="MenuItemMonitor_OnClick"></MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="Прием санкций от СМО" x:Name="MenuItemSMOInvite" Click="MenuItemSMOInvite_OnClick"></MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="Выгрузка актов МЭК" x:Name="MenuItemActMEK" Click="MenuItemActMEK_Click" ></MenuItem>
+                <MenuItem Header="Выгрузка файлов МЭК" x:Name="MenuExportFileMEK" Click="MenuExportFileMEK_OnClick" ></MenuItem>
+                <Separator></Separator>
+                <MenuItem Header="Контроль объемов" x:Name="MenuVolumeControl" Click="MenuVolumeControl_OnClick" ></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Инструменты">
+                <MenuItem Header="Редактор XML схем" x:Name="MenuItemXSDCreator" Click="MenuItemXSDCreator_OnClick"></MenuItem>
+                <MenuItem Header="Печать XLSX" x:Name="MenuItemPrintXLSX" Click="MenuItemPrintXLSX_OnClick"></MenuItem>
+            </MenuItem>
+            <MenuItem Header="Управление доступом">
+                <MenuItem Header="Управление пользователями" x:Name="MenuItemEditUser" Click="MenuItemEditUser_Click" ></MenuItem>
+                
+            </MenuItem>
+        </Menu>
+        <GroupBox Header="Статус работы" Name="GroupBoxStatus" HorizontalAlignment="Right" Margin="0,23,0,125" Width="393">
+            <Grid>
+                <GroupBox Header="Параметры приема" Height="85" VerticalAlignment="Top">
+                    <Grid>
+                        <RadioButton Margin="0,5,0,0" Name="RadioButtonMainTypePriem" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="84">Основной</RadioButton>
+                        <RadioButton Margin="89,5,0,0" Name="RadioButtonPREDTypePriem" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="127">Предварительный</RadioButton>
+                        <Label  Content="Отчетный период" HorizontalAlignment="Left" Margin="0,27,0,0" VerticalAlignment="Top"/>
+                        <DatePicker HorizontalAlignment="Left" Margin="113,28,0,0" VerticalAlignment="Top" Name="DatePickerPERIOD" class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" />
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Тип захвата файлов" Margin="0,85,0,0" Height="75" VerticalAlignment="Top">
+                    <Grid>
+                        <RadioButton Margin="10,29,0,0" x:Name="RadioButtonFileAuto" Content="Автоматический" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
+                        <RadioButton Margin="10,4,0,0" x:Name="RadioButtonFileHand" Content="Ручной" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
+                        <Button x:Name="buttonFileAdd" Content="Добавить" HorizontalAlignment="Right" Margin="0,4,10,0" VerticalAlignment="Top" Width="114" Click="buttonFileAdd_Click" Style="{DynamicResource MainButton}" />
+                        <Button x:Name="buttonFileChangeMode" Content="Изменить" HorizontalAlignment="Right" Margin="0,28,10,0" VerticalAlignment="Top" Width="114" Click="buttonFileChangeMode_Click" Style="{DynamicResource MainButton}"/>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Старт/Остановка" Margin="0,160,0,0" VerticalAlignment="Top" Height="57">
+                    <Grid>
+                        <Button Name="ButtonStartProcess" Content="Запустить" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="114" Click="ButtonStartProcess_Click" Style="{DynamicResource MainButton}"/>
+                        <Button Name="ButtonStopProcess" Content="Остановить" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="114" Click="ButtonStopProcess_Click" Style="{DynamicResource MainButton}"/>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Статус" HorizontalAlignment="Left" Margin="0,217,0,0" Width="381">
+                    <Grid>
+                        <ListView Margin="0,0,0,26" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CollectionViewSourceStatusOP}}">
+                            <ListView.Resources>
+                                <Style TargetType="TextBlock" x:Key="StyleTextBlock">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Status}" Value="False">
+                                            <Setter Property="Foreground" Value="Red"></Setter>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Status}" Value="True">
+                                            <Setter Property="Foreground" Value="GreenYellow"></Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListView.Resources>
+                            <ListView.View>
+                                <GridView>
+
+
+                                    <GridViewColumn Header="Наименование операции"  Width="Auto" >
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock Text="{Binding NameOP}" Style="{Binding Mode=OneWay, Source={StaticResource StyleTextBlock}}"/>
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+                                    <GridViewColumn Header="Статус" Width="Auto" >
+                                        <GridViewColumn.CellTemplate>
+                                            <DataTemplate>
+                                                <TextBlock  Text="{Binding StatusText}" Style="{Binding Mode=OneWay, Source={StaticResource StyleTextBlock}}"  />
+                                            </DataTemplate>
+                                        </GridViewColumn.CellTemplate>
+                                    </GridViewColumn>
+
+                                </GridView>
+                            </ListView.View>
+                            <ListView.Style>
+                                <Style TargetType="ListView">
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{ Binding Status}" Value="True">
+                                            <Setter Property="Foreground" Value="LightGreen"></Setter>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{ Binding Status}" Value="False">
+                                            <Setter Property="Foreground" Value="Coral"></Setter>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </ListView.Style>
+                        </ListView>
+                        <Button x:Name="buttonRefreshStatus" Content="Обновить" Margin="0,0,-2,0" VerticalAlignment="Bottom" Height="21" Click="buttonRefreshStatus_Click" Style="{DynamicResource MainButton}"/>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Мониторинг работы" Name="GroupBoxMonitorWork" HorizontalAlignment="Right" Width="393" Height="120" VerticalAlignment="Bottom">
+            <Grid>
+                <Button Name="ButtonSetting" Content="Настройки" Margin="10,53,10,0" VerticalAlignment="Top" Click="Button_Click" Height="35" Style="{DynamicResource MainButton}"/>
+                <Button Name="ButtonWork" Content="Просмотр работы" Margin="10,10,10,0" VerticalAlignment="Top" Height="38" Style="{DynamicResource MainButton}" Click="ButtonWork_Click"/>
+            </Grid>
+        </GroupBox>
+
+    </Grid>
+</Window>

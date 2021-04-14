@@ -1,0 +1,8 @@
+-- Create sequence 
+create sequence SEQ_MEDPOM_CLIENT_ROLES_ID
+minvalue 0
+maxvalue 9999999999
+start with 41
+increment by 1
+cache 20
+order;

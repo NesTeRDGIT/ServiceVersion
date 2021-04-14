@@ -1,0 +1,545 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C82D4CA5-75C7-4049-926E-9C65474FB9C6}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ClientServise</RootNamespace>
+    <AssemblyName>ClientServise</AssemblyName>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkProfile>
+    </TargetFrameworkProfile>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
+    <PlatformTarget>x86</PlatformTarget>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <ApplicationIcon>doctor.ico</ApplicationIcon>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DocumentFormat.OpenXml, Version=2.9.0.0, Culture=neutral, PublicKeyToken=8fb06cb64d019a17, processorArchitecture=MSIL">
+      <HintPath>..\packages\DocumentFormat.OpenXml.2.9.0\lib\net40\DocumentFormat.OpenXml.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Ionic.Zip">
+      <HintPath>..\MedpomService\bin\Debug\Ionic.Zip.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=15.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Office.Interop.Excel.15.0.4795.1000\lib\net20\Microsoft.Office.Interop.Excel.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="NPOI, Version=1.2.5.0, Culture=neutral, PublicKeyToken=0df73ec7942b34e1, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\Загрузки\NPOI binary 2.1.3.1\dotnet4\NPOI.dll</HintPath>
+    </Reference>
+    <Reference Include="Oracle.ManagedDataAccess, Version=4.122.1.0, Culture=neutral, PublicKeyToken=89b483f429c47342, processorArchitecture=MSIL">
+      <HintPath>..\packages\Oracle.ManagedDataAccess.12.2.1100\lib\net40\Oracle.ManagedDataAccess.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.OracleClient" />
+    <Reference Include="System.DirectoryServices" />
+    <Reference Include="System.IdentityModel" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Remoting">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Runtime.Serialization">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.ServiceModel">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Deployment">
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="WindowsBase">
+      <Private>True</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="ACT_MEK.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ACT_MEK.Designer.cs">
+      <DependentUpon>ACT_MEK.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Class1.cs" />
+    <Compile Include="CompareFileXML.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="CompareFileXML.Designer.cs">
+      <DependentUpon>CompareFileXML.cs</DependentUpon>
+    </Compile>
+    <Compile Include="DataSet1.cs">
+      <DependentUpon>DataSet1.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="DataSet1.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataSet1.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="DataSetCompareFileXML.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataSetCompareFileXML.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Launcher\Launcher.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Launcher\Launcher.Designer.cs">
+      <DependentUpon>Launcher.cs</DependentUpon>
+    </Compile>
+    <Compile Include="LoginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="LoginForm.Designer.cs">
+      <DependentUpon>LoginForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="NewSchemaItem.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="NewSchemaItem.Designer.cs">
+      <DependentUpon>NewSchemaItem.cs</DependentUpon>
+    </Compile>
+    <Compile Include="PrepareReestr.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="PrepareReestr.Designer.cs">
+      <DependentUpon>PrepareReestr.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ProgressForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ProgressForm.Designer.cs">
+      <DependentUpon>ProgressForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Properties.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="ReflectClass.cs" />
+    <Compile Include="EdditProc.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="EdditProc.Designer.cs">
+      <DependentUpon>EdditProc.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ExcelManager.cs" />
+    <Compile Include="FilesManagerView.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FilesManagerView.Designer.cs">
+      <DependentUpon>FilesManagerView.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FolderDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="FolderDialog.Designer.cs">
+      <DependentUpon>FolderDialog.cs</DependentUpon>
+    </Compile>
+    <Compile Include="IWcfInterface.cs" />
+    <Compile Include="MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MainForm.Designer.cs">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="MonitorReestr.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="MonitorReestr.Designer.cs">
+      <DependentUpon>MonitorReestr.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Roles\DataSetROLES_EDIT.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>DataSetROLES_EDIT.xsd</DependentUpon>
+    </Compile>
+    <Compile Include="Roles\EditUser.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Roles\EditUser.Designer.cs">
+      <DependentUpon>EditUser.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Roles\MethodEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Roles\MethodEdit.Designer.cs">
+      <DependentUpon>MethodEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Roles\NewRoles.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Roles\NewRoles.Designer.cs">
+      <DependentUpon>NewRoles.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Roles\RoleEdit.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Roles\RoleEdit.Designer.cs">
+      <DependentUpon>RoleEdit.cs</DependentUpon>
+    </Compile>
+    <Compile Include="RusNumber.cs" />
+    <Compile Include="SANK_SMO\FindReestr.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SANK_SMO\FindReestr.Designer.cs">
+      <DependentUpon>FindReestr.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SANK_SMO\SANK_SETTING.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SANK_SMO\SANK_SETTING.Designer.cs">
+      <DependentUpon>SANK_SETTING.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SANK_SMO\SELECTER.cs" />
+    <Compile Include="SANK_SMO\SANK_INVITER2.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SANK_SMO\SANK_INVITER2.Designer.cs">
+      <DependentUpon>SANK_INVITER2.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SANK_SMO\TEST.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SANK_SMO\TEST.Designer.cs">
+      <DependentUpon>TEST.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SchemaEditor\XMLSchema.cs" />
+    <Compile Include="SchemaEditor\XMLshema.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SchemaEditor\XMLshema.Designer.cs">
+      <DependentUpon>XMLshema.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SettingForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SettingForm.designer.cs">
+      <DependentUpon>SettingForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ShowFileItemForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ShowFileItemForm.designer.cs">
+      <DependentUpon>ShowFileItemForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="SvodSMO.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="SvodSMO.Designer.cs">
+      <DependentUpon>SvodSMO.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Roles\USER_EDIT.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Roles\USER_EDIT.Designer.cs">
+      <DependentUpon>USER_EDIT.cs</DependentUpon>
+    </Compile>
+    <Compile Include="WordManager.cs" />
+    <EmbeddedResource Include="ACT_MEK.resx">
+      <DependentUpon>ACT_MEK.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="CompareFileXML.resx">
+      <DependentUpon>CompareFileXML.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="EdditProc.resx">
+      <DependentUpon>EdditProc.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FilesManagerView.resx">
+      <DependentUpon>FilesManagerView.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="FolderDialog.resx">
+      <DependentUpon>FolderDialog.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Launcher\Launcher.resx">
+      <DependentUpon>Launcher.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="LoginForm.resx">
+      <DependentUpon>LoginForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MainForm.resx">
+      <DependentUpon>MainForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="MonitorReestr.resx">
+      <DependentUpon>MonitorReestr.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="NewSchemaItem.resx">
+      <DependentUpon>NewSchemaItem.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="PrepareReestr.resx">
+      <DependentUpon>PrepareReestr.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ProgressForm.resx">
+      <DependentUpon>ProgressForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resources.resx</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <EmbeddedResource Include="Roles\EditUser.resx">
+      <DependentUpon>EditUser.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Roles\MethodEdit.resx">
+      <DependentUpon>MethodEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Roles\NewRoles.resx">
+      <DependentUpon>NewRoles.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Roles\RoleEdit.resx">
+      <DependentUpon>RoleEdit.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SANK_SMO\FindReestr.resx">
+      <DependentUpon>FindReestr.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SANK_SMO\SANK_SETTING.resx">
+      <DependentUpon>SANK_SETTING.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SANK_SMO\SANK_INVITER2.resx">
+      <DependentUpon>SANK_INVITER2.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SANK_SMO\TEST.resx">
+      <DependentUpon>TEST.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SchemaEditor\XMLshema.resx">
+      <DependentUpon>XMLshema.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SettingForm.resx">
+      <DependentUpon>SettingForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ShowFileItemForm.resx">
+      <DependentUpon>ShowFileItemForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="SvodSMO.resx">
+      <DependentUpon>SvodSMO.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Roles\USER_EDIT.resx">
+      <DependentUpon>USER_EDIT.cs</DependentUpon>
+    </EmbeddedResource>
+    <None Include="app.config" />
+    <None Include="DataSet1.xsc">
+      <DependentUpon>DataSet1.xsd</DependentUpon>
+    </None>
+    <None Include="DataSet1.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>DataSet1.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="DataSet1.xss">
+      <DependentUpon>DataSet1.xsd</DependentUpon>
+    </None>
+    <None Include="DataSetCompareFileXML.xsc">
+      <DependentUpon>DataSetCompareFileXML.xsd</DependentUpon>
+    </None>
+    <None Include="DataSetCompareFileXML.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>DataSetCompareFileXML.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="DataSetCompareFileXML.xss">
+      <DependentUpon>DataSetCompareFileXML.xsd</DependentUpon>
+    </None>
+    <None Include="packages.config" />
+    <None Include="Properties\DataSources\ServiceLoaderMedpomData.DataSetROLES_EDIT+MethodDataTable.datasource" />
+    <None Include="Properties\DataSources\ServiceLoaderMedpomData.SchemaElementValue.datasource" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Roles\DataSetROLES_EDIT.xsc">
+      <DependentUpon>DataSetROLES_EDIT.xsd</DependentUpon>
+    </None>
+    <None Include="Roles\DataSetROLES_EDIT.xsd">
+      <SubType>Designer</SubType>
+      <Generator>MSDataSetGenerator</Generator>
+      <LastGenOutput>DataSetROLES_EDIT.Designer.cs</LastGenOutput>
+    </None>
+    <None Include="Roles\DataSetROLES_EDIT.xss">
+      <DependentUpon>DataSetROLES_EDIT.xsd</DependentUpon>
+    </None>
+    <None Include="Properties\DataSources\ServiceLoaderMedpomData.FileH.datasource" />
+    <None Include="Properties\DataSources\ServiceLoaderMedpomData.FileItem.datasource" />
+    <None Include="Properties\DataSources\ServiceLoaderMedpomData.FileItemBase.datasource" />
+    <None Include="Properties\DataSources\ServiceLoaderMedpomData.FilePacket.datasource" />
+    <None Include="Properties\DataSources\ServiceLoaderMedpomData.OrclParam.datasource" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Узел.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DataTypeDate.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DataTypeDigit.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\DataTypeText.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Загрузить.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Обновить.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Сохранить Загрузить.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Сохранить.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Стрелка_вверх.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Стрелка_влево.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Стрелка_вниз.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Стрелка_вправо.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Удаление.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Удаление.всего.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\button_ok.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\error.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\WinRARCrach.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ArchiveInput.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\ArchiveNoName.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FileCrach.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FileInput.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\FileNoName.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\winrar.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\MYSL.ICO" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\MYSL1.ICO" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\player_play_4909.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Runs.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Загрузить.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Обновить.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Сохранить.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Стрелка_вверх.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Стрелка_влево.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Стрелка_вниз.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Стрелка_вправо.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Удаление.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="SchemaEditor\Image\Удаление.всего.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\edit-delete_3113.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="doctor.ico" />
+    <None Include="Resources\tfoms.jpg" />
+    <None Include="Resources\application-vndms-excel_5448.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\ServiceLoaderMedpomData\ServiceLoaderMedpomData.csproj">
+      <Project>{afbc0326-efd5-4737-a7d9-3784b9ac58a4}</Project>
+      <Name>ServiceLoaderMedpomData</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

@@ -1,0 +1,136 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xs:schema id="DataSetROLES_EDIT" targetNamespace="http://tempuri.org/DataSetROLES_EDIT.xsd" xmlns:mstns="http://tempuri.org/DataSetROLES_EDIT.xsd" xmlns="http://tempuri.org/DataSetROLES_EDIT.xsd" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" attributeFormDefault="qualified" elementFormDefault="qualified">
+  <xs:annotation>
+    <xs:appinfo source="urn:schemas-microsoft-com:xml-msdatasource">
+      <DataSource DefaultConnectionIndex="0" FunctionsComponentName="QueriesTableAdapter" Modifier="AutoLayout, AnsiClass, Class, Public" SchemaSerializationMode="IncludeSchema" xmlns="urn:schemas-microsoft-com:xml-msdatasource">
+        <Connections>
+          <Connection ConnectionStringObject="Data Source=den_NDV;Persist Security Info=True;User ID=xdb;Password=orcl;Unicode=True" IsAppSettingsProperty="false" Modifier="Assembly" Name="den_NDV.XDB" Provider="System.Data.OracleClient" />
+        </Connections>
+        <Tables />
+        <Sources />
+      </DataSource>
+    </xs:appinfo>
+  </xs:annotation>
+  <xs:element name="DataSetROLES_EDIT" msdata:IsDataSet="true" msdata:UseCurrentLocale="true" msprop:EnableTableAdapterManager="true" msprop:Generator_DataSetName="DataSetROLES_EDIT" msprop:Generator_UserDSName="DataSetROLES_EDIT">
+    <xs:complexType>
+      <xs:choice minOccurs="0" maxOccurs="unbounded">
+        <xs:element name="MEDPOM_CLIENT_ROLES" msprop:Generator_TableClassName="MEDPOM_CLIENT_ROLESDataTable" msprop:Generator_TableVarName="tableMEDPOM_CLIENT_ROLES" msprop:Generator_TablePropName="MEDPOM_CLIENT_ROLES" msprop:Generator_RowDeletingName="MEDPOM_CLIENT_ROLESRowDeleting" msprop:Generator_UserTableName="MEDPOM_CLIENT_ROLES" msprop:Generator_RowChangingName="MEDPOM_CLIENT_ROLESRowChanging" msprop:Generator_RowEvHandlerName="MEDPOM_CLIENT_ROLESRowChangeEventHandler" msprop:Generator_RowDeletedName="MEDPOM_CLIENT_ROLESRowDeleted" msprop:Generator_RowEvArgName="MEDPOM_CLIENT_ROLESRowChangeEvent" msprop:Generator_RowChangedName="MEDPOM_CLIENT_ROLESRowChanged" msprop:Generator_RowClassName="MEDPOM_CLIENT_ROLESRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnID" msprop:Generator_ColumnPropNameInRow="ID" msprop:Generator_ColumnPropNameInTable="IDColumn" msprop:Generator_UserColumnName="ID" type="xs:decimal" />
+              <xs:element name="ROLE_NAME" msprop:nullValue="_empty" msprop:Generator_ColumnPropNameInRow="ROLE_NAME" msprop:Generator_ColumnVarNameInTable="columnROLE_NAME" msprop:Generator_ColumnPropNameInTable="ROLE_NAMEColumn" msprop:Generator_UserColumnName="ROLE_NAME" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="ROLE_COMMENT" msprop:nullValue="_empty" msprop:Generator_ColumnPropNameInRow="ROLE_COMMENT" msprop:Generator_ColumnVarNameInTable="columnROLE_COMMENT" msprop:Generator_ColumnPropNameInTable="ROLE_COMMENTColumn" msprop:Generator_UserColumnName="ROLE_COMMENT" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="250" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="MEDPOM_CLIENT_USERS" msprop:Generator_TableClassName="MEDPOM_CLIENT_USERSDataTable" msprop:Generator_TableVarName="tableMEDPOM_CLIENT_USERS" msprop:Generator_TablePropName="MEDPOM_CLIENT_USERS" msprop:Generator_RowDeletingName="MEDPOM_CLIENT_USERSRowDeleting" msprop:Generator_UserTableName="MEDPOM_CLIENT_USERS" msprop:Generator_RowChangingName="MEDPOM_CLIENT_USERSRowChanging" msprop:Generator_RowEvHandlerName="MEDPOM_CLIENT_USERSRowChangeEventHandler" msprop:Generator_RowDeletedName="MEDPOM_CLIENT_USERSRowDeleted" msprop:Generator_RowEvArgName="MEDPOM_CLIENT_USERSRowChangeEvent" msprop:Generator_RowChangedName="MEDPOM_CLIENT_USERSRowChanged" msprop:Generator_RowClassName="MEDPOM_CLIENT_USERSRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnID" msprop:Generator_ColumnPropNameInRow="ID" msprop:Generator_ColumnPropNameInTable="IDColumn" msprop:Generator_UserColumnName="ID" type="xs:decimal" />
+              <xs:element name="PASS" msprop:Generator_ColumnVarNameInTable="columnPASS" msprop:Generator_ColumnPropNameInRow="PASS" msprop:Generator_ColumnPropNameInTable="PASSColumn" msprop:Generator_UserColumnName="PASS">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="40" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="NAME" msprop:Generator_ColumnVarNameInTable="columnNAME" msprop:Generator_ColumnPropNameInRow="NAME" msprop:Generator_ColumnPropNameInTable="NAMEColumn" msprop:Generator_UserColumnName="NAME">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="40" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="MEDPOM_CLIENT_US_ROL" msprop:Generator_TableClassName="MEDPOM_CLIENT_US_ROLDataTable" msprop:Generator_TableVarName="tableMEDPOM_CLIENT_US_ROL" msprop:Generator_TablePropName="MEDPOM_CLIENT_US_ROL" msprop:Generator_RowDeletingName="MEDPOM_CLIENT_US_ROLRowDeleting" msprop:Generator_UserTableName="MEDPOM_CLIENT_US_ROL" msprop:Generator_RowChangingName="MEDPOM_CLIENT_US_ROLRowChanging" msprop:Generator_RowEvHandlerName="MEDPOM_CLIENT_US_ROLRowChangeEventHandler" msprop:Generator_RowDeletedName="MEDPOM_CLIENT_US_ROLRowDeleted" msprop:Generator_RowEvArgName="MEDPOM_CLIENT_US_ROLRowChangeEvent" msprop:Generator_RowChangedName="MEDPOM_CLIENT_US_ROLRowChanged" msprop:Generator_RowClassName="MEDPOM_CLIENT_US_ROLRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="USER_ID" msprop:Generator_ColumnVarNameInTable="columnUSER_ID" msprop:Generator_ColumnPropNameInRow="USER_ID" msprop:Generator_ColumnPropNameInTable="USER_IDColumn" msprop:Generator_UserColumnName="USER_ID" type="xs:decimal" minOccurs="0" />
+              <xs:element name="ROLE_ID" msprop:Generator_ColumnVarNameInTable="columnROLE_ID" msprop:Generator_ColumnPropNameInRow="ROLE_ID" msprop:Generator_ColumnPropNameInTable="ROLE_IDColumn" msprop:Generator_UserColumnName="ROLE_ID" type="xs:decimal" minOccurs="0" />
+              <xs:element name="ROLE_NAME" msprop:nullValue="_empty" msprop:Generator_ColumnPropNameInRow="ROLE_NAME" msprop:Generator_ColumnVarNameInTable="columnROLE_NAME" msprop:Generator_ColumnPropNameInTable="ROLE_NAMEColumn" msprop:Generator_UserColumnName="ROLE_NAME" type="xs:string" minOccurs="0" />
+              <xs:element name="ROLE_COMMENT" msprop:nullValue="_empty" msprop:Generator_ColumnPropNameInRow="ROLE_COMMENT" msprop:Generator_ColumnVarNameInTable="columnROLE_COMMENT" msprop:Generator_ColumnPropNameInTable="ROLE_COMMENTColumn" msprop:Generator_UserColumnName="ROLE_COMMENT" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="MEDPOM_CLIENT_CLAIMS" msprop:Generator_TableClassName="MEDPOM_CLIENT_CLAIMSDataTable" msprop:Generator_TableVarName="tableMEDPOM_CLIENT_CLAIMS" msprop:Generator_TablePropName="MEDPOM_CLIENT_CLAIMS" msprop:Generator_RowDeletingName="MEDPOM_CLIENT_CLAIMSRowDeleting" msprop:Generator_UserTableName="MEDPOM_CLIENT_CLAIMS" msprop:Generator_RowChangingName="MEDPOM_CLIENT_CLAIMSRowChanging" msprop:Generator_RowEvHandlerName="MEDPOM_CLIENT_CLAIMSRowChangeEventHandler" msprop:Generator_RowDeletedName="MEDPOM_CLIENT_CLAIMSRowDeleted" msprop:Generator_RowEvArgName="MEDPOM_CLIENT_CLAIMSRowChangeEvent" msprop:Generator_RowChangedName="MEDPOM_CLIENT_CLAIMSRowChanged" msprop:Generator_RowClassName="MEDPOM_CLIENT_CLAIMSRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="ROLE_ID" msprop:Generator_ColumnVarNameInTable="columnROLE_ID" msprop:Generator_ColumnPropNameInRow="ROLE_ID" msprop:Generator_ColumnPropNameInTable="ROLE_IDColumn" msprop:Generator_UserColumnName="ROLE_ID" type="xs:decimal" />
+              <xs:element name="CLAIMS_ID" msprop:Generator_ColumnVarNameInTable="columnCLAIMS_ID" msprop:Generator_ColumnPropNameInRow="CLAIMS_ID" msprop:Generator_ColumnPropNameInTable="CLAIMS_IDColumn" msprop:Generator_UserColumnName="CLAIMS_ID" type="xs:decimal" />
+              <xs:element name="NAME" msprop:Generator_ColumnVarNameInTable="columnNAME" msprop:Generator_ColumnPropNameInRow="NAME" msprop:Generator_ColumnPropNameInTable="NAMEColumn" msprop:Generator_UserColumnName="NAME" type="xs:string" minOccurs="0" />
+              <xs:element name="Coment" msprop:Generator_ColumnVarNameInTable="columnComent" msprop:Generator_ColumnPropNameInRow="Coment" msprop:Generator_ColumnPropNameInTable="ComentColumn" msprop:Generator_UserColumnName="Coment" type="xs:string" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element name="Method" msprop:Generator_TableClassName="MethodDataTable" msprop:Generator_TableVarName="tableMethod" msprop:Generator_TablePropName="Method" msprop:Generator_RowDeletingName="MethodRowDeleting" msprop:Generator_UserTableName="Method" msprop:Generator_RowChangingName="MethodRowChanging" msprop:Generator_RowEvHandlerName="MethodRowChangeEventHandler" msprop:Generator_RowDeletedName="MethodRowDeleted" msprop:Generator_RowEvArgName="MethodRowChangeEvent" msprop:Generator_RowChangedName="MethodRowChanged" msprop:Generator_RowClassName="MethodRow">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element name="NAME" msprop:Generator_ColumnVarNameInTable="columnNAME" msprop:Generator_ColumnPropNameInRow="NAME" msprop:Generator_ColumnPropNameInTable="NAMEColumn" msprop:Generator_UserColumnName="NAME">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="50" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="COMENT" msprop:nullValue="_empty" msprop:Generator_ColumnPropNameInRow="COMENT" msprop:Generator_ColumnVarNameInTable="columnCOMENT" msprop:Generator_ColumnPropNameInTable="COMENTColumn" msprop:Generator_UserColumnName="COMENT" default="" minOccurs="0">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="250" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element name="ID" msdata:AutoIncrement="true" msdata:AutoIncrementSeed="-1" msdata:AutoIncrementStep="-1" msprop:Generator_ColumnVarNameInTable="columnID" msprop:Generator_ColumnPropNameInRow="ID" msprop:Generator_ColumnPropNameInTable="IDColumn" msprop:Generator_UserColumnName="ID" type="xs:decimal" minOccurs="0" />
+              <xs:element name="CHECKED" msprop:nullValue="_throw" msprop:Generator_ColumnPropNameInRow="CHECKED" msprop:Generator_ColumnVarNameInTable="columnCHECKED" msprop:Generator_ColumnPropNameInTable="CHECKEDColumn" msprop:Generator_UserColumnName="CHECKED" type="xs:boolean" minOccurs="0" />
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:choice>
+    </xs:complexType>
+    <xs:unique name="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:MEDPOM_CLIENT_ROLES" />
+      <xs:field xpath="mstns:ID" />
+    </xs:unique>
+    <xs:unique name="Constraint2">
+      <xs:selector xpath=".//mstns:MEDPOM_CLIENT_ROLES" />
+      <xs:field xpath="mstns:ROLE_NAME" />
+    </xs:unique>
+    <xs:unique name="MEDPOM_CLIENT_USERS_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:MEDPOM_CLIENT_USERS" />
+      <xs:field xpath="mstns:ID" />
+    </xs:unique>
+    <xs:unique name="MEDPOM_CLIENT_USERS_Constraint2" msdata:ConstraintName="Constraint2">
+      <xs:selector xpath=".//mstns:MEDPOM_CLIENT_USERS" />
+      <xs:field xpath="mstns:NAME" />
+    </xs:unique>
+    <xs:unique name="MEDPOM_CLIENT_CLAIMSKey1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:MEDPOM_CLIENT_CLAIMS" />
+      <xs:field xpath="mstns:ROLE_ID" />
+      <xs:field xpath="mstns:CLAIMS_ID" />
+    </xs:unique>
+    <xs:unique name="Method_Constraint1" msdata:ConstraintName="Constraint1" msdata:PrimaryKey="true">
+      <xs:selector xpath=".//mstns:Method" />
+      <xs:field xpath="mstns:NAME" />
+    </xs:unique>
+  </xs:element>
+  <xs:annotation>
+    <xs:appinfo>
+      <msdata:Relationship name="ROLE_ID" msdata:parent="MEDPOM_CLIENT_ROLES" msdata:child="MEDPOM_CLIENT_US_ROL" msdata:parentkey="ID" msdata:childkey="ROLE_ID" msprop:Generator_UserChildTable="MEDPOM_CLIENT_US_ROL" msprop:Generator_ChildPropName="GetMEDPOM_CLIENT_US_ROLRows" msprop:Generator_UserParentTable="MEDPOM_CLIENT_ROLES" msprop:Generator_UserRelationName="ROLE_ID" msprop:Generator_RelationVarName="relationROLE_ID" msprop:Generator_ParentPropName="MEDPOM_CLIENT_ROLESRow" />
+      <msdata:Relationship name="USER_ID" msdata:parent="MEDPOM_CLIENT_USERS" msdata:child="MEDPOM_CLIENT_US_ROL" msdata:parentkey="ID" msdata:childkey="USER_ID" msprop:Generator_UserChildTable="MEDPOM_CLIENT_US_ROL" msprop:Generator_ChildPropName="GetMEDPOM_CLIENT_US_ROLRows" msprop:Generator_UserParentTable="MEDPOM_CLIENT_USERS" msprop:Generator_UserRelationName="USER_ID" msprop:Generator_RelationVarName="relationUSER_ID" msprop:Generator_ParentPropName="MEDPOM_CLIENT_USERSRow" />
+      <msdata:Relationship name="MEDPOM_CLIENT_CLAIMS_R" msdata:parent="MEDPOM_CLIENT_ROLES" msdata:child="MEDPOM_CLIENT_CLAIMS" msdata:parentkey="ID" msdata:childkey="ROLE_ID" msprop:Generator_UserChildTable="MEDPOM_CLIENT_CLAIMS" msprop:Generator_ChildPropName="GetMEDPOM_CLIENT_CLAIMSRows" msprop:Generator_UserParentTable="MEDPOM_CLIENT_ROLES" msprop:Generator_UserRelationName="MEDPOM_CLIENT_CLAIMS_R" msprop:Generator_RelationVarName="relationMEDPOM_CLIENT_CLAIMS_R" msprop:Generator_ParentPropName="MEDPOM_CLIENT_ROLESRow" />
+    </xs:appinfo>
+  </xs:annotation>
+</xs:schema>

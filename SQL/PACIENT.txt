@@ -1,0 +1,7 @@
+-- Create sequence 
+create sequence PACIENT
+minvalue 1
+maxvalue 999999999999999999999999999
+start with 1247550
+increment by 1
+cache 20;

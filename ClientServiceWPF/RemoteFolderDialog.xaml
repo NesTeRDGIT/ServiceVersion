@@ -1,0 +1,57 @@
+﻿<Window x:Class="ClientServiceWPF.RemoteFolderDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientServiceWPF"
+        mc:Ignorable="d"
+        Name="this"
+        Title="Просмотр каталога..." Height="300" Width="300" Style="{DynamicResource StyleWindow}">
+    <Window.Resources>
+        <CollectionViewSource x:Key="CollectionViewSourceFiles" Source="{Binding ElementName=this, Path=FileItems}" d:DesignSource="{d:DesignInstance {x:Type local:FileItem}, CreateList=True}"></CollectionViewSource>
+    </Window.Resources>
+    <Grid>
+        <TextBox x:Name="textBoxPath" Height="23" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" IsReadOnly="True" Foreground="Gray"/>
+        <ListView x:Name="listView" Margin="0,28,0,50" MouseDoubleClick="listView_MouseDoubleClick" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CollectionViewSourceFiles}}">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="" Width="Auto">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Image Width="15" Height="15">
+                                    <Image.Style>
+                                        <Style TargetType="Image">
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static local:FileItemType.XML}">
+                                                    <Setter Property="Source" Value="Image/xml.png"></Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static local:FileItemType.Folder}">
+                                                    <Setter Property="Source" Value="Image/MYSL.ICO"></Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static local:FileItemType.XSD}">
+                                                    <Setter Property="Source" Value="Image/xml.png"></Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static local:FileItemType.ZIP}">
+                                                    <Setter Property="Source" Value="Image/winrar.png"></Setter>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Type}" Value="{x:Static local:FileItemType.Return}">
+                                                    <Setter Property="Source" Value="Image/undo.png"></Setter>
+                                                </DataTrigger>
+
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Image.Style>
+                                </Image>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+                    <GridViewColumn Header="Имя" DisplayMemberBinding="{Binding Name}" Width="Auto" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+        <ComboBox x:Name="comboBoxDrive" Height="20" VerticalAlignment="Bottom" IsEditable="True" SelectionChanged="comboBoxDrive_SelectionChanged" KeyUp="ComboBoxDrive_OnKeyUp" />
+        <Button x:Name="buttonOK" Content="OK" HorizontalAlignment="Left" Margin="0,0,0,25" VerticalAlignment="Bottom" Width="112" Click="buttonOK_Click" Style="{DynamicResource MainButton}"/>
+        <Button x:Name="buttonCancel" Content="Отмена" HorizontalAlignment="Right" Margin="0,0,0,25" VerticalAlignment="Bottom" Width="99" Click="buttonCancel_Click" Style="{DynamicResource MainButton}"/>
+
+    </Grid>
+</Window>

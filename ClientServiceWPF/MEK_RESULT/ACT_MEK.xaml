@@ -1,0 +1,104 @@
+﻿<Window x:Class="ClientServiceWPF.MEK_RESULT.ACT_MEK"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientServiceWPF"
+        xmlns:class="clr-namespace:ClientServiceWPF.Class"
+        xmlns:mekResult="clr-namespace:ClientServiceWPF.MEK_RESULT"
+        mc:Ignorable="d"
+        x:Name="this"
+        Title="Выгрузка актов МЭК" Height="530" Width="938" Loaded="this_Loaded" Style="{DynamicResource StyleWindow}">
+    <Window.Resources>
+        <CollectionViewSource x:Key="CollectionViewSourceACT_LIST" Source="{Binding ElementName=this, Path=MO_LIST}" d:DesignSource="{d:DesignInstance {x:Type mekResult:MO_ITEM}, CreateList=True}" ></CollectionViewSource>
+    </Window.Resources>
+    <Grid>
+        <GroupBox  Header="Период" HorizontalAlignment="Left" Height="96" VerticalAlignment="Top" Width="324">
+            <Grid>
+                <DatePicker class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="122" x:Name="DatePickerPERIOD"/>
+                <Button Name="ButtonRefresh" Margin="0,10,10,0" HorizontalAlignment="Right" Width="111" Height="25" VerticalAlignment="Top" Click="Button_Click" Style="{DynamicResource MainButton}">Обновить</Button>
+                <Button x:Name="button" Content="Выбор" HorizontalAlignment="Left" Margin="10,48,0,0" VerticalAlignment="Top" Width="75" Click="button_Click_1" Style="{DynamicResource MainButton}" />
+            </Grid>
+        </GroupBox>
+        <GroupBox  Header="Список Актов" HorizontalAlignment="Left" Width="324" Margin="0,101,0,34">
+            <Grid>
+                <ListView x:Name="ListBoxACT_LIST" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CollectionViewSourceACT_LIST}}" Margin="0,0,0,26" >
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="" Width="Auto">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <CheckBox IsChecked="{Binding IsSelect}"></CheckBox>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+                            <GridViewColumn Header="Код МО" DisplayMemberBinding="{Binding CODE_MO}" Width="Auto" />
+                            <GridViewColumn Header="Наименование МО" DisplayMemberBinding="{Binding NAME_MOK}" Width="Auto" />
+                            <GridViewColumn Header="Акт" DisplayMemberBinding="{Binding N_ACT}" Width="Auto"/>
+                            <GridViewColumn Header="Дата акта" DisplayMemberBinding="{Binding D_ACT,StringFormat=dd.MM.yyyy}" Width="Auto"/>
+
+                            <GridViewColumn Header="СМО" DisplayMemberBinding="{Binding SMO}" Width="Auto"/>
+                            <GridViewColumn Header="ZGLV_ID_BASE" Width="Auto">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Expander IsExpanded="False">
+                                            <ListBox ItemsSource="{Binding ZGLV_ID_BASE}">
+                                                <ListBox.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <TextBlock Text="{Binding}"></TextBlock>
+                                                    </DataTemplate>
+                                                </ListBox.ItemTemplate>
+                                                <ListBox.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Vertical"></StackPanel>
+                                                    </ItemsPanelTemplate>
+                                                </ListBox.ItemsPanel>
+                                            </ListBox>
+                                        </Expander>
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
+
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <Label  Content="{Binding Count, Mode=OneWay, Source={StaticResource CollectionViewSourceACT_LIST}}" HorizontalAlignment="Right" Margin="0,0,0,1" VerticalAlignment="Bottom" Width="126" HorizontalContentAlignment="Right"/>
+            </Grid>
+        </GroupBox>
+        <GroupBox  Header="Параметры выгрузки" Margin="329,0,10,0" VerticalAlignment="Top" Height="136">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="290*"/>
+                    <ColumnDefinition Width="289*"/>
+                </Grid.ColumnDefinitions>
+
+                <GroupBox Grid.Column="0" Header="Лицо ответственное за МЭК" VerticalAlignment="Top" Height="115">
+                    <Grid>
+                        <TextBox x:Name="textBoxISP_DOLG" Height="23" Margin="5,23,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+                        <Label  Content="Должность" FontSize="8" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top"/>
+                        <TextBox x:Name="textBoxISP_FIO" Height="23" Margin="5,69,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+                        <Label  Content="ФИО" FontSize="8" HorizontalAlignment="Left" Margin="5,51,0,0" VerticalAlignment="Top"/>
+                    </Grid>
+                </GroupBox>
+                <GroupBox Header="Руководитель ТФОМС" HorizontalAlignment="Left" VerticalAlignment="Top" Height="115" Width="289" Grid.Column="1">
+                    <Grid>
+                        <TextBox x:Name="textBoxRUK_DOLG" Height="23" Margin="5,23,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+                        <Label  Content="Должность" FontSize="8" HorizontalAlignment="Left" Margin="5,5,0,0" VerticalAlignment="Top"/>
+                        <TextBox x:Name="textBoxRUK_FIO" Height="23" Margin="5,69,10,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top"/>
+                        <Label  Content="ФИО" FontSize="8" HorizontalAlignment="Left" Margin="5,51,0,0" VerticalAlignment="Top"/>
+                    </Grid>
+                </GroupBox>
+            </Grid>
+        </GroupBox>
+        <Button x:Name="buttonSave" Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,10,43" VerticalAlignment="Bottom" Width="117" Height="26" Click="buttonSave_Click" Style="{DynamicResource MainButton}"/>
+        <StatusBar Height="29" VerticalAlignment="Bottom">
+            <StackPanel Orientation="Horizontal">
+                <ProgressBar Name="StatusProgressBar1" Width="200"></ProgressBar>
+                <TextBlock  Name="StatusTextBlock1" Margin="5,0,5,0"></TextBlock>
+                <ProgressBar  Name="StatusProgressBar2" Width="200"></ProgressBar>
+                <TextBlock Name="StatusTextBlock2" Margin="5,0,5,0"></TextBlock>
+            </StackPanel>
+        </StatusBar>
+
+    </Grid>
+</Window>

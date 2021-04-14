@@ -1,0 +1,925 @@
+<?xml version="1.0" encoding="utf-8"?>
+<xs:schema xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+  <xs:simpleType name="OS_SLUCH">
+    <xs:restriction base="xs:decimal">
+      <xs:totalDigits value="1" />
+      <xs:minInclusive value="0" />
+      <xs:maxExclusive value="10" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="SL_ID">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="36" />
+      <xs:minLength value="0" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:simpleType name="CODE_EXP">
+    <xs:restriction base="xs:string">
+      <xs:maxLength value="8" />
+      <xs:minLength value="0" />
+    </xs:restriction>
+  </xs:simpleType>
+  <xs:element name="ZL_LIST">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element msprop:Orders="0" minOccurs="1" name="ZGLV">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="1" name="VERSION">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="5" />
+                    <xs:minLength value="1" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="DATA">
+                <xs:simpleType>
+                  <xs:restriction base="xs:date">
+                    <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                    <xs:maxExclusive value="2030-12-31" />
+                    <xs:minExclusive value="1900-01-01" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="FILENAME">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="26" />
+                    <xs:minLength value="1" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="SD_Z">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="9" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="1000000000" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element msprop:Orders="0" minOccurs="1" name="SCHET">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="1" name="CODE">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="8" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="100000000" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="CODE_MO">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="6" />
+                    <xs:minLength value="1" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="YEAR">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="4" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="10000" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="MONTH">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="2" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="100" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="NSCHET">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="15" />
+                    <xs:minLength value="1" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="DSCHET">
+                <xs:simpleType>
+                  <xs:restriction base="xs:date">
+                    <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                    <xs:maxExclusive value="2030-12-31" />
+                    <xs:minExclusive value="1900-01-01" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="0" name="PLAT" nillable="true">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="5" />
+                    <xs:minLength value="0" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="SUMMAV">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="15" />
+                    <xs:fractionDigits value="2" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="10000000000000" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="0" name="COMENTS" nillable="true">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="250" />
+                    <xs:minLength value="0" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="0" name="SUMMAP" nillable="true">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="15" />
+                    <xs:fractionDigits value="2" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="10000000000000" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="0" name="SANK_MEK" nillable="true">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="15" />
+                    <xs:fractionDigits value="2" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="10000000000000" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="0" name="SANK_MEE" nillable="true">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="15" />
+                    <xs:fractionDigits value="2" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="10000000000000" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="0" name="SANK_EKMP" nillable="true">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="15" />
+                    <xs:fractionDigits value="2" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="10000000000000" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="0" name="DISP" nillable="true">
+                <xs:simpleType>
+                  <xs:restriction base="xs:string">
+                    <xs:maxLength value="3" />
+                    <xs:minLength value="0" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+        <xs:element msprop:Orders="0" minOccurs="1" maxOccurs="unbounded" name="ZAP">
+          <xs:complexType>
+            <xs:sequence>
+              <xs:element minOccurs="1" name="N_ZAP">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="8" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="100000000" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element minOccurs="1" name="PR_NOV">
+                <xs:simpleType>
+                  <xs:restriction base="xs:decimal">
+                    <xs:totalDigits value="1" />
+                    <xs:minInclusive value="0" />
+                    <xs:maxExclusive value="10" />
+                    <xs:enumeration value="0" />
+                    <xs:enumeration value="1" />
+                  </xs:restriction>
+                </xs:simpleType>
+              </xs:element>
+              <xs:element msprop:Orders="2" minOccurs="1" name="PACIENT">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="1" name="ID_PAC">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="36" />
+                          <xs:minLength value="1" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="VPOLIS">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="1" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="10" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="SPOLIS" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="10" />
+                          <xs:minLength value="0" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="NPOLIS">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="20" />
+                          <xs:minLength value="1" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="ST_OKATO" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="5" />
+                          <xs:minLength value="0" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="SMO" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="5" />
+                          <xs:minLength value="0" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="SMO_OGRN" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="15" />
+                          <xs:minLength value="0" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="SMO_OK" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="5" />
+                          <xs:minLength value="0" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="SMO_NAM" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="100" />
+                          <xs:minLength value="0" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="NOVOR">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="9" />
+                          <xs:minLength value="1" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
+              <xs:element msprop:Orders="2" minOccurs="1" name="Z_SL">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="1" name="IDCASE">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="11" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="100000000000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="VIDPOM">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="4" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="10000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="LPU">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="6" />
+                          <xs:minLength value="1" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="VBR">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="1" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="10" />
+                          <xs:enumeration value="0" />
+                          <xs:enumeration value="1" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="DATE_Z_1">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:date">
+                          <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                          <xs:maxExclusive value="2030-12-31" />
+                          <xs:minExclusive value="1900-01-01" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="DATE_Z_2">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:date">
+                          <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                          <xs:maxExclusive value="2030-12-31" />
+                          <xs:minExclusive value="1900-01-01" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="P_OTK">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="1" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="10" />
+                          <xs:enumeration value="1" />
+                          <xs:enumeration value="0" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="RSLT_D" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="2" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="100" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" maxOccurs="unbounded" name="OS_SLUCH" nillable="true">
+                      <xs:complexType>
+                        <xs:simpleContent msdata:ColumnName="OS_SLUCH" msdata:Ordinal="0" msprop:Orders="8">
+                          <xs:extension base="OS_SLUCH" />
+                        </xs:simpleContent>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element msprop:Orders="8" minOccurs="1" maxOccurs="unbounded" name="SL">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element minOccurs="1" name="SL_ID">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="36" />
+                                <xs:minLength value="1" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="LPU_1" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="8" />
+                                <xs:minLength value="0" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="NHISTORY">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="50" />
+                                <xs:minLength value="1" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="DATE_1">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:date">
+                                <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                                <xs:maxExclusive value="2030-12-31" />
+                                <xs:minExclusive value="1900-01-01" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="DATE_2">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:date">
+                                <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                                <xs:maxExclusive value="2030-12-31" />
+                                <xs:minExclusive value="1900-01-01" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="DS1" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="10" />
+                                <xs:minLength value="0" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="DS1_PR" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="1" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10" />
+                                <xs:enumeration value="1" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="DS_ONK">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="1" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10" />
+                                <xs:enumeration value="1" />
+                                <xs:enumeration value="0" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="PR_D_N" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="1" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10" />
+                                <xs:enumeration value="1" />
+                                <xs:enumeration value="2" />
+                                <xs:enumeration value="3" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element msprop:Orders="9" minOccurs="0" maxOccurs="unbounded" name="DS2_N" nillable="true">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element minOccurs="1" name="DS2">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="20" />
+                                      <xs:minLength value="1" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="DS2_PR" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="1" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="10" />
+                                      <xs:enumeration value="1" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="1" name="PR_DS2_N">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="1" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="10" />
+                                      <xs:enumeration value="1" />
+                                      <xs:enumeration value="2" />
+                                      <xs:enumeration value="3" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element msprop:Orders="9" minOccurs="0" maxOccurs="unbounded" name="NAZ" nillable="true">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element minOccurs="1" name="NAZ_N">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="2" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="100" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="1" name="NAZ_R">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="2" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="100" />
+                                      <xs:enumeration value="1" />
+                                      <xs:enumeration value="2" />
+                                      <xs:enumeration value="3" />
+                                      <xs:enumeration value="4" />
+                                      <xs:enumeration value="5" />
+                                      <xs:enumeration value="6" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="NAZ_SP" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="4" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="10000" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="NAZ_V" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="1" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="10" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="NAZ_USL" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="15" />
+                                      <xs:minLength value="0" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="NAPR_DATE" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:date">
+                                      <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                                      <xs:maxExclusive value="2030-12-31" />
+                                      <xs:minExclusive value="1900-01-01" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="NAPR_MO" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="6" />
+                                      <xs:minLength value="0" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="NAZ_PMP" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="3" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="1000" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="NAZ_PK" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="3" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="1000" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="ED_COL" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="5" />
+                                <xs:fractionDigits value="2" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="1000" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="TARIF" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="15" />
+                                <xs:fractionDigits value="2" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10000000000000" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="SUM_M">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="15" />
+                                <xs:fractionDigits value="2" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10000000000000" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element msprop:Orders="12" minOccurs="1" maxOccurs="unbounded" name="USL">
+                            <xs:complexType>
+                              <xs:sequence>
+                                <xs:element minOccurs="1" name="IDSERV">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="36" />
+                                      <xs:minLength value="1" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="1" name="LPU">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="6" />
+                                      <xs:minLength value="1" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="LPU_1" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="8" />
+                                      <xs:minLength value="0" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="1" name="DATE_IN">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:date">
+                                      <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                                      <xs:maxExclusive value="2030-12-31" />
+                                      <xs:minExclusive value="1900-01-01" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="1" name="DATE_OUT">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:date">
+                                      <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                                      <xs:maxExclusive value="2030-12-31" />
+                                      <xs:minExclusive value="1900-01-01" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="1" name="P_OTK">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="1" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="10" />
+                                      <xs:enumeration value="0" />
+                                      <xs:enumeration value="1" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="1" name="CODE_USL">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="20" />
+                                      <xs:minLength value="1" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="1" name="TARIF">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="15" />
+                                      <xs:fractionDigits value="2" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="10000000000000" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="1" name="SUMV_USL">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="15" />
+                                      <xs:fractionDigits value="2" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="10000000000000" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="PRVS" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:decimal">
+                                      <xs:totalDigits value="9" />
+                                      <xs:minInclusive value="0" />
+                                      <xs:maxExclusive value="1000000000" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="CODE_MD" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="25" />
+                                      <xs:minLength value="0" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                                <xs:element minOccurs="0" name="COMENTU" nillable="true">
+                                  <xs:simpleType>
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="250" />
+                                      <xs:minLength value="0" />
+                                    </xs:restriction>
+                                  </xs:simpleType>
+                                </xs:element>
+                              </xs:sequence>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="COMENTSL" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="250" />
+                                <xs:minLength value="0" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                      <xs:unique name="IDSERV">
+                        <xs:selector xpath="USL" />
+                        <xs:field xpath="IDSERV" />
+                      </xs:unique>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="IDSP">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="2" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="100" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="SUMV">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="15" />
+                          <xs:fractionDigits value="2" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="10000000000000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="OPLATA" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="1" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="10" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="SUMP" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="15" />
+                          <xs:fractionDigits value="2" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="10000000000000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element msprop:Orders="12" minOccurs="0" name="SANK" nillable="true">
+                      <xs:complexType>
+                        <xs:sequence>
+                          <xs:element minOccurs="1" name="S_CODE">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="30" />
+                                <xs:minLength value="1" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="S_SUM">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="15" />
+                                <xs:fractionDigits value="2" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10000000000000" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="S_TIP">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="2" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="100" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" maxOccurs="unbounded" name="SL_ID" nillable="true">
+                            <xs:complexType>
+                              <xs:simpleContent msdata:ColumnName="SL_ID" msdata:Ordinal="0" msprop:Orders="3">
+                                <xs:extension base="SL_ID" />
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="S_OSN">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="3" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="1000" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="DATE_ACT">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:date">
+                                <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
+                                <xs:maxExclusive value="2030-12-31" />
+                                <xs:minExclusive value="1900-01-01" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="NUM_ACT">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="30" />
+                                <xs:minLength value="1" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" maxOccurs="unbounded" name="CODE_EXP" nillable="true">
+                            <xs:complexType>
+                              <xs:simpleContent msdata:ColumnName="CODE_EXP" msdata:Ordinal="0" msprop:Orders="6">
+                                <xs:extension base="CODE_EXP" />
+                              </xs:simpleContent>
+                            </xs:complexType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="S_COM" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="250" />
+                                <xs:minLength value="0" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="1" name="S_IST">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="1" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                        </xs:sequence>
+                      </xs:complexType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="SANK_IT" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="15" />
+                          <xs:fractionDigits value="2" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="10000000000000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+                <xs:unique name="SL_ID">
+                  <xs:selector xpath="SL" />
+                  <xs:field xpath="SL_ID" />
+                </xs:unique>
+                <xs:unique name="S_CODE">
+                  <xs:selector xpath="SANK" />
+                  <xs:field xpath="S_CODE" />
+                </xs:unique>
+              </xs:element>
+            </xs:sequence>
+          </xs:complexType>
+        </xs:element>
+      </xs:sequence>
+    </xs:complexType>
+    <xs:unique name="IDCASE">
+      <xs:selector xpath="ZAP/Z_SL" />
+      <xs:field xpath="IDCASE" />
+    </xs:unique>
+    <xs:unique name="N_ZAP">
+      <xs:selector xpath="ZAP" />
+      <xs:field xpath="N_ZAP" />
+    </xs:unique>
+  </xs:element>
+</xs:schema>

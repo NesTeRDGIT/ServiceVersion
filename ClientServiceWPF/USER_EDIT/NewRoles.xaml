@@ -1,0 +1,19 @@
+﻿<Window x:Class="ClientServiceWPF.USER_EDIT.NewRoles"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientServiceWPF.USER_EDIT"
+        mc:Ignorable="d"
+        Style="{DynamicResource StyleWindow}"
+        Title="Роль" Height="143.726" Width="350" Loaded="Window_Loaded" >
+    <Grid>
+        <Label Content="Имя роли" Height="28" HorizontalAlignment="Left" Margin="12,12,0,0" Name="label1" VerticalAlignment="Top" />
+        <Label Content="Комментарий" Height="28" HorizontalAlignment="Left" Margin="12,46,0,0" Name="label2" VerticalAlignment="Top" />
+        <TextBox Height="23" Margin="103,12,10,0" Name="textBox1" VerticalAlignment="Top" />
+        <TextBox Height="23" Margin="103,48,10,0" Name="textBox2" VerticalAlignment="Top" />
+        <Button Content="Принять" Height="23" HorizontalAlignment="Left" Margin="10,0,0,4" Name="button1" VerticalAlignment="Bottom" Width="75" Click="button1_Click" Style="{DynamicResource MainButton}" />
+        <Button Content="Отменить" Height="23" Margin="257,0,10,4" Name="button2" VerticalAlignment="Bottom" Click="button2_Click" Style="{DynamicResource MainButton}" />
+    </Grid>
+</Window>
+

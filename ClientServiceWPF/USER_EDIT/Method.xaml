@@ -1,0 +1,55 @@
+﻿<Window x:Class="ClientServiceWPF.USER_EDIT.Method"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientServiceWPF.USER_EDIT"
+        xmlns:wcf="clr-namespace:ServiceLoaderMedpomData;assembly=ServiceLoaderMedpomData"
+        mc:Ignorable="d"
+        Name="this"
+        Style="{DynamicResource StyleWindow}"
+        Title="Методы" Height="432" Width="700" Loaded="Window_Loaded">
+    <Window.Resources>
+        <CollectionViewSource x:Key="eXIST_METHODViewSource" Source="{Binding Path=EXIST_METHOD, ElementName=this}"  d:DesignSource="{d:DesignInstance {x:Type wcf:METHOD}, CreateList=True}"  />
+    </Window.Resources>
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="329*"/>
+            <ColumnDefinition Width="363*"/>
+        </Grid.ColumnDefinitions>
+        <Button Content="Принять изменения" HorizontalAlignment="Left" Margin="12,0,0,12" Name="button1" Width="183" Click="button1_Click" Height="24" VerticalAlignment="Bottom" Style="{DynamicResource MainButton}" />
+        <GroupBox Header="Методы" Margin="12,12,3,42" Name="groupBox1">
+            <Grid>
+                <DataGrid AutoGenerateColumns="False" EnableRowVirtualization="True" ItemsSource="{Binding Mode=OneWay, Source={StaticResource eXIST_METHODViewSource}}" Margin="6,6,6,7" Name="eXIST_METHODDataGrid" RowDetailsVisibilityMode="VisibleWhenSelected" CanUserAddRows="False" CanUserDeleteRows="False">
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Удалить" Click="MenuItem_Click" />
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn x:Name="idColumn" Binding="{Binding Path=ID}" Header="ИД" IsReadOnly="True" Width="SizeToHeader" />
+                        <DataGridTextColumn x:Name="nameColumn" Binding="{Binding Path=NAME}" Header="Наименование" Width="SizeToHeader" />
+                        <DataGridTextColumn x:Name="commentColumn" Binding="{Binding Path=COMENT}" Header="Описание" Width="SizeToHeader" />
+                    </DataGrid.Columns>
+                    <DataGrid.RowStyle>
+                        <Style TargetType="{x:Type DataGridRow}">
+
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Path=CHECKED}" Value="false">
+                                    <Setter Property="Background" Value="#FFF59494" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </DataGrid.RowStyle>
+                </DataGrid>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Доступные" Margin="3,12,16,42" Name="groupBox2" Grid.Column="1">
+            <Grid>
+                <ListBox Margin="132,6,6,7" Name="listBoxmetod" SelectionMode="Extended" />
+                <TextBox Height="23" HorizontalAlignment="Left" Margin="6,6,0,0" Name="textBoxComm" VerticalAlignment="Top" Width="120" />
+                <Button Content="&lt;&lt;&lt;&lt;" Height="23" HorizontalAlignment="Left" Margin="6,35,0,0" Name="button2" VerticalAlignment="Top" Width="75" Click="button2_Click" Style="{DynamicResource MainButton}" />
+            </Grid>
+        </GroupBox>
+    </Grid>
+</Window>

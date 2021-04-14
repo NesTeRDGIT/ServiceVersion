@@ -1,0 +1,24 @@
+﻿<Window x:Class="ClientServiceWPF.NewSchemaItem"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientServiceWPF"
+        mc:Ignorable="d"
+        Title="Добавить схему" Height="173.524" Width="474.527" Style="{DynamicResource StyleWindow}">
+    <Grid>
+        <GroupBox Header="Параметры" VerticalAlignment="Top" Height="110">
+            <Grid>
+                <TextBox x:Name="textBoxPathXSD" Height="23" Margin="107,6,33,0" TextWrapping="Wrap" Text="" IsReadOnly="True" VerticalAlignment="Top"/>
+                <DatePicker x:Name="DatePickerD_BEG" HorizontalAlignment="Left" Margin="107,32,0,0" VerticalAlignment="Top" Width="117"/>
+                <DatePicker x:Name="DatePickerD_END" HorizontalAlignment="Left" Margin="107,59,0,0" VerticalAlignment="Top" Width="117"/>
+                <Label  Content="Путь к схеме" HorizontalAlignment="Left" Margin="0,6,0,0" VerticalAlignment="Top"/>
+                <Label  Content="Дата начала" HorizontalAlignment="Left" Margin="0,32,0,0" VerticalAlignment="Top"/>
+                <Label  Content="Дата окончания" HorizontalAlignment="Left" Margin="0,58,0,0" VerticalAlignment="Top"/>
+                <Button Content="ОК" Margin="0,6,5,0" VerticalAlignment="Top" Style="{DynamicResource BrouseButton}" Click="button32_Click" HorizontalAlignment="Right" Width="23" Height="23"/>
+            </Grid>
+        </GroupBox>
+        <Button x:Name="button" Content="ОК" Margin="0,0,0,3" VerticalAlignment="Bottom" Style="{DynamicResource MainButton}" Click="button_Click"/>
+
+    </Grid>
+</Window>

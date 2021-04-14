@@ -1,0 +1,8 @@
+-- Create sequence 
+create sequence SEQ_MEDPOM_CLIENT_USERS_ID
+minvalue 0
+maxvalue 9999999999999
+start with 141
+increment by 1
+cache 20
+order;

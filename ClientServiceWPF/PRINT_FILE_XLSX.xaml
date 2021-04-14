@@ -1,0 +1,56 @@
+﻿<Window x:Class="ClientServiceWPF.PRINT_FILE_XLSX"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientServiceWPF"
+        mc:Ignorable="d"
+        Name="this"
+        Title="Печать файлов XLSX" Height="539.333" Width="640.407" Style="{DynamicResource StyleWindow}" Closing="PRINT_FILE_XLSX_OnClosing">
+    <Window.Resources>
+        <CollectionViewSource x:Key="CVSFiles" Source="{Binding ElementName=this, Path=FilePrintXLS}" d:DesignSource="{d:DesignInstance {x:Type local:FilePrintXLS}, CreateList=True}"  ></CollectionViewSource>
+    </Window.Resources>
+    <Grid>
+        <ListView Margin="0,0,0,242" Name="ListView" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSFiles}}" KeyUp="ListView_OnKeyUp">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Статус" DisplayMemberBinding="{Binding IsPRINT}" Width="Auto" />
+                    <GridViewColumn Header="Имя файла" DisplayMemberBinding="{Binding FileName}" Width="Auto" />
+                    <GridViewColumn Header="Страниц" DisplayMemberBinding="{Binding CountPage}" Width="Auto" />
+                    <GridViewColumn Header="Путь к файлу" DisplayMemberBinding="{Binding FilePath}" Width="Auto"/>
+                </GridView>
+            </ListView.View>
+            <ListView.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Удалить..." Name="MenuItemDelete" Click="MenuItemDelete_OnClick"></MenuItem>
+                    <MenuItem Header="Очистить..." Name="MenuItemClear" Click="MenuItemClear_OnClick"></MenuItem>
+                </ContextMenu>
+            </ListView.ContextMenu>
+        </ListView>
+        <Button Content="Добавить файлы" Margin="0,0,0,128" Height="42" VerticalAlignment="Bottom" Style="{DynamicResource MainButton}" Name="ButtonAddFiles" Click="ButtonAddFiles_OnClick"></Button>
+        <Button  Height="42" VerticalAlignment="Bottom" Margin="0,0,0,32" Name="ButtonPrint" Click="ButtonPrint_OnClick">
+            <Button.Style>
+                <Style TargetType="Button" BasedOn="{StaticResource MainButton}">
+                    <Setter Property="Content" Value="Печать"></Setter>
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding ElementName=this, Path=IsPrinting}" Value="True">
+                            <Setter Property="Content" Value="Прервать"></Setter>
+                        </DataTrigger>
+                        <DataTrigger Binding="{Binding ElementName=this, Path=IsPrinting}" Value="False">
+                            <Setter Property="Content" Value="Печать"></Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Button.Style>
+        </Button>
+        <Label  Padding="0" Content="{Binding Items.Count, ElementName=ListView, Mode=OneWay}" HorizontalAlignment="Right" Margin="0,0,10,220" VerticalAlignment="Bottom" Width="207" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
+        <StatusBar Height="27" VerticalAlignment="Bottom">
+            <ProgressBar Height="20" Width="300" Name="ProgressBar"></ProgressBar>
+            <Label Padding="0" Name="LabelProgress"></Label>
+            <Label Padding="0" Name="LabelProgress2"></Label>
+        </StatusBar>
+        <TextBlock  Text="{Binding StringFormat=Всего {0} страниц, Path=CountPageAll, ElementName=this, Mode=OneWay}" HorizontalAlignment="Right" Margin="0,0,10,199" VerticalAlignment="Bottom" Width="207" TextAlignment="Right" />
+        <Button Content="Рассчитать кол-во страниц" Margin="0,0,0,81" Height="42" VerticalAlignment="Bottom" Style="{DynamicResource MainButton}" x:Name="ButtonPageCount" Click="ButtonPageCount_Click" />
+
+    </Grid>
+</Window>

@@ -1,0 +1,90 @@
+﻿<Window x:Class="ClientServiceWPF.USER_EDIT.USER_ROLE"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ClientServiceWPF.USER_EDIT"
+        xmlns:wcf="clr-namespace:ServiceLoaderMedpomData;assembly=ServiceLoaderMedpomData"
+        mc:Ignorable="d"
+        Name="this"
+        Title="Роли пользователей" Height="600" Width="1168" Loaded="Window_Loaded" Style="{DynamicResource StyleWindow}">
+    <Window.Resources>
+
+        <CollectionViewSource x:Key="USERSViewSource"  Source="{Binding Path=Users, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type wcf:USERS}, CreateList=True}" />
+        <CollectionViewSource x:Key="ROLESViewSource"  CollectionViewType="ListCollectionView" Source="{Binding Path=Roles,  ElementName=this}" Filter="CollectionViewSourceRoles_Filter" d:DesignSource="{d:DesignInstance {x:Type wcf:ROLES}, CreateList=True}"/>
+        <CollectionViewSource x:Key="USERS_ROLESViewSource"  CollectionViewType="ListCollectionView" Source="{Binding Path=Roles,  ElementName=this}" Filter="CollectionViewSourceUSERS_ROLES_Filter" d:DesignSource="{d:DesignInstance {x:Type wcf:ROLES}, CreateList=True}" />
+    </Window.Resources>
+    <Grid >
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="167*"/>
+            <ColumnDefinition Width="187*"/>
+            <ColumnDefinition Width="226*"/>
+        </Grid.ColumnDefinitions>
+        <Button Content="Редактор ролей" Margin="0,0,12,9" Name="button1" Click="button1_Click" Height="23" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="221" Grid.Column="2" Style="{DynamicResource MainButton}" />
+        <Button Content="Принять" HorizontalAlignment="Left" Margin="12,0,0,9" Name="button2" Width="138" Click="button2_Click" Height="23" VerticalAlignment="Bottom" Style="{DynamicResource MainButton}" />
+        <GroupBox Header="Пользователи" Margin="12,5,3,38" Name="groupBox1">
+            <Grid>
+                <Grid>
+                        <DataGrid AutoGenerateColumns="False" EnableRowVirtualization="True" ItemsSource="{Binding Source={StaticResource USERSViewSource}}" Margin="5,6,6,6" Name="cLIENT_USERSDataGrid" RowDetailsVisibilityMode="VisibleWhenSelected" IsReadOnly="True" SelectionChanged="cLIENT_USERSDataGrid_SelectionChanged">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn x:Name="nameColumn" Binding="{Binding Path=NAME}" Header="Имя пользователя" Width="Auto" />
+                                <DataGridTextColumn x:Name="passColumn" Binding="{Binding Path=PASS}" Header="Пароль" Width="Auto" />
+                                <DataGridTextColumn x:Name="IDColumn" Binding="{Binding Path=ID}" Header="ID" Width="Auto" />
+                            </DataGrid.Columns>
+                            <DataGrid.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Добавить" Click="MenuItem_Click" />
+                                    <MenuItem Header="Изменить" Click="MenuItem_Click_1" />
+                                    <Separator></Separator>
+                                    <MenuItem Header="Удалить" Click="MenuItem_Click_2" />
+                                </ContextMenu>
+                            </DataGrid.ContextMenu>
+
+                            <DataGrid.RowStyle>
+                                <Style TargetType="{x:Type DataGridRow}">
+                                    <Setter Property="Background" Value="#FFF59494" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Path=DATE_E}" Value="{x:Null}">
+                                            <Setter Property="Background" Value="White" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=ID}" Value="-1">
+                                            <Setter Property="Background" Value="Goldenrod" />
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Path=Modyfi}" Value="True">
+                                            <Setter Property="Background" Value="Goldenrod" />
+                                        </DataTrigger>
+
+                                    </Style.Triggers>
+                                </Style>
+                            </DataGrid.RowStyle>
+                        </DataGrid>
+                    </Grid>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Доступные роли" Margin="3,5,12,38" Name="groupBox5" Grid.Column="2">
+            <Grid>
+                <DataGrid AutoGenerateColumns="False" EnableRowVirtualization="True" ItemsSource="{Binding Mode=OneWay, Source={StaticResource ROLESViewSource}}" Margin="6,6,6,18" Name="cLIENT_ROLESDataGrid" RowDetailsVisibilityMode="VisibleWhenSelected" IsReadOnly="True" MouseDoubleClick="cLIENT_ROLESDataGrid_MouseDoubleClick">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn x:Name="role_nameColumn" Binding="{Binding Path=ROLE_NAME}" Header="Имя роли" Width="Auto" />
+                        <DataGridTextColumn x:Name="role_commentColumn" Binding="{Binding Path=ROLE_COMMENT}" Header="Комментарий" Width="Auto" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </Grid>
+        </GroupBox>
+        <GroupBox Header="Членство в ролях" Margin="3,5,3,38" Name="groupBox6" Grid.Column="1">
+            <Grid>
+                <DataGrid AutoGenerateColumns="False" EnableRowVirtualization="True" ItemsSource="{Binding Mode=OneWay, Source={StaticResource USERS_ROLESViewSource}}" Margin="6,6,6,18" Name="cLIENT_US_ROLDataGrid" RowDetailsVisibilityMode="VisibleWhenSelected" IsReadOnly="True" Background="#FFECE9D8">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn x:Name="role_nColumn" Binding="{Binding Path=ROLE_NAME}" Header="Имя роли" Width="Auto" />
+                        <DataGridTextColumn x:Name="role_ComColumn" Binding="{Binding Path=ROLE_COMMENT}" Header="Комментарий" Width="Auto" />
+                    </DataGrid.Columns>
+                    <DataGrid.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Удалить" Click="MenuItem_Click_3" />
+                        </ContextMenu>
+                    </DataGrid.ContextMenu>
+                </DataGrid>
+            </Grid>
+        </GroupBox>
+    </Grid>
+</Window>
