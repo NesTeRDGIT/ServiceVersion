@@ -605,7 +605,7 @@ namespace ClientServiceWPF.MEK_RESULT
                 efm.PrintCell(4, 1, $"за период с {Start:dd.MM.yyyy} по {End:dd.MM.yyyy}", null);
                 var StyleLeftText = efm.CreateType(new FontOpenXML() {size = 10, fontname = "Times New Roman", HorizontalAlignment = HorizontalAlignmentV.Left}, new BorderOpenXML(), null);
                 var StyleCenterNumeric = efm.CreateType(new FontOpenXML() {size = 10, fontname = "Times New Roman", HorizontalAlignment = HorizontalAlignmentV.Center, Format = (uint) DefaultNumFormat.F4}, new BorderOpenXML(), null);
-                var pp = 0;
+             
                 decimal usl_1 = 0;
                 decimal usl_2 = 0;
                 decimal usl_3 = 0;

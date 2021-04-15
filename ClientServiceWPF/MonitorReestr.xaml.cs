@@ -157,7 +157,7 @@ namespace ClientServiceWPF
             }
             catch (Exception ex)
             {
-               throw new Exception($"");
+               throw new Exception($"Ошибка получения V_NOT_REESTR_MEDSERV_row: {ex.Message}");
             }
         }
         public string CODE_MO { get; set; }

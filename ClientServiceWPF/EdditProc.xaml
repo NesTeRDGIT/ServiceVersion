@@ -25,14 +25,13 @@
         </GroupBox>
         <GroupBox Header="Параметры" Margin="0,190,0,28">
             <Grid>
-                <DataGrid x:Name="dataGrid" Margin="0,0,35,185" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSPARAM}}" AutoGenerateColumns="False" IsReadOnly="True" SelectionChanged="dataGrid_SelectionChanged">
+                <DataGrid x:Name="dataGrid" Margin="0,0,35,185" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSPARAM}}" AutoGenerateColumns="False" IsReadOnly="True" CanUserDeleteRows="True" SelectionChanged="dataGrid_SelectionChanged">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Имя" Binding="{Binding Name}"></DataGridTextColumn>
                         <DataGridTextColumn Header="Тип данных" Binding="{Binding Type}"></DataGridTextColumn>
                         <DataGridTextColumn Header="Тип значения" Binding="{Binding ValueType}"></DataGridTextColumn>
                         <DataGridTextColumn Header="Значение" Binding="{Binding value}"></DataGridTextColumn>
                         <DataGridTextColumn Header="Комментарий" Binding="{Binding Comment}"></DataGridTextColumn>
-
                     </DataGrid.Columns>
                 </DataGrid>
                 <Button x:Name="buttonToUp" Content="Button" HorizontalAlignment="Right" VerticalAlignment="Top" Width="30" Style="{DynamicResource ButtonArrowUp}" Click="buttonToUp_Click"/>

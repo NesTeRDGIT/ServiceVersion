@@ -29,8 +29,6 @@ namespace ClientServiceWPF
     /// </summary>
     public partial class Setting : Window
     {
-        private bool changed;
-
         private IWcfInterface wcf => LoginForm.wcf;
 
         private SchemaColection sc;
@@ -236,7 +234,7 @@ namespace ClientServiceWPF
         private void buttonORA_OK_Click(object sender, RoutedEventArgs e)
         {
             AppConfig.Property.ConnectionString = ReadLocalConnect();
-            changed = true;
+           
         }
 
         private void buttonORA_Return_Click(object sender, RoutedEventArgs e)
