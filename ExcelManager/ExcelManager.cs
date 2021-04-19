@@ -7,6 +7,7 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.IO;
 using System.Text.RegularExpressions;
+using DocumentFormat.OpenXml.CustomProperties;
 using DocumentFormat.OpenXml.Drawing;
 using DocumentFormat.OpenXml.Validation;
 using Alignment = DocumentFormat.OpenXml.Spreadsheet.Alignment;
@@ -444,8 +445,29 @@ namespace ExcelManager
         SpreadsheetDocument document;
         WorkbookStylesPart stylesPart;
 
-        
-       
+        public void MarkAsFinal(bool value)
+        {
+            var cfpp = document.CustomFilePropertiesPart ?? document.AddCustomFilePropertiesPart();
+            if(cfpp.Properties==null)
+                cfpp.Properties = new Properties();
+            if (cfpp.Properties.NamespaceDeclarations.Count(x=>x.Key=="vt")==0)
+                cfpp.Properties.AddNamespaceDeclaration("vt", "http://schemas.openxmlformats.org/officeDocument/2006/docPropsVTypes");
+
+            var _MarkAsFinal = cfpp.Properties.Elements<CustomDocumentProperty>().FirstOrDefault(x => x.Name == "_MarkAsFinal");
+            if (_MarkAsFinal == null && value)
+            {
+                _MarkAsFinal = new CustomDocumentProperty() { FormatId = "{D5CDD505-2E9C-101B-9397-08002B2CF9AE}", PropertyId = 2, Name = "_MarkAsFinal" };
+                var vtBool1 = new DocumentFormat.OpenXml.VariantTypes.VTBool {Text = value ? "true" : "false"};
+                _MarkAsFinal.AppendChild(vtBool1);
+                cfpp.Properties.AddChild(_MarkAsFinal);
+            }
+            if (_MarkAsFinal != null && !value)
+            {
+                _MarkAsFinal.Remove();
+            }
+        }
+
+      
 
         /// <summary>
         /// Валидация документа WORD
@@ -1101,6 +1123,29 @@ namespace ExcelManager
             if (styleid.HasValue)
                 cell.StyleIndex = styleid.Value;          
            
+        }
+
+        /// <summary>
+        /// Вставить значение
+        /// </summary>
+        /// <param name="RowI">Строка</param>
+        /// <param name="Cell">Столбец</param>
+        /// <param name="value">Значение</param>
+        /// <param name="styleid">Стиль</param>
+        public void PrintCell(uint RowI, uint Cell, DateTime? value, uint? styleid)
+        {
+            PrintCell(GetRow(RowI), GetColumnAddr(Cell), value, styleid);
+        }
+        /// <summary>
+        /// Вставить значение
+        /// </summary>
+        /// <param name="RowI">Строка</param>
+        /// <param name="Cell">Столбец</param>
+        /// <param name="value">Значение</param>
+        /// <param name="styleid">Стиль</param>
+        public void PrintCell(uint RowI, string Cell, DateTime? value, uint? styleid)
+        {
+            PrintCell(GetRow(RowI), Cell, value, styleid);
         }
         /// <summary>
         /// Вставить значение

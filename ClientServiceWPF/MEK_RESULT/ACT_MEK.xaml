@@ -65,7 +65,7 @@
                 <Label  Content="{Binding Count, Mode=OneWay, Source={StaticResource CollectionViewSourceACT_LIST}}" HorizontalAlignment="Right" Margin="0,0,0,1" VerticalAlignment="Bottom" Width="126" HorizontalContentAlignment="Right"/>
             </Grid>
         </GroupBox>
-        <GroupBox  Header="Параметры выгрузки" Margin="329,0,10,0" VerticalAlignment="Top" Height="136">
+        <GroupBox  Header="Параметры выгрузки" Margin="329,0,10,0" VerticalAlignment="Top" Height="247">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="290*"/>
@@ -88,6 +88,8 @@
                         <Label  Content="ФИО" FontSize="8" HorizontalAlignment="Left" Margin="5,51,0,0" VerticalAlignment="Top"/>
                     </Grid>
                 </GroupBox>
+                <CheckBox Grid.Column="0" x:Name="checkBoxMEKThread" Content="Выгружать акты МЭК" HorizontalAlignment="Left" Margin="0,119,0,0" VerticalAlignment="Top"  IsChecked="True"/>
+                <CheckBox Grid.Column="0" x:Name="checkBoxDopMekThread" Content="Выгружать дополнение к акту МЭК" HorizontalAlignment="Left" Margin="0,139,0,0" VerticalAlignment="Top" IsChecked="True"/>
             </Grid>
         </GroupBox>
         <Button x:Name="buttonSave" Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,10,43" VerticalAlignment="Bottom" Width="117" Height="26" Click="buttonSave_Click" Style="{DynamicResource MainButton}"/>
@@ -97,6 +99,8 @@
                 <TextBlock  Name="StatusTextBlock1" Margin="5,0,5,0"></TextBlock>
                 <ProgressBar  Name="StatusProgressBar2" Width="200"></ProgressBar>
                 <TextBlock Name="StatusTextBlock2" Margin="5,0,5,0"></TextBlock>
+                <ProgressBar  Name="StatusProgressBar3" Width="200"></ProgressBar>
+                <TextBlock Name="StatusTextBlock3" Margin="5,0,5,0"></TextBlock>
             </StackPanel>
         </StatusBar>
 

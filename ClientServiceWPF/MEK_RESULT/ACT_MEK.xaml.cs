@@ -8,6 +8,7 @@ using System.Windows;
 using System.Windows.Data;
 using System.Windows.Forms;
 using ClientServiceWPF.Class;
+using DocumentFormat.OpenXml.Math;
 using ExcelManager;
 using Oracle.ManagedDataAccess.Client;
 using MessageBox = System.Windows.MessageBox;
@@ -19,9 +20,11 @@ namespace ClientServiceWPF.MEK_RESULT
     /// </summary>
     public partial class ACT_MEK : Window
     {
+        private SyncThread syncThread;
         public ACT_MEK()
         {
             InitializeComponent();
+            syncThread = new SyncThread(OnEndThread);
         }
 
         private CollectionViewSource CollectionViewSourceACT_LIST;
@@ -111,17 +114,380 @@ namespace ClientServiceWPF.MEK_RESULT
             return new PODPISANT() {DOLG_ISP = textBoxISP_DOLG.Text, DOLG_RUK = textBoxRUK_DOLG.Text, FIO_ISP = textBoxISP_FIO.Text, FIO_RUK = textBoxRUK_FIO.Text};
         }
 
-        System.Windows.Forms.FolderBrowserDialog fbd = new FolderBrowserDialog();
+        FolderBrowserDialog fbd = new FolderBrowserDialog();
 
+
+        class  MEK_PARAMth
+        {
+            public string SelectedPath { get; set; }
+            public List<MO_ITEM> Items { get; set; }
+            public PODPISANT Podpisant { get; set; }
+        }
+
+        class DOP_MEK_PARAMth
+        {
+            public string SelectedPath { get; set; }
+            public int Year { get; set; }
+            public int Month { get; set; }
+        }
+
+       
         private void buttonSave_Click(object sender, RoutedEventArgs e)
         {
-            if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+            var IsMEK = checkBoxMEKThread.IsChecked == true;
+            var isDopMEK = checkBoxDopMekThread.IsChecked == true;
+            if (IsMEK || isDopMEK)
             {
-                var selectItem = MO_LIST.Where(x => x.IsSelect).ToList();
-                buttonSave.IsEnabled = false;
-                var th = new Thread(Export) {IsBackground = true};
-                th.Start(new object[] {fbd.SelectedPath, selectItem, ReadPodpisant()});
-                SaveParam();
+              
+                if (!DatePickerPERIOD.SelectedDate.HasValue && isDopMEK)
+                {
+                    MessageBox.Show("Для выгрузки дополнительных файлов к МЭК, необходимо установить дату");
+                    return;
+                }
+                    
+                if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+                {
+                    buttonSave.IsEnabled = false;
+                    syncThread.ClearProcess();
+                    syncThread.SelectFolder = fbd.SelectedPath;
+                    if (IsMEK)
+                    {
+                        var selectItem = MO_LIST.Where(x => x.IsSelect).ToList();
+                        var th = new Thread(Export) { IsBackground = true };
+                        syncThread.AddProcess("Export");
+                        th.Start(new MEK_PARAMth { SelectedPath =fbd.SelectedPath, Items = selectItem, Podpisant = ReadPodpisant() });
+                        SaveParam();
+                    }
+                    if (isDopMEK)
+                    {
+                       
+                        var th = new Thread(ExportDop) { IsBackground = true };
+                        syncThread.AddProcess("ExportDop");
+                        th.Start(new DOP_MEK_PARAMth { SelectedPath = fbd.SelectedPath, Year = DatePickerPERIOD.SelectedDate.Value.Year, Month = DatePickerPERIOD.SelectedDate.Value.Month});
+                    }
+                }
+            }
+         
+        }
+
+        private void OnEndThread(string SelectFolder)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                buttonSave.IsEnabled = true;
+                if (MessageBox.Show("Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    ShowSelectedInExplorer.FileOrFolder(SelectFolder);
+                }
+            });
+        }
+
+      
+
+        class  ThreadWork
+        {
+            public string Name { get; set; }
+            public bool isEND { get; set; }
+        }
+
+        class SyncThread
+        {
+
+            public delegate void EndFunct(string SelectFolder);
+
+            public event EndFunct end;
+
+            public SyncThread(EndFunct end)
+            {
+                this.end = end;
+            }
+
+            private List<ThreadWork> ths { get; set; } = new List<ThreadWork>();
+
+            public string SelectFolder { get; set; }
+
+            public void EndProcess(string name)
+            {
+                lock (ths)
+                {
+                    var item = ths.FirstOrDefault(x => x.Name == name);
+                    if (item != null) item.isEND = true;
+                    CheckEnd();
+                }
+               
+            }
+            public void ClearProcess()
+            {
+                lock (ths)
+                {
+                    ths.Clear();
+                }
+            }
+            public void AddProcess(string name)
+            {
+                lock (ths)
+                {
+                    ths.Add(new ThreadWork { Name = name });
+                }
+            }
+
+            private void CheckEnd()
+            {
+                if (ths.Count(x => !x.isEND)==0)
+                {
+                   end?.Invoke(SelectFolder);
+                }
+            }
+        }
+
+
+        private class СrossingHeadRow
+        {
+            public СrossingHeadRow(CrossingRow row)
+            {
+                YEAR = row.YEAR;
+                MONTH = row.MONTH;
+                CODE_MO = row.CODE_MO;
+                NAM_MOK = row.NAM_MOK;
+            }
+
+            public int YEAR { get; set; }
+            public int MONTH { get; set; }
+            public string CODE_MO { get; set; }
+            public string NAM_MOK { get; set; }
+
+            private int HashCode => $"{CODE_MO}{YEAR}{MONTH}".GetHashCode();
+
+            public override int GetHashCode()
+            {
+                return HashCode;
+            }
+            public override bool Equals(object obj)
+            {
+                return Equals(obj as СrossingHeadRow);
+            }
+
+            public bool Equals(СrossingHeadRow obj)
+            {
+                return obj != null && obj.HashCode == this.HashCode;
+            }
+
+        }
+
+
+        private class CrossingRow
+        {
+            public static List<CrossingRow> Get(IEnumerable<DataRow> rows)
+            {
+                return rows.Select(Get).ToList();
+            }
+            public static CrossingRow Get(DataRow row)
+            {
+                try
+                {
+                    var item = new CrossingRow();
+                    item.YEAR = Convert.ToInt32(row["YEAR"]);
+                    item.MONTH = Convert.ToInt32(row["MONTH"]);
+                    item.SLUCH_Z_ID = Convert.ToInt64(row["SLUCH_Z_ID"]);
+                    item.CODE_MO = Convert.ToString(row["CODE_MO"]);
+                    item.NAM_MOK = Convert.ToString(row["NAM_MOK"]);
+                    item.POLIS = Convert.ToString(row["POLIS"]);
+                    item.FAM = Convert.ToString(row["FAM"]);
+                    item.IM = Convert.ToString(row["IM"]);
+                    item.OT = Convert.ToString(row["OT"]);
+                    item.DR = Convert.ToDateTime(row["DR"]);
+                    item.IDCASE = Convert.ToInt64(row["IDCASE"]);
+                    item.NHISTORY = Convert.ToString(row["NHISTORY"]);
+                    item.USL_OK = Convert.ToInt32(row["USL_OK"]);
+                    item.USL_OK_NAME = Convert.ToString(row["USL_OK_NAME"]);
+                    item.DATE_1 = Convert.ToDateTime(row["DATE_1"]);
+                    item.DATE_2 = Convert.ToDateTime(row["DATE_2"]);
+                    item.CROS_CODE_MO = Convert.ToString(row["CROS_CODE_MO"]);
+                    item.CROS_NAM_MOK = Convert.ToString(row["CROS_NAM_MOK"]);
+                    item.CROS_NHISTORY = Convert.ToString(row["CROS_NHISTORY"]);
+                    item.CROS_USL_OK = Convert.ToInt32(row["CROS_USL_OK"]);
+                    item.CROS_USL_OK_NAME = Convert.ToString(row["CROS_USL_OK_NAME"]);
+                    return item;
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception($"Ошибка получения СrossingRow: {ex.Message}", ex);
+                }
+            }
+
+            public int YEAR { get; set; }
+            public int MONTH { get; set; }
+            public long SLUCH_Z_ID { get; set; }
+            public string CODE_MO { get; set; }
+            public string NAM_MOK { get; set; }
+            public string POLIS { get; set; }
+            public string FAM { get; set; }
+            public string IM { get; set; }
+            public string OT { get; set; }
+            public DateTime DR { get; set; }
+            public long IDCASE { get; set; }
+            public string NHISTORY  { get; set; }
+            public int USL_OK { get; set; }
+            public string USL_OK_NAME { get; set; }
+            public DateTime DATE_1 { get; set; }
+            public DateTime DATE_2 { get; set; }
+            public string CROS_CODE_MO { get; set; }
+            public string CROS_NAM_MOK { get; set; }
+            public string CROS_NHISTORY { get; set; }
+            public int CROS_USL_OK { get; set; }
+            public string CROS_USL_OK_NAME { get; set; }
+        }
+
+        Dictionary<СrossingHeadRow, List<CrossingRow>> GetV_Сrossing(int YEAR, int MONTH)
+        {
+            var oda = new OracleDataAdapter($"select * from table(ACT_MEK.crossing({YEAR},{MONTH}))", AppConfig.Property.ConnectionString);
+            var tbl = new DataTable();
+            oda.Fill(tbl);
+            var dic = new Dictionary<СrossingHeadRow, List<CrossingRow>>();
+            var list = CrossingRow.Get(tbl.Select());
+            foreach (var row in list)
+            {
+                var h = new СrossingHeadRow(row);
+                if(!dic.ContainsKey(h))
+                    dic.Add(h, new List<CrossingRow>());
+                dic[h].Add(row);
+            }
+            return dic;
+        }
+
+
+        private void ExportDop(object obj)
+        {
+            try
+            {
+                var param = (DOP_MEK_PARAMth)obj;
+                var path = System.IO.Path.Combine(param.SelectedPath, "Дополнения к актам");
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+                Dispatcher.Invoke(() =>
+                {
+                    StatusTextBlock3.Text = "Запрос данных о пересечениях";
+                    StatusProgressBar3.IsIndeterminate = true;
+                });
+                var dic = GetV_Сrossing(param.Year, param.Month);
+              
+                Dispatcher.Invoke(() => { StatusProgressBar3.IsIndeterminate = false; StatusTextBlock3.Text = ""; StatusProgressBar3.Maximum = dic.Keys.Count; });
+
+
+                int i = 1;
+                foreach (var item in dic)
+                {
+                    Dispatcher.Invoke(() =>
+                    {
+                        StatusProgressBar3.Value = i;
+                        StatusTextBlock3.Text = $"Выгрузка дополнения к актам для: {item.Key.CODE_MO} за {item.Key.YEAR}_{item.Key.MONTH:00}";
+                    });
+                    var pathFile = CorrectFileName($"Дополнение к актам МЭК за  {item.Key.YEAR}_{item.Key.MONTH:00} для {item.Key.CODE_MO}.xlsx");
+                    CreateFileСrossing(System.IO.Path.Combine(path, pathFile), item.Value);
+                    i++;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Dispatcher.Invoke(() => { MessageBox.Show(ex.Message); });
+            }
+            finally
+            {
+                Dispatcher.Invoke(() =>
+                {
+                    StatusProgressBar3.Value = 0;
+                    StatusTextBlock3.Text = StatusTextBlock2.Text = "";
+                    StatusProgressBar3.IsIndeterminate = false;
+                });
+                syncThread.EndProcess("ExportDop");
+            }
+        }
+
+        private void CreateFileСrossing(string path, List<CrossingRow> List)
+        {
+            using (var xls = new ExcelOpenXML(path, "Пересечения"))
+            {
+               var StyleHeader = xls.CreateType(new FontOpenXML() {Bold = true, HorizontalAlignment = HorizontalAlignmentV.Center, VerticalAlignment = VerticalAlignmentV.Center, fontname = "Times New Roman", size = 10}, new BorderOpenXML(), null);
+               var StyleText = xls.CreateType(new FontOpenXML() {  HorizontalAlignment = HorizontalAlignmentV.Left, VerticalAlignment = VerticalAlignmentV.Center, fontname = "Times New Roman", size = 10 }, new BorderOpenXML(), null);
+               var StyleDate = xls.CreateType(new FontOpenXML() { HorizontalAlignment = HorizontalAlignmentV.Left, VerticalAlignment = VerticalAlignmentV.Center, fontname = "Times New Roman", size = 10, Format = (uint)DefaultNumFormat.F14}, new BorderOpenXML(), null);
+               uint RowIndex = 1;
+               xls.PrintCell(RowIndex, 1, "Пересечение случаев оказанной медицинской помощи", StyleHeader); xls.AddMergedRegion(new CellRangeAddress(RowIndex, 1, RowIndex, 19));
+               RowIndex++;
+               xls.PrintCell(RowIndex, 2, "Снятие", StyleHeader); xls.AddMergedRegion(new CellRangeAddress(RowIndex, 2, RowIndex, 14));
+               xls.PrintCell(RowIndex, 15, "На основании случая", StyleHeader); xls.AddMergedRegion(new CellRangeAddress(RowIndex, 15, RowIndex, 19));
+               RowIndex++;
+               uint ColIndex = 1;
+               xls.PrintCell(RowIndex, ColIndex, "№", StyleHeader);ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Код МО", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Наименование", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Полис", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Фамилия", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Имя", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Отчество", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "ДР", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "IDCASE", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "№ истории", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Усл.ок.", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Наименование", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Дата начала", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Дата окончания", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Код МО", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Наименование", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Усл.ок.", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "Наименование", StyleHeader); ColIndex++;
+               xls.PrintCell(RowIndex, ColIndex, "№ истории", StyleHeader); 
+
+                xls.SetColumnWidth(1, 4);
+                xls.SetColumnWidth(2, 7);
+                xls.SetColumnWidth(3, 37);
+                xls.SetColumnWidth(4, 16);
+                xls.SetColumnWidth(5, 17);
+                xls.SetColumnWidth(6, 17);
+                xls.SetColumnWidth(7, 17);
+                xls.SetColumnWidth(8, 14);
+                xls.SetColumnWidth(9, 9);
+                xls.SetColumnWidth(10, 20);
+                xls.SetColumnWidth(11, 7);
+                xls.SetColumnWidth(12, 19);
+                xls.SetColumnWidth(13, 14);
+                xls.SetColumnWidth(14, 14);
+                xls.SetColumnWidth(15, 7);
+                xls.SetColumnWidth(16, 37);
+                xls.SetColumnWidth(17, 7);
+                xls.SetColumnWidth(18, 19);
+                xls.SetColumnWidth(19, 20);
+
+
+                var i = 0;
+               foreach (var row in List)
+               {
+                   RowIndex++;
+                   ColIndex = 1;
+                   i++;
+                   xls.PrintCell(RowIndex, ColIndex, i, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.CODE_MO, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.NAM_MOK, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.POLIS, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.FAM, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.IM, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.OT, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.DR, StyleDate);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex,(double)row.IDCASE, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.NHISTORY, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.USL_OK, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.USL_OK_NAME, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.DATE_1, StyleDate);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.DATE_2, StyleDate);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.CROS_CODE_MO, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.CROS_NAM_MOK, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.CROS_USL_OK, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.CROS_USL_OK_NAME, StyleText);ColIndex++;
+                   xls.PrintCell(RowIndex, ColIndex, row.CROS_NHISTORY, StyleText);
+
+               }
+               xls.MarkAsFinal(true);
+               xls.Save();
             }
         }
 
@@ -203,9 +569,16 @@ namespace ClientServiceWPF.MEK_RESULT
         {
             try
             {
-                var SelectFolder = ((object[]) obj)[0].ToString();
-                var selectItem = (List<MO_ITEM>) ((object[]) obj)[1];
-                var podpisant = (PODPISANT) ((object[]) obj)[2];
+                var param = (MEK_PARAMth) obj;
+                var path = Path.Combine(param.SelectedPath, "Акты МЭК");
+                if (!Directory.Exists(path))
+                    Directory.CreateDirectory(path);
+                var pathSVOD = System.IO.Path.Combine(path, "Своды");
+                if (!Directory.Exists(pathSVOD))
+                    Directory.CreateDirectory(pathSVOD);
+
+                var selectItem = param.Items;
+                var podpisant = param.Podpisant;
                 Dispatcher.Invoke(() =>
                 {
                     StatusProgressBar1.Value = 0;
@@ -225,28 +598,16 @@ namespace ClientServiceWPF.MEK_RESULT
                         StatusProgressBar1.Value = i;
                         StatusTextBlock1.Text = $"Выгрузка акта для: {item.NAME_MOK}";
                     });
-                    var pathFile = CorrectFileName($"Акт МЭК за {new DateTime(item.YEAR, item.MONTH, 1):yyyy_MM} для {item.CODE_MO}_{item.SMO} №{item.N_ACT} от {item.D_ACT:dd.MM.yyyy} .xlsx");
-                    CreateActMEK(item, System.IO.Path.Combine(SelectFolder, pathFile), podpisant, svod, NAPR_FROM_MO);
+                    var pathFile = CorrectFileName($"Заключение МЭК за {new DateTime(item.YEAR, item.MONTH, 1):yyyy_MM} для {item.CODE_MO}_{item.SMO} №{item.N_ACT} от {item.D_ACT:dd.MM.yyyy} .xlsx");
+                    CreateActMEK(item, System.IO.Path.Combine(path, pathFile), podpisant, svod, NAPR_FROM_MO);
                     i++;
                 }
-
-                string pathSVOD = System.IO.Path.Combine(SelectFolder, "Своды");
-                if (!Directory.Exists(pathSVOD))
-                    Directory.CreateDirectory(pathSVOD);
 
                 foreach (var sv in svod)
                 {
                     Dispatcher.Invoke(() => { StatusTextBlock1.Text = $"Выгрузка сводного акта для {sv.Key}"; });
-                    CreateActSVOD(sv.Value, System.IO.Path.Combine(pathSVOD, $"Акт МЭК СВОД для {sv.Key}.xlsx"), podpisant);
+                    CreateActSVOD(sv.Value, System.IO.Path.Combine(pathSVOD, $"Заключение МЭК СВОД для {sv.Key}.xlsx"), podpisant);
                 }
-               
-                Dispatcher.Invoke(() =>
-                {
-                    if (MessageBox.Show("Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    {
-                        ShowSelectedInExplorer.FileOrFolder(SelectFolder);
-                    }
-                });
             }
             catch (Exception ex)
             {
@@ -257,10 +618,10 @@ namespace ClientServiceWPF.MEK_RESULT
             {
                 Dispatcher.Invoke(() =>
                 {
-                    buttonSave.IsEnabled = true;
                     StatusProgressBar1.Value = StatusProgressBar2.Value = 0;
                     StatusTextBlock1.Text = StatusTextBlock2.Text = "";
                 });
+                syncThread.EndProcess("Export");
             }
         }
 
@@ -806,6 +1167,7 @@ namespace ClientServiceWPF.MEK_RESULT
                 CreateRazdel2(efm, item, FOND_INFO, par, DEFECT, podpisant);
                 Dispatcher.Invoke(() => { StatusTextBlock2.Text = "Создание файла:(Реестр актов)"; });
                 CreateReestrAct(efm, item, FOND_INFO, par, DEFECT, podpisant);
+                efm.MarkAsFinal(true);
                 efm.Save();
                 Dispatcher.Invoke(() =>
                 {

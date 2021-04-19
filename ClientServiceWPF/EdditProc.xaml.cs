@@ -22,21 +22,23 @@ namespace ClientServiceWPF
     {
         private IWcfInterface wcf => LoginForm.wcf;
         private CollectionViewSource CVSPARAM;
+
+      
         public EdditProc(OrclProcedure _curr, string _connection)
         {
             curr = _curr;
-            currbackup = new OrclProcedure(curr);
+           //currbackup = new OrclProcedure(curr);
 
             InitializeComponent();
             CVSPARAM = (CollectionViewSource) FindResource("CVSPARAM");
-            connection = _connection;
+           // connection = _connection;
+
             ComboBoxPAR_DATATYPE.Items.Clear();
             ComboBoxPAR_DATATYPE.Items.Add(Oracle.ManagedDataAccess.Client.OracleDbType.Varchar2.ToString());
             ComboBoxPAR_DATATYPE.Items.Add(Oracle.ManagedDataAccess.Client.OracleDbType.NVarchar2.ToString());
             ComboBoxPAR_DATATYPE.Items.Add(Oracle.ManagedDataAccess.Client.OracleDbType.Int32.ToString());
             ComboBoxPAR_DATATYPE.Items.Add(Oracle.ManagedDataAccess.Client.OracleDbType.Date.ToString());
             ComboBoxPAR_DATATYPE.Items.Add(Oracle.ManagedDataAccess.Client.OracleDbType.Decimal.ToString());
-            
 
             ComboBoxPAR_VALTYPE.Items.Add(TypeParamValue.value);
             ComboBoxPAR_VALTYPE.Items.Add(TypeParamValue.TABLE_NAME_ZGLV);
@@ -52,29 +54,17 @@ namespace ClientServiceWPF
             ComboBoxPAR_VALTYPE.Items.Add(TypeParamValue.CurrMonth);
             ComboBoxPAR_VALTYPE.SelectedIndex = 0;
 
-            
-
             textBoxNAME.Text = curr.NAME_ERR;
             textBoxNAME_PROC.Text = curr.NAME_PROC;
             textBoxCOMM.Text = curr.Comment;
             refreshLV();
-
         }
         public OrclProcedure curr { get; set; }
-
-        OrclProcedure currbackup;
-        string connection;
-
-
-        
      
         void refreshLV()
         {
             CVSPARAM.View.Refresh();
-
         }
-
-
         private void buttonLoadFromServer_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -88,15 +78,12 @@ namespace ClientServiceWPF
             }
 
         }
-
         private void buttonAdd_Click(object sender, RoutedEventArgs e)
         {
             curr.listParam.Add(new OrclParam(textBoxPAR_NAME.Text, OrclProcedure.GetDataType(ComboBoxPAR_DATATYPE.Text), OrclParam.TypeParamValueFromStr(ComboBoxPAR_VALTYPE.Text), textBoxPAR_VALUE.Text, textBoxPAR_COMMENT.Text));
             refreshLV();
         }
-
-        public List<OrclParam> SelectedParams => dataGrid.SelectedCells.Select(x =>  x.Item as OrclParam).Distinct().ToList();
-
+        public List<OrclParam> SelectedParams => dataGridParam.SelectedCells.Select(x =>  x.Item as OrclParam).Where(x=>x!=null).Distinct().ToList();
         private void buttonChange_Click(object sender, RoutedEventArgs e)
         {
             var select = SelectedParams;
@@ -111,7 +98,6 @@ namespace ClientServiceWPF
                 refreshLV();
             }
         }
-
         private void buttonToUp_Click(object sender, RoutedEventArgs e)
         {
             var select = SelectedParams;
@@ -123,27 +109,24 @@ namespace ClientServiceWPF
                
                 curr.listParam[index] = curr.listParam[index - 1];
                 curr.listParam[index - 1] = item;
-                dataGrid.SelectedItems.Clear();
-                dataGrid.SelectedIndex = index - 1;
+                dataGridParam.SelectedItems.Clear();
+                dataGridParam.SelectedIndex = index - 1;
                 refreshLV();
             }
         }
-
         private void buttonToDown_Click(object sender, RoutedEventArgs e)
         {
             var select = SelectedParams;
             if (select.Count != 0)
             {
                 var item = select.First();
-
                 int index = curr.listParam.IndexOf(item);
                 if (index == curr.listParam.Count - 1) return;
-
                 var p = curr.listParam[index];
                 curr.listParam[index] = curr.listParam[index + 1];
                 curr.listParam[index + 1] = p;
-                dataGrid.SelectedItems.Clear();
-                dataGrid.SelectedIndex = index + 1;
+                dataGridParam.SelectedItems.Clear();
+                dataGridParam.SelectedIndex = index + 1;
                 refreshLV();
             }
         }
@@ -176,6 +159,22 @@ namespace ClientServiceWPF
         {
             this.DialogResult = false;
             this.Close();
+        }
+        private void MenuItemDeleteParam_OnClick(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var select = SelectedParams;
+                foreach (var s in select)
+                {
+                    curr.listParam.Remove(s);
+                }
+                refreshLV();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
         }
     }
 }
