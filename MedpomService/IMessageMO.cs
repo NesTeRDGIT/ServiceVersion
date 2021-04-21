@@ -18,11 +18,14 @@ namespace MedpomService
     }
     public class MessageMO: IMessageMO
     {
-       
         private string ErrorArchivePath => Path.Combine(AppConfig.Property.ErrorDir, "ARCHIVE", DateTime.Now.ToString("yyyy_MM_dd"));
-
         private string ErrorPath => Path.Combine(AppConfig.Property.ErrorDir, DateTime.Now.ToString("yyyy_MM_dd"));
+        private ILogger Logger;
 
+        public MessageMO(ILogger Logger)
+        {
+            this.Logger = Logger;
+        }
 
         public void CreateErrorMessage(FilePacket pack)
         {
@@ -48,7 +51,7 @@ namespace MedpomService
             zipF.Save(Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO, ZIP_NAME));
             zipF.Dispose();
             pack.PATH_ZIP = Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO, ZIP_NAME);
-            FilesManager.CopyFileTo(pack.PATH_ZIP, Path.Combine(ErrorArchivePath, Path.GetFileName(pack.PATH_ZIP)));
+            FilesHelper.CopyFileTo(pack.PATH_ZIP, Path.Combine(ErrorArchivePath, Path.GetFileName(pack.PATH_ZIP)));
 
             if (pack.IST == IST.MAIL)
             {
@@ -62,7 +65,7 @@ namespace MedpomService
                 }
                 FilePath = checkfile;
 
-                FilesManager.CopyFileTo(pack.PATH_ZIP, FilePath);
+                FilesHelper.CopyFileTo(pack.PATH_ZIP, FilePath);
             }
             pack.Comment = "Обработка пакета: Формирование ошибок закончено";
         }

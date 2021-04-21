@@ -206,34 +206,41 @@ namespace MedpomService
             }
         }
 
-        public bool SetPriority(int index, int priority)
+        public bool SetPriority(Guid guid, int priority)
         {
             try
             {
-                PacketQuery[index].Priory = priority;
+            
+                var item = PacketQuery.FindPack(guid);
+                if (item != null)
+                {
+                    item.Priory = priority;
+                }
                 return true;
             }
             catch (Exception ex)
             {
-                AddLog($"Ошибка присвоения приоритета для i = {index} {ex.Message}", LogType.Error);
+                AddLog($"Ошибка присвоения приоритета для guid: {guid} => {ex.Message}", LogType.Error);
                 return false;
             }
-
         }
 
-        public bool DelPack(int index)
+        public bool DelPack(Guid guid)
         {
             try
             {
-                PacketQuery.DeletePack(PacketQuery[index]);
+                var item = PacketQuery.FindPack(guid);
+                if (item != null)
+                {
+                    PacketQuery.DeletePack(item);
+                }
                 return true;
             }
             catch (Exception ex)
             {
-                AddLog($"Ошибка удаления для i = {index} {ex.Message}", LogType.Error);
+                AddLog($"Ошибка удаления для guid: {guid.ToString()} => {ex.Message}", LogType.Error);
                 return false;
             }
-
         }
 
 
@@ -310,34 +317,33 @@ namespace MedpomService
             }
         }
 
-        public delegate void AddFileFunct(string File);
+        /*public delegate void AddFileFunct(string File);
         public event AddFileFunct addFileFunct;
-
+        */
         public void AddListFile(List<string> List)
         {
-            if (AppConfig.Property.AUTO == false && AppConfig.Property.FILE_ON)
+            if (!FileInviter.isActivateFileAuto() && FileInviter.isFileInviter())
             {
-                var ListORD = List.OrderBy(x => ParseFileName.Parse(Path.GetFileNameWithoutExtension(x)).Ni).ToList();
-                foreach (var str in ListORD)
-                {
-                    addFileFunct?.Invoke(str);
-                }
+                FileInviter.AddFile(List.ToArray());
             }
             else
             {
-                throw new FaultException("Не возможно добавить файлы в список т.к. не соблюдены условия работы службы: Прием в ручном режиме");
+                throw new FaultException("Не возможно добавить файлы в список т.к. не соблюдены условия работы службы: Активный прием в ручном режиме");
             }
         }
 
     
 
-        public void BreakProcessPac(int index)
+        public void BreakProcessPac(Guid guid)
         {
             try
             {
-                var item = PacketQuery[index];
-                processReestr.Break(item);
-                SchemaCheck.Break(item);
+                var item = PacketQuery.FindPack(guid);
+                if (item != null)
+                {
+                    processReestr.Break(item);
+                    SchemaCheck.Break(item);
+                }
             }
             catch (Exception ex)
             {
@@ -346,11 +352,11 @@ namespace MedpomService
         }
    
 
-        public void RepeatClosePac(int[] index)
+        public void RepeatClosePac(Guid[] guid)
         {
             try
             {
-                var packs = index.Select(x=>PacketQuery[x]).ToList();
+                var packs = guid.Select(x=>PacketQuery.FindPack(x)).Where(x=>x!=null).ToList();
                 if (packs.Any(pack => pack.Status != StatusFilePack.FLKOK && pack.Status != StatusFilePack.FLKERR))
                 {
                     throw new FaultException("Повтор возможен только при статусах: FLKOK,FLKERR");

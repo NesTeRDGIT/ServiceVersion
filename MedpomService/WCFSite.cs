@@ -21,8 +21,8 @@ namespace MedpomService
             fp.StopTime = true;
             fp.IST = IST.SITE;
             fp.Date = DateTime.Now;
-            PacketQuery.AddPacket(fp);
             FileInviter.ToArchive(fp);
+            PacketQuery.AddPacket(fp);
         }
     }
 }

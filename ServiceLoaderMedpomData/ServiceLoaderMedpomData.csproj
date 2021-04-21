@@ -88,6 +88,7 @@
     <Compile Include="ExcelManager.cs" />
     <Compile Include="Extention.cs" />
     <Compile Include="FileManager.cs" />
+    <Compile Include="FilesHelper.cs" />
     <Compile Include="Launcher.cs" />
     <Compile Include="LogFiles.cs" />
     <Compile Include="Logger.cs" />

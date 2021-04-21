@@ -26,6 +26,7 @@
                 <DataGridTextColumn Header="Источник" Binding="{Binding IST, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Комментарий сайт" Binding="{Binding CommentSite, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Предупреждение сайт" Binding="{Binding WARNNING, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
+                <DataGridTextColumn Header="GUID" Binding="{Binding guid, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
             </DataGrid.Columns>
             <DataGrid.ContextMenu>
                 <ContextMenu>

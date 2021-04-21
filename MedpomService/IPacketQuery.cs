@@ -21,6 +21,7 @@ namespace MedpomService
         List<FilePacket> Get();
 
         FilePacket FindPack(string CODE_MO);
+        FilePacket FindPack(Guid guid);
         void AddItem(FileItem item, string CODE_MO);
         void LoadFromFile(string path);
         void SaveToFile(string path);
@@ -58,7 +59,6 @@ namespace MedpomService
             this.ProcessReestr = ProcessReestr;
             this.SchemaCheck = SchemaCheck;
         }
-
         public void SetProcessReestr(IProcessReestr ProcessReestr)
         {
             this.ProcessReestr = ProcessReestr;
@@ -122,6 +122,12 @@ namespace MedpomService
         {
             return FM.FindPacket(CODE_MO);
         }
+
+        public FilePacket FindPack(Guid guid)
+        {
+            return FM.FindPacket(guid);
+        }
+
         private FilePacket NewPacket(string codeMO, DateTime DateCreate)
         {
             var currentPack = new FilePacket()

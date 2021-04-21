@@ -70,18 +70,18 @@ namespace ServiceLoaderMedpomData
         /// <summary>
         /// Установить приоритет обработки для пакета
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="guid"></param>
         /// <param name="priority"></param>
         /// <returns></returns>
         [OperationContract]
-        bool SetPriority(int index, int priority);
+        bool SetPriority(Guid guid, int priority);
         /// <summary>
         /// Удалить пакет
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="guid"></param>
         /// <returns></returns>
         [OperationContract]
-        bool DelPack(int index);
+        bool DelPack(Guid guid);
         /// <summary>
         /// Сохранение папки обработки
         /// </summary>
@@ -102,15 +102,15 @@ namespace ServiceLoaderMedpomData
         /// <summary>
         /// Повторить обработку пакета
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="guid"></param>
         [OperationContract]
-        void RepeatClosePac(int[] index);
+        void RepeatClosePac(Guid[] guid);
         /// <summary>
         /// Прервать обработку пакета
         /// </summary>
-        /// <param name="index"></param>
+        /// <param name="guid"></param>
         [OperationContract]
-        void BreakProcessPac(int index);
+        void BreakProcessPac(Guid guid);
         /// <summary>
         /// Подписаться на событие NewFileManager(изменения листа пакетов)
         /// </summary>

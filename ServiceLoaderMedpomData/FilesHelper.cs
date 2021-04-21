@@ -7,19 +7,21 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+
 using ServiceLoaderMedpomData;
 
 
-namespace MedpomService
+namespace ServiceLoaderMedpomData
 {
+    public enum PrichinAv
+    {
+        EXEPT,
+        NOT_FOUND
+    }
     public static class FilesHelper
     {
-        public enum PrichinAv
-        {
-            EXEPT,
-            NOT_FOUND
-        }
-        public static bool CheckFileAv(string path, int NOT_FOUND_COUNT = 1)
+       
+        public static bool CheckFileAv(string path, int NOT_FOUND_COUNT = 1, ILogger Logger = null)
         {
             var NOT_FOUND = 0;
             PrichinAv? pr;
@@ -27,7 +29,7 @@ namespace MedpomService
             {
                 if (pr == PrichinAv.NOT_FOUND)
                 {
-                    Logger.AddLog($"Не удалось найти файл {path}",LogType.Error);
+                    Logger?.AddLog($"Не удалось найти файл {path}",LogType.Error);
                 }
                 NOT_FOUND++;
                 if (NOT_FOUND >= NOT_FOUND_COUNT)
@@ -67,7 +69,7 @@ namespace MedpomService
 
 
      
-        public static bool MoveFile(FileItemBase item, string catalog, int NOT_FOUND_COUNT = 1)
+        public static bool MoveFile(FileItemBase item, string catalog, int NOT_FOUND_COUNT = 1, ILogger Logger = null)
         {
             var NOT_FOUND = 0;
             while (true)
@@ -89,12 +91,12 @@ namespace MedpomService
                     }
                     catch (Exception ex1)
                     {
-                        Logger.AddLog($"Ошибка создания директории: {ex1.Message} для {item.FileName}", LogType.Error);
+                        Logger?.AddLog($"Ошибка создания директории: {ex1.Message} для {item.FileName}", LogType.Error);
                     }
 
                     if (NOT_FOUND == NOT_FOUND_COUNT)
                     {
-                        Logger.AddLog($"Ошибка переноса файла {item.FileName}({item.FilePach}): {ex.GetType()} {ex.FullError()}", LogType.Error);
+                        Logger?.AddLog($"Ошибка переноса файла {item.FileName}({item.FilePach}): {ex.GetType()} {ex.FullError()}", LogType.Error);
                         item.Comment = $"Обработка пакета: Перенос файла {item.FileName}: {ex.GetType()} {ex.FullError()}";
                         return false;
                     }
@@ -128,7 +130,11 @@ namespace MedpomService
             File.Move(From, path);
             return path;
         }
-
+        /// <summary>
+        /// Копирование файла с проверкой на совпадение и если совпадает то будет имя_файла(1).. итд
+        /// </summary>
+        /// <param name="From">Откуда</param>
+        /// <param name="Dist">Куда</param>        
         public static string CopyFileTo(string From, string Dist)
         {
             if (!Directory.Exists(Path.GetDirectoryName(Dist)))
@@ -226,7 +232,7 @@ namespace MedpomService
                     var filestmp = Directory.GetFiles(tmppathMain, "*.*", SearchOption.TopDirectoryOnly);
                     foreach (var name in filestmp)
                     {
-                        ServiceLoaderMedpomData.FilesManager.MoveFileTo(name, Path.Combine(To, Path.GetFileName(name)));
+                        MoveFileTo(name, Path.Combine(To, Path.GetFileName(name)));
                     }
                     Directory.Delete(tmppathMain, true);
                 }
@@ -250,5 +256,7 @@ namespace MedpomService
             }
 
         }
+
+      
     }
 }

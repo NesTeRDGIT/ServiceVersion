@@ -449,7 +449,7 @@ namespace ClientServiceWPF
                 {
                     foreach (var item in selected)
                     {
-                        wcf.SetPriority(List.IndexOf(item), Convert.ToInt32(textBoxPriory.Text));
+                        wcf.SetPriority(item.guid, Convert.ToInt32(textBoxPriory.Text));
                     }
                 }
             }
@@ -477,7 +477,7 @@ namespace ClientServiceWPF
                 if (selected.Count != 0)
                 {
                     if (MessageBox.Show($@"Вы уверены что хотите удалить пакет?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                        wcf.DelPack(List.IndexOf(selected.First()));
+                        wcf.DelPack(selected.First().guid);
                 }
             }
             catch (Exception ex)
@@ -510,7 +510,7 @@ namespace ClientServiceWPF
                 {
                     if (MessageBox.Show(selected.Count != 1? $"Вы уверены что хотите повторить проверку {selected.Count} пакетов?" : "Вы уверены что хотите повторить проверку пакета?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
-                        var index = selected.Select(x => List.IndexOf(x)).ToArray();
+                        var index = selected.Select(x => x.guid).ToArray();
                         wcf.RepeatClosePac(index);
                     }
                 }
@@ -554,7 +554,7 @@ namespace ClientServiceWPF
                     {
                         foreach (var t in selected)
                         {
-                            wcf.BreakProcessPac(List.IndexOf(t));
+                            wcf.BreakProcessPac(t.guid);
                         }
                     }
                 }

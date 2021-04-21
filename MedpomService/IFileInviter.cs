@@ -49,6 +49,8 @@ namespace MedpomService
         void ActivateFileAuto(bool value, string path);
         bool isActivateFileAuto();
         void ToArchive(FilePacket fp);
+
+        void AddFile(string[] Files);
     }
     public class FileInviter : IFileInviter
     {
@@ -56,12 +58,16 @@ namespace MedpomService
         private readonly IPacketQuery FM;
         private string ErrorPath => Path.Combine(AppConfig.Property.ErrorDir, DateTime.Now.ToString("yyyy_MM_dd"));
         FileSystemWatcher fsw;
-        public FileInviter(IMessageMO messageMo, IPacketQuery FM)
+        private ILogger Logger;
+
+        
+        public FileInviter(IMessageMO messageMo, IPacketQuery FM, ILogger Logger)
         {
             fsw = new FileSystemWatcher() { EnableRaisingEvents = false, Filter = "*.*", IncludeSubdirectories = false, NotifyFilter = NotifyFilters.FileName };
             fsw.Created += fileSystemWatcher_Created;
             this.messageMo = messageMo;
             this.FM = FM;
+            this.Logger = Logger;
         }
         private string GetErrorName(MatchParseFileName FP)
         {
@@ -108,13 +114,13 @@ namespace MedpomService
                 ArchiveFileList.Remove(item);
                 try
                 {
-                    FilesHelper.PrichinAv? pr;
+                    PrichinAv? pr;
                     var NOT_FOUND = 0;
                     while (!FilesHelper.CheckFileAv(FullPath, out pr))
                     {
 
                         if (!pr.HasValue) continue;
-                        if (pr.Value != FilesHelper.PrichinAv.NOT_FOUND) continue;
+                        if (pr.Value != PrichinAv.NOT_FOUND) continue;
                         Logger.AddLog($"Не удалось найти файл {FullPath}", LogType.Error);
                         NOT_FOUND++;
                         if (NOT_FOUND == 3)
@@ -308,11 +314,19 @@ namespace MedpomService
                     if (fp.ID.HasValue)
                         ID = fp.ID.Value.ToString();
                     var DIR = Path.Combine(AppConfig.Property.InputDir, "Archive", DateTime.Now.ToString("yyyy_MM_dd"), "SITE", fp.CodeMO, ID);
-                    FilesManager.CopyFileTo(fi.FilePach, Path.Combine(DIR, name));
+                    FilesHelper.CopyFileTo(fi.FilePach, Path.Combine(DIR, name));
                     name = Path.GetFileName(fi.filel.FilePach);
-                    FilesManager.CopyFileTo(fi.filel.FilePach, Path.Combine(DIR, name));
+                    FilesHelper.CopyFileTo(fi.filel.FilePach, Path.Combine(DIR, name));
                 }
             });
+        }
+
+        public void AddFile(string[] Files)
+        {
+            foreach (var file in Files)
+            {
+                TransferFile(file);
+            }
         }
 
 
@@ -374,24 +388,32 @@ namespace MedpomService
 
         private void fileSystemWatcher_Created(object sender, FileSystemEventArgs e)
         {
-            if (Path.GetExtension(e.Name)?.ToUpper() == ".XML")
-            {
-                var arc = false;
-                if (FileFromArchive.Contains(e.Name.ToUpper()))
-                {
-                    arc = true;
-                    FileFromArchive.Remove(e.Name.ToUpper());
-                }
-                FileList.Add(new FileListItem { path = e.FullPath, InArchive = arc });
-                return;
-            }
-            if (Path.GetExtension(e.Name)?.ToUpper() == ".ZIP")
-            {
-                ArchiveFileList.Add(new FileListItem { path = e.FullPath });
-                return;
-            }
-            Logger.AddLog($"Файл {e.Name} не подлежит обработке(расширение не поддерживается)", LogType.Error);
+            TransferFile(e.FullPath);
+        }
 
+        private void TransferFile(string path)
+        {
+            path = path.ToUpper();
+            var file_name = Path.GetFileName(path)?.ToUpper();
+            var file_ext = Path.GetExtension(file_name);
+            switch (file_ext)
+            {
+                case ".XML":
+                    var fi = new FileListItem {path = path, InArchive = false};
+                    if (FileFromArchive.Contains(path.ToUpper()))
+                    {
+                        fi.InArchive = true;
+                        FileFromArchive.Remove(path.ToUpper());
+                    }
+                    FileList.Add(fi);
+                    break;
+                case ".ZIP":
+                    ArchiveFileList.Add(new FileListItem { path = path });
+                    break;
+                default:
+                    Logger.AddLog($"Файл {file_name} не подлежит обработке(расширение не поддерживается)", LogType.Error);
+                    break;
+            }
         }
     }
 }

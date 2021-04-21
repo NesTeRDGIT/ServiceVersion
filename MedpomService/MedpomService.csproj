@@ -124,7 +124,6 @@
   <ItemGroup>
     <Compile Include="AppProperties.cs" />
     <Compile Include="ExcelProtokol.cs" />
-    <Compile Include="FilesHelper.cs" />
     <Compile Include="IFileInviter.cs" />
     <Compile Include="IMessageMO.cs" />
     <Compile Include="Impersonate .cs" />
@@ -132,7 +131,6 @@
     <Compile Include="IPacketQuery.cs" />
     <Compile Include="IProcessReestr.cs" />
     <Compile Include="ISchemaCheck.cs" />
-    <Compile Include="Logger.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>

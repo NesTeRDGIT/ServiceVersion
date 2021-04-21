@@ -135,6 +135,13 @@ namespace MedpomService
             public string REL => File.FileLog?.FileName;
             public string Comment { get; set; }
         }
+
+        private ILogger Logger;
+
+        public ExcelProtokol(ILogger Logger)
+        {
+            this.Logger = Logger;
+        }
         public void ExportExcel2(DataTable TBL, string path)
         {
             ExcelOpenXML efm = null;

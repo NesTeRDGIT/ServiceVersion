@@ -736,6 +736,15 @@ $@"Наименование файла должно быть
     [DataContract]
     public class FilePacket : IComparable<FilePacket>, INotifyPropertyChanged
     {
+        [DataMember] private Guid _guid { get; set; } = Guid.NewGuid();
+        public Guid guid
+        {
+            get { return _guid; }
+            set
+            {
+                _guid = value; OnPropertyChanged();
+            }
+        }
         [DataMember] private decimal? _ID;
 
         /// <summary>
@@ -1071,8 +1080,7 @@ $@"Наименование файла должно быть
     [Serializable]
     public class FilesManager:MarshalByRefObject, INotifyCollectionChanged
     {
-        private List<FilePacket> Files;       
-
+        private List<FilePacket> Files; 
         public FilesManager()
         {
             Files = new List<FilePacket>();
@@ -1083,9 +1091,14 @@ $@"Наименование файла должно быть
         /// <param name="item">Пакет</param>
         public void Add(FilePacket item)
         {
+            CheckGUID(item);
             Files.Add(item);
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Add, item));
         }
+
+     
+
+      
         /// <summary>
         /// Удалить пакет из списка
         /// </summary>
@@ -1095,29 +1108,15 @@ $@"Наименование файла должно быть
             Files.Remove(item);
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Remove, item));
         }
-        /// <summary>
-        /// Поиск индекса по коду МО
-        /// </summary>
-        /// <param name="CodeMO">Код МО</param>
-        /// <returns></returns>
-        public int FindIndexPacket(string CodeMO)
-        {
-            return Files.FindIndex(FP => FP.CodeMO == CodeMO);
-        }
+        
         public FilePacket FindPacket(string CodeMO)
         {
             return Files.FirstOrDefault(FP => FP.CodeMO == CodeMO);
         }
-        /// <summary>
-        /// Получить индекс пакета
-        /// </summary>
-        /// <param name="item">Пакет</param>
-        /// <returns></returns>
-        public int GetIndex(FilePacket item)
+        public FilePacket FindPacket(Guid guid)
         {
-            return Files.IndexOf(item);
+            return Files.FirstOrDefault(FP => FP.guid == guid);
         }
-
         public FilePacket this[int index]
         {
             get
@@ -1149,7 +1148,7 @@ $@"Наименование файла должно быть
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
        
-
+        /*
         public static string[] GetFileNameInArchvie(string path)
         {
             try
@@ -1249,7 +1248,8 @@ $@"Наименование файла должно быть
             }
 
         }
-
+        */
+        /*
         /// <summary>
         /// Перенос файла с проверкой на совпадение и есл исовпадает то будет имя_файла(1).. итд
         /// </summary>
@@ -1279,6 +1279,8 @@ $@"Наименование файла должно быть
             File.Move(From, path);
             return path;
         }
+        */
+        /*
         /// <summary>
         /// Копирование файла с проверкой на совпадение и если совпадает то будет имя_файла(1).. итд
         /// </summary>
@@ -1303,24 +1305,43 @@ $@"Наименование файла должно быть
             while (!SchemaChecking.CheckFileAv(From)) { };
             File.Copy(From, path);
             return path;
-        }
+        }*/
 
         public void SaveToFile(string Path)
         {
-            var xml = new XmlSerializer(typeof(List<FilePacket>));
-            var sw = new FileStream(Path, FileMode.Create);
-            xml.Serialize(sw, this.Files);
-            sw.Close();
-          
+            using (var sw = new FileStream(Path, FileMode.Create))
+            {
+                var xml = new XmlSerializer(typeof(List<FilePacket>));
+                xml.Serialize(sw, this.Files);
+                sw.Close();
+            }
         }
 
         public void LoadToFile(string Path)
         {
-            var xml = new XmlSerializer(typeof(List<FilePacket>));
-            var sw = new FileStream(Path, FileMode.Open);
-            Files = (List<FilePacket>)xml.Deserialize(sw);
-            sw.Close();
+            using (var sw = new FileStream(Path, FileMode.Open))
+            {
+                var xml = new XmlSerializer(typeof(List<FilePacket>));
+                Files = (List<FilePacket>)xml.Deserialize(sw);
+                sw.Close();
+            }
+            CheckGUID_ALL();
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
+        }
+        private void CheckGUID(FilePacket item)
+        {
+            while (Files.Any(x => x.guid == item.guid && x != item))
+            {
+                item.guid = Guid.NewGuid();
+            }
+        }
+
+        private void CheckGUID_ALL()
+        {
+            foreach (var item in Files)
+            {
+                CheckGUID(item);
+            }
         }
         public FilePacket GetIndexHighPriority()
         {

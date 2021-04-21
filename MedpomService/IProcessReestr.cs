@@ -34,11 +34,13 @@ namespace MedpomService
         private IPacketQuery PacketQuery { get; set; }
         private readonly IExcelProtokol excelProtokol;
         private readonly IMessageMO messageMo;
-        public ProcessReestr(IPacketQuery PacketQuery,  IExcelProtokol excelProtokol, IMessageMO messageMo)
+        private ILogger Logger;
+        public ProcessReestr(IPacketQuery PacketQuery,  IExcelProtokol excelProtokol, IMessageMO messageMo, ILogger Logger)
         {
             this.PacketQuery = PacketQuery;
             this.excelProtokol = excelProtokol;
             this.messageMo = messageMo;
+            this.Logger = Logger;
         }
         private CancellationTokenSource BDinviteCancellationTokenSource;
         private Thread thWorkProcess;

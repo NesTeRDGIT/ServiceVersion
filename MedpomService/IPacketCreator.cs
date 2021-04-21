@@ -21,11 +21,12 @@ namespace MedpomService
 
 
         string SvodFileNameXLS = "FileStat.xlsx";
-
-        public PacketCreator(IRepository mybd, ISchemaCheck SchemaCheck)
+        private ILogger Logger;
+        public PacketCreator(IRepository mybd, ISchemaCheck SchemaCheck, ILogger Logger)
         {
             this.mybd = mybd;
             this.SchemaCheck = SchemaCheck;
+            this.Logger = Logger;
         }
 
 

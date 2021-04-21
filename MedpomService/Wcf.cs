@@ -31,12 +31,16 @@ namespace MedpomService
         private ISchemaCheck SchemaCheck;
         private IFileInviter FileInviter;
         private IPacketQuery PacketQuery;
-        public WcfInterface(IProcessReestr processReestr, ISchemaCheck SchemaCheck, IFileInviter FileInviter, IPacketQuery PacketQuery)
+        private ILogger Logger;
+        private MyOracleProvider MyOracleProvider;
+        public WcfInterface(IProcessReestr processReestr, ISchemaCheck SchemaCheck, IFileInviter FileInviter, IPacketQuery PacketQuery, ILogger Logger)
         {
             this.processReestr = processReestr;
             this.SchemaCheck = SchemaCheck;
             this.FileInviter = FileInviter;
             this.PacketQuery = PacketQuery;
+            this.Logger = Logger;
+            MyOracleProvider = new MyOracleProvider(Logger);
         }
 
         private USER GETUSER => BankAcc.GetUSER(OperationContext.Current.ServiceSecurityContext.PrimaryIdentity.Name.ToUpper());
@@ -46,6 +50,8 @@ namespace MedpomService
         {
             return true;
         }
+
+       
         public List<string> Connect()
         {
             try
@@ -90,13 +96,16 @@ namespace MedpomService
 
     public class MyCustomUserNameValidator : UserNamePasswordValidator
     {
-        public List<string> card = new List<string>();
+        private MyOracleProvider MyOracleProvider;
+        public MyCustomUserNameValidator(MyOracleProvider MyOracleProvider)
+        {
+            this.MyOracleProvider = MyOracleProvider;
+        }
         public override void Validate(string userName, string password)
         {
             int id;
             try
             {
-
                 if (!MyOracleProvider.CheckUser(userName, password, out id))
                 {
                     if (MedpomService.SysLog.ToUpper() == userName.ToUpper() && MedpomService.SysPass == password)
@@ -122,12 +131,16 @@ namespace MedpomService
     }
     public class MyOracleProvider
     {
+        private ILogger Logger;
 
-        public static bool CheckUser(string USER, string PASS, out int ID)
+        public MyOracleProvider(ILogger Logger)
+        {
+            this.Logger = Logger;
+        }
+        public  bool CheckUser(string USER, string PASS, out int ID)
         {
             try
             {
-             
                 var oda = new OracleDataAdapter("select * from MEDPOM_CLIENT_USERS t where upper(t.name) = '" + USER.ToUpper() + "' and pass = '" + PASS+"'", new OracleConnection(AppConfig.Property.ConnectionString));
                 var tbl = new DataTable();
                 oda.Fill(tbl);
@@ -136,11 +149,8 @@ namespace MedpomService
                     ID = -1;
                     return false;
                 }
-                else
-                {
-                    ID = Convert.ToInt32(tbl.Rows[0]["ID"]);
-                    return true;
-                }
+                ID = Convert.ToInt32(tbl.Rows[0]["ID"]);
+                return true;
             }
             catch (Exception ex)
             {
@@ -149,7 +159,7 @@ namespace MedpomService
                 return false;       
             }
         }
-        public static List<string> GetSecurityCard(string name)
+        public  List<string> GetSecurityCard(string name)
         {
             try
             {
@@ -180,18 +190,10 @@ where upper(u.name) = '"+ name.ToUpper() + "'", new OracleConnection(AppConfig.P
             }
         }
 
-        private static List<string> GetFullRight()
+        private List<string> GetFullRight()
         {
-            var List = new List<string>();
             var Met = ReflectClass.MethodReflectInfo<IWcfInterface>();
-            foreach (var mi in Met)
-            {
-                List.Add(mi.Name);
-
-            }
-            return List;
-
-
+            return Met.Select(mi => mi.Name).ToList();
         }
     }
     public class AuthorizationPolicy : IAuthorizationPolicy

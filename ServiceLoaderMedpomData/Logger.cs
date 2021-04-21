@@ -5,18 +5,28 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MedpomService
+namespace ServiceLoaderMedpomData
 {
+
+    public interface ILogger
+    {
+        void AddLog(string log, LogType type);
+    }
     public enum LogType
     {
         Error = 0,
         Information = 1,
         Warning = 2
     }
-    public static class Logger
+    public class LoggerEventLog : ILogger
     {
-        private  static string nameLog = "MedpomServiceLog";
-        public static void AddLog(string log, LogType type)
+        private string nameLog = "";
+
+        public LoggerEventLog(string nameLog)
+        {
+            this.nameLog = nameLog;
+        }
+        public void AddLog(string log, LogType type)
         {
             try
             {
@@ -34,8 +44,7 @@ namespace MedpomService
                 // ignored
             }
         }
-
-        private static EventLogEntryType LogTypeToLogEntryType(LogType lt)
+        private EventLogEntryType LogTypeToLogEntryType(LogType lt)
         {
             switch (lt)
             {

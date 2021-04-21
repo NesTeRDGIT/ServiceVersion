@@ -37,13 +37,14 @@ namespace MedpomService
         SchemaCollection SC { get; set; } = new SchemaCollection();
        
         string SvodFileNameXLS = "FileStat.xlsx";
-        
+        private ILogger Logger;
 
-        public SchemaCheck(IRepository mybd, IMessageMO messageMo, IExcelProtokol excelProtokol)
+        public SchemaCheck(IRepository mybd, IMessageMO messageMo, IExcelProtokol excelProtokol, ILogger Logger)
         {
             this.mybd = mybd;
             this.messageMo = messageMo;
             this.excelProtokol = excelProtokol;
+            this.Logger = Logger;
         }
 
 

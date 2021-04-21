@@ -37,6 +37,7 @@ namespace MedpomService
         public MedpomService()
         {
             InitializeComponent();
+            _MyOracleProvider = new MyOracleProvider(Logger);
         }
 
 
@@ -50,6 +51,8 @@ namespace MedpomService
         private IPacketCreator PacketCreator;
         private IProcessReestr ProcessReestr;
         private IFileInviter FileInviter;
+        private ILogger Logger = new LoggerEventLog("MedpomServiceLog");
+        private MyOracleProvider _MyOracleProvider;
 
        // private ChekingList chList;
 
@@ -78,16 +81,16 @@ namespace MedpomService
                 }
                 Logger.AddLog("Старт службы " + ServiceName, LogType.Information);
 
-                MessageMO = new MessageMO();
+                MessageMO = new MessageMO(Logger);
                 mybd = CreateMyBD();
-                ExcelProtokol = new ExcelProtokol();
-                SchemaCheck = new SchemaCheck(mybd, MessageMO, ExcelProtokol);
+                ExcelProtokol = new ExcelProtokol(Logger);
+                SchemaCheck = new SchemaCheck(mybd, MessageMO, ExcelProtokol, Logger);
 
-                PacketCreator = new PacketCreator(mybd, SchemaCheck);
+                PacketCreator = new PacketCreator(mybd, SchemaCheck, Logger);
                 PacketQuery = new PacketQuery(PacketCreator,  SchemaCheck);
-                ProcessReestr = new ProcessReestr(PacketQuery, ExcelProtokol, MessageMO);
+                ProcessReestr = new ProcessReestr(PacketQuery, ExcelProtokol, MessageMO, Logger);
                 PacketQuery.SetProcessReestr(ProcessReestr);
-                FileInviter = new FileInviter(MessageMO, PacketQuery);
+                FileInviter = new FileInviter(MessageMO, PacketQuery, Logger);
 
                 try
                 {
@@ -177,7 +180,7 @@ namespace MedpomService
                     SendTimeout = new TimeSpan(24, 0, 0)
                 };
 
-                wi = new WcfInterface(ProcessReestr, SchemaCheck, FileInviter, PacketQuery);
+                wi = new WcfInterface(ProcessReestr, SchemaCheck, FileInviter, PacketQuery, Logger);
                 WcfConection = new ServiceHost(wi, new Uri(uri));
 
               
@@ -204,7 +207,7 @@ namespace MedpomService
 
 
                 WcfConection.Credentials.UserNameAuthentication.UserNamePasswordValidationMode =System.ServiceModel.Security.UserNamePasswordValidationMode.Custom;
-                WcfConection.Credentials.UserNameAuthentication.CustomUserNamePasswordValidator =new MyCustomUserNameValidator();
+                WcfConection.Credentials.UserNameAuthentication.CustomUserNamePasswordValidator =new MyCustomUserNameValidator(_MyOracleProvider);
                 WcfConection.Credentials.ClientCertificate.Authentication.CertificateValidationMode =System.ServiceModel.Security.X509CertificateValidationMode.PeerOrChainTrust;
                 WcfConection.Credentials.WindowsAuthentication.AllowAnonymousLogons = true;
                 WcfConection.Credentials.WindowsAuthentication.IncludeWindowsGroups = false;
