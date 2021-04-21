@@ -58,8 +58,8 @@ namespace ClientServiceWPF.USER_EDIT
 
 
 
-                Roles.AddRange(wcf.Roles_GetRoles_NEW());
-                Users.AddRange(wcf.Roles_GetUsers_NEW());
+                Roles.AddRange(wcf.Roles_GetRoles());
+                Users.AddRange(wcf.Roles_GetUsers());
                 USERSViewSource.View.Refresh();
                 USERSViewSource.View.MoveCurrentToFirst();
 
@@ -123,7 +123,7 @@ namespace ClientServiceWPF.USER_EDIT
                 var rol = new ROLES();
                 rol.ShowDialog();
                 Roles.Clear();
-                Roles.AddRange( wcf.Roles_GetRoles_NEW());
+                Roles.AddRange( wcf.Roles_GetRoles());
                 ROLESViewSource.View.Refresh();
                 USERSViewSource.View.Refresh();
             }
@@ -141,11 +141,11 @@ namespace ClientServiceWPF.USER_EDIT
                 {
                     var insert = Users.Where(x => x.ID == -1).ToList();
                     if (insert.Count != 0)
-                        wcf.Roles_EditUsers_NEW(TypeEdit.New, insert);
+                        wcf.Roles_EditUsers(TypeEdit.New, insert);
 
                     var update = Users.Where(x => x.Modyfi && x.ID != -1).ToList();
                     if (update.Count != 0)
-                        wcf.Roles_EditUsers_NEW(TypeEdit.Update, update);
+                        wcf.Roles_EditUsers(TypeEdit.Update, update);
                     this.Close();
                 }
             }

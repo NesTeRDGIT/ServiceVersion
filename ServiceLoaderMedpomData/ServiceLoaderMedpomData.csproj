@@ -82,15 +82,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ChekingList.cs" />
-    <Compile Include="EntityMP_V2.cs" />
-    <Compile Include="EntityMP_V31.cs" />
-    <Compile Include="EntityMP_V3.cs" />
+    <Compile Include="EntityMP_V2\EntityMP_V2.cs" />
+    <Compile Include="EntityMP_V3\EntityMP_V3.cs" />
+    <Compile Include="EntityMP_V31\EntityMP_V31.cs" />
     <Compile Include="ExcelManager.cs" />
     <Compile Include="Extention.cs" />
     <Compile Include="FileManager.cs" />
-    <Compile Include="JournalReception.cs" />
     <Compile Include="Launcher.cs" />
     <Compile Include="LogFiles.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="MyBDOracle.cs" />
     <Compile Include="Properties\Annotations.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

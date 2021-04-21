@@ -58,7 +58,7 @@ namespace ClientServiceWPF
             var CODE_MO = textBoxFindCODE_MO.Text.ToUpper();
             foreach (var fp in List)
             {
-                if (fp.codeMOstr == CODE_MO)
+                if (fp.CodeMO == CODE_MO)
                 {
                     SetCurrent(fp);
                     return;
@@ -280,7 +280,7 @@ namespace ClientServiceWPF
         {
             try
             {
-                var sort_list = mainlist.OrderBy(FilePacket => FilePacket.codeMOstr);
+                var sort_list = mainlist.OrderBy(FilePacket => FilePacket.CodeMO);
 
                 using (var xls = new ExcelOpenXML(path, "Прием реестров"))
                 {
@@ -362,7 +362,7 @@ namespace ClientServiceWPF
                             if (fi.Process == StepsProcess.ErrorXMLxsd || fi.Process == StepsProcess.FlkErr || fi.Process == StepsProcess.Invite || fi.Process == StepsProcess.NotInvite)
                                 Style = StyleErr;
                             xls.PrintCell(MRow, 1, index.ToString(), StyleCenter);
-                            xls.PrintCell(MRow, 2, pack.codeMOstr, StyleCenter);
+                            xls.PrintCell(MRow, 2, pack.CodeMO, StyleCenter);
                             xls.PrintCell(MRow, 3, pack.CaptionMO, StyleLeft);
                             xls.PrintCell(MRow, 4, "", StyleValue);
                             xls.PrintCell(MRow, 5, fi.FileName, Style);
@@ -554,7 +554,7 @@ namespace ClientServiceWPF
                     {
                         foreach (var t in selected)
                         {
-                            wcf.BreackProcessPac(List.IndexOf(t));
+                            wcf.BreakProcessPac(List.IndexOf(t));
                         }
                     }
                 }

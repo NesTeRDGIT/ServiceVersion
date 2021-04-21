@@ -30,8 +30,8 @@ namespace ServiceLoaderMedpomData
         /// <summary>
         /// Конструктор
         /// </summary>
-        /// <param name="filename">Путь к файлу</param>
-        
+        /// <param name="_filename">Путь к файлу</param>
+
         public LogFile(string _filename)
         {
             filename = _filename;
@@ -43,7 +43,7 @@ namespace ServiceLoaderMedpomData
         /// <param name="text">Текст для записи</param>
         public void WriteLn(string text)
         {
-            SW?.WriteLine("["+DateTime.Now.ToShortDateString()+ " "+DateTime.Now.ToShortTimeString()+"] "+  text);
+            SW?.WriteLine($"[{DateTime.Now.ToShortDateString()} {DateTime.Now.ToShortTimeString()}] {text}");
         }
         /// <summary>
         /// Закрытие файла
@@ -72,13 +72,7 @@ namespace ServiceLoaderMedpomData
         }
 
 
-        public string FileName
-        {
-            get
-            {
-                return Path.GetFileName(filename);
-            }
-        }
+        public string FileName => Path.GetFileName(filename);
 
         public string FilePath
         {

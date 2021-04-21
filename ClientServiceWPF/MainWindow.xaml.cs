@@ -29,8 +29,6 @@ namespace ClientServiceWPF
         public static MyServiceCallback callback { set; get; }
         private CollectionViewSource CollectionViewSourceLOG;
         private CollectionViewSource CollectionViewSourceStatusOP;
-        
-        private bool closed_onSTART;
 
         System.Windows.Forms.NotifyIcon ni = new System.Windows.Forms.NotifyIcon();
         public MainWindow()
@@ -43,23 +41,17 @@ namespace ClientServiceWPF
                 form.ShowDialog();
                 if (form.RESTART)
                 {
-                    closed_onSTART = true;
+                    Environment.Exit(0);
+                    return;
                 }
                 ((ICommunicationObject)wcf).Faulted += LoginForm_Faulted;
                 ((ICommunicationObject)wcf).Closed += LoginForm_Faulted;
 
             }
-            else
-            {
-                closed_onSTART = false;
-            }
 
             InitializeComponent();
-            if (!closed_onSTART)
-            {
-                SetControlForm(LoginForm.SecureCard);
-                RefreshStatusOperation();
-            }
+            SetControlForm(LoginForm.SecureCard);
+            RefreshStatusOperation();
 
             CollectionViewSourceLOG = this.FindResource("CollectionViewSourceLOG") as CollectionViewSource;
             CollectionViewSourceStatusOP = this.FindResource("CollectionViewSourceStatusOP") as CollectionViewSource;
@@ -177,16 +169,17 @@ namespace ClientServiceWPF
 
         void SetControlForm(List<string> card)
         {
-
-            buttonRefreshStatus.IsEnabled = GroupBoxStatus.IsEnabled = GroupBoxMonitorWork.IsEnabled = card.Contains("FilesInviterStatus") && card.Contains("ArchiveInviterStatus") && card.Contains("FLKInviterStatus") && card.Contains("GetTypePriem") && card.Contains("GetOtchetDate");
-            ButtonStartProcess.IsEnabled = card.Contains("StartProccess");
-            ButtonStopProcess.IsEnabled = card.Contains("StopProccess");
-            buttonRefreshLog.IsEnabled = card.Contains("GetEventLogEntry");
-            ButtonWork.IsEnabled = card.Contains("GetFileManagerList");
-            MenuItemMonitor.IsEnabled = card.Contains("GetNotReestr") || card.Contains("GetSumReestr") || card.Contains("GetSumReestrDetail");
-            MenuItemEditUser.IsEnabled = card.Contains("Roles_GetUsers_Roles") && card.Contains("Roles_GetRoles") && card.Contains("Roles_GetUsers");
             
+            var t = nameof(IWcfInterface.GetSettingConnect);
+            buttonRefreshStatus.IsEnabled = GroupBoxStatus.IsEnabled = GroupBoxMonitorWork.IsEnabled = card.Contains(nameof(IWcfInterface.GetStatusInvite));
+            ButtonStartProcess.IsEnabled = card.Contains(nameof(IWcfInterface.StartProcess));
+            ButtonStopProcess.IsEnabled = card.Contains(nameof(IWcfInterface.StopProcess));
+            buttonRefreshLog.IsEnabled = card.Contains(nameof(IWcfInterface.GetEventLogEntry));
+            ButtonWork.IsEnabled = card.Contains(nameof(IWcfInterface.GetFileManagerList));
+            MenuItemMonitor.IsEnabled = card.ContainsOR(nameof(IWcfInterface.GetNotReestr));
+            MenuItemEditUser.IsEnabled = card.ContainsAND(nameof(IWcfInterface.Roles_GetRoles),nameof(IWcfInterface.Roles_GetUsers), nameof(IWcfInterface.Roles_EditMethod));
         }
+
 
        
 
@@ -211,10 +204,11 @@ namespace ClientServiceWPF
 
                 if (buttonRefreshStatus.IsEnabled)
                 {
-                    StatusOperFileInvite.Status = wcf.FilesInviterStatus();
-                    StatusOperArcInvite.Status = wcf.ArchiveInviterStatus();
-                    StatusOperFLKInvite.Status = wcf.FLKInviterStatus();
-                    StatusOperAutoInvite.Status = wcf.GetAutoFileAdd();
+                    var status = wcf.GetStatusInvite();
+                    StatusOperFileInvite.Status = status.FilesInviterStatus;
+                    StatusOperArcInvite.Status = status.THArchiveInviter;
+                    StatusOperFLKInvite.Status = status.FLKInviterStatus;
+                    StatusOperAutoInvite.Status = status.ActiveAutoPriem;
                     buttonFileAdd.IsEnabled = !StatusOperAutoInvite.Status;
 
                     if (ListOP.Count(x => x.Status) == 0)
@@ -232,7 +226,7 @@ namespace ClientServiceWPF
                     }
 
 
-                    if (wcf.GetTypePriem())
+                    if (status.TypePriem)
                     {
                         RadioButtonMainTypePriem.IsChecked = true;
                     }
@@ -241,7 +235,7 @@ namespace ClientServiceWPF
                         RadioButtonPREDTypePriem.IsChecked = true;
                     }
 
-                    if (wcf.GetAutoPriem())
+                    if (status.AutoPriem)
                     {
                         RadioButtonFileAuto.IsChecked = true;
                     }
@@ -249,8 +243,7 @@ namespace ClientServiceWPF
                     {
                         RadioButtonFileHand.IsChecked = true;
                     }
-
-                    DatePickerPERIOD.SelectedDate = wcf.GetOtchetDate();
+                    DatePickerPERIOD.SelectedDate = status.OtchetDate;
                 }
 
                 if (buttonRefreshLog.IsEnabled)
@@ -369,7 +362,7 @@ namespace ClientServiceWPF
             {
                 if(!DatePickerPERIOD.SelectedDate.HasValue)
                     throw new Exception("Не указан период");
-                var br = wcf.StartProccess(RadioButtonMainTypePriem.IsChecked==true, RadioButtonFileAuto.IsChecked == true, DatePickerPERIOD.SelectedDate.Value);
+                var br = wcf.StartProcess(RadioButtonMainTypePriem.IsChecked==true, RadioButtonFileAuto.IsChecked == true, DatePickerPERIOD.SelectedDate.Value);
                 if (!br.Result)
                 {
                     MessageBox.Show(br.Exception);
@@ -388,7 +381,7 @@ namespace ClientServiceWPF
         {
             try
             {
-                var br = wcf.StopProccess();
+                var br = wcf.StopProcess();
                 if (!br.Result)
                 {
                     MessageBox.Show(br.Exception);
@@ -562,6 +555,10 @@ namespace ClientServiceWPF
         {
             return par.All(val.Contains);
         }
-     
+        public static bool ContainsOR(this List<string> val, params string[] par)
+        {
+            return par.Any(val.Contains);
+        }
+
     }
 }

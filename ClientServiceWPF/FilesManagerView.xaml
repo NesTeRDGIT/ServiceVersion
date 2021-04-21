@@ -18,7 +18,7 @@
             <DataGrid.Columns>
                 <DataGridTextColumn Header="ID" Binding="{Binding ID, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Приоритет" Binding="{Binding Priory, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
-                <DataGridTextColumn Header="Код МО" Binding="{Binding codeMOstr, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
+                <DataGridTextColumn Header="Код МО" Binding="{Binding CodeMO, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Наименование МО" Binding="{Binding CaptionMO, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Статус" Binding="{Binding Status, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Дата" Binding="{Binding Date,StringFormat=dd.MM.yyyy HH:mm, Mode=OneWay}" Width="Auto"></DataGridTextColumn>

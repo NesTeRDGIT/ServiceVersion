@@ -54,8 +54,8 @@ namespace ClientServiceWPF.USER_EDIT
                 ROLES_METHODViewSource = ((CollectionViewSource)(this.FindResource("ROLES_METHODViewSource")));
                 METHODViewSource = ((CollectionViewSource)(this.FindResource("METHODViewSource")));
 
-                EXIST_METHOD = wcf.Roles_GetMethod_NEW();
-                EXIST_ROLE = wcf.Roles_GetRoles_NEW();
+                EXIST_METHOD = wcf.Roles_GetMethod();
+                EXIST_ROLE = wcf.Roles_GetRoles();
 
                 DELETE_ROLE = new List<ServiceLoaderMedpomData.ROLES>();
                 ROLESViewSource.View.MoveCurrentToFirst();
@@ -115,12 +115,12 @@ namespace ClientServiceWPF.USER_EDIT
                 {
                     var insert = EXIST_ROLE.Where(x => x.ID == -1).ToList();
                     if (insert.Count != 0)
-                        wcf.Roles_EditRoles_NEW(TypeEdit.New, insert);
+                        wcf.Roles_EditRoles(TypeEdit.New, insert);
                     if (DELETE_ROLE.Count != 0)
-                        wcf.Roles_EditRoles_NEW(TypeEdit.Delete, DELETE_ROLE);
+                        wcf.Roles_EditRoles(TypeEdit.Delete, DELETE_ROLE);
                     var update = EXIST_ROLE.Where(x => x.IsModify && x.ID != -1).ToList();
                     if (update.Count != 0)
-                        wcf.Roles_EditRoles_NEW(TypeEdit.Update, update);
+                        wcf.Roles_EditRoles(TypeEdit.Update, update);
                     this.Close();
                 }
             }
@@ -196,7 +196,7 @@ namespace ClientServiceWPF.USER_EDIT
                 var win = new Method();
                 if (win.ShowDialog() == true)
                 {
-                    EXIST_METHOD = wcf.Roles_GetMethod_NEW();
+                    EXIST_METHOD = wcf.Roles_GetMethod();
                     METHODViewSource.View.Refresh();
                 }
 

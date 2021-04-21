@@ -1,5 +1,4 @@
 ﻿using Oracle.ManagedDataAccess.Client;
-using ServiceLoaderMedpomData.EntityMP_V31;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -9,12 +8,38 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 using DocumentFormat.OpenXml.Office2010.ExcelAc;
 using Microsoft.Office.Interop.Excel;
+using ServiceLoaderMedpomData.EntityMP_V31;
 using DataTable = System.Data.DataTable;
 
 namespace ServiceLoaderMedpomData
 {
 
-    public class MYBDOracleNEW : IDisposable
+    public class TransferTableRESULT
+    {
+        public string Table { get; set; }
+        public List<string> Colums { get; set; }
+    }
+
+    public interface IRepository: IDisposable
+    {
+        void InsertFile(ZL_LIST zl, PERS_LIST pe);
+        void TruncALL();
+        Task<bool> DeleteTemp100TASK(string code_mo);
+        TransferTableRESULT TransferTable(string tableFrom, string ownerFrom, string tableTo, string ownerTo);
+        void BeginTransaction();
+        void Commit();
+        void Rollback();
+        DataTable GetErrorView();
+        DataTable SVOD_FILE_TEMP99();
+        DataTable STAT_VIDMP_TEMP99();
+        DataTable STAT_FULL_TEMP99();
+        void Checking(TableName nameTBL, CheckingList list, CancellationToken cancel, ref string STAT);
+        string GetNameLPU(string R_COD);
+        DataTable GetZGLV_BYFileName(string FileName);
+         DataTable GetSCHET_BYCODE_CODE_MO(int code, string MO, int YEAR);
+    }
+
+    public class MYBDOracleNEW : IRepository
     {
 
         OracleConnection con;
@@ -2034,113 +2059,136 @@ where upper(t.filename) = upper('" + FileName + "')", con))
                 return tbl.Rows.Count != 0 ? tbl.Rows[0]["LPU"].ToString() : "";
             }
         }
-        public void Checking(TableName nameTBL, ChekingList list, CancellationToken cancel, ref string STAT)
+
+        public string GetNameLPU(string R_COD)
         {
-            try
+            using (var conn = new OracleConnection(ConnStr))
             {
-                con.Open();
-                var l = list[nameTBL];
-                for (var i = 0; i < l.Count; i++)
+                using (var oda = new OracleDataAdapter($@"select * from nsi.lpu_s t where KOD_R = {R_COD}", conn))
                 {
-                    var proc = l[i];
-                    if (proc.STATE)
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl.Rows.Count != 0 ? tbl.Rows[0]["LPU"].ToString() : "";
+                }
+              
+            }
+         
+        }
+
+        public void Checking(TableName nameTBL, CheckingList list, CancellationToken cancel, ref string STAT)
+        {
+            using (var CONN = NewOracleConnection(ConnStr))
+            {
+                CONN.Open();
+                using (var cmd = NewOracleCommand("", CONN))
+                {
+                    try
                     {
-                        var cmd = NewOracleCommand(
-                            $"begin {proc.NAME_PROC}({string.Join(",", proc.listParam.Select(x => $":{x.Name}"))}); end;",
-                            con);
-                        cmd.CommandType = CommandType.Text;
-                        STAT = $"Обработка пакета: ФЛК и сбор ошибок: {nameTBL} {i + 1}/{l.Count}{proc.NAME_ERR}";
-
-                        foreach (var par in proc.listParam)
+                        var l = list[nameTBL];
+                        for (var i = 0; i < l.Count; i++)
                         {
-                            var name = "";
-                            if (par.ValueType == TypeParamValue.value)
+                            var proc = l[i];
+                            if (proc.STATE)
                             {
-                                name = par.value;
-                            }
-                            else
-                            {
+                                STAT = $"Обработка пакета: ФЛК и сбор ошибок: {nameTBL} {i + 1}/{l.Count}{proc.NAME_ERR}";
 
-                                switch (par.ValueType)
+                                cmd.CommandText = $"begin {proc.NAME_PROC}({string.Join(",", proc.listParam.Select(x => $":{x.Name}"))}); end;";
+                                cmd.CommandType = CommandType.Text;
+                                cmd.Parameters.Clear();
+                                foreach (var par in proc.listParam)
                                 {
-                                    case TypeParamValue.TABLE_NAME_ZGLV:
-                                        name = H_ZGLV.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_ZAP:
-                                        name = H_ZAP.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_USL:
-                                        name = H_USL.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_SLUCH:
-                                        name = H_SLUCH.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_SCHET:
-                                        name = H_SCHET.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_SANK:
-                                        name = H_SANK.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_PACIENT:
-                                        name = H_PAC.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_L_ZGLV:
-                                        name = L_ZGLV.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_L_PERS:
-                                        name = L_PERS.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_NAZR:
-                                        name = H_NAZR.FullTableName;
-                                        break;
-                                    case TypeParamValue.TABLE_NAME_DS2_N:
-                                        name = H_DS2_N.FullTableName;
-                                        break;
-                                    case TypeParamValue.CurrMonth:
-                                        name = curr_month.ToString();
-                                        break;
-                                    case TypeParamValue.CurrYear:
-                                        name = curr_year.ToString();
-                                        break;
+                                    var value = GetValueOrclParam(par);
+                                    cmd.Parameters.Add(par.Name, par.Type, value, ParameterDirection.Input);
+                                }
 
+                                try
+                                {
+                                    if (cancel.IsCancellationRequested) throw new CancelException();
+                                    cmd.ExecuteScalar();
+                                    proc.Excist = StateExistProcedure.Exist;
+                                }
+                                catch (CancelException)
+                                {
+                                    throw;
+                                }
+                                catch (Exception ex)
+                                {
+                                    proc.Comment = ex.Message;
+                                    proc.Excist = StateExistProcedure.NotExcist;
                                 }
                             }
-
-                            if (par.Type == OracleDbType.Int32)
-                                cmd.Parameters.Add(par.Name, par.Type, Convert.ToInt32(name), ParameterDirection.Input);
-                            else
-                                cmd.Parameters.Add(par.Name, par.Type, name, ParameterDirection.Input);
                         }
 
-                        try
-                        {
-                            if (cancel.IsCancellationRequested) throw new CancelException();
-                            cmd.ExecuteScalar();
-                            proc.Excist = StateExistProcedure.Exist;
-                        }
-                        catch (CancelException)
-                        {
-                            throw;
-                        }
-                        catch (Exception ex)
-                        {
-                            proc.Comment = ex.Message;
-                            proc.Excist = StateExistProcedure.NotExcist;
-                        }
-
+                        STAT = $"Обработка пакета: ФЛК и сбор ошибок: {nameTBL} завершено сбор ошибок";
+                    }
+                    finally
+                    {
                         RemoveOracleCommand(cmd);
+                        RemoveOracleConnection(CONN);
                     }
                 }
-
-                STAT = $"Обработка пакета: ФЛК и сбор ошибок: {nameTBL} завершено сбор ошибок";
+                CONN.Close();
             }
-            finally
+        }
+
+
+        private object GetValueOrclParam(OrclParam par)
+        {
+            var value = "";
+            if (par.ValueType == TypeParamValue.value)
             {
-                if (con.State == ConnectionState.Open)
+                value = par.value;
+            }
+            else
+            {
+
+                switch (par.ValueType)
                 {
-                    con.Close();
+                    case TypeParamValue.TABLE_NAME_ZGLV:
+                        value = H_ZGLV.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_ZAP:
+                        value = H_ZAP.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_USL:
+                        value = H_USL.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_SLUCH:
+                        value = H_SLUCH.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_SCHET:
+                        value = H_SCHET.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_SANK:
+                        value = H_SANK.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_PACIENT:
+                        value = H_PAC.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_L_ZGLV:
+                        value = L_ZGLV.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_L_PERS:
+                        value = L_PERS.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_NAZR:
+                        value = H_NAZR.FullTableName;
+                        break;
+                    case TypeParamValue.TABLE_NAME_DS2_N:
+                        value = H_DS2_N.FullTableName;
+                        break;
+                    case TypeParamValue.CurrMonth:
+                        value = curr_month.ToString();
+                        break;
+                    case TypeParamValue.CurrYear:
+                        value = curr_year.ToString();
+                        break;
                 }
             }
+
+            if (par.Type == OracleDbType.Int32)
+                return Convert.ToInt32(value);
+            return value;
         }
         /// <summary>
         /// Получить ошибки из v_xml_errors
@@ -2159,11 +2207,7 @@ where upper(t.filename) = upper('" + FileName + "')", con))
             }
         }
 
-        public class TransferTableRESULT
-        {
-            public string Table { get; set; }
-            public List<string> Colums { get; set; }
-        }
+      
 
         /// <summary>
         /// Перенос таблицы
@@ -2293,6 +2337,10 @@ where upper(t.filename) = upper('" + FileName + "')", con))
             con?.Dispose();
         }
     }
+
+
+
+
     public enum TableName
     {
         /// <summary>
@@ -2354,8 +2402,6 @@ where upper(t.filename) = upper('" + FileName + "')", con))
         public string SchemaName { get; set; } = "";
         public string FullTableName => $"{(string.IsNullOrEmpty(SchemaName) ? "" : $"{SchemaName}.")}{TableName}";
     }
-
-
     public class FindSluchItem
     {
         public FindSluchItem(Int64 SLUCH_Z_ID, Int64 SLUCH_ID, string SL_ID, Int64 IDCASE, DateTime DATE_1, DateTime DATE_2, int? USL_OK, string NHISTORY, decimal SUM_M, string DS1, int? RSLT)
@@ -2385,8 +2431,6 @@ where upper(t.filename) = upper('" + FileName + "')", con))
         public int? RSLT { get; set; }
 
     }
-
-
     public class FindSANKItem
     {
         public FindSANKItem(int SLUCH_Z_ID, decimal S_SUM, int S_TIP, int S_OSN, DateTime DATE_ACT, string NUM_ACT, int YEAR_SANK, int MONTH_SANK, string FILENAME, DateTime DATE_INVITE)

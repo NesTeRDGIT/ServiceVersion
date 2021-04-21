@@ -7,36 +7,123 @@ using System.ComponentModel;
 using System.Data;
 using System.Windows.Forms;
 using System.Diagnostics;
+using System.Runtime.Serialization;
+using NPOI.SS.Util;
 
 
 namespace ServiceLoaderMedpomData
 {
     /// <summary>
-    /// Интерефейся WCF. Для взаимодействия клиента со службой
+    /// Интерфейс WCF. Для взаимодействия клиента со службой
     /// </summary>
-    [ServiceContract(CallbackContract = typeof(IWcfInterfaceCallback),
-         SessionMode = SessionMode.Required)]
+    [ServiceContract(CallbackContract = typeof(IWcfInterfaceCallback),SessionMode = SessionMode.Required)]
     public interface IWcfInterface
     {
+        #region  Управление обработкой
         /// <summary>
-        /// Получить лист пакетов 
+        /// Получить список пакетов
         /// </summary>
         /// <returns>Лист пакетов</returns>
         [OperationContract]
         List<FilePacket> GetFileManagerList();
-       
         /// <summary>
-        /// Настроить конфигурацию папок
+        /// Очистка списка пакетов
         /// </summary>
-        /// <param name="set">Конфигурация папок</param>
         [OperationContract]
-        void SettingsFolder(SettingsFolder set);
+        void ClearFileManagerList();
         /// <summary>
-        /// Настроить конфигурацию подключения
+        /// Остановить обработку
         /// </summary>
-        /// <param name="set">Конфигурация подключения</param>
+        /// <returns>Удачно или нет</returns>
         [OperationContract]
-        void SettingConnect(SettingConnect set);
+        BoolResult StopProcess();
+        /// <summary>
+        /// Запуск обработки
+        /// </summary>
+        /// <returns>Удачно или нет</returns>
+        [OperationContract]
+        BoolResult StartProcess(bool MainPriem, bool Auto, DateTime dt);
+        /// <summary>
+        /// Управление авто приемом
+        /// </summary>
+        /// <param name="Auto">Включить или выключить</param>
+        /// <returns></returns>
+        [OperationContract]
+        void SetAutoPriem(bool Auto);
+        /// <summary>
+        /// Получить статус приема
+        /// </summary>
+        /// <returns></returns>
+        [OperationContract]
+        StatusPriem GetStatusInvite();
+        /// <summary>
+        /// Получить лог программы
+        /// </summary>
+        /// <returns></returns>
+        [OperationContract]
+        EntriesMy[] GetEventLogEntry(int count);
+        /// <summary>
+        /// Очистка лога
+        /// </summary>
+        [OperationContract]
+        void ClearEventLogEntry();
+        /// <summary>
+        /// Установить приоритет обработки для пакета
+        /// </summary>
+        /// <param name="index"></param>
+        /// <param name="priority"></param>
+        /// <returns></returns>
+        [OperationContract]
+        bool SetPriority(int index, int priority);
+        /// <summary>
+        /// Удалить пакет
+        /// </summary>
+        /// <param name="index"></param>
+        /// <returns></returns>
+        [OperationContract]
+        bool DelPack(int index);
+        /// <summary>
+        /// Сохранение папки обработки
+        /// </summary>
+        [OperationContract]
+        void SaveProcessArch();
+        /// <summary>
+        /// Прогресс процесса сохранения папки обработки
+        /// </summary>
+        /// <returns></returns>
+        [OperationContract]
+        ProgressClass GetProgressClassProcessArch();
+        /// <summary>
+        /// Добавить файлы в обработку
+        /// </summary>
+        /// <param name="List"></param>
+        [OperationContract]
+        void AddListFile(List<string> List);
+        /// <summary>
+        /// Повторить обработку пакета
+        /// </summary>
+        /// <param name="index"></param>
+        [OperationContract]
+        void RepeatClosePac(int[] index);
+        /// <summary>
+        /// Прервать обработку пакета
+        /// </summary>
+        /// <param name="index"></param>
+        [OperationContract]
+        void BreakProcessPac(int index);
+        /// <summary>
+        /// Подписаться на событие NewFileManager(изменения листа пакетов)
+        /// </summary>
+        [OperationContract]
+        void RegisterNewFileManager();
+        /// <summary>
+        /// Отписаться от событие NewFileManager(изменения листа пакетов)
+        /// </summary>
+        [OperationContract]
+        void UnRegisterNewFileManager();
+        #endregion
+
+        #region Параметры работы
         /// <summary>
         /// Получить конфигурацию папок
         /// </summary>
@@ -44,22 +131,34 @@ namespace ServiceLoaderMedpomData
         [OperationContract]
         SettingsFolder GetSettingsFolder();
         /// <summary>
+        /// Настроить конфигурацию папок
+        /// </summary>
+        /// <param name="set">Конфигурация папок</param>
+        [OperationContract]
+        void SettingsFolder(SettingsFolder set);
+        /// <summary>
         /// Получить конфигурацию подключения
         /// </summary>
         /// <returns>Конфигурация</returns>
         [OperationContract]
         SettingConnect GetSettingConnect();
         /// <summary>
+        /// Настроить конфигурацию подключения
+        /// </summary>
+        /// <param name="set">Конфигурация подключения</param>
+        [OperationContract]
+        void SettingConnect(SettingConnect set);
+        /// <summary>
         /// Проверить подключение
         /// </summary>
         /// <param name="connectionstring">Строка подключения</param>
         /// <returns>Результат</returns>
         [OperationContract]
-        BoolResult isConnect(string connectionstring);//
+        BoolResult isConnect(string connectionstring);
         /// <summary>
         /// Получить список таблиц
         /// </summary>
-        /// <returns>Таблица с коментарием</returns>
+        /// <returns>Таблица с комментарием</returns>
         [OperationContract]
         TableResult GetTableServer(string OWNER);
         /// <summary>
@@ -73,98 +172,80 @@ namespace ServiceLoaderMedpomData
         [OperationContract]
         void LoadProperty();
         /// <summary>
-        /// Остановить обработку
+        /// Получить коллекцию схем
         /// </summary>
-        /// <returns>Удачно или нет</returns>
+        /// <returns>Класс коллекция схем</returns>
         [OperationContract]
-        BoolResult StopProccess();
-        /// <summary>
-        /// Запуск обработки
-        /// </summary>
-        /// <returns>Удачно или нет</returns>
-        [OperationContract]
-        BoolResult StartProccess(bool MainPriem, bool Auto, DateTime dt);
-
-        /// <summary>
-        /// Управление авто приемом
-        /// </summary>
-        /// <param name="Auto">Включить или выключить</param>
-        /// <returns></returns>
-        [OperationContract]
-        void SetAutoPriem(bool Auto);
-
-        [OperationContract]
-        bool GetTypePriem();
-
-        [OperationContract]
-        DateTime GetOtchetDate();
-        [OperationContract]
-        bool GetAutoPriem();
-        /// <summary>
-        /// Получить колекцию схем
-        /// </summary>
-        /// <returns>Класс колекция схем</returns>
-        [OperationContract]
-        SchemaColection GetSchemaColection();
+        SchemaCollection GetSchemaCollection();
         /// <summary>
         /// Задать коллекцию схем
         /// </summary>
-        /// <param name="sc">Класс колекция схем</param>
+        /// <param name="sc">Класс коллекцию схем</param>
         [OperationContract]
-        void SettingSchemaColection(SchemaColection sc);
-
+        void SettingSchemaCollection(SchemaCollection sc);
         /// <summary>
-        /// Установить список процедур для переноса 
-        /// </summary>
-        /// <param name="list"></param>
-        [OperationContract]
-        void SetListTransfer(List<OrclProcedure> list, string ProcClear, string ProcClearTransfer, string StatusProc, string StatusProcTransfer);
-        /// <summary>
-        /// Получить список процедур для переноса
-        /// </summary>
-        /// <returns></returns>
-        [OperationContract]
-        List<OrclProcedure> GetListTransfer();
-        /// <summary>
-        /// Остановить время ожидания
+        /// Установить время ожидания пакета
         /// </summary>
         /// <param name="index"></param>
         [OperationContract]
-         void StopTimeAway(int index);
+        void StopTimeAway(int index);
         /// <summary>
-        /// Выполнить функцию переноса
-        /// </summary>
-        /// <param name="x">Порядок функции </param>
-        /// <param name="y">0 - если проверка 1 если выполнить</param>
-        [OperationContract]
-        void RunProcListTransfer(int x, int y);
-        /// <summary>
-        /// Статус обработки архивов
+        /// Получить список проверок
         /// </summary>
         /// <returns></returns>
         [OperationContract]
-        bool ArchiveInviterStatus();
+        CheckingList GetCheckingList();
         /// <summary>
-        /// Статус обработки файлов
+        /// Задать список проверок
+        /// </summary>
+        /// <param name="list">Список</param>
+        /// <returns></returns>
+        [OperationContract]
+        BoolResult SetCheckingList(CheckingList list);
+        /// <summary>
+        /// Получить список процедур из Пакета Oracle
+        /// </summary>
+        /// <param name="name">Имя пакета</param>
+        /// <returns></returns>
+        [OperationContract]
+        List<OrclProcedure> GetProcedureFromPack(string name);
+        /// <summary>
+        /// Получить список параметров из процедуры Oracle
+        /// </summary>
+        /// <param name="name">Имя процедуры</param>
+        /// <returns></returns>
+        [OperationContract]
+        List<OrclParam> GetParam(string name);
+        /// <summary>
+        /// Выполнить проверки(Тестирование запуска)
+        /// </summary>
+        /// <param name="check">Список проверок</param>
+        /// <returns></returns>
+        [OperationContract]
+        CheckingList ExecuteCheckAv(CheckingList check);
+        /// <summary>
+        /// Загрузить проверки из БД
         /// </summary>
         /// <returns></returns>
         [OperationContract]
-        bool FilesInviterStatus();//
+        BoolResult LoadCheckListFromBD();
         /// <summary>
-        /// Статус обработки флк пакетов
+        /// Установить параметры переноса в TEMP100
+        /// </summary>
+        /// <param name="st"></param>
+        [OperationContract]
+        void SetSettingTransfer(SettingTransfer st);
+        /// <summary>
+        /// Получить параметры переноса в TEMP100
         /// </summary>
         /// <returns></returns>
         [OperationContract]
-        bool FLKInviterStatus();
-        /// <summary>
-        /// Пинг для проверки службы WCF
-        /// </summary>
-        /// <returns></returns>
-        [OperationContract]
-        List<string> Connect();
+        SettingTransfer GetSettingTransfer();
+        #endregion
 
+        #region Получение файловой системы сервера
         /// <summary>
-        /// Получить список дириктории
+        /// Получить список директории
         /// </summary>
         /// <param name="path">Путь</param>
         /// <returns>Список директорий</returns>
@@ -184,270 +265,91 @@ namespace ServiceLoaderMedpomData
         /// <returns></returns>
         [OperationContract]
         string[] GetLocalDisk();
+      
+        #endregion
+
+        #region Отчеты
         /// <summary>
-        /// Получить лог программы
+        /// Список МО не подавших реестры
         /// </summary>
         /// <returns></returns>
-        [OperationContract]
-        EntriesMy[] GetEventLogEntry(int count);
-        /// <summary>
-        /// Отчистка лога
-        /// </summary>
-        [OperationContract]
-        void ClearEventLogEntry();
-        /// <summary>
-        /// Получить список проверок
-        /// </summary>
-        /// <returns></returns>
-        [OperationContract]
-        ChekingList GetChekingList();
-        /// <summary>
-        /// Задать список проверок
-        /// </summary>
-        /// <param name="list">Список</param>
-        /// <returns></returns>
-        [OperationContract]
-        BoolResult SetChekingList(ChekingList list);
-        /// <summary>
-        /// Получить список процедур из Пакета Oracle
-        /// </summary>
-        /// <param name="name">Имя пакета</param>
-        /// <returns></returns>
-        [OperationContract]
-        List<OrclProcedure> GetProcedureFromPack(string name);
-        /// <summary>
-        /// Получить список параметров из процедуры Oracle
-        /// </summary>
-        /// <param name="name">Имя процедуры</param>
-        /// <returns></returns>
-        [OperationContract]
-        List<OrclParam> GetParam(string name);
-        /// <summary>
-        /// Выполнить проверки
-        /// </summary>
-        /// <param name="check">Список проверок</param>
-        /// <returns></returns>
-        [OperationContract]
-        ChekingList ExecuteCheckAv(ChekingList check);
-        /// <summary>
-        /// Загрузить проверки из БД
-        /// </summary>
-        /// <returns></returns>
-        [OperationContract]
-        BoolResult LoadChekListFromBD();
-        /// <summary>
-        /// Очистка журнала
-        /// </summary>
-        
-        [OperationContract]
-        void SetSettingTransfer(SettingTransfer st);
-        [OperationContract]
-        SettingTransfer GetSettingTransfer();
-        [OperationContract]
-        TableResult GetTableTransfer();
-        [OperationContract]
-        void ClearFileManagerList();
-        [OperationContract]
-        bool SetPriority(int index, int priority);
-        [OperationContract]
-        bool DelPack(int index);
-        [OperationContract]
-        void SetUserPriv(string value);
-        [OperationContract]
-        bool CheckUserPriv(string value);
-        [OperationContract]
-        string GetUserPriv();
-   
         [OperationContract]
         DataTable GetNotReestr();
-      
-        [OperationContract]
-        DataTable GetSVOD_SMO_TEMP1(DataTable tbl);
+        #endregion
 
+        #region Управление ролевой системой
         [OperationContract]
-        DataTable GetSVOD_SMO_TEMP100(DataTable tbl);
+        void Roles_EditUsers(TypeEdit te, List<USERS> items);
         [OperationContract]
-        DataTable GetSVOD_DISP_TEMP100(DataTable tbl);
+        List<USERS> Roles_GetUsers();
         [OperationContract]
-        DataTable GetSVOD_DISP_TEMP1(DataTable tbl);
+        void Roles_EditRoles(TypeEdit te, List<ROLES> items);
         [OperationContract]
-        DataTable GetSVOD_VMP_TEMP1(DataTable tbl);
+        List<ROLES> Roles_GetRoles();
         [OperationContract]
-        DataTable GetSVOD_VMP_TEMP100(DataTable tbl);
+        void Roles_EditMethod(TypeEdit te, List<METHOD> items);
         [OperationContract]
-        DataTable GetSVOD_SMP_TEMP1(DataTable tbl);
-        [OperationContract]
-        DataTable GetSVOD_SMP_TEMP100(DataTable tbl);
-        [OperationContract]
-        DataTable GetSVOD_DISP_ITOG(DataTable tbl, int YEAR);
-        [OperationContract]
-        DataTable GetSVOD_SMP_ITOG(DataTable tbl, int YEAR);
-        [OperationContract]
-        DataTable GetSVOD_VMP_ITOG(DataTable tbl, int YEAR);
-        [OperationContract]
-        DataTable Roles_GetMethod();
-       
-        [OperationContract]
-        void Roles_AddMethod(string Name, string Comm);
-        [OperationContract]
-        void Roles_DeleteMethod(int id);
-        [OperationContract]
-        void Roles_UpdateMethod(string Name, string Coment, int id);
-        [OperationContract]
-        DataTable Roles_GetRoles();
-        [OperationContract]
-        int Roles_AddRoles(string Name, string Comment);
-        [OperationContract]
-        void Roles_DeleteRoles(int id);
-        [OperationContract]
-        void Roles_UpdateRoles(string Name, string Comment, int id);
-        [OperationContract]
-        DataTable Roles_GetRolesClaims();
-        [OperationContract]
-        void Roles_AddClaims(int role_id, int claims_id);
-        [OperationContract]
-        void Roles_DeleteClaims(int role_id, int claims_id);
-        [OperationContract]
-        void Roles_UpdateClaims(int role_id, int claims_id, int old_role_id, int old_claims_id);
+        List<METHOD> Roles_GetMethod();
+        #endregion
 
-
-        [OperationContract]
-        DataTable Roles_GetUsers();
-        [OperationContract]
-        int Roles_AddUsers(string Name, string password);
-        [OperationContract]
-        void Roles_DeleteUsers(int id);
-        [OperationContract]
-        void Roles_UpdateUsers(string Name, string password, int id);
-
-
-        [OperationContract]
-        DataTable Roles_GetUsers_Roles();
-        [OperationContract]
-        void Roles_AddUsers_Role(int user_id, int role_id);
-        [OperationContract]
-        void Roles_DeleteUsers_Role(int user_id, int role_id);
-
-
-
-
-
-     
-
-
-
-        [OperationContract]
-        void SaveProcessArch();
-
-        [OperationContract]
-        ProgressClass GetProgressClassProcessArch();
+        #region Обновление программы
         /// <summary>
-        /// Авто захват файлов
+        /// Получить данные о файлах
         /// </summary>
+        /// <returns></returns>
         [OperationContract]
-        bool GetAutoFileAdd();
-
-
-        /* [OperationContract]
-         ImpersonInfo GetImpersonInfo();
-         [OperationContract]
-         void SetImpersonInfo(ImpersonInfo ii);
-         [OperationContract]
-         bool CheckImpersonInfo(ImpersonInfo ii);
-         */
+        Version GetVersion();
+        /// <summary>
+        /// Загрузить файл
+        /// </summary>
+        /// <param name="file"></param>
+        /// <param name="offset"></param>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        [OperationContract]
+        byte[] LoadFileUpdate(FileAndMD5 file, int offset, int count);
         [OperationContract]
         byte[] GetFile(string CODE_MO, int FILE, TypeDOWLOAD type, long offset);
-
         [OperationContract]
         long GetFileLength(string CODE_MO, int FILE, TypeDOWLOAD type);
 
-        [OperationContract]
-        void AddListFile(List<string> List);
-        [OperationContract]
-        string CheckTableTemp1();
-        [OperationContract]
-        void ClearBaseTemp1();
-        [OperationContract]
-        List<string> GetCheckClearProc();
-
-        [OperationContract]
-        string CheckTableTemp100();
-        [OperationContract]
-        void ClearBaseTemp100();
-
-
-        #region Счета фактуры
-        [OperationContract]
-        DataTable GetID_SPOSOB();
-        [OperationContract]
-        DataTable GetVIDMP();
-        [OperationContract]
-        DataTable GetMUR_FIN();
-        [OperationContract]
-        DataTable GetMUR_FIN_SMP();
-        [OperationContract]
-        DataTable Getf003();
-        [OperationContract]
-        DataTable Getf002();
-        [OperationContract]
-        DataTable GetV_XML_H_FAKTURA();
-
-        [OperationContract]
-        void RepeatClosePac(int[] index);
         #endregion
-        [OperationContract]
-        void BreackProcessPac(int index);
-        [OperationContract]
-        ServiceLoaderMedpomData.Version GetVersion();
 
-        [OperationContract]
-        byte[] LoadFileUpdate(FileAndMD5 file, int offset, int count);
-
+        #region Связь с сервисом
+        /// <summary>
+        /// Пинг для проверки службы WCF
+        /// </summary>
+        /// <returns></returns>
         [OperationContract]
         bool Ping();
+        /// <summary>
+        /// Подключение
+        /// </summary>
+        /// <returns>Набор доступных методов</returns>
+        [OperationContract]
+        List<string> Connect();
+        #endregion
 
-
+        #region Взаимодейстиве с сайтом
+        /// <summary>
+        /// Получить текущий пакет для МО
+        /// </summary>
+        /// <param name="code_mo"></param>
+        /// <returns></returns>
         [OperationContract]
         FilePacketAndOrder GetPackForMO(string code_mo);
+        /// <summary>
+        /// Добавить пакет на обработку
+        /// </summary>
+        /// <param name="fp"></param>
         [OperationContract]
         void AddFilePacketForMO(FilePacket fp);
 
-        /// <summary>
-        /// Подписаться на событие NewFileManager 
-        /// </summary>
-        [OperationContract]
-        void RegisterNewFileManager();
-        /// <summary>
-        /// Отписаться от событие NewFileManager 
-        /// </summary>
-        [OperationContract]
-        void UnRegisterNewFileManager();
-
-
-
-
-
-
-
-        [OperationContract]
-        void Roles_EditUsers_NEW(TypeEdit te, List<USERS> items);
-
-        [OperationContract]
-        List<USERS> Roles_GetUsers_NEW();
-
-        [OperationContract]
-        void Roles_EditRoles_NEW(TypeEdit te, List<ROLES> items);
-
-        [OperationContract]
-        List<ROLES> Roles_GetRoles_NEW();
-
-        [OperationContract]
-        void Roles_EditMethod_NEW(TypeEdit te, List<METHOD> items);
-
-        [OperationContract]
-        List<METHOD> Roles_GetMethod_NEW();
-
+        #endregion
     }
+
+
+
 
 
     [ServiceContract]
@@ -678,5 +580,55 @@ namespace ServiceLoaderMedpomData
      public class CancelException:Exception
      {
 
+     }
+
+     [DataContract]
+     public class StatusPriem
+     {
+         public StatusPriem(bool TypePriem, DateTime OtchetDate, bool AutoPriem,bool ActiveAutoPriem, bool THArchiveInviter, bool FilesInviterStatus, bool FLKInviterStatus)
+         {
+             this.TypePriem = TypePriem;
+             this.OtchetDate = OtchetDate;
+             this.AutoPriem = AutoPriem;
+             this.THArchiveInviter = THArchiveInviter;
+             this.FilesInviterStatus = FilesInviterStatus;
+             this.FLKInviterStatus = FLKInviterStatus;
+             this.ActiveAutoPriem = ActiveAutoPriem;
+         }
+        /// <summary>
+        /// Тип приема(True - Основной, False - предварительный)
+        /// </summary>
+        [DataMember]
+        public bool TypePriem { get; set; }
+        /// <summary>
+        /// Отчетный период
+        /// </summary>
+        [DataMember]
+        public DateTime OtchetDate { get; set; }
+        /// <summary>
+        /// Режим захвата файлов(True - автоматический, False - ручной)
+        /// </summary>
+        [DataMember]
+        public bool AutoPriem { get; set; }
+        /// <summary>
+        /// Активность потока обработки архивов
+        /// </summary>
+        [DataMember]
+        public bool THArchiveInviter { get; set; }
+        /// <summary>
+        /// Активность потока обработки файлов
+        /// </summary>
+        [DataMember]
+        public bool FilesInviterStatus { get; set; }
+        /// <summary>
+        /// Активность потока обработки ФЛК
+        /// </summary>
+        [DataMember]
+        public bool FLKInviterStatus { get; set; }
+        /// <summary>
+        /// Активность слушателя появления файлов
+        /// </summary>
+        [DataMember]
+        public bool ActiveAutoPriem { get; set; }
      }
 }

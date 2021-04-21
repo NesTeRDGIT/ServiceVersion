@@ -123,7 +123,16 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AppProperties.cs" />
+    <Compile Include="ExcelProtokol.cs" />
+    <Compile Include="FilesHelper.cs" />
+    <Compile Include="IFileInviter.cs" />
+    <Compile Include="IMessageMO.cs" />
     <Compile Include="Impersonate .cs" />
+    <Compile Include="IPacketCreator.cs" />
+    <Compile Include="IPacketQuery.cs" />
+    <Compile Include="IProcessReestr.cs" />
+    <Compile Include="ISchemaCheck.cs" />
+    <Compile Include="Logger.cs" />
     <Compile Include="ProjectInstaller.cs">
       <SubType>Component</SubType>
     </Compile>
@@ -143,7 +152,14 @@
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ThreadManager.cs" />
     <Compile Include="Wcf.cs" />
+    <Compile Include="WCFControl.cs" />
+    <Compile Include="WCFFileSystem.cs" />
+    <Compile Include="WCFReport.cs" />
+    <Compile Include="WCFSetting.cs" />
+    <Compile Include="WCFSite.cs" />
+    <Compile Include="WCFUpdate.cs" />
     <Compile Include="WCFUsers.cs" />
   </ItemGroup>
   <ItemGroup>

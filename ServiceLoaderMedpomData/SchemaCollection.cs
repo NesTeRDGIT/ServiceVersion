@@ -14,8 +14,6 @@ using System.Net;
 
 namespace ServiceLoaderMedpomData
 {
-
-
     [XmlRoot("dictionary")]
     public class SerializableDictionary<TKey, TValue> : Dictionary<TKey, TValue>, IXmlSerializable
     {
@@ -144,38 +142,36 @@ namespace ServiceLoaderMedpomData
     /// </summary>
     [DataContract]
     [Serializable]
-    public class SchemaColection
+    public class SchemaCollection
     {
         //Схемы
         [DataMember]
         private SerializableDictionary<VersionMP, VersionSchemaElement> Schemas { get; set; }
-        public SchemaColection()
+        public SchemaCollection()
         {
             newSc();
         }
-
-        public SchemaColectionFindResult FindSchema(string Version, DateTime dt, FileType ft)
+        public SchemaCollectionFindResult FindSchema(string Version, DateTime dt, FileType ft)
         {
             var sc = Schemas.Where(x => x.Value.VersionsZGLV.Contains(Version)).ToList();
             if (sc.Count != 1)
-                return new SchemaColectionFindResult{Result = false, Exception = $"Не допустимая версия документа: {Version}"};
+                return new SchemaCollectionFindResult{Result = false, Exception = $"Не допустимая версия документа: {Version}"};
 
             if (!sc[0].Value.SchemaElements.ContainsKey(ft))
-                return new SchemaColectionFindResult
-                    {Result = false, Exception = $"Для версии документа {Version} нет схемы для файла {ft.ToString()}"};
+                return new SchemaCollectionFindResult{ Result = false, Exception = $"Для версии документа {Version} нет схемы для файла {ft.ToString()}"};
 
             var value = sc[0].Value.SchemaElements[ft]
                 .FindAll(x => dt >= x.DATE_B && (dt <= x.DATE_E || !x.DATE_E.HasValue));
 
             if (value.Count > 1)
-                return new SchemaColectionFindResult
+                return new SchemaCollectionFindResult
                 {
                     Result = false,
                     Exception = $"Для версии документа {Version} файла {ft.ToString()} найдено более 1 схемы документа"
                 };
 
             if (value.Count == 0)
-                return new SchemaColectionFindResult
+                return new SchemaCollectionFindResult
                 {
                     Result = false,
                     Exception =
@@ -183,9 +179,8 @@ namespace ServiceLoaderMedpomData
                         $"не найдено ни" +
                         $" одной схемы. Файл от {dt:MM-yyyy}, доступны схемы:{Environment.NewLine}{string.Join(Environment.NewLine, sc[0].Value.SchemaElements[ft].Select(x => $"с {x.DATE_B:dd-MM-yyyy}{(x.DATE_E.HasValue ? $" по {x.DATE_E:dd-MM-yyyy}" : "")}"))}"
                 };
-            return new SchemaColectionFindResult() {Result = true, Value = value[0], Vers = sc[0].Key};
+            return new SchemaCollectionFindResult() {Result = true, Value = value[0], Vers = sc[0].Key};
         }
-
         public VersionMP FindVersion(string Version)
         {
             var sc = Schemas.Where(x => x.Value.VersionsZGLV.Contains(Version)).ToList();
@@ -199,8 +194,6 @@ namespace ServiceLoaderMedpomData
                 Schemas.Add(v, new VersionSchemaElement());
             }
         }
-
-
         void Check()
         {
             foreach (var v in (VersionMP[])Enum.GetValues(typeof(VersionMP)))
@@ -218,9 +211,7 @@ namespace ServiceLoaderMedpomData
                 VersionSchemaElement.Check(Schemas[VersionMP.V3_1]);
             }
         }
-
         public List<VersionMP> Versions => Schemas.Keys.ToList();
-
         public List<SchemaElementValue> this[VersionMP version, FileType _type]
         {
             get { return Schemas[version].SchemaElements[_type]; }
@@ -229,9 +220,7 @@ namespace ServiceLoaderMedpomData
                 Schemas[version].SchemaElements[_type] = value;
             }
         }
-
         public VersionSchemaElement this[VersionMP version] => Schemas[version];
-
         public bool ContainsVersion(VersionMP key)
         {
             return Schemas.ContainsKey(key);
@@ -271,11 +260,9 @@ namespace ServiceLoaderMedpomData
                 return false;
             }
         }
-
-
     }
 
-    public class SchemaColectionFindResult
+    public class SchemaCollectionFindResult
     {
         public  bool Result { get; set; }
         public SchemaElementValue Value { get; set; }
@@ -318,7 +305,6 @@ namespace ServiceLoaderMedpomData
 
     public class SchemaChecking
     {
-
         public enum PrichinAv
         {
             EXEPT,
@@ -552,7 +538,7 @@ namespace ServiceLoaderMedpomData
                 var ns_error = false;
                 foreach (XmlSchema schema in XMLSettings.Schemas.Schemas())  // foreach is used to simplify the example
                 {
-                    NS = schema.TargetNamespace == null ? "" : schema.TargetNamespace;
+                    NS = schema.TargetNamespace ?? "";
                 }
                 step++;
                
@@ -1264,6 +1250,12 @@ namespace ServiceLoaderMedpomData
         }
     }
 
+
+  
+
+
+
+
     class MyValidatorV31 : IValidatorXML
     {
         private bool Hfile;
@@ -1448,7 +1440,6 @@ namespace ServiceLoaderMedpomData
                             if (isSL)
                             {
                                 PR_D_N = reader.Value;
-                              //  PR_D_N_POS.Set(reader);
                             }
                             break;
                         case "P_OTK":
@@ -1685,8 +1676,6 @@ namespace ServiceLoaderMedpomData
                 DateFile = new DateTime(Convert.ToInt32(YEAR), Convert.ToInt32(MONTH), 1);
 
         }
-
-
         public void Close()
         {
             if (SD_Z.HasValue)

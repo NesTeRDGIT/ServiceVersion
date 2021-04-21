@@ -17,6 +17,8 @@ using ServiceLoaderMedpomData.Annotations;
 
 namespace ServiceLoaderMedpomData
 {
+   
+
     #region Структуры для Парсера
     /// <summary>
     /// Вид PI
@@ -292,62 +294,7 @@ $@"Наименование файла должно быть
 
     }
 
-    /*
-    /// <summary>
-    /// Структура файла
-    /// </summary>
-    public class FileParce
-    {
-        /// <summary>
-        /// Тип файла
-        /// </summary>
-        public FileType? type;
-        /// <summary>
-        /// Тип организации источника
-        /// </summary>
-        public PI? Pi;
-        /// <summary>
-        /// Номер организации источника
-        /// </summary>            
-        public string Ni;
-        /// <summary>
-        /// Тип организации принимающей
-        /// </summary>
-        public PI? Pp;
-        /// <summary>
-        /// Номер организации принимающей
-        /// </summary>            
-        public string Np;
-        /// <summary>
-        /// Год
-        /// </summary>
-        public int? YY;
-        /// <summary>
-        /// Месяц
-        /// </summary>
-        public int? MM;
-        /// <summary>
-        /// Порядковый номер
-        /// </summary>
-        public int? N;
-
-        public FileParce()
-        {
-            type = null ; Pi = null ; Ni = null ; Pp = null ; Np = null ; YY = null ; MM = null ; N = null;
-        }
-
-        public bool IsNull
-        {
-            get
-            {
-                if (type != null && Pi != null && Ni != null && Pp != null && Np != null && YY != null && MM != null && N != null)
-                    return false;
-                else
-                    return true;
-            }
-
-        }
-    }*/
+   
     #endregion
     /// <summary>
     /// Тип файла
@@ -409,7 +356,7 @@ $@"Наименование файла должно быть
     /// <summary>
     /// Шаг обработки файла
     /// </summary>
-     [Serializable]
+    [Serializable]
     public enum StepsProcess
     {
         /// <summary>
@@ -437,8 +384,6 @@ $@"Наименование файла должно быть
         /// </summary>
         FlkErr = 5
     }
-
-
     [Serializable]
     public enum VersionMP
     {
@@ -885,7 +830,7 @@ $@"Наименование файла должно быть
 
         public FilePacket()
         {
-            CodeMO = new byte[6];
+            CodeMO = "";
             Files = new List<FileItem>();
             Priory = 0;
             StopTime = false;
@@ -989,21 +934,15 @@ $@"Наименование файла должно быть
             }
         }
 
-        /// <summary>
-        /// Код МО строкой
-        /// </summary>
-        public string codeMOstr
-        {
+       
 
-            get { return CodeMO.Aggregate("", (current, B) => current + B.ToString()); }
-        }
-
-        [DataMember] byte[] _CodeMO;
+        [DataMember]
+        string _CodeMO;
 
         /// <summary>
         /// Код МО массивом
         /// </summary>
-        public byte[] CodeMO
+        public string CodeMO
         {
 
             get { return _CodeMO; }
@@ -1011,7 +950,6 @@ $@"Наименование файла должно быть
             {
                 _CodeMO = value;
                 OnPropertyChanged();
-                OnPropertyChanged("codeMOstr");
             }
         }
 
@@ -1068,9 +1006,7 @@ $@"Наименование файла должно быть
 
         public int CompareTo(FilePacket other)
         {
-            var currmo = Convert.ToInt32(codeMOstr);
-            var othermo = Convert.ToInt32(other.codeMOstr);
-            return currmo.CompareTo(othermo);
+            return CodeMO.CompareTo(other.CodeMO);
         }
 
 
@@ -1124,7 +1060,6 @@ $@"Наименование файла должно быть
             }));
         }
     }
-
     public class FilePacketAndOrder
     {
         public FilePacket FP { get; set; }
@@ -1165,15 +1100,13 @@ $@"Наименование файла должно быть
         /// </summary>
         /// <param name="CodeMO">Код МО</param>
         /// <returns></returns>
-        public int FindIndexPacket(byte[] CodeMO)
+        public int FindIndexPacket(string CodeMO)
         {
-            return Files.FindIndex(FP => ((FP.CodeMO.SequenceEqual(CodeMO)))
-            );
+            return Files.FindIndex(FP => FP.CodeMO == CodeMO);
         }
-        public FilePacket FindIndexPacket(string CodeMO)
+        public FilePacket FindPacket(string CodeMO)
         {
-            return Files.Find(FP => ((FP.codeMOstr == CodeMO))
-            );
+            return Files.FirstOrDefault(FP => FP.CodeMO == CodeMO);
         }
         /// <summary>
         /// Получить индекс пакета
@@ -1389,20 +1322,17 @@ $@"Наименование файла должно быть
             sw.Close();
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
-
-        public int GetIndexHighPriority()
+        public FilePacket GetIndexHighPriority()
         {
             var MaxPrior = -1;
-            var result = -1;
-            for(var i = 0;i<Files.Count;i++)
+            FilePacket result  = null;
+            foreach (var item in Files)
             {
-                if(Files[i].Status == StatusFilePack.XMLSchemaOK)
+                if(item.Status == StatusFilePack.XMLSchemaOK)
                 {
-                    if(Files[i].Priory >MaxPrior)
-                    {
-                        MaxPrior = Files[i].Priory;
-                        result = i;
-                    }
+                    if (item.Priory <= MaxPrior) continue;
+                    MaxPrior = item.Priory;
+                    result = item;
                 }
             }
             return result;
@@ -1440,6 +1370,8 @@ $@"Наименование файла должно быть
     }
 
 
+     
+
     public static partial class  Ext
     {
         public static void InvokeComm(this FileItem item, string COMM, Form win)
@@ -1451,4 +1383,8 @@ $@"Наименование файла должно быть
             win.Dispatcher.Invoke(() => { item.Comment = COMM; });
         }
     }
+
+
+
+  
 }

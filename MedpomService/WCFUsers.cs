@@ -13,15 +13,14 @@ namespace MedpomService
 {
     public partial class WcfInterface
     {
-       
-        public List<METHOD> Roles_GetMethod_NEW()
+        public List<METHOD> Roles_GetMethod()
         {
             var tbl = new DataTable("Method");
             var sda = new OracleDataAdapter("select * from MEDPOM_EXIST_METHOD t", new OracleConnection(AppConfig.Property.ConnectionString));
             sda.Fill(tbl);
             return METHOD.Get(tbl.Select());
         }
-        public void Roles_EditMethod_NEW(TypeEdit te, List<METHOD> items)
+        public void Roles_EditMethod(TypeEdit te, List<METHOD> items)
         {
             try
             {
@@ -34,11 +33,11 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog($"Roles_EditMethod: {ex.Message}", EventLogEntryType.Error);
+                AddLog($"Roles_EditMethod: {ex.Message}", LogType.Error);
                 throw new FaultException("Ошибка в Roles_EditMethod подробнее в логах сервиса");
             }
         }
-        public List<ROLES> Roles_GetRoles_NEW()
+        public List<ROLES> Roles_GetRoles()
         {
             try
             {
@@ -58,11 +57,11 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_GetRoles: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_GetRoles: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_GetRoles подробнее в логах сервиса");
             }
         }
-        public void Roles_EditRoles_NEW(TypeEdit te, List<ROLES> items)
+        public void Roles_EditRoles(TypeEdit te, List<ROLES> items)
         {
             try
             {
@@ -75,11 +74,11 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_EditRoles: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_EditRoles: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_EditRoles подробнее в логах сервиса");
             }
         }
-        public List<USERS> Roles_GetUsers_NEW()
+        public List<USERS> Roles_GetUsers()
         {
             try
             {
@@ -98,11 +97,11 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_GetUsers: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_GetUsers: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_GetUsers подробнее в логах сервиса");
             }
         }
-        public void Roles_EditUsers_NEW(TypeEdit te, List<USERS> items)
+        public void Roles_EditUsers(TypeEdit te, List<USERS> items)
         {
             try
             {
@@ -114,7 +113,7 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_EditUsers: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_EditUsers: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_EditUsers подробнее в логах сервиса");
             }
         }
@@ -131,7 +130,7 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_AddMethod: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_AddMethod: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_AddMethod подробнее в логах сервиса");
             }
         }
@@ -147,7 +146,7 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_DeleteMethod: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_DeleteMethod: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_DeleteMethod подробнее в логах сервиса");
             }
         }
@@ -169,7 +168,7 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_UpdateMethod: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_UpdateMethod: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_UpdateMethod подробнее в логах сервиса");
             }
         }
@@ -198,7 +197,7 @@ values
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog($"Roles_AddRoles: {ex.Message}", EventLogEntryType.Error);
+                AddLog($"Roles_AddRoles: {ex.Message}", LogType.Error);
                 throw new FaultException("Ошибка в Roles_AddRoles подробнее в логах сервиса");
             }
         }
@@ -214,7 +213,7 @@ values
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog($"Roles_DeleteRoles: {ex.Message}", EventLogEntryType.Error);
+                AddLog($"Roles_DeleteRoles: {ex.Message}", LogType.Error);
                 throw new FaultException("Ошибка в Roles_DeleteRoles подробнее в логах сервиса");
             }
         }
@@ -235,7 +234,7 @@ values
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_UpdateRoles: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_UpdateRoles: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_UpdateRoles подробнее в логах сервиса");
             }
         }
@@ -261,7 +260,7 @@ values
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_AddUsers: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_AddUsers: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_AddUsers подробнее в логах сервиса");
             }
         }
@@ -286,7 +285,7 @@ PASS = :PASS
             }
             catch (Exception ex)
             {
-                WcfInterface.AddLog("Roles_UpdateUsers: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_UpdateUsers: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_UpdateUsers подробнее в логах сервиса");
             }
         }
@@ -318,7 +317,7 @@ PASS = :PASS
             {
                 TRAN?.Rollback();
                 CONN?.Dispose();
-                WcfInterface.AddLog("Roles_UpdateUsers_Role: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_UpdateUsers_Role: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_UpdateUsers_Role подробнее в логах сервиса");
             }
 
@@ -357,12 +356,9 @@ PASS = :PASS
             {
                 TRAN?.Rollback();
                 CONN?.Dispose();
-                WcfInterface.AddLog("Roles_Update_Roles_Method: " + ex.Message, EventLogEntryType.Error);
+                AddLog("Roles_Update_Roles_Method: " + ex.Message, LogType.Error);
                 throw new FaultException("Ошибка в Roles_Update_Roles_Method подробнее в логах сервиса");
             }
         }
     }
-
-
-
 }

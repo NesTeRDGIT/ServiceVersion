@@ -32,18 +32,15 @@ namespace ServiceLoaderMedpomData
     public class Version
     {
         public List<FileAndMD5> FileList = new List<FileAndMD5>();
-
-
-
         public static string GetMd5Hash(string path)
         {
-            using (FileStream fs = System.IO.File.OpenRead(path))
+            using (var fs = File.OpenRead(path))
             {
                 MD5 md5 = new MD5CryptoServiceProvider();
-                byte[] fileData = new byte[fs.Length];
+                var fileData = new byte[fs.Length];
                 fs.Read(fileData, 0, (int)fs.Length);
-                byte[] checkSum = md5.ComputeHash(fileData);
-                string result = BitConverter.ToString(checkSum).Replace("-", String.Empty);
+                var checkSum = md5.ComputeHash(fileData);
+                var result = BitConverter.ToString(checkSum).Replace("-", string.Empty);
                 return result;
             }
         }
@@ -51,23 +48,23 @@ namespace ServiceLoaderMedpomData
         {
             return GetMd5Hash(path) == hash;
         }
-
         public void SaveToFile(string path)
         {
-            Stream st = File.Create(path);
-            XmlSerializer ser = new XmlSerializer(typeof(List<FileAndMD5>));
-            ser.Serialize(st, FileList);
-            st.Close();
-
+            using (Stream st = File.Create(path))
+            {
+                var ser = new XmlSerializer(typeof(List<FileAndMD5>));
+                ser.Serialize(st, FileList);
+                st.Close();
+            }
         }
-
         public void LoadFromFile(string path)
         {
-            Stream st = File.OpenRead(path);
-            XmlSerializer ser = new XmlSerializer(typeof(List<FileAndMD5>));
-            FileList = (List<FileAndMD5>)ser.Deserialize(st);
-            st.Close();
-
+            using (Stream st = File.OpenRead(path))
+            {
+                var ser = new XmlSerializer(typeof(List<FileAndMD5>));
+                FileList = (List<FileAndMD5>)ser.Deserialize(st);
+                st.Close();
+            }
         }
 
     }

@@ -19,7 +19,6 @@ using System.Windows.Media.Imaging;
 using ClientServiceWPF.Class;
 using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData;
-using  ServiceLoaderMedpomData;
 using ServiceLoaderMedpomData.Annotations;
 using ServiceLoaderMedpomData.EntityMP_V31;
 using MessageBox = System.Windows.MessageBox;
@@ -34,7 +33,7 @@ namespace ClientServiceWPF.SANK_INVITER
     {
       
 
-        SchemaColection scoll = new SchemaColection();
+        SchemaCollection scoll = new SchemaCollection();
         SchemaChecking sc = new SchemaChecking();
         public List<FileItemEx> Files { get; set; } = new List<FileItemEx>();
         private CollectionViewSource CVSFiles;

@@ -89,7 +89,6 @@ namespace MedpomService
         public string PROC_CLEAR { get; set; } = "";
         public string ISP_NAME { get; set; } = "ФИО ДР";
 
-        public string USER_PRIV { get; set; } = "";
 
     }
 

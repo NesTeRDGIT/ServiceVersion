@@ -26,11 +26,10 @@ namespace ClientServiceWPF.Launcher
     public partial class Launcher : Window
     {
         private IWcfInterface wcf => LoginForm.wcf;
+        string curr_dir =>System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
         public Launcher()
         {
             InitializeComponent();
-
-            string curr_dir = System.IO.Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
             DeleteFolder = System.IO.Path.Combine(curr_dir, "DELETE");
             UpdateFolder = System.IO.Path.Combine(curr_dir, "UPDATE");
         }
@@ -48,7 +47,7 @@ namespace ClientServiceWPF.Launcher
             {
                 ProgressMainIsInd = true;
                 MainText = "Проверка обновлений";
-                this.Dispatcher?.Invoke(new Action(() =>
+                this.Dispatcher?.Invoke(() =>
                 {
                     try
                     {
@@ -58,7 +57,7 @@ namespace ClientServiceWPF.Launcher
                     {
                         throw new Exception("(LV1):" + ex.Message);
                     }
-                }));
+                });
                 ServiceLoaderMedpomData.Version version = null;
                 try
                 {
@@ -85,19 +84,19 @@ namespace ClientServiceWPF.Launcher
                     {
                         if (ServiceLoaderMedpomData.Version.GetMd5Hash(PathFile) != file.MD5)
                         {
-                            Dispatcher?.Invoke(new Action(() =>
+                            Dispatcher?.Invoke(() =>
                             {
                                 FileForUpdate.Add(new UpdateFile(file, StatusUpdate.New));
-                            }));
+                            });
 
                         }
                     }
                     else
                     {
-                        Dispatcher?.Invoke(new Action(() =>
+                        Dispatcher?.Invoke(() =>
                         {
                             FileForUpdate.Add(new UpdateFile(file, StatusUpdate.New));
-                        }));
+                        });
 
                     }
                 }
@@ -220,41 +219,32 @@ namespace ClientServiceWPF.Launcher
 
         double ProgressMainValue
         {
-            get
-            {
-                double value = 0;
-                progressBarMain.Dispatcher.Invoke(new Action(() =>
-                {
-                    value = progressBarMain.Value;
-                }));
-                return value;
-            }
             set
             {
-                progressBarLevel1.Dispatcher.Invoke(new Action(() =>
+                progressBarLevel1.Dispatcher.Invoke(() =>
                 {
                     progressBarMain.Value = value;
-                }));
+                });
             }
         }
         double ProgressMainMax
         {
             set
             {
-                progressBarLevel1.Dispatcher.Invoke(new Action(() =>
+                progressBarLevel1.Dispatcher.Invoke(() =>
                 {
                     progressBarMain.Maximum = value;
-                }));
+                });
             }
         }
         bool ProgressMainIsInd
         {
             set
             {
-                progressBarLevel1.Dispatcher.Invoke(new Action(() =>
+                progressBarLevel1.Dispatcher.Invoke(() =>
                 {
                     progressBarMain.IsIndeterminate = value;
-                }));
+                });
             }
         }
 
@@ -262,20 +252,20 @@ namespace ClientServiceWPF.Launcher
         {
             set
             {
-                progressBarLevel1.Dispatcher.Invoke(new Action(() =>
+                progressBarLevel1.Dispatcher.Invoke(() =>
                 {
                     progressBarLevel1.Value = value;
-                }));
+                });
             }
         }
         double ProgressLv1Max
         {
             set
             {
-                progressBarLevel1.Dispatcher.Invoke(new Action(() =>
+                progressBarLevel1.Dispatcher.Invoke(() =>
                 {
                     progressBarLevel1.Maximum = value;
-                }));
+                });
             }
         }
         bool ProgressLv1IsInd
@@ -283,32 +273,23 @@ namespace ClientServiceWPF.Launcher
             get
             {
                 bool value = false;
-                progressBarLevel1.Dispatcher.Invoke(new Action(() =>
+                progressBarLevel1.Dispatcher.Invoke(() =>
                 {
                     value = progressBarLevel1.IsIndeterminate;
-                }));
+                });
                 return value;
             }
             set
             {
-                progressBarLevel1.Dispatcher.Invoke(new Action(() =>
+                progressBarLevel1.Dispatcher.Invoke(() =>
                 {
                     progressBarLevel1.IsIndeterminate = value;
-                }));
+                });
             }
         }
 
         string MainText
         {
-            get
-            {
-                string value = "";
-                textBlock1.Dispatcher.Invoke(() =>
-                {
-                    value = textBlock1.Text;
-                });
-                return value;
-            }
             set
             {
                 textBlock1.Dispatcher.Invoke(() =>
@@ -350,7 +331,7 @@ namespace ClientServiceWPF.Launcher
             return false;
         }
 
-        public bool RESTART = false;
+        public bool RESTART;
         void Threadupdate()
         {
             var curr_exe = System.Reflection.Assembly.GetExecutingAssembly().Location;

@@ -31,8 +31,8 @@ namespace ClientServiceWPF
     {
         private IWcfInterface wcf => LoginForm.wcf;
 
-        private SchemaColection sc;
-        private SchemaColection sc_local;
+        private SchemaCollection sc;
+        private SchemaCollection sc_local;
         
         private CollectionViewSource CVSSchemaElementValue;
         private CollectionViewSource CVSTableItems;
@@ -46,7 +46,7 @@ namespace ClientServiceWPF
         private bool OnlyLocal;
 
 
-        ChekingList checList = new ChekingList();
+        CheckingList checList = new CheckingList();
 
         public Setting(bool OnlyLocal)
         {
@@ -127,7 +127,7 @@ namespace ClientServiceWPF
                 listBoxTypeSchema.Items.Add(ft);
             }
 
-            sc = wcf.GetSchemaColection();
+            sc = wcf.GetSchemaCollection();
 
             foreach (var ver in sc.Versions)
             {
@@ -146,7 +146,7 @@ namespace ClientServiceWPF
                 listBoxTypeSchemaLOCAL.Items.Add(ft);
             }
 
-            sc_local = new SchemaColection();
+            sc_local = new SchemaCollection();
             if (File.Exists(System.IO.Path.Combine(LocalFolder, "SANK_INVITER_SCHEMA.dat")))
                 sc_local.LoadFromFile(System.IO.Path.Combine(LocalFolder, "SANK_INVITER_SCHEMA.dat"));
 
@@ -819,7 +819,7 @@ namespace ClientServiceWPF
         {
             try
             {
-                var res = wcf.SetChekingList(checList);
+                var res = wcf.SetCheckingList(checList);
                 MessageBox.Show(res.Result? "Передача настроек успешна!" : $"Ошибка при передаче настроек: {res.Exception}");
             }
             catch (Exception ex)
@@ -830,13 +830,13 @@ namespace ClientServiceWPF
 
         private void ButtonLoadCheckFromServer_Click(object sender, RoutedEventArgs e)
         {
-            var br = wcf.LoadChekListFromBD();
+            var br = wcf.LoadCheckListFromBD();
             if (br.Result == false)
             {
                 MessageBox.Show(br.Exception);
                 return;
             }
-            checList = wcf.GetChekingList();
+            checList = wcf.GetCheckingList();
             refreshListViewChek_ALL();
         }
 
@@ -965,11 +965,11 @@ namespace ClientServiceWPF
                 if (!OnlyLocal)
                 {
                     wcf.SettingsFolder(ReadFolder());
-                    wcf.SettingSchemaColection(sc);
+                    wcf.SettingSchemaCollection(sc);
                     var set = ReadTableItems();
                     set.ConnectingString = ReadServerConnect();
                     wcf.SettingConnect(set);
-                    wcf.SetChekingList(checList);
+                    wcf.SetCheckingList(checList);
                     wcf.SetSettingTransfer(ReadTableItemsTRANS());
                 }
                 GetStaticParam();

@@ -28,25 +28,16 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.fileSystemWatcher1 = new System.IO.FileSystemWatcher();
-            ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).BeginInit();
-            // 
-            // fileSystemWatcher1
-            // 
-            this.fileSystemWatcher1.NotifyFilter = System.IO.NotifyFilters.FileName;
-            this.fileSystemWatcher1.Created += new System.IO.FileSystemEventHandler(this.fileSystemWatcher1_Created);
             // 
             // MedpomService
             // 
             this.AutoLog = false;
             this.ServiceName = "MedpomService";
-            ((System.ComponentModel.ISupportInitialize)(this.fileSystemWatcher1)).EndInit();
+         
 
         }
 
         #endregion
-
-        private System.IO.FileSystemWatcher fileSystemWatcher1;
 
     }
 }

@@ -72,7 +72,7 @@ namespace ClientServiceWPF
 
                 if (!string.IsNullOrEmpty(pack.PATH_STAT))
                 {
-                    DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.PATH_STAT)), pack.codeMOstr, 0, TypeDOWLOAD.FILE_STAT);
+                    DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.PATH_STAT)), pack.CodeMO, 0, TypeDOWLOAD.FILE_STAT);
                 }
 
                 ProgressBarMain.Dispatcher.Invoke(() =>
@@ -86,7 +86,7 @@ namespace ClientServiceWPF
                 //ОСНОВНЫЕ ФАЙЛЫ
                 for (var i = 0; i < pack.Files.Count; i++)
                 {
-                    DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].FilePach)), pack.codeMOstr, i, TypeDOWLOAD.File);
+                    DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].FilePach)), pack.CodeMO, i, TypeDOWLOAD.File);
                 }
 
 
@@ -94,7 +94,7 @@ namespace ClientServiceWPF
                 for (int i = 0; i < pack.Files.Count; i++)
                 {
                     if (pack.Files[i].filel != null)
-                        DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].filel.FilePach)), pack.codeMOstr, i, TypeDOWLOAD.File);
+                        DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].filel.FilePach)), pack.CodeMO, i, TypeDOWLOAD.File);
                 }
 
 
@@ -109,17 +109,17 @@ namespace ClientServiceWPF
                 {
                     if (pack.Files[i].filel != null)
                         if (pack.Files[i].filel.FileLog != null)
-                            DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].filel.FileLog.FilePath)), pack.codeMOstr, i, TypeDOWLOAD.FILE_L_LOG);
+                            DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].filel.FileLog.FilePath)), pack.CodeMO, i, TypeDOWLOAD.FILE_L_LOG);
 
                     if (pack.Files[i].filel != null)
                         if (!string.IsNullOrEmpty(pack.Files[i].filel.PATH_LOG_XML))
-                            DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].filel.PATH_LOG_XML)), pack.codeMOstr, i, TypeDOWLOAD.XML_OTCHET_L);
+                            DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].filel.PATH_LOG_XML)), pack.CodeMO, i, TypeDOWLOAD.XML_OTCHET_L);
 
                     if (pack.Files[i].FileLog != null)
-                        DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].FileLog.FilePath)), pack.codeMOstr, i, TypeDOWLOAD.FILE_LOG);
+                        DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].FileLog.FilePath)), pack.CodeMO, i, TypeDOWLOAD.FILE_LOG);
 
                     if (!string.IsNullOrEmpty(pack.Files[i].PATH_LOG_XML))
-                        DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].PATH_LOG_XML)), pack.codeMOstr, i, TypeDOWLOAD.XML_OTCHET_H);
+                        DOWNLOADFILE(System.IO.Path.Combine(path, System.IO.Path.GetFileName(pack.Files[i].PATH_LOG_XML)), pack.CodeMO, i, TypeDOWLOAD.XML_OTCHET_H);
                 }
 
                 ProgressBarMain.Dispatcher.Invoke(() =>

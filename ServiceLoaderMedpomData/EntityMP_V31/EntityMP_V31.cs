@@ -1,27 +1,22 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Xml.Serialization;
-using System.Collections;
-using System.Xml.Schema;
-using System.ComponentModel;
-using System.Xml;
 using System.Collections.Generic;
-using System.IO;
 using System.Data;
-using System.Linq;
 using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Xml;
+using System.Xml.Schema;
+using System.Xml.Serialization;
 
 namespace ServiceLoaderMedpomData.EntityMP_V31
 {
-
     [Serializable]     
-    [XmlRootAttribute(Namespace = "", IsNullable = false)]
+    [XmlRoot(Namespace = "", IsNullable = false)]
     public  class ZL_LIST
     {
 
         public void SetSUMP()
         {
-            
             foreach(var zs in ZAP.SelectMany(x=>x.Z_SL_list))
             {
                 if (zs.OPLATA == 1)
@@ -2692,10 +2687,10 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             this.ZGLV = new PERSZGLV();
         }
 
-        [System.Xml.Serialization.XmlElementAttribute("ZGLV", Form = XmlSchemaForm.Unqualified)]
+        [XmlElement("ZGLV", Form = XmlSchemaForm.Unqualified)]
         public PERSZGLV ZGLV { get; set; }
 
-        [System.Xml.Serialization.XmlElementAttribute("PERS", Form = XmlSchemaForm.Unqualified)]
+        [XmlElement("PERS", Form = XmlSchemaForm.Unqualified)]
         public List<PERS> PERS { get; set; }
 
 
@@ -2739,16 +2734,16 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlIgnore]
         public decimal? ZGLV_ID { get; set; }
 
-        [System.Xml.Serialization.XmlElementAttribute(Form = XmlSchemaForm.Unqualified)]
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string VERSION { get; set; }
 
-        [System.Xml.Serialization.XmlElementAttribute(Form = XmlSchemaForm.Unqualified, DataType = "date")]
+        [XmlElement(Form = XmlSchemaForm.Unqualified, DataType = "date")]
         public DateTime DATA { get; set; }
 
-        [System.Xml.Serialization.XmlElementAttribute(Form = XmlSchemaForm.Unqualified)]
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string FILENAME { get; set; }
 
-        [System.Xml.Serialization.XmlElementAttribute(Form = XmlSchemaForm.Unqualified)]
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string FILENAME1 { get; set; }
 
     }

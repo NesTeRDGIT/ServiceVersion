@@ -92,7 +92,7 @@
                 <CheckBox Grid.Column="0" x:Name="checkBoxDopMekThread" Content="Выгружать дополнение к акту МЭК" HorizontalAlignment="Left" Margin="0,139,0,0" VerticalAlignment="Top" IsChecked="True"/>
             </Grid>
         </GroupBox>
-        <Button x:Name="buttonSave" Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,10,43" VerticalAlignment="Bottom" Width="117" Height="26" Click="buttonSave_Click" Style="{DynamicResource MainButton}"/>
+        <Button x:Name="buttonSave" Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,10,43" VerticalAlignment="Bottom" Width="192" Height="26" Click="buttonSave_Click" Style="{DynamicResource MainButton}"/>
         <StatusBar Height="29" VerticalAlignment="Bottom">
             <StackPanel Orientation="Horizontal">
                 <ProgressBar Name="StatusProgressBar1" Width="200"></ProgressBar>

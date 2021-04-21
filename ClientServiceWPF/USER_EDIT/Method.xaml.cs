@@ -47,7 +47,7 @@ namespace ClientServiceWPF.USER_EDIT
         {
             try
             {
-                EXIST_METHOD = wcf.Roles_GetMethod_NEW();
+                EXIST_METHOD = wcf.Roles_GetMethod();
                 DELETE = new List<METHOD>();
                 var Met = ReflectClass.MethodReflectInfo<IWcfInterface>();
                 foreach (var row in EXIST_METHOD)
@@ -112,9 +112,9 @@ namespace ClientServiceWPF.USER_EDIT
                 {
                     var insert = EXIST_METHOD.Where(x => x.ID == -1).ToList();
                     if (insert.Count != 0)
-                        wcf.Roles_EditMethod_NEW(TypeEdit.New, insert);
+                        wcf.Roles_EditMethod(TypeEdit.New, insert);
                     if (DELETE.Count != 0)
-                        wcf.Roles_EditMethod_NEW(TypeEdit.Delete, DELETE);
+                        wcf.Roles_EditMethod(TypeEdit.Delete, DELETE);
                     DialogResult = true;
                     Close();
                 }

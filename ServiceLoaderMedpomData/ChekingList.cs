@@ -290,7 +290,7 @@ namespace ServiceLoaderMedpomData
   
     }
     [DataContract]
-    public class ChekingList
+    public class CheckingList
     {
         const string PERS = "PERS";
         const string L_ZGLV = "L_ZGLV";
@@ -320,7 +320,7 @@ namespace ServiceLoaderMedpomData
         [DataMember]
         List<OrclProcedure> ZGLV_CHEK;
 
-        public ChekingList()
+        public CheckingList()
         {
             PERS_CHEK = new List<OrclProcedure>();
             L_ZGLV_CHEK = new List<OrclProcedure>();
