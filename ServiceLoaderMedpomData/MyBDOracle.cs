@@ -20,6 +20,200 @@ namespace ServiceLoaderMedpomData
         public List<string> Colums { get; set; }
     }
 
+    public class V_XML_CHECK_FILENAMErow
+    {
+        public static V_XML_CHECK_FILENAMErow Get(DataRow row)
+        {
+            try
+            {
+                var item = new V_XML_CHECK_FILENAMErow();
+                item.FILENAME = Convert.ToString(row["FILENAME"]);
+                item.CODE = Convert.ToString(row["CODE"]);
+                item.CODE_MO = Convert.ToString(row["CODE_MO"]);
+                item.DOP_FLAG = Convert.ToBoolean(row["DOP_FLAG"]);
+                item.YEAR = Convert.ToInt32(row["YEAR"]);
+                item.MONTH = Convert.ToInt32(row["MONTH"]);
+                item.NSCHET = Convert.ToString(row["NSCHET"]);
+                item.DSCHET = Convert.ToDateTime(row["DSCHET"]);
+                item.ZGLV_ID = Convert.ToInt32(row["ZGLV_ID"]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения V_XML_CHECK_FILENAME: {ex.Message}",ex);
+            }
+        }
+        public string FILENAME { get; set; }
+        public string CODE { get; set; }
+        public string CODE_MO { get; set; }
+        public bool DOP_FLAG { get; set; }
+        public int YEAR { get; set; }
+        public int MONTH { get; set; }
+        public string NSCHET { get; set; }
+        public DateTime DSCHET { get; set; }
+        public int ZGLV_ID { get; set; }
+
+
+    }
+
+    public class V_ErrorViewRow
+    {
+        public static V_ErrorViewRow Get(DataRow row)
+        {
+            try
+            {
+                var item = new V_ErrorViewRow();
+                if(row["SLUCH_ID"]!=DBNull.Value)
+                    item.SLUCH_ID = Convert.ToInt32(row["SLUCH_ID"]);
+                item.CODE_MO = Convert.ToString(row["CODE_MO"]);
+                item.FAM = Convert.ToString(row["FAM"]);
+                item.IM = Convert.ToString(row["IM"]);
+                item.OT = Convert.ToString(row["OT"]);
+                if (row["DR"] != DBNull.Value)
+                    item.DR = Convert.ToString(row["DR"]);
+                item.ID_PAC = Convert.ToString(row["ID_PAC"]);
+                if (row["VPOLIS"] != DBNull.Value)
+                    item.VPOLIS = Convert.ToInt32(row["VPOLIS"]);
+                item.SPOLIS = Convert.ToString(row["SPOLIS"]);
+                item.NPOLIS = Convert.ToString(row["NPOLIS"]);
+                item.LPU_1 = Convert.ToString(row["LPU_1"]);
+                item.NHISTORY = Convert.ToString(row["NHISTORY"]);
+                if (row["USL_OK"] != DBNull.Value)
+                    item.USL_OK = Convert.ToInt32(row["USL_OK"]);
+                if (row["DATE_1"] != DBNull.Value)
+                    item.DATE_1 = Convert.ToDateTime(row["DATE_1"]);
+                if (row["DATE_2"] != DBNull.Value)
+                    item.DATE_2 = Convert.ToDateTime(row["DATE_2"]);
+                item.IDDOKT = Convert.ToString(row["IDDOKT"]);
+                item.ERR = Convert.ToString(row["ERR"]);
+                item.ERR_TYPE = Convert.ToInt32(row["ERR_TYPE"]);
+                item.FILENAME = Convert.ToString(row["FILENAME"]);
+                item.BAS_EL = Convert.ToString(row["BAS_EL"]);
+                item.N_ZAP = Convert.ToString(row["N_ZAP"]);
+                item.IDCASE = Convert.ToString(row["IDCASE"]);
+                item.SL_ID = Convert.ToString(row["SL_ID"]);
+                item.ID_SERV = Convert.ToString(row["ID_SERV"]);
+                item.OSHIB = Convert.ToInt32(row["OSHIB"]);
+
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения V_ErrorViewRow: {ex.Message}", ex);
+            }
+        }
+        public int? SLUCH_ID { get; set; }
+        public string CODE_MO { get; set; }
+        public string  FAM { get; set; }
+        public string IM { get; set; }
+        public string OT { get; set; }
+        public string DR { get; set; }
+        public string ID_PAC { get; set; }
+        public int? VPOLIS { get; set; }
+        public string SPOLIS { get; set; }
+        public string NPOLIS { get; set; }
+        public string LPU_1 { get; set; }
+        public string NHISTORY { get; set; }
+        public int? USL_OK { get; set; }
+        public DateTime? DATE_1 { get; set; }
+        public DateTime? DATE_2 { get; set; }
+        public string IDDOKT { get; set; }
+        public string ERR { get; set; }
+        public int? ERR_TYPE { get; set; }
+        public string FILENAME { get; set; }
+        public string BAS_EL { get; set; }
+        public string N_ZAP { get; set; }
+        public string IDCASE { get; set; }
+        public string SL_ID { get; set; }
+        public string ID_SERV { get; set; }
+        public int OSHIB { get; set; }
+    }
+
+    public class SVOD_FILE_Row
+    {
+        public static SVOD_FILE_Row Get(DataRow row)
+        {
+            try
+            {
+                var item = new SVOD_FILE_Row();
+                item.FILENAME = Convert.ToString(row["FILENAME"]);
+                if (row["SUM"] != DBNull.Value)
+                    item.SUM = Convert.ToDecimal(row["SUM"]);
+                if (row["SUM_MEK"] != DBNull.Value)
+                    item.SUM_MEK = Convert.ToDecimal(row["SUM_MEK"]);
+                if (row["CSLUCH"] != DBNull.Value)
+                    item.CSLUCH = Convert.ToInt32(row["CSLUCH"]);
+                if (row["CUSL"] != DBNull.Value)
+                    item.CUSL = Convert.ToInt32(row["CUSL"]);
+                item.COM = Convert.ToString(row["COM"]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения SVOD_FILE_Row: {ex.Message}", ex);
+            }
+        }
+        public string FILENAME { get; set; }
+        public decimal? SUM { get; set; }
+        public decimal? SUM_MEK { get; set; }
+        public int? CSLUCH { get; set; }
+        public int? CUSL { get; set; }
+        public string COM { get; set; }
+    }
+
+    public class STAT_VIDMP_Row
+    {
+        public static STAT_VIDMP_Row Get(DataRow row)
+        {
+            try
+            {
+                var item = new STAT_VIDMP_Row();
+                item.PS = Convert.ToString(row["PS"]);
+                item.NAME = Convert.ToString(row["NAME"]);
+                item.C_ZS = Convert.ToInt32(row["C_ZS"]);
+                item.C_SL = Convert.ToInt32(row["C_SL"]);
+                item.SUMV = Convert.ToDecimal(row["SUMV"]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения STAT_VIDMP_Row: {ex.Message}", ex);
+            }
+        }
+        public string PS { get; set; }
+        public string NAME { get; set; }
+        public int C_ZS { get; set; }
+        public int C_SL { get; set; }
+        public decimal SUMV { get; set; }
+    }
+    public class STAT_FULL_Row
+    {
+        public static STAT_FULL_Row Get(DataRow row)
+        {
+            try
+            {
+                var item = new STAT_FULL_Row();
+                item.USL_OK = Convert.ToString(row["USL_OK"]);
+                item.N_KSG = Convert.ToString(row["N_KSG"]);
+                item.KSG = Convert.ToString(row["KSG"]);
+                item.SL = Convert.ToInt32(row["SL"]);
+                item.KOL_USL = Convert.ToDecimal(row["KOL_USL"]);
+                item.SUMV = Convert.ToDecimal(row["SUMV"]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения STAT_FULL_Row: {ex.Message}", ex);
+            }
+        }
+        public string USL_OK { get; set; }
+        public string N_KSG { get; set; }
+        public string KSG { get; set; }
+        public int SL { get; set; }
+        public decimal SUMV { get; set; }
+        public decimal KOL_USL  { get; set; }
+    }
+
     public interface IRepository: IDisposable
     {
         void InsertFile(ZL_LIST zl, PERS_LIST pe);
@@ -29,14 +223,14 @@ namespace ServiceLoaderMedpomData
         void BeginTransaction();
         void Commit();
         void Rollback();
-        DataTable GetErrorView();
-        DataTable SVOD_FILE_TEMP99();
-        DataTable STAT_VIDMP_TEMP99();
-        DataTable STAT_FULL_TEMP99();
+        List<V_ErrorViewRow> GetErrorView();
+        List<SVOD_FILE_Row> SVOD_FILE_TEMP99();
+        List<STAT_VIDMP_Row> STAT_VIDMP_TEMP99();
+        List<STAT_FULL_Row> STAT_FULL_TEMP99();
         void Checking(TableName nameTBL, CheckingList list, CancellationToken cancel, ref string STAT);
         string GetNameLPU(string R_COD);
-        DataTable GetZGLV_BYFileName(string FileName);
-         DataTable GetSCHET_BYCODE_CODE_MO(int code, string MO, int YEAR);
+        List<V_XML_CHECK_FILENAMErow> GetZGLV_BYFileName(string FileName);
+        List<V_XML_CHECK_FILENAMErow> GetZGLV_BYCODE_CODE_MO(int code, string MO, int YEAR);
     }
 
     public class MYBDOracleNEW : IRepository
@@ -68,7 +262,6 @@ namespace ServiceLoaderMedpomData
         TableInfo H_CONS;
         TableInfo H_CODE_EXP;
         TableInfo H_CRIT;
-
         TableInfo H_DS2;
         TableInfo H_DS3;
         int curr_month;
@@ -1214,32 +1407,35 @@ values
                 }
             });
         }
-        public DataTable SVOD_FILE_TEMP99()
+        public List<SVOD_FILE_Row> SVOD_FILE_TEMP99()
         {
             using (var oda = new OracleDataAdapter("select * from SVOD_FILE_TEMP99", con))
             {
                 var tbl = new DataTable();
                 oda.Fill(tbl);
-                return tbl;
+                return tbl.Select().Select(SVOD_FILE_Row.Get).ToList();
             }
         }
 
-        public DataTable STAT_VIDMP_TEMP99()
+       
+
+        public List<STAT_VIDMP_Row> STAT_VIDMP_TEMP99()
         {
             using (var oda = new OracleDataAdapter("select * from STAT_VIDMP_TEMP99", con))
             {
                 var tbl = new DataTable();
                 oda.Fill(tbl);
-                return tbl;
+                return tbl.Select().Select(STAT_VIDMP_Row.Get).ToList();
             }
         }
-        public DataTable STAT_FULL_TEMP99()
+        
+        public List<STAT_FULL_Row> STAT_FULL_TEMP99()
         {
             using (var oda = new OracleDataAdapter("select * from STAT_FULL_TEMP99", con))
             {
                 var tbl = new DataTable();
                 oda.Fill(tbl);
-                return tbl;
+                return tbl.Select().Select(STAT_FULL_Row.Get).ToList();
             }
         }
         /// <summary>
@@ -2020,32 +2216,29 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
 
         }
 
-        public DataTable GetZGLV_BYFileName(string FileName)
+        public List<V_XML_CHECK_FILENAMErow> GetZGLV_BYFileName(string FileName)
         {
             var tblRes = new DataTable();
-            using (var oda = new OracleDataAdapter(@"select * from V_XML_CHECK_FILENAME t
-where upper(t.filename) = upper('" + FileName + "')", con))
+            using (var oda = new OracleDataAdapter($@"select * from V_XML_CHECK_FILENAME t where upper(t.filename) = :FILENAME", con))
             {
+                oda.SelectCommand.Parameters.Add("FILENAME", FileName.ToUpper());
                 oda.Fill(tblRes);
             }
-            return tblRes;
+            return tblRes.Select().Select(V_XML_CHECK_FILENAMErow.Get).ToList();
         }
-        public DataTable GetSCHET_BYCODE_CODE_MO(int code, string MO, int YEAR)
+        public List<V_XML_CHECK_FILENAMErow> GetZGLV_BYCODE_CODE_MO(int code, string MO, int YEAR)
         {
             var tblRes = new DataTable();
 
             using (
             var oda = new OracleDataAdapter(@"select t.* from V_XML_CHECK_FILENAME t where t.code = :code and t.code_mo = :code_mo and t.YEAR = :YEAR", con))
             {
-                oda.SelectCommand.Parameters.Add("code", OracleDbType.Int32);
-                oda.SelectCommand.Parameters.Add("code_mo", OracleDbType.Varchar2);
-                oda.SelectCommand.Parameters.Add("YEAR", OracleDbType.Int32);
-                oda.SelectCommand.Parameters["code"].Value = code;
-                oda.SelectCommand.Parameters["code_mo"].Value = MO;
-                oda.SelectCommand.Parameters["YEAR"].Value = YEAR;
+                oda.SelectCommand.Parameters.Add("code", code);
+                oda.SelectCommand.Parameters.Add("code_mo", MO);
+                oda.SelectCommand.Parameters.Add("YEAR", YEAR);
                 oda.Fill(tblRes);
             }
-            return tblRes;
+            return tblRes.Select().Select(V_XML_CHECK_FILENAMErow.Get).ToList();
         }
 
        
@@ -2194,16 +2387,16 @@ where upper(t.filename) = upper('" + FileName + "')", con))
         /// Получить ошибки из v_xml_errors
         /// </summary>
         /// <returns>Таблица из View</returns>
-        public DataTable GetErrorView()
+        public List<V_ErrorViewRow> GetErrorView()
         {
-            using (var View = NewOracleCommand("select * from " + xml_errors.FullTableName, con))
+            using (var View = NewOracleCommand($"select * from {xml_errors.FullTableName}", con))
             {
                 View.CommandType = CommandType.Text;
                 var oda = new OracleDataAdapter(View);
                 var tbl = new DataTable();
                 oda.Fill(tbl);
                 RemoveOracleCommand(View);
-                return tbl;
+                return tbl.Select().Select(V_ErrorViewRow.Get).ToList();
             }
         }
 

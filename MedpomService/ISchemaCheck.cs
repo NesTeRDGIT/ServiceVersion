@@ -238,7 +238,7 @@ namespace MedpomService
                     {
                         if (fi.Process != StepsProcess.XMLxsd) continue;
                         pack.Comment = "Обработка пакета: Проверка уникальности файла";
-                        if (!CheckNameFile(fi, true, mybd))
+                        if (!CheckNameFile(pack.CodeMO, fi, true, mybd))
                         {
                             fi.Process = StepsProcess.FlkErr;
                             fi.FileLog.WriteLn("Ошибка проверки имен файла. В приеме файла отказано полностью!!!");
@@ -259,7 +259,7 @@ namespace MedpomService
                     pack.Status = StatusFilePack.FLKOK;
                     pack.CloserLogFiles();
                     //Формируем сводный файл
-                    excelProtokol.CreateExcelSvod2(pack, Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO, SvodFileNameXLS), null, null, null);
+                    excelProtokol.CreateExcelSvod(pack, Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO, SvodFileNameXLS), null, null, null);
                     messageMo.CreateErrorMessage(pack);
                     pack.Comment = "Обработка пакета: Завершено";
                     pack.CommentSite = "Завершено";
@@ -282,7 +282,7 @@ namespace MedpomService
         {
             try
             {
-                return SchemaChecking.GetCode_fromXML(item.FilePach, "VERSION");
+                return SchemaChecking.GetELEMENT(item.FilePach, "VERSION");
             }
             catch (Exception ex)
             {
@@ -297,9 +297,8 @@ namespace MedpomService
         {
             try
             {
-                var year = SchemaChecking.GetCode_fromXML(item.FilePach, "YEAR");
-                var month = SchemaChecking.GetCode_fromXML(item.FilePach, "MONTH");
-                return new DateTime(Convert.ToInt32(year), Convert.ToInt32(month), 1);
+                var el = SchemaChecking.GetELEMENTs(item.FilePach, "YEAR", "MONTH");
+                return new DateTime(Convert.ToInt32(el["YEAR"]), Convert.ToInt32(el["MONTH"]), 1);
             }
             catch (Exception ex)
             {
@@ -431,41 +430,6 @@ namespace MedpomService
             }
         }
 
-        public void CreateSIGN(FileItemBase item, string catalogSIGN)
-        {
-            if (!string.IsNullOrEmpty(item.SIGN_BUH))
-            {
-                if (!Directory.Exists(catalogSIGN))
-                    Directory.CreateDirectory(catalogSIGN);
-                using (var steam = new StreamWriter(Path.Combine(catalogSIGN, $"{Path.GetFileNameWithoutExtension(item.FilePach)}.BUH.SIG")))
-                {
-                    steam.Write(item.SIGN_BUH);
-                    steam.Close();
-                }
-            }
-
-            if (!string.IsNullOrEmpty(item.SIGN_ISP))
-            {
-                if (!Directory.Exists(catalogSIGN))
-                    Directory.CreateDirectory(catalogSIGN);
-                using (var steam = new StreamWriter(Path.Combine(catalogSIGN, $"{Path.GetFileNameWithoutExtension(item.FilePach)}.ISP.SIG")))
-                {
-                    steam.Write(item.SIGN_ISP);
-                    steam.Close();
-                }
-            }
-
-            if (!string.IsNullOrEmpty(item.SIGN_DIR))
-            {
-                if (!Directory.Exists(catalogSIGN))
-                    Directory.CreateDirectory(catalogSIGN);
-                using (var steam = new StreamWriter(Path.Combine(catalogSIGN, $"{Path.GetFileNameWithoutExtension(item.FilePach)}.DIR.SIG")))
-                {
-                    steam.Write(item.SIGN_DIR);
-                    steam.Close();
-                }
-            }
-        }
 
         private void Check_code_FilePack(FilePacket fp)
         {
@@ -474,7 +438,7 @@ namespace MedpomService
             {
                 if (item.Process != StepsProcess.XMLxsd)
                     continue;
-                var CODE = SchemaChecking.GetCode_fromXML(item.FilePach, "CODE");
+                var CODE = SchemaChecking.GetELEMENT(item.FilePach, "CODE");
 
                 if (ListDouble.ContainsKey(CODE))
                 {
@@ -495,86 +459,78 @@ namespace MedpomService
                     fi.Comment = "Файл имеет не уникальный CODE";
                     fi.Process = StepsProcess.FlkErr;
                     fi.FileLog.Append();
-                    fi.FileLog.WriteLn("Файл имеет не уникальный CODE = " + val.Key);
-                    fi.FileLog.WriteLn("Файлы с повтором: " + string.Join(",", val.Value.Where(x => x != fi).Select(x => x.FileName).ToArray()));
+                    fi.FileLog.WriteLn($"Файл имеет не уникальный CODE = {val.Key}");
+                    fi.FileLog.WriteLn($"Файлы с повтором: {string.Join(",", val.Value.Where(x => x != fi).Select(x => x.FileName).ToArray())}");
                     fi.FileLog.Close();
                 }
             }
         }
 
-        private bool CheckNameFile(FileItem _fi, bool checkL, IRepository bd)
+        private bool CheckNameFile(string MO,FileItem FILE, bool checkL, IRepository bd)
         {
             try
             {
+                var FILE_L = FILE.filel;
+                if (string.IsNullOrEmpty(FILE_L.FileName))
+                {
+                    FILE_L.CommentAndLog = "Файл не имеет FILENAME";
+                    return false;
+                }
+                if (string.IsNullOrEmpty(FILE.FileName))
+                {
+                    FILE_L.CommentAndLog = "Файл не имеет FILENAME";
+                    return false;
+                }
+
                 if (checkL)
                 {
-                    var fi = _fi.filel;
+                    var el_l = SchemaChecking.GetELEMENTs(FILE_L.FilePach, "FILENAME", "FILENAME1");
+                    var FileName = el_l["FILENAME"]??"";
+                    var FileName1 = el_l["FILENAME1"]??"";
 
 
-                    var FileName = SchemaChecking.GetCode_fromXML(fi.FilePach, "FILENAME");
-                    var FileName1 = SchemaChecking.GetCode_fromXML(fi.FilePach, "FILENAME1");
-
-
-                    if (FileName.ToUpper() != Path.GetFileNameWithoutExtension(fi.FileName).ToUpper())
+                    if (FileName.ToUpper() != Path.GetFileNameWithoutExtension(FILE_L.FileName).ToUpper())
                     {
-                        fi.FileLog.WriteLn($"Файл {fi.FileName} имеет не корректный FILENAME = {FileName.ToUpper()}");
-                        fi.Comment = $"Файл {fi.FileName} имеет не корректный FILENAME = {FileName.ToUpper()}";
-
+                        FILE_L.CommentAndLog = $"Файл {FILE_L.FileName} имеет не корректный FILENAME = {FileName.ToUpper()}";
                         return false;
                     }
-                    if (FileName1.ToUpper() != Path.GetFileNameWithoutExtension(_fi.FileName).ToUpper())
+                    if (FileName1.ToUpper() != Path.GetFileNameWithoutExtension(FILE.FileName).ToUpper())
                     {
-                        fi.FileLog.WriteLn($"Файл {fi.FileName} имеет не корректный FILENAME1 = {FileName1.ToUpper()}");
-                        fi.Comment = $"Файл {fi.FileName} имеет не корректный FILENAME1 = {FileName1.ToUpper()}";
+                        FILE_L.CommentAndLog = $"Файл {FILE.FileName} имеет не корректный FILENAME1 = {FileName1.ToUpper()}";
                         return false;
                     }
                 }
+                var el = SchemaChecking.GetELEMENTs(FILE.FilePach, "FILENAME", "CODE", "CODE_MO", "YEAR");
+                var FILENAME = el["FILENAME"];
+                var CODE = el["CODE"];
+                var CODE_MO = el["CODE_MO"];
+                var YEAR = el["YEAR"];
 
-                var FILENAME = SchemaChecking.GetCode_fromXML(_fi.FilePach, "FILENAME");
-
-                if (FILENAME.ToUpper() != Path.GetFileNameWithoutExtension(_fi.FileName).ToUpper())
+                if (FILENAME.ToUpper() != Path.GetFileNameWithoutExtension(FILE.FileName).ToUpper())
                 {
-                    _fi.FileLog.WriteLn($"Файл {_fi.FileName} имеет не корректный FILENAME = {FILENAME.ToUpper()}");
-                    _fi.Comment = $"Файл {_fi.FileName} имеет не корректный FILENAME = {FILENAME.ToUpper()}";
-                    // dat.Dispose();
+                    FILE.CommentAndLog = $"Файл {FILE.FileName} имеет не корректный FILENAME = {FILENAME.ToUpper()}";
                     return false;
                 }
 
-                var tblnames = bd.GetZGLV_BYFileName(FILENAME);
-                if (tblnames.Rows.Count != 0)
+                var ZGLV = bd.GetZGLV_BYFileName(FILENAME);
+                if (ZGLV.Count != 0)
                 {
-                    _fi.FileLog.WriteLn($"Файл {_fi.FileName} FILENAME = {FILENAME.ToUpper()}, который присутствует в предыдущих периодах");
-                    foreach (DataRow row in tblnames.Rows)
-                    {
-                        _fi.FileLog.WriteLn($"Файл {row["FileName"]} от {Convert.ToDateTime(row["DSCHET"]).ToShortDateString()}");
-                    }
-                    _fi.Comment = $"Файл {_fi.FileName} FILENAME = {FILENAME.ToUpper()}, который присутствует в предыдущих периодах";
+                    FILE.CommentAndLog = $"Файл {FILE.FileName} FILENAME = {FILENAME.ToUpper()}, который присутствует в предыдущих периодах";
+                    FILE.FileLog.WriteLn(string.Join(Environment.NewLine, ZGLV.Select(zglv => $"Файл {zglv.FILENAME} от {zglv.DSCHET:dd-MM-yyyy}")));
                     return false;
                 }
 
-
-                var CODE = SchemaChecking.GetCode_fromXML(_fi.FilePach, "CODE");
-                var CODE_MO = SchemaChecking.GetCode_fromXML(_fi.FilePach, "CODE_MO");
-                var YEAR = SchemaChecking.GetCode_fromXML(_fi.FilePach, "YEAR");
-
-                var tbl_schet = bd.GetSCHET_BYCODE_CODE_MO(Convert.ToInt32(CODE), CODE_MO, Convert.ToInt32(YEAR));
-                if (tbl_schet.Rows.Count != 0)
+                ZGLV = bd.GetZGLV_BYCODE_CODE_MO(Convert.ToInt32(CODE), CODE_MO, Convert.ToInt32(YEAR));
+                if (ZGLV.Count != 0)
                 {
-                    _fi.FileLog.WriteLn($"Файл {_fi.FileName} FILENAME = {FILENAME.ToUpper()}, имеет код счета который присутствует в предыдущих периодах code = {CODE}");
-                    foreach (DataRow row in tbl_schet.Rows)
-                    {
-                        _fi.FileLog.WriteLn($"Файл {row["FileName"]} code = {row["code"]} от {Convert.ToDateTime(row["DSCHET"]).ToShortDateString()}");
-                    }
-                    _fi.Comment = $"Файл {_fi.FileName} FILENAME = {FILENAME.ToUpper()}, имеет код счета который присутствует в предыдущих периодах code = {CODE}";
-
+                    FILE.CommentAndLog = $"Файл имеет код счета который присутствует в предыдущих периодах code = {CODE}";
+                    FILE.FileLog.WriteLn(string.Join(Environment.NewLine, ZGLV.Select(zglv => $"Файл {zglv.FILENAME} code = {zglv.CODE} от {zglv.DSCHET:dd-MM-yyyy}")));
                     return false;
                 }
 
-                var parse = ParseFileName.Parse(FILENAME);
-                if (parse.Ni != CODE_MO)
+                if (MO != CODE_MO)
                 {
-                    _fi.FileLog.WriteLn($"Код МО указанный в наименовании файла не совпадает с тэгом CODE_MO");
-                    _fi.Comment = $"Код МО указанный в наименовании файла не совпадает с тэгом CODE_MO";
+                    FILE.CommentAndLog = $"Код МО указанный в наименовании файла не совпадает с тэгом CODE_MO";
                     return false;
                 }
 
@@ -582,11 +538,9 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                Logger.AddLog("Ошибка при проверке на соответствие имен файлов для " + _fi.FileName + ": " + ex.Message, LogType.Error);
+                Logger.AddLog($"Ошибка при проверке на соответствие имен файлов для {FILE.FileName}: {ex.Message}", LogType.Error);
                 return false;
             }
-
-
         }
 
         string GetCatalogPath(FilePacket pack)

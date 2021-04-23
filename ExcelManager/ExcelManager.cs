@@ -713,6 +713,15 @@ namespace ExcelManager
         /// <param name="name_sheet">Имя 1го листа</param>
         public ExcelOpenXML(string fileName, string name_sheet)
         {
+            Create(fileName, name_sheet);
+        }
+        /// <summary>
+        /// Создать документ
+        /// </summary>
+        /// <param name="fileName">Имя файла</param>
+        /// <param name="name_sheet">Имя листа</param>
+        public void Create(string fileName, string name_sheet)
+        {
             var st = new FileStream(fileName, FileMode.Create);
             IsCreate = true;
             CreateDocument(st, name_sheet);

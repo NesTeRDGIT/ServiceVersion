@@ -26,21 +26,19 @@ namespace ClientServiceWPF
     public partial class MonitorReestr : Window
     {
         private IWcfInterface wcf => LoginForm.wcf;
-        List<string> Card => LoginForm.SecureCard;
-
         public List<V_NOT_REESTR_MEDSERV_row> ListNotReestr { get; set; } = new List<V_NOT_REESTR_MEDSERV_row>();
         private CollectionViewSource CVSNotReestr;
 
         public MonitorReestr()
         {
             InitializeComponent();
-            SetControlForm(Card);
+            SetControlForm(LoginForm.SecureCard);
             CVSNotReestr = (CollectionViewSource) FindResource("CVSNotReestr");
         }
 
         void SetControlForm(List<string> card)
         {
-            TabItemNotReestr.IsEnabled = card.Contains("GetNotReestr");
+            TabItemNotReestr.IsEnabled = card.Contains(nameof(IWcfInterface.GetNotReestr));
         }
 
         private void buttonUpdate_Click(object sender, RoutedEventArgs e)

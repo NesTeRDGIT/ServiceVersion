@@ -20,7 +20,6 @@ namespace ServiceLoaderMedpomData
     }
     public static class FilesHelper
     {
-       
         public static bool CheckFileAv(string path, int NOT_FOUND_COUNT = 1, ILogger Logger = null)
         {
             var NOT_FOUND = 0;
@@ -41,7 +40,6 @@ namespace ServiceLoaderMedpomData
             return true;
 
         }
-
         public static bool CheckFileAv(string path, out PrichinAv? Pr)
         {
             Stream stream = null;
@@ -66,9 +64,6 @@ namespace ServiceLoaderMedpomData
                 return false;
             }
         }
-
-
-     
         public static bool MoveFile(FileItemBase item, string catalog, int NOT_FOUND_COUNT = 1, ILogger Logger = null)
         {
             var NOT_FOUND = 0;
@@ -105,7 +100,6 @@ namespace ServiceLoaderMedpomData
             }
             return true;
         }
-
         public static string MoveFileTo(string From, string Dist)
         {
             var prefix = "";
@@ -126,7 +120,7 @@ namespace ServiceLoaderMedpomData
                 path = $"{dir_dist}\\{filename_dist}{prefix}{ext_dist}";
             }
 
-            while (!SchemaChecking.CheckFileAv(From)) { };
+            while (!CheckFileAv(From)) { };
             File.Move(From, path);
             return path;
         }
@@ -151,11 +145,10 @@ namespace ServiceLoaderMedpomData
                 x++;
                 path = $"{dir_dist}\\{filename_dist}{prefix}{ext_dist}";
             }
-            while (!SchemaChecking.CheckFileAv(From)) { };
+            while (!CheckFileAv(From)) { };
             File.Copy(From, path);
             return path;
         }
-
         public static string[] GetFileNameInArchive(string path)
         {
             try
@@ -171,7 +164,6 @@ namespace ServiceLoaderMedpomData
             }
 
         }
-
         public static BoolResult FilesExtract(string From, string To)
         {
             var ArchiveName = Path.GetFileName(From);
@@ -256,7 +248,5 @@ namespace ServiceLoaderMedpomData
             }
 
         }
-
-      
     }
 }

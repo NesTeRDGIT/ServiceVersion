@@ -302,119 +302,29 @@ namespace ServiceLoaderMedpomData
         public VersionMP Version { get; set; }
         public bool IsMTRProtocol { get; set; }
     }
+ 
 
+    
     public class SchemaChecking
     {
-        public enum PrichinAv
-        {
-            EXEPT,
-            NOT_FOUND
-        }
-
-        List<ErrorProtocolXML> ListER;// лист ошибок
-        List<string> listnode; //Хранитель путь к текущему элементу в дереве XML
-        //FileItem FileItem;//Файл для проверки  
-        string filepath = "";
-        LogFile FileLog;
-        bool resul; //результат при проверки схемы
-        Decimal n_zap; //Номер текущей записи
-        string id_case = "";//номер случая
-        string id_serv = ""; //номер услуги
-        string id_pac = ""; //номер ID_PAC
-        string sl_id = ""; //номер SL_ID
-        bool fileL;
+        // лист ошибок
+        private List<ErrorProtocolXML> ListER { get; set; }
+        //Хранитель путь к текущему элементу в дереве XML
+        List<string> listnode { get; set; } =  new List<string>(); 
+        string filepath { get; set; } = "";
+        LogFile FileLog { get; set; }
+        bool ShowErrText { get; set; } //результат при проверки схемы
+        string n_zap { get; set; } //Номер текущей записи
+        string id_case { get; set; } //номер случая
+        string id_serv { get; set; } //номер услуги
+        string id_pac { get; set; } //номер ID_PAC
+        string sl_id { get; set; } = ""; //номер SL_ID
+        bool fileL { get; set; }
         public SchemaChecking()
         {
             ListER = new List<ErrorProtocolXML>();
-            listnode = new List<string>();
+          
         }
-
-
-
-        /// <summary>
-        /// Проверка доступности файла
-        /// </summary>
-        /// <param name="path">Путь к файлу</param>
-        /// <returns>true - файл доступен, false - файл недоступен</returns>        
-        public static bool CheckFileAv(string path, out PrichinAv? Pr)
-        {
-            Stream stream = null;
-            try
-            {
-                stream = File.Open(path, FileMode.Open, FileAccess.Read);
-                stream.Close();
-                stream.Dispose();
-                Pr = null;
-                return true;
-            }
-            catch (FileNotFoundException)
-            {
-                Pr = PrichinAv.NOT_FOUND;
-                stream?.Dispose();
-                return false;
-            }
-            catch (Exception)
-            {
-                Pr = PrichinAv.EXEPT;
-                stream?.Dispose();
-                return false;
-            }
-        }
-
-
-        /// <summary>
-        /// Проверка доступности файла
-        /// </summary>
-        /// <param name="path">Путь к файлу</param>
-        /// <returns>true - файл доступен, false - файл недоступен</returns>        
-        public static bool CheckFileAv(string path)
-        {
-            try
-            {
-                Stream stream = File.Open(path, FileMode.Open, FileAccess.ReadWrite);
-                stream.Close();
-
-                return true;
-            }
-            catch (FileNotFoundException)
-            {
-
-                return false;
-            }
-            catch (Exception)
-            {
-
-                return false;
-            }
-        }
-        public static bool CheckDirAv(string path)
-        {
-            try
-            {
-                var rzlt = true; ;
-                foreach (var F in Directory.GetFiles(path))
-                {
-                    if (!SchemaChecking.CheckFileAv(F))
-                    {
-                        rzlt = false;
-                    }
-                }
-                return rzlt;
-            }
-            catch (FileNotFoundException)
-            {
-
-                return false;
-            }
-            catch (Exception)
-            {
-
-                return false;
-            }
-        }
-
-
-
         //формирование файла флк
         public static void XMLfileFLK(string pathToXml,string FNAME_1, List<ErrorProtocolXML> ListER)
         {
@@ -493,15 +403,12 @@ namespace ServiceLoaderMedpomData
             document.Save(pathToXml);
         }
 
-   
-
-
-
         /// <summary>
         /// Проверка на соответствие схеме
         /// </summary>
         /// <param name="_File">Файл для проверки</param>
-        /// <param name="Schemas">Колекция схем</param>
+        /// <param name="PathXSD">Схема</param>
+        /// <param name="isvalidate">Подключать валидатор</param>
         /// <returns>0-ошибка при проверке 1 проверка успешна</returns>
         /// 
         public bool CheckSchema(FileItemBase _File, string PathXSD, bool isvalidate = true)
@@ -509,63 +416,93 @@ namespace ServiceLoaderMedpomData
             var prevnodes = "";
             var LineNumber = 0;
             var LinePosition = 0;
-            var step = 0;
             try
             {
-
-                fileL = false;
-                listnode.Clear();
-                ListER.Clear();
-
                 FileLog = _File.FileLog;
                 filepath = _File.FilePach;
-                //путь к доку
-                var path = _File.FilePach;
-                //путь к схеме
-                var pathXSD = PathXSD;
-                //путь к логу
-                var pathLog = Path.GetDirectoryName(path) + "\\" + Path.GetFileNameWithoutExtension(path) + ".LOG";
-                //проверка доступности файла
-                SchemaChecking.PrichinAv? pr;
-                while (!CheckFileAv(path, out pr)) { };//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                step++;
-                var XMLSettings = new XmlReaderSettings();
-                XMLSettings.Schemas.Add(null, pathXSD);
-                XMLSettings.ValidationType = ValidationType.Schema;
-                XMLSettings.ValidationEventHandler += new ValidationEventHandler(SettingsValidationEventHandler);
+                fileL = false;
+                ShowErrText = true;
+                FileLog.WriteLn("Проверка файла на соответствие схеме:");
+                var validate = new CheckXMLValidator(_File.Version);
+                var res = CheckXML(filepath, PathXSD, validate);
+                var resul = res.Count == 0;
+                _File.DOP_REESTR = DOP_REESTR;
+                if (resul)
+                    _File.FileLog.WriteLn("Файл составлен правильно");
+                else
+                {
+                    var pathToXml = Path.Combine(Path.GetDirectoryName(FileLog.FilePath), $"{Path.GetFileNameWithoutExtension(filepath)}FLK.xml");
+                    XMLfileFLK(pathToXml, Path.GetFileName(filepath), ListER);
+                    _File.PATH_LOG_XML = pathToXml;
+                }
+                return resul;
+            }
+            catch (Exception ex)
+            {
+                _File.FileLog.WriteLn($"Ошибка при проверке документа на соответствие схеме [{LineNumber},{LinePosition}]{prevnodes}: {ex.Message}");
+                return false;
+            }
+        }
 
+        private bool? DOP_REESTR { get; set; }
+        public List<ErrorProtocolXML> GetProtokol => ListER;
+
+        public List<ErrorProtocolXML> CheckXML(Stream st, string XSD, CheckXMLValidator CXV = null)
+        {
+            var prevnodes = "";
+            var LineNumber = 0;
+            var LinePosition = 0;
+            var count_pr_nov1 = 0;
+            var count_pr_nov0 = 0;
+            try
+            {
+                ListER.Clear();
+                listnode.Clear();
+                var XMLSettings = new XmlReaderSettings();
+                XMLSettings.Schemas.Add(null, XSD);
+                XMLSettings.ValidationType = ValidationType.Schema;
+                XMLSettings.ValidationEventHandler += SettingsValidationEventHandler;
+                
                 var NS = "";
                 var ns_error = false;
                 foreach (XmlSchema schema in XMLSettings.Schemas.Schemas())  // foreach is used to simplify the example
                 {
                     NS = schema.TargetNamespace ?? "";
                 }
-                step++;
-               
-                using (var r = new XmlTextReader(new StreamReader(path, Encoding.GetEncoding(1251))))
+
+                IValidatorXML validate = null;
+                if (CXV != null)
                 {
-                    _File.FileLog.WriteLn("Проверка файла на соответствие схеме:");
+                    if (CXV.IsMTRProtocol)
+                    {
+                        validate = new ProtocolValidator31(ErrorAction);
+                    }
+                    else
+                    {
+                        switch (CXV.Version)
+                        {
+                            case VersionMP.V2_1:
+                                validate = new MyValidatorV2(ErrorAction);
+                                break;
+                            case VersionMP.V3_0:
+                                validate = new MyValidatorV3(ErrorAction);
+                                break;
+                            case VersionMP.V3_1:
+                                validate = new MyValidatorV31(ErrorAction);
+                                break;
+                            default:
+                                validate = new MyValidatorV31(ErrorAction);
+                                break;
+                        }
+                    }
+                }
+
+                var currdep = -1;
+             
+                using (var r = new XmlTextReader(st))
+                {
                     using (var reader = XmlReader.Create(r, XMLSettings))
                     {
-                        resul = true;
-                        var currdep = -1;
-
-                        var count_pr_nov1 = 0;
-                        var count_pr_nov0 = 0;
-                        IValidatorXML validate = null;
-                        if (isvalidate)
-                        {
-                            switch (_File.Version)
-                            {
-                                case VersionMP.V2_1: validate = new MyValidatorV2(ErrorAction); break;
-                                case VersionMP.V3_0: validate = new MyValidatorV3(ErrorAction); break;
-                                case VersionMP.V3_1: validate = new MyValidatorV31(ErrorAction); break;
-                                default:
-                                    validate = new MyValidatorV31(ErrorAction);
-                                    break;
-                            }
-                        }
-
                         while (reader.Read())
                         {
                             LineNumber = ((IXmlLineInfo)reader).LineNumber;
@@ -576,7 +513,7 @@ namespace ServiceLoaderMedpomData
                                 {
                                     //Просто для адрисации
                                     case "N_ZAP":
-                                        n_zap = Convert.ToDecimal(reader.Value);
+                                        n_zap =reader.Value;
                                         break;
                                     case "IDSERV":
                                         id_serv = reader.Value;
@@ -593,7 +530,7 @@ namespace ServiceLoaderMedpomData
                                     //Проверка доп или нет
                                     case "PR_NOV":
                                     {
-                                        if (Convert.ToDecimal(reader.Value) == 1)
+                                        if (reader.Value == "1")
                                             count_pr_nov1++;
                                         else
                                             count_pr_nov0++;
@@ -601,154 +538,10 @@ namespace ServiceLoaderMedpomData
                                     }
                                 }
                             }
-                            //Пользовательский валидатор
-
-
                             //проверка NameSpace и слежение за стрктурой(глубиной погружения)
                             if (reader.NodeType == XmlNodeType.Element)
                             {
-                                if (!ns_error && NS != (reader.NamespaceURI == null ? "" : reader.NamespaceURI))
-                                {
-                                    ErrorAction(XmlSeverityType.Error, LineNumber, LinePosition,$"Неверный Namespace=\"{reader.NamespaceURI}\" ожидается \"{NS}\"", "XML");
-                                    ns_error = true;
-                                }
-                                if (reader.Depth != currdep)
-                                {
-                                    currdep = reader.Depth;
-                                    listnode.Add(reader.Name);
-                                }
-                                else
-                                {
-                                    currdep = reader.Depth;
-                                    listnode[listnode.Count - 1] = reader.Name;
-                                }
-                                prevnodes = reader.Name;
-                            }
-                            if (reader.NodeType == XmlNodeType.EndElement && currdep != reader.Depth)
-                            {
-                                currdep = reader.Depth;
-                                listnode.RemoveAt(listnode.Count - 1);
-                            }
-
-
-                            validate?.Check(reader);
-                        }
-
-                        step++;
-
-                        reader.Close();
-                        r.Close();
-                        validate?.Close();
-
-                        if (count_pr_nov0 > 0 && count_pr_nov1 == 0)
-                            _File.DOP_REESTR = false;
-                        if (count_pr_nov0 == 0 && count_pr_nov1 > 0)
-                            _File.DOP_REESTR = true;
-
-                        if (resul)
-                            _File.FileLog.WriteLn("Файл составлен правильно");
-                        else
-                        {
-                            var pathToXml = Path.Combine(Path.GetDirectoryName(FileLog.FilePath), Path.GetFileNameWithoutExtension(filepath) + "FLK.xml");
-                            XMLfileFLK(pathToXml, Path.GetFileName(filepath), ListER);
-                            _File.PATH_LOG_XML = pathToXml;
-                        }
-                        return resul;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _File.FileLog.WriteLn($"Ошибка при проверке документа на соответствие схеме step{step} [{LineNumber},{LinePosition}]{prevnodes}: {ex.Message}");
-                return false;
-            }
-        }
-        public List<ErrorProtocolXML> GetProtokol => ListER;
-
-        public List<ErrorProtocolXML> CheckXML(Stream st, string XSD, CheckXMLValidator CXV = null)
-        {
-            var prevnodes = "";
-            var LineNumber = 0;
-            var LinePosition = 0;
-            try
-            {
-             
-                ListER.Clear();
-                listnode.Clear();
-                var XMLSettings = new XmlReaderSettings();
-                
-                XMLSettings.Schemas.Add(null, XSD);
-                XMLSettings.ValidationType = ValidationType.Schema;
-                XMLSettings.ValidationEventHandler += SettingsValidationEventHandler;
-                
-                var NS = "";
-                var ns_error = false;
-                foreach (XmlSchema schema in XMLSettings.Schemas.Schemas())  // foreach is used to simplify the example
-                {
-                    NS = schema.TargetNamespace ?? "";
-
-                }
-
-
-
-                var currdep = -1;
-             
-                using (var r = new XmlTextReader(st))
-                {
-                    IValidatorXML validate = null;
-                    if (CXV != null)
-                    {
-                        if (CXV.IsMTRProtocol)
-                        {
-                            validate = new ProtocolValidator31(ErrorAction);
-                        }
-                        else
-                        {
-                            switch (CXV.Version)
-                            {
-                                case VersionMP.V2_1:
-                                    validate = new MyValidatorV2(ErrorAction);
-                                    break;
-                                case VersionMP.V3_0:
-                                    validate = new MyValidatorV3(ErrorAction);
-                                    break;
-                                case VersionMP.V3_1:
-                                    validate = new MyValidatorV31(ErrorAction);
-                                    break;
-                                default:
-                                    validate = new MyValidatorV31(ErrorAction);
-                                    break;
-                            }
-                        }
-                    }
-
-                    using (var reader = XmlReader.Create(r, XMLSettings))
-                    {
-                        while (reader.Read())
-                        {
-                            LineNumber = ((IXmlLineInfo)reader).LineNumber;
-                            LinePosition = ((IXmlLineInfo)reader).LinePosition;
-                            if (reader.NodeType == XmlNodeType.Text)
-                            {
-                                //Просто для адрисации
-                                if (prevnodes == "N_ZAP")
-                                    n_zap = Convert.ToDecimal(reader.Value);
-                                if (prevnodes == "IDSERV")
-                                    id_serv = reader.Value;
-                                if (prevnodes == "IDCASE")
-                                    id_case = reader.Value;
-                                if (prevnodes == "SL_ID")
-                                    sl_id = reader.Value;
-                                if (prevnodes == "ID_PAC")
-                                    id_pac = reader.Value;
-                             
-                             
-
-                                //проверка NameSpace и слежение за стрктурой(глубиной погружения)
-                            }
-                            if (reader.NodeType == XmlNodeType.Element)
-                            {
-                                if (!ns_error && NS != (reader.NamespaceURI == null ? "" : reader.NamespaceURI))
+                                if (!ns_error && NS != reader.NamespaceURI)
                                 {
                                     ErrorAction(XmlSeverityType.Error, ((IXmlLineInfo)reader).LineNumber, ((IXmlLineInfo)reader).LinePosition, $"Неверный Namespace=\"{reader.NamespaceURI}\" ожидается \"{NS}\"", "XML");
                                     ns_error = true;
@@ -770,18 +563,22 @@ namespace ServiceLoaderMedpomData
                                 currdep = reader.Depth;
                                 listnode.RemoveAt(listnode.Count - 1);
                             }
-
                             validate?.Check(reader);
                         }
-
                         validate?.Close();
-
                     }
                 }
+
+                DOP_REESTR = null;
+                if (count_pr_nov0 > 0 && count_pr_nov1 == 0)
+                    DOP_REESTR = false;
+                if (count_pr_nov0 == 0 && count_pr_nov1 > 0)
+                    DOP_REESTR = true;
             }
             catch(Exception ex)
             {
-                ListER.Add(new ErrorProtocolXML() { Comment =$"Ошибка при проверке документа на соответствие схеме[{LineNumber},{LinePosition}]{prevnodes}: {ex.Message}"});
+                ListER.Add(new ErrorProtocolXML { Comment =$"Ошибка при проверке документа на соответствие схеме[{LineNumber},{LinePosition}]{prevnodes}: {ex.Message}"});
+                FileLog?.WriteLn($"Ошибка при проверке документа на соответствие схеме [{LineNumber},{LinePosition}]{prevnodes}: {ex.Message}");
             }
             return ListER;
         }
@@ -793,7 +590,7 @@ namespace ServiceLoaderMedpomData
             }
         }
 
-        public static string GetCode_fromXML(string path, string ElementName)
+        public static string GetELEMENT(string path, string ElementName)
         {
             using (Stream FileSteam = new FileStream(path, FileMode.Open, FileAccess.Read))
             {                
@@ -819,7 +616,7 @@ namespace ServiceLoaderMedpomData
             }
         }
 
-        public static Dictionary<string, string> GetCode_fromXML(string path, params string[] ElementName)
+        public static Dictionary<string, string> GetELEMENTs(string path, params string[] ElementName)
         {
             var res = new Dictionary<string, string>();
    
@@ -858,28 +655,25 @@ namespace ServiceLoaderMedpomData
         //В случае ошибки по схеме
         private void SettingsValidationEventHandler(object sender, ValidationEventArgs e)
         {
-            var name = "";
             var reader = sender as XmlReader;
-            if (reader != null)
-                name = reader.Name;
+            var name = reader != null? reader.Name :  "";
             ErrorAction(e.Severity, e.Exception.LineNumber, e.Exception.LinePosition, e.Message, name);
         }
-
         void ErrorAction(XmlSeverityType Severity, int LineNumber, int LinePosition, string Message, string NamePol)
         {
-            if (resul)
+            if (ShowErrText)
             {
-                resul = false;
+                ShowErrText = false;
                 FileLog?.WriteLn("!!!Отказано в приеме файла полностью. Файл не соответствует схеме!!!");
             }
 
             switch (Severity)
             {
                 case XmlSeverityType.Error:
-                    FileLog?.WriteLn("ERROR: [" + LineNumber + "," + LinePosition + "] " + Message);
+                    FileLog?.WriteLn($"ERROR: [{LineNumber},{LinePosition}] {Message}");
                     break;
                 case XmlSeverityType.Warning:
-                    FileLog?.WriteLn("WARNING: [" + LineNumber + "," + LinePosition + "] " + Message);
+                    FileLog?.WriteLn($"WARNING: [{LineNumber},{LinePosition}] {Message}");
                     break;
             }
 
@@ -887,26 +681,18 @@ namespace ServiceLoaderMedpomData
 
             if (fileL) item.Comment += $"ID_PAC = {id_pac}";
             if (listnode.Count >= 2)
-            {
                 item.BAS_EL = listnode[listnode.Count - 2];
-            }
-
-
-
             if (listnode.Contains("ZAP"))
-                item.N_ZAP = n_zap.ToString();
+                item.N_ZAP = n_zap;
             if (listnode.Contains("SLUCH") || listnode.Contains("Z_SL"))
                 item.IDCASE = id_case;
             if (listnode.Contains("SL"))
                 item.SL_ID = sl_id;
             if (listnode.Contains("PERS"))
                 item.N_ZAP = id_pac;
-
             if (listnode.Contains("USL"))
-                item.ID_SERV = id_serv.ToString();
-
+                item.ID_SERV = id_serv;
             ListER.Add(item);
-            //e.Exception.Data.Values;
         }
 
     }
@@ -1242,39 +1028,274 @@ namespace ServiceLoaderMedpomData
             LINE = xmlInfo.LineNumber;
             POS = xmlInfo.LinePosition;
         }
-
         public void Clear()
         {
             LINE = 0;
             POS = 0;
         }
+
+        public static PositionRecord Get(XmlReader reader)
+        {
+            var item = new PositionRecord();
+            var xmlInfo = (IXmlLineInfo)reader;
+            item.LINE = xmlInfo.LineNumber;
+            item.POS = xmlInfo.LinePosition;
+            return item;
+        }
     }
 
 
-  
 
 
 
+    class XML_Element<T>
+    {
+        public XML_Element()
+        {
+            this.POS = new PositionRecord();
+        }
+        public XML_Element(T value, PositionRecord POS)
+        {
+            this.value = value;
+            this.POS = POS;
+        }
+
+        public void Clear()
+        {
+            POS.Clear();
+            value = default(T);
+        }
+        public T value { get; set; }
+        public PositionRecord POS { get; set; }
+
+    }
+
+    enum XML_FileType
+    {
+        NONE,
+        H,
+        C,
+        T,
+        D,
+        MTR
+    }
+
+    class XML_SCHET_item
+    {
+        public XML_Element<int> YEAR { get; set; } = new XML_Element<int>();
+        public XML_Element<int> MONTH { get; set; } = new XML_Element<int>();
+        public XML_Element<string> FILENAME { get; set; } = new XML_Element<string>();
+        public XML_Element<string> OKATO_OMS { get; set; } = new XML_Element<string>();
+        public XML_Element<int?> SD_Z { get; set; } = new XML_Element<int?>();
+        public XML_Element<decimal?> SUMMAV { get; set; } = new XML_Element<decimal?>();
+        public decimal SUMV_SUM { get; set; }
+        public int IDCASE_COUNT { get; set; }
+        public XML_FileType TypeFile
+        {
+            get
+            {
+                if (!string.IsNullOrEmpty(OKATO_OMS.value))
+                    return XML_FileType.MTR;
+                switch (FILENAME?.value?[0])
+                {
+                    case 'C': return XML_FileType.C;
+                    case 'D': return XML_FileType.D;
+                    case 'T': return XML_FileType.T;
+                    case 'H': return XML_FileType.H;
+                    default:
+                        return XML_FileType.NONE;
+                }
+            }
+        }
+        public DateTime DateFile
+        {
+
+            get
+            {
+                if (YEAR.value <= 0 || MONTH.value <= 0 || MONTH.value > 12)
+                    return DateTime.Now.Date;
+                return new DateTime(YEAR.value, MONTH.value, 1);
+            }
+        }
+
+        public void Clear()
+        {
+            YEAR.Clear();
+            MONTH.Clear();
+            FILENAME.Clear();
+            OKATO_OMS.Clear();
+            SD_Z.Clear();
+            SUMMAV.Clear();
+            SUMV_SUM = 0;
+            IDCASE_COUNT = 0;
+        }
+    }
+
+    class XML_Z_SL_item
+    {
+        public XML_Element<string> P_OTK { get;  set; } = new XML_Element<string>();
+        public XML_Element<string> RSLT_D { get;  set; } = new XML_Element<string>();
+        public XML_Element<decimal> SUMV { get; set; } = new XML_Element<decimal>();
+        public XML_Element<string> USL_OK { get; set; } = new XML_Element<string>();
+        public decimal SUM_M_SUM { get;  set; }
+        public decimal SUMV_USL_SUM { get;  set; }
+        public void Clear()
+        {
+            P_OTK.Clear();
+            RSLT_D.Clear();
+            SUMV.Clear();
+            USL_OK.Clear();
+            SUM_M_SUM = 0;
+            SUMV_USL_SUM = 0;
+        }
+    }
+
+    class XML_SL_item
+    {
+        public XML_Element<string> DS1 { get; set; } = new XML_Element<string>();
+        public XML_Element<string> TARIF { get; set; } = new XML_Element<string>();
+        public List<XML_Element<string>> DS2 { get; set; } = new List<XML_Element<string>>();
+        public XML_Element<string> DS_ONK { get; set; } = new XML_Element<string>();
+        public XML_Element<decimal> SUM_M { get; set; } = new XML_Element<decimal>();
+        public XML_Element<string> REAB { get; set; } = new XML_Element<string>();
+        public XML_Element<string> C_ZAB { get; set; } = new XML_Element<string>();
+        public XML_Element<string> PR_D_N { get; set; } = new XML_Element<string>();
+        public bool IsCONS { get; set; }
+        public bool IsONK_SL { get; set; }
+
+        public void Clear()
+        {
+            DS1.Clear();
+            TARIF.Clear();
+            DS2.Clear();
+            DS_ONK.Clear();
+            SUM_M.Clear();
+            REAB.Clear();
+            C_ZAB.Clear();
+            PR_D_N.Clear();
+            IsCONS = false;
+            IsONK_SL = false;
+        }
+    }
+
+    class XML_USL_item
+    {
+        public XML_Element<string> CODE_MD { get; set; } = new XML_Element<string>();
+        public XML_Element<string> PRVS { get; set; } = new XML_Element<string>();
+        public XML_Element<string> P_OTK { get; set; } = new XML_Element<string>();
+        public XML_Element<decimal> SUMV_USL { get; set; } = new XML_Element<decimal>();
+        public void Clear()
+        {
+            CODE_MD.Clear();
+            PRVS.Clear();
+            P_OTK.Clear();
+            SUMV_USL.Clear();
+        }
+
+    }
+
+    class XML_SANK_item
+    {
+        public XML_Element<int> S_TIP { get; set; } = new XML_Element<int>();
+        public XML_Element<int> S_OSN { get; set; } = new XML_Element<int>();
+        public XML_Element<decimal> S_SUM { get; set; } = new XML_Element<decimal>();
+        public List<XML_Element<string>> CODE_EXP { get; set; } = new List<XML_Element<string>>();
+        public List<XML_Element<string>> SL_ID { get; set; } = new List<XML_Element<string>>();
+        public void Clear()
+        {
+            S_TIP.Clear();
+            S_OSN.Clear();
+            S_SUM.Clear();
+            CODE_EXP.Clear();
+            SL_ID.Clear();
+        }
+    }
+
+    class TreeXML
+    {
+        private bool _isZ_SL { get; set; }
+        private bool _isSL { get; set; }
+        private bool _isUSL { get; set; }
+        private bool _isSCHET { get; set; }
+        private bool _isZGLV { get; set; }
+        private bool _isSANK { get; set; }
+
+        public void BeginZ_SL()
+        {
+            _isZ_SL = true;
+        }
+        public void EndZ_SL()
+        {
+            _isZ_SL = false;
+        }
+
+        public void BeginSL()
+        {
+            _isSL = true;
+        }
+        public void EndSL()
+        {
+            _isSL = false;
+        }
+
+        public void BeginUSL()
+        {
+            _isUSL = true;
+        }
+        public void EndUSL()
+        {
+            _isUSL = false;
+        }
+
+        public void BeginSCHET()
+        {
+            _isSCHET = true;
+        }
+        public void EndSCHET()
+        {
+            _isSCHET = false;
+        }
+
+        public void BeginZGLV()
+        {
+            _isZGLV = true;
+        }
+        public void EndZGLV()
+        {
+            _isZGLV = false;
+        }
+        public void BeginSANK()
+        {
+            _isSANK= true;
+        }
+        public void EndSANK()
+        {
+            _isSANK = false;
+        }
+        public bool IsZGLV => _isZGLV;
+        public bool IsSCHET => _isSCHET;
+        public bool IsZ_SL => _isZ_SL && !IsSL;
+        public bool IsSL => _isSL && !IsUSL;
+        public bool IsUSL => _isUSL;
+
+        public bool IsSANK => IsZ_SL && _isSANK;
+    }
 
     class MyValidatorV31 : IValidatorXML
     {
-        private bool Hfile;
-        private bool Cfile;
-        private bool Tfile;
-        private bool Dfile;
-        private bool mtrFile;
 
-        private string YEAR;
-        private string MONTH;
+        private readonly DateTime DT_04_2020 = new DateTime(2020, 04, 01);
+        private readonly DateTime DT_03_2021 = new DateTime(2021, 03, 01);
 
-        private int? SD_Z;
-        PositionRecord SD_Z_POS = new PositionRecord();
-        private int SL_COUNT;
+        private string prevnodes = "";
 
-        private decimal? SUMMAV;
-        PositionRecord SUMMAV_POS = new PositionRecord();
-        private decimal SUMV_SUM;
+        private XML_SCHET_item SCHET = new XML_SCHET_item();
+        private XML_Z_SL_item Z_SL = new XML_Z_SL_item();
+        private XML_SL_item SL = new XML_SL_item();
+        private XML_USL_item USL = new XML_USL_item();
+        private XML_SANK_item SANK = new XML_SANK_item();
 
+        TreeXML tx = new TreeXML();
 
 
         public MyValidatorV31(ErrorActionEvent err)
@@ -1284,57 +1305,35 @@ namespace ServiceLoaderMedpomData
 
         public event ErrorActionEvent Error;
 
-        private string DS1 = "";
-        private PositionRecord DS1_POS = new PositionRecord();
-
-        private string TARIF = "";
-        private PositionRecord TARIF_POS = new PositionRecord();
-
-        private List<string> DS2 = new List<string>();
-        private string DS_ONK = "";
-
-        private PositionRecord SANK_POS = new PositionRecord();
-       
-
-        private decimal S_SUM;
-        private decimal S_TIP;
-        private decimal? S_OSN;
-        private decimal SUMV;
-        private PositionRecord SUMV_POS = new PositionRecord();
-        private decimal SUM_M_SUM;
-        private decimal SUMV_USL_SUM;
-        private int C_SANK_SL_ID;
-        private int C_SANK_CODE_EXP;
-
-        private bool cons;
-        private string usl_ok = "";
-        private string reab = "";
-        private string c_zab = "";
-        private bool onk_sl;
-        private string prevnodes = "";
-
-        
-
-        private string RSLT_D;
-        private PositionRecord RSLT_D_POS = new PositionRecord();
-        private string PR_D_N;
-       // private PositionRecord PR_D_N_POS = new PositionRecord();
-        private string PRVS_USL;
-        private PositionRecord PRVS_USL_POS = new PositionRecord();
-        private string CODE_MD;
-        private PositionRecord CODE_MD_POS = new PositionRecord();
-        private string P_OTK;
-        private PositionRecord P_OTK_POS = new PositionRecord();
-        private string P_OTK_USL;
-        private PositionRecord P_OTK_USL_POS = new PositionRecord();
-        private  bool isZ_SL { get; set; }
-        private bool isSL { get; set; }
-        private bool isUSL { get; set; }
-        private bool isSCHET { get; set; }
+        private XML_Element<string> CreateStringXML_Element(XmlReader r)
+        {
+            return new XML_Element<string>(r.Value, PositionRecord.Get(r));
+        }
+        private XML_Element<int> CreateIntXML_Element(XmlReader r)
+        {
+            int val;
+            int.TryParse(r.Value, out val);
+            return new XML_Element<int>(val, PositionRecord.Get(r));
+        }
+        private XML_Element<int?> CreateIntNullXML_Element(XmlReader r)
+        {
+            int val;
+            return int.TryParse(r.Value, out val) ? new XML_Element<int?>(val, PositionRecord.Get(r)) : new XML_Element<int?>(null, PositionRecord.Get(r));
+        }
+        private XML_Element<decimal> CreateDecimalXML_Element(XmlReader r)
+        {
+            decimal val;
+            decimal.TryParse(r.Value,NumberStyles.Float, new NumberFormatInfo() { NumberDecimalSeparator = "." }, out val);
+            return new XML_Element<decimal>(val, PositionRecord.Get(r));
+        }
+        private XML_Element<decimal?> CreateDecimalNullXML_Element(XmlReader r)
+        {
+            decimal val;
+            return decimal.TryParse(r.Value, NumberStyles.Float, new NumberFormatInfo() { NumberDecimalSeparator = "." }, out val) ? new XML_Element<decimal?>(val, PositionRecord.Get(r)) : new XML_Element<decimal?>(null, PositionRecord.Get(r));
+        }
 
         public void Check(XmlReader reader)
         {
-
             switch (reader.NodeType)
             {
                 case XmlNodeType.Text:
@@ -1342,147 +1341,137 @@ namespace ServiceLoaderMedpomData
                     switch (prevnodes)
                     {
                         case "YEAR":
-                            if (isSCHET)
-                                YEAR = reader.Value;
+                            if (tx.IsSCHET)
+                                SCHET.YEAR = CreateIntXML_Element(reader);
                             break;
                         case "MONTH":
-                            if (isSCHET)
-                            {
-                                MONTH = reader.Value;
-                                SetDate();
-                            }
-                                
+                            if (tx.IsSCHET)
+                                SCHET.MONTH = CreateIntXML_Element(reader);
                             break;
                         case "FILENAME":
-                            var FILENAME = reader.Value.ToUpper();
-                            if (FILENAME != "")
-                            {
-                                if (FILENAME[0] == 'H')
-                                    Hfile = true;
-                                if (FILENAME[0] == 'C')
-                                    Cfile = true;
-                                if (FILENAME[0] == 'T')
-                                    Tfile = true;
-                                if (FILENAME[0] == 'D')
-                                    Dfile = true;
-                            }
-
+                            if (tx.IsZGLV)
+                                SCHET.FILENAME = CreateStringXML_Element(reader);
                             break;
                         case "OKATO_OMS":
-                            mtrFile = true;
+                            if (tx.IsZGLV)
+                                SCHET.OKATO_OMS = CreateStringXML_Element(reader);
                             break;
                         case "SD_Z":
-                            SD_Z = Convert.ToInt32(reader.Value);
-                            SD_Z_POS.Set(reader);
+                            if (tx.IsZGLV)
+                                SCHET.SD_Z = CreateIntNullXML_Element(reader);
                             break;
                         case "SUMMAV":
-                            SUMMAV = Convert.ToDecimal(reader.Value,new NumberFormatInfo() {NumberDecimalSeparator = "."});
-                            SUMMAV_POS.Set(reader);
+                            if (tx.IsSCHET)
+                                SCHET.SUMMAV = CreateDecimalNullXML_Element(reader);
                             break;
-
                         case "SUMV":
-                            SUMV = Convert.ToDecimal(reader.Value,new NumberFormatInfo() {NumberDecimalSeparator = "."});
-                            SUMV_SUM += SUMV;
-                            SUMV_POS.Set(reader);
-                            break;
-                        case "SUM_M":
-                            SUM_M_SUM += Convert.ToDecimal(reader.Value,new NumberFormatInfo() {NumberDecimalSeparator = "."});
-                            break;
-                        case "SUMV_USL":
-                            SUMV_USL_SUM += Convert.ToDecimal(reader.Value,new NumberFormatInfo() {NumberDecimalSeparator = "."});
-                            break;
-                        case "IDCASE":
-                            SL_COUNT++;
-                            break;
-                        case "DS1":
-                            if (isSL)
+                            if (tx.IsZ_SL)
                             {
-                                DS1 = reader.Value;
-                                if (DS1.Length < 3) DS1 = "";
-                                DS1_POS.Set(reader);
+                                Z_SL.SUMV = CreateDecimalXML_Element(reader);
+                                SCHET.SUMV_SUM += Z_SL.SUMV.value;
                             }
                             break;
-
-                        case "TARIF":
-                            if (isSL)
+                        case "SUM_M":
+                            if (tx.IsSL)
                             {
-                                TARIF = reader.Value;
-                                TARIF_POS.Set(reader);
+                                SL.SUM_M = CreateDecimalXML_Element(reader);
+                                Z_SL.SUM_M_SUM += SL.SUM_M.value;
+                            }
+                            break;
+                        case "SUMV_USL":
+                            if (tx.IsUSL)
+                            {
+                                USL.SUMV_USL = CreateDecimalXML_Element(reader);
+                                Z_SL.SUMV_USL_SUM += USL.SUMV_USL.value;
+                            }
+                            break;
+                        case "IDCASE":
+                            if (tx.IsZ_SL)
+                                SCHET.IDCASE_COUNT++;
+                            break;
+                        case "DS1":
+                            if (tx.IsSL)
+                            {
+                                SL.DS1 = CreateStringXML_Element(reader);
+                            }
+                            break;
+                        case "TARIF":
+                            if (tx.IsSL)
+                            {
+                                SL.TARIF = CreateStringXML_Element(reader);
                             }
                             break;
                         case "DS2":
-                            if (reader.Value.Length >= 3) DS2.Add(reader.Value);
+                            if (tx.IsSL)
+                                SL.DS2.Add(CreateStringXML_Element(reader));
                             break;
                         case "DS_ONK":
-                            DS_ONK = reader.Value;
+                            if (tx.IsSL)
+                                SL.DS_ONK = CreateStringXML_Element(reader);
                             break;
                         case "USL_OK":
-                            usl_ok = reader.Value;
+                            if (tx.IsZ_SL)
+                                Z_SL.USL_OK = CreateStringXML_Element(reader);
                             break;
                         case "REAB":
-                            reab = reader.Value;
+                            if (tx.IsSL)
+                                SL.REAB = CreateStringXML_Element(reader);
                             break;
                         case "C_ZAB":
-                            c_zab = reader.Value;
+                            if (tx.IsSL)
+                                SL.C_ZAB = CreateStringXML_Element(reader);
                             break;
                         case "RSLT_D":
-                            RSLT_D = reader.Value;
-                            RSLT_D_POS.Set(reader);
+                            if (tx.IsZ_SL)
+                                Z_SL.RSLT_D = CreateStringXML_Element(reader); 
                             break;
                         case "PRVS":
-                            if (isUSL)
+                            if (tx.IsUSL)
                             {
-                                PRVS_USL = reader.Value;
-                                PRVS_USL_POS.Set(reader);
+                                USL.PRVS = CreateStringXML_Element(reader); 
                             }
                             break;
                         case "PR_D_N":
-                            if (isSL)
+                            if (tx.IsSL)
                             {
-                                PR_D_N = reader.Value;
+                                SL.PR_D_N = CreateStringXML_Element(reader);
                             }
                             break;
                         case "P_OTK":
-                            if (isZ_SL && !isUSL)
+                            if (tx.IsZ_SL)
                             {
-                                P_OTK = reader.Value;
-                                P_OTK_POS.Set(reader);
+                                Z_SL.P_OTK = CreateStringXML_Element(reader);
                             }
-                            if (isUSL)
+                            if (tx.IsUSL)
                             {
-                                P_OTK_USL = reader.Value;
-                                P_OTK_USL_POS.Set(reader);
+                                USL.P_OTK = CreateStringXML_Element(reader); 
                             }
                             break;
                         case "CODE_MD":
-                            if (isUSL)
+                            if (tx.IsUSL)
                             {
-                                CODE_MD = reader.Value;
-                                CODE_MD_POS.Set(reader);
+                                USL.CODE_MD = CreateStringXML_Element(reader);
                             }
-                                
                             break;
                         case "S_SUM":
-                            SANK_POS.Set(reader);
-                            if (reader.Value != "")
-                                S_SUM = Convert.ToDecimal(reader.Value,
-                                    new NumberFormatInfo() {NumberDecimalSeparator = "."});
+                            if (tx.IsSANK)
+                                SANK.S_SUM = CreateDecimalXML_Element(reader);
                             break;
                         case "SL_ID":
-                            if (reader.Value != "" && S_SUM != 0)
-                                C_SANK_SL_ID++;
+                            if (tx.IsSANK)
+                                SANK.SL_ID.Add(CreateStringXML_Element(reader));
                             break;
                         case "CODE_EXP":
-                            if (!string.IsNullOrEmpty(reader.Value))
-                                C_SANK_CODE_EXP++;
+                            if (tx.IsSANK)
+                                SANK.CODE_EXP.Add(CreateStringXML_Element(reader));
                             break;
                         case "S_TIP":
-                            if (reader.Value != "")
-                                S_TIP = Convert.ToDecimal(reader.Value);
+                            if (tx.IsSANK)
+                                SANK.S_TIP = CreateIntXML_Element(reader);
                             break;
                         case "S_OSN":
-                            if (reader.Value != "")
-                                S_OSN = Convert.ToDecimal(reader.Value);
+                            if (tx.IsSANK)
+                                SANK.S_OSN = CreateIntXML_Element(reader);
                             break;
                     }
 
@@ -1492,23 +1481,32 @@ namespace ServiceLoaderMedpomData
                     switch (reader.Name)
                     {
                         case "ONK_SL":
-                            onk_sl = true;
+                            if(tx.IsSL)
+                                SL.IsONK_SL = true;
                             break;
                         case "CONS":
-                            cons = true;
+                            if (tx.IsSL)
+                                SL.IsCONS = true;
                             break;
                         case "SL":
-                            isSL = true;
+                            tx.BeginSL();
                             break;
                         case "USL":
-                            isUSL = true;
+                            tx.BeginUSL();
                             break;
                         case "Z_SL":
-                            isZ_SL = true;
+                            tx.BeginZ_SL();
                             break;
                         case "SCHET":
-                            isSCHET = true;
+                            tx.BeginSCHET();
                             break;
+                        case "ZGLV":
+                            tx.BeginZGLV();
+                            break;
+                        case "SANK":
+                            tx.BeginSANK();
+                            break;
+
                     }
                     break;
    
@@ -1517,183 +1515,181 @@ namespace ServiceLoaderMedpomData
                     {
                         case "USL":
                             CheckUSL();
-                            isUSL = false;
-                            PRVS_USL = CODE_MD = P_OTK_USL = "";
-                            PRVS_USL_POS.Clear();
-                            CODE_MD_POS.Clear();
-                            P_OTK_USL_POS.Clear();
+                            tx.EndUSL();
+                            USL.Clear();
                             break;
                         case "Z_SL":
-                            isZ_SL = false;
-                            break;
-                        case "SUMV":
-                            if (Math.Round(SUMV, 2) != Math.Round(SUM_M_SUM, 2))
-                                Error(XmlSeverityType.Error, SUMV_POS.LINE, SUMV_POS.POS,$"Сумма законченного случая({Math.Round(SUMV, 2)}) не равна сумме случаев({Math.Round(SUM_M_SUM, 2)})","SUMV");
-                            if (!mtrFile)
-                            {
-                                if (Math.Round(SUMV, 2) != Math.Round(SUMV_USL_SUM, 2))
-                                    Error(XmlSeverityType.Error, SUMV_POS.LINE, SUMV_POS.POS,$"Сумма законченного случая({Math.Round(SUMV, 2)}) не равна сумме услуг({Math.Round(SUMV_USL_SUM, 2)})","SUMV");
-                            }
-                            SUMV = SUMV_USL_SUM = SUM_M_SUM = 0;
+                            CheckZ_SL();
+                            tx.EndZ_SL();
+                            Z_SL.Clear();
                             break;
                         case "SANK":
-                            if (S_SUM != 0 && C_SANK_SL_ID == 0)
-                                Error(XmlSeverityType.Error, SANK_POS.LINE, SANK_POS.POS,"Для S_SUM<>0 SL_ID обязательно к заполнению", "SANK");
-                            if (S_TIP >= 30 && C_SANK_CODE_EXP == 0 && S_OSN != 43)
-                                Error(XmlSeverityType.Error, SANK_POS.LINE, SANK_POS.POS,@"Для санкций ЭКМП CODE_EXP обязательно к заполнению", "SANK");
-                            C_SANK_SL_ID = 0;
-                            S_SUM = 0;
-                            C_SANK_CODE_EXP = 0;
-                            S_TIP = 0;
-                            S_OSN = null;
+                            CheckSANK();
+                            tx.EndSANK();
+                            SANK.Clear();
                             break;
                         case "SL":
                             CheckONK();
-                            DS1 = PR_D_N = P_OTK = usl_ok = DS_ONK = reab = c_zab = RSLT_D =  PR_D_N=TARIF =  "";
-                            TARIF_POS.Clear();
-                            RSLT_D_POS.Clear();
-                            P_OTK_POS.Clear();
-                            DS1_POS.Clear();
-                            DS2.Clear();
-                            cons = onk_sl = false;
-                            isSL = false;
+                            tx.EndSL();
+                            SL.Clear();
                             break;
                         case "SCHET":
-                            isSCHET = false;
+                            tx.EndSCHET();
+                            break;
+                        case "ZGLV":
+
+                            tx.EndZGLV();
                             break;
                     }
                     break;
             }
         }
 
+        private void CheckSANK()
+        {
+            if (SANK.S_SUM.value != 0 && SANK.SL_ID.Count == 0)
+                Error(XmlSeverityType.Error, SANK.S_SUM.POS.LINE, SANK.S_SUM.POS.POS, "Для S_SUM<>0 SL_ID обязательно к заполнению", "SANK");
+            if (SANK.S_TIP.value >= 30 && SANK.CODE_EXP.Count == 0 && SANK.S_OSN.value != 43)
+                Error(XmlSeverityType.Error, SANK.S_OSN.POS.LINE, SANK.S_OSN.POS.POS, @"Для санкций ЭКМП CODE_EXP обязательно к заполнению", "SANK");
+         
+        }
+
+        private void CheckZ_SL()
+        {
+            if (Math.Round(Z_SL.SUMV.value, 2) != Math.Round(Z_SL.SUM_M_SUM, 2))
+                Error(XmlSeverityType.Error, Z_SL.SUMV.POS.LINE, Z_SL.SUMV.POS.POS, $"Сумма законченного случая({Math.Round(Z_SL.SUMV.value, 2)}) не равна сумме случаев({Math.Round(Z_SL.SUM_M_SUM, 2)})", "SUMV");
+            if (SCHET.TypeFile != XML_FileType.MTR)
+            {
+                if (Math.Round(Z_SL.SUMV.value, 2) != Math.Round(Z_SL.SUMV_USL_SUM, 2))
+                    Error(XmlSeverityType.Error, Z_SL.SUMV.POS.LINE, Z_SL.SUMV.POS.POS, $"Сумма законченного случая({Math.Round(Z_SL.SUMV.value, 2)}) не равна сумме услуг({Math.Round(Z_SL.SUMV_USL_SUM, 2)})", "SUMV");
+            }
+        }
         private void CheckUSL()
         {
-            if (Dfile && DateFile >= DT_04_2020)
+            if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_04_2020)
             {
-                if (P_OTK_USL == "0" && string.IsNullOrEmpty(CODE_MD))
-                    Error(XmlSeverityType.Error, P_OTK_USL_POS.LINE, P_OTK_USL_POS.POS, "Поле CODE_MD обязательно к заполнению при USL\\P_OTK = 0", "CODE_MD");
-                if (P_OTK_USL == "1" && !string.IsNullOrEmpty(CODE_MD))
-                    Error(XmlSeverityType.Error, CODE_MD_POS.LINE, CODE_MD_POS.POS, "Поле CODE_MD не подлежит заполнению при USL\\P_OTK = 1", "CODE_MD");
-                if (P_OTK_USL == "0" && string.IsNullOrEmpty(PRVS_USL))
-                    Error(XmlSeverityType.Error, P_OTK_USL_POS.LINE, P_OTK_USL_POS.POS, "Поле PRVS обязательно к заполнению при USL\\P_OTK = 0", "PRVS");
-                if (P_OTK_USL == "1" && !string.IsNullOrEmpty(PRVS_USL))
-                    Error(XmlSeverityType.Error, PRVS_USL_POS.LINE, PRVS_USL_POS.POS, "Поле PRVS не подлежит заполнению при USL\\P_OTK = 1", "PRVS");
+                if (USL.P_OTK.value == "0" && string.IsNullOrEmpty(USL.CODE_MD.value))
+                    Error(XmlSeverityType.Error, USL.P_OTK.POS.LINE, USL.P_OTK.POS.POS, "Поле CODE_MD обязательно к заполнению при USL\\P_OTK = 0", "CODE_MD");
+                if (USL.P_OTK.value == "1" && !string.IsNullOrEmpty(USL.CODE_MD.value))
+                    Error(XmlSeverityType.Error, USL.CODE_MD.POS.LINE, USL.CODE_MD.POS.POS, "Поле CODE_MD не подлежит заполнению при USL\\P_OTK = 1", "CODE_MD");
+                if (USL.P_OTK.value == "0" && string.IsNullOrEmpty(USL.PRVS.value))
+                    Error(XmlSeverityType.Error, USL.P_OTK.POS.LINE, USL.P_OTK.POS.POS, "Поле PRVS обязательно к заполнению при USL\\P_OTK = 0", "PRVS");
+                if (USL.P_OTK.value == "1" && !string.IsNullOrEmpty(USL.PRVS.value))
+                    Error(XmlSeverityType.Error, USL.PRVS.POS.LINE, USL.PRVS.POS.POS, "Поле PRVS не подлежит заполнению при USL\\P_OTK = 1", "PRVS");
             }
         }
         private void CheckONK()
         {
-            if (DS1 != "")
+            var tf = SCHET.TypeFile;
+            var DateFile = SCHET.DateFile;
+          
+            if (!string.IsNullOrEmpty(SL.DS1.value))
             {
-                var DS1likeZ = DS1.StartsWith("Z");
-                var DS1likeC = DS1.StartsWith("C");
+                
+                var DS1likeZ = SL.DS1.value.StartsWith("Z");
+                var DS1likeC = SL.DS1.value.StartsWith("C");
 
-                var DS1likeD70_C97C00_C80 = DS1.StartsWith("D70") && DS2.Count(x => x.StartsWith("C97") || x.Substring(0, 3).Between("C00", "C80")) != 0 && DateFile < DT_04_2020;
-                var DS1likeD00D09 = DS1.Substring(0, 3).Between("D00","D09");
-                var DS1likeD45D47 = DS1.Substring(0, 3).Between("D45","D47") && DateFile>= DT_03_2021;
+                var DS1likeD70_C97C00_C80 = SL.DS1.value.StartsWith("D70") && SL.DS2.Count(x => x.value.StartsWith("C97") || x.value.Substring(0, 3).Between("C00", "C80")) != 0 && DateFile < DT_04_2020;
+                var DS1likeD00D09 = SL.DS1.value.Substring(0, 3).Between("D00","D09");
+                var DS1likeD45D47 = SL.DS1.value.Substring(0, 3).Between("D45","D47") && DateFile>= DT_03_2021;
 
-                if (Hfile)
+                if (tf == XML_FileType.H)
                 {
                     if (DS1likeC)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Основной диагноз C* для файла H", "DS1");
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Основной диагноз C* для файла H", "DS1");
                     if (DS1likeD70_C97C00_C80)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Основной диагноз D70* и сопутствующий C00-C80 или C97* для файла H", "DS1");
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Основной диагноз D70* и сопутствующий C00-C80 или C97* для файла H", "DS1");
                     if (DS1likeD45D47)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Основной диагноз D45-D47 для файла H", "DS1");
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Основной диагноз D45-D47 для файла H", "DS1");
                     if (DS1likeD00D09)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Основной диагноз D00-D09 для файла H", "DS1");
-                    if (!DS1likeZ && usl_ok == "3" && c_zab == "" && !(YEAR=="2018" && MONTH=="9"))
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Основной диагноз D00-D09 для файла H", "DS1");
+                    if (!DS1likeZ && Z_SL.USL_OK.value == "3" && SL.C_ZAB.value == "" && !(SCHET.YEAR.value==2018 && SCHET.MONTH.value ==9))
                     {
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при оказании амбулаторной помощи, если DS1 не входит в рубрику Z", "C_ZAB");
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при оказании амбулаторной помощи, если DS1 не входит в рубрику Z", "C_ZAB");
                     }
                 }
-                if (Tfile)
+                if (tf == XML_FileType.T)
                 {
-                    var needCONS= DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47 || DS_ONK == "1";
+                    var needCONS= DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47 || SL.DS_ONK.value == "1";
 
-                    if (needCONS && !cons)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Сведения о проведении консилиума(CONS) обязательны к заполнению при DS_ONK = 1 или C00.0<= DS1<D10 или D45<=DS1<D48", "CONS");
-                    if (!needCONS && cons)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Сведения о проведении консилиума(CONS) не подлежат заполнению при DS_ONK = 0 и (DS1<C00 или D10<= DS1<D45 или DS1>=D48) ", "CONS");
+                    if (needCONS && !SL.IsCONS)
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Сведения о проведении консилиума(CONS) обязательны к заполнению при DS_ONK = 1 или C00.0<= DS1<D10 или D45<=DS1<D48", "CONS");
+                    if (!needCONS && SL.IsCONS)
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Сведения о проведении консилиума(CONS) не подлежат заполнению при DS_ONK = 0 и (DS1<C00 или D10<= DS1<D45 или DS1>=D48) ", "CONS");
                     var needONK_SL = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47;
-                    if (needONK_SL && !onk_sl)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Сведения о случае лечения онк.заболевания(ONK_SL) обязательно к заполнению при C00.0<= DS1<D10 или D45<=DS1<D48", "ONK_SL");
-                    if (!needONK_SL && onk_sl)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Сведения о случае лечения онк.заболевания(ONK_SL) не подлежат к заполнению при DS1<C00 или D10<= DS1<D45 или DS1>=D48", "ONK_SL");
+                    if (needONK_SL && !SL.IsONK_SL)
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Сведения о случае лечения онк.заболевания(ONK_SL) обязательно к заполнению при C00.0<= DS1<D10 или D45<=DS1<D48", "ONK_SL");
+                    if (!needONK_SL && SL.IsONK_SL)
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Сведения о случае лечения онк.заболевания(ONK_SL) не подлежат к заполнению при DS1<C00 или D10<= DS1<D45 или DS1>=D48", "ONK_SL");
                     var needC_ZAB = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47;
-                    if (needC_ZAB && string.IsNullOrEmpty(c_zab))
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "C_ZAB");
+                    if (needC_ZAB && string.IsNullOrEmpty(SL.C_ZAB.value))
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "C_ZAB");
                     var needTARIF = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47;
-                    if (needTARIF && string.IsNullOrEmpty(TARIF))
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Тариф(TARIF) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "TARIF");
+                    if (needTARIF && string.IsNullOrEmpty(SL.TARIF.value))
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Тариф(TARIF) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "TARIF");
                 }
 
-                if (Cfile)
+                if (tf == XML_FileType.C)
                 {
-                    if (DS_ONK == "0")
+                    if (SL.DS_ONK.value == "0")
                     {
                         if (!DS1likeC && !DS1likeD00D09 && !DS1likeD70_C97C00_C80 && !DS1likeD45D47)
-                            Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, $"Основной диагноз не C*/D00-D09{(DateFile < DT_04_2020? "/D70*":"")}{(DateFile >= DT_03_2021 ? "/D45-D47" : "")} для файла С при DS_ONK = 0", "DS1");
+                            Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, $"Основной диагноз не C*/D00-D09{(DateFile < DT_04_2020? "/D70*":"")}{(DateFile >= DT_03_2021 ? "/D45-D47" : "")} для файла С при DS_ONK = 0", "DS1");
                     }
-                    var needCONS = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47 || DS_ONK == "1";
-                    if (needCONS && !cons)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, $"Сведения о проведении консилиума(CONS) обязательно к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "CONS");
-                    if (!needCONS && cons)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, $"Сведения о проведении консилиума(CONS) не подлежат заполнению при DS1<C00 или D10<=DS1<D45 или DS1>=D48", "CONS");
-                    var needONK_SL = (DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47) && usl_ok != "4" && reab != "1" && DS_ONK != "1";
-                    if (needONK_SL && !onk_sl)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, $"Сведения о случае лечения онк.заболевания(ONK_SL) обязательно к заполнению при (C00.0<=DS1<D10 или D45<=DS1<D48) и USL_OK<>4 и REAB<>1 и DS_ONK=0", "ONK_SL");
-                    if (!needONK_SL && onk_sl)
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, $"Сведения о случае лечения онк.заболевания(ONK_SL) не подлежат заполнению при DS1<C00 или D10<=DS1<D45 или DS1>=D48 или USL_OK=4 или REAB=1", "ONK_SL");
-                    var needC_ZAB = (DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47) && usl_ok != "4";
-                    if (needC_ZAB && string.IsNullOrEmpty(c_zab))
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, $"Характер основного заболевания(C_ZAB) обязателен к заполнению при (C00.0<=DS1<D10 или D45<=DS1<D48) и (USL_OK<>4)", "C_ZAB");
+                    var needCONS = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47 || SL.DS_ONK.value == "1";
+                    if (needCONS && !SL.IsCONS)
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, $"Сведения о проведении консилиума(CONS) обязательно к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "CONS");
+                    if (!needCONS && SL.IsCONS)
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, $"Сведения о проведении консилиума(CONS) не подлежат заполнению при DS1<C00 или D10<=DS1<D45 или DS1>=D48", "CONS");
+                    var needONK_SL = (DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47) && Z_SL.USL_OK.value != "4" && SL.REAB.value != "1" && SL.DS_ONK.value != "1";
+                    if (needONK_SL && !SL.IsONK_SL)
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, $"Сведения о случае лечения онк.заболевания(ONK_SL) обязательно к заполнению при (C00.0<=DS1<D10 или D45<=DS1<D48) и USL_OK<>4 и REAB<>1 и DS_ONK=0", "ONK_SL");
+                    if (!needONK_SL && SL.IsONK_SL)
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, $"Сведения о случае лечения онк.заболевания(ONK_SL) не подлежат заполнению при DS1<C00 или D10<=DS1<D45 или DS1>=D48 или USL_OK=4 или REAB=1", "ONK_SL");
+                    var needC_ZAB = (DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47) && Z_SL.USL_OK.value != "4";
+                    if (needC_ZAB && string.IsNullOrEmpty(SL.C_ZAB.value))
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, $"Характер основного заболевания(C_ZAB) обязателен к заполнению при (C00.0<=DS1<D10 или D45<=DS1<D48) и (USL_OK<>4)", "C_ZAB");
                     var needTARIF = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47;
-                    if (needTARIF && string.IsNullOrEmpty(TARIF))
-                        Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Тариф(TARIF) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "TARIF");
+                    if (needTARIF && string.IsNullOrEmpty(SL.TARIF.value))
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Тариф(TARIF) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "TARIF");
                 }
             }
 
-            if (Dfile && DateFile>=DT_04_2020)
+            if (tf== XML_FileType.D   && DateFile>=DT_04_2020)
             {
-                if (P_OTK == "0" && string.IsNullOrEmpty(RSLT_D))
-                    Error(XmlSeverityType.Error, P_OTK_POS.LINE, P_OTK_POS.POS, "Поле RSLT_D обязательно к заполнению при P_OTK = 0", "RSLT_D");
-                if (P_OTK == "1" && !string.IsNullOrEmpty(RSLT_D))
-                    Error(XmlSeverityType.Error, RSLT_D_POS.LINE, RSLT_D_POS.POS, "Поле RSLT_D не подлежит заполнению при P_OTK = 1", "CODE_MD");
-                if(P_OTK == "0" && string.IsNullOrEmpty(DS1))
-                    Error(XmlSeverityType.Error, P_OTK_POS.LINE, P_OTK_POS.POS, "Поле DS1 обязательно к заполнению при P_OTK = 0", "DS1");
-                if (!string.IsNullOrEmpty(DS1) && string.IsNullOrEmpty(PR_D_N))
-                    Error(XmlSeverityType.Error, DS1_POS.LINE, DS1_POS.POS, "Поле PR_D_N обязательно к заполнению при DS1 не пустое", "DS1");
+                if (Z_SL.P_OTK.value == "0" && string.IsNullOrEmpty(Z_SL.RSLT_D.value))
+                    Error(XmlSeverityType.Error, Z_SL.P_OTK.POS.LINE, Z_SL.P_OTK.POS.POS, "Поле RSLT_D обязательно к заполнению при P_OTK = 0", "RSLT_D");
+                if (Z_SL.P_OTK.value == "1" && !string.IsNullOrEmpty(Z_SL.RSLT_D.value))
+                    Error(XmlSeverityType.Error, Z_SL.RSLT_D.POS.LINE, Z_SL.RSLT_D.POS.POS, "Поле RSLT_D не подлежит заполнению при P_OTK = 1", "CODE_MD");
+                if(Z_SL.P_OTK.value == "0" && string.IsNullOrEmpty(SL.DS1.value))
+                    Error(XmlSeverityType.Error, Z_SL.P_OTK.POS.LINE, Z_SL.P_OTK.POS.POS, "Поле DS1 обязательно к заполнению при P_OTK = 0", "DS1");
+                if (!string.IsNullOrEmpty(SL.DS1.value) && string.IsNullOrEmpty(SL.PR_D_N.value))
+                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле PR_D_N обязательно к заполнению при DS1 не пустое", "DS1");
             }
         }
 
-        private DateTime DateFile = DateTime.Now.Date;
-        private DateTime DT_04_2020 = new DateTime(2020, 04, 01);
-        private DateTime DT_03_2021 = new DateTime(2021, 03, 01);
-
-        private void SetDate()
+        private void CheckSCHET()
         {
-            if (!string.IsNullOrEmpty(YEAR) && !string.IsNullOrEmpty(MONTH))
-                DateFile = new DateTime(Convert.ToInt32(YEAR), Convert.ToInt32(MONTH), 1);
-
+            if (SCHET.SD_Z.value.HasValue)
+            {
+                if (SCHET.SD_Z.value.Value != SCHET.IDCASE_COUNT)
+                {
+                    Error(XmlSeverityType.Error, SCHET.SD_Z.POS.LINE, SCHET.SD_Z.POS.POS, $"Кол-во случаев в реестре {SCHET.IDCASE_COUNT}, однако SD_Z = {SCHET.SD_Z.value.Value}", "SD_Z");
+                }
+            }
+            if (SCHET.SUMMAV.value.HasValue)
+            {
+                if (SCHET.SUMMAV.value.Value != Math.Round(SCHET.SUMV_SUM, 2))
+                {
+                    Error(XmlSeverityType.Error, SCHET.SUMMAV.POS.LINE, SCHET.SUMMAV.POS.POS, $"Сумма случаев в реестре {Math.Round(SCHET.SUMV_SUM, 2)}, однако SUMMAV = {SCHET.SUMMAV.value.Value}", "SUMMAV");
+                }
+            }
         }
+
+
         public void Close()
         {
-            if (SD_Z.HasValue)
-            {
-                if (SD_Z != SL_COUNT)
-                {
-                    Error(XmlSeverityType.Error, SD_Z_POS.LINE, SD_Z_POS.POS,$"Кол-во случаев в реестре {SL_COUNT}, однако SD_Z = {SD_Z.Value}", "SD_Z");
-                }
-            }
-
-            if (SUMMAV.HasValue)
-            {
-                if (SUMMAV.Value != Math.Round(SUMV_SUM, 2))
-                {
-                    Error(XmlSeverityType.Error, SUMV_POS.LINE, SUMMAV_POS.POS,$"Сумма случаев в реестре {Math.Round(SUMV_SUM, 2)}, однако SUMMAV = {SUMMAV.Value}", "SUMMAV");
-                }
-            }
-
+            CheckSCHET();
         }
     }
 

@@ -182,22 +182,13 @@ namespace MedpomService
 
                 wi = new WcfInterface(ProcessReestr, SchemaCheck, FileInviter, PacketQuery, Logger);
                 WcfConection = new ServiceHost(wi, new Uri(uri));
-
-              
-           
                 wi.RaiseRegisterNewFileManager += Wi_RaiseRegisterNewFileManager;
-             
-
                 var myEndpointAdd =new EndpointAddress(new Uri(uri), EndpointIdentity.CreateDnsIdentity("MSERVICE"));
-
                 var ep = WcfConection.AddServiceEndpoint(typeof(IWcfInterface), netTcpBinding, "");
-
                 ep.Address = myEndpointAdd;
-
 
                 WcfConection.OpenTimeout = new TimeSpan(24, 0, 0);
                 WcfConection.CloseTimeout = new TimeSpan(24, 0, 0);
-           
 
                 netTcpBinding.Security.Mode = SecurityMode.Message;
                 netTcpBinding.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
@@ -408,73 +399,7 @@ namespace MedpomService
                 }
             }
         }
-        /// <summary>
-        /// Добавления пакета с сайта
-        /// </summary>
-        /// <param name="newPack"></param>
-        private void AddPacket(FilePacket newPack)
-        {
-            throw  new NotImplementedException();
-            /*
-            var indexpacket = FM.FindIndexPacket(newPack.CodeMO);
-            if (indexpacket != -1)
-            {
-                DeletePack(FM[indexpacket]);
-            }
-
-            newPack.changeSiteStatus += onPackChanged;
-            newPack.PropertyChanged += SendNewFileManager_PropertyChanged;
-            foreach (var item in newPack.Files)
-            {
-                item.PropertyChanged += SendNewFileManager_PropertyChanged;
-                if(item.filel!=null)
-                    item.filel.PropertyChanged += SendNewFileManager_PropertyChanged;
-            }
-            FM.Add(newPack);
-            var fail = false;
-            try
-            {
-                //Файлы в архив приема
-                foreach (var fi in newPack.Files)
-                {
-                    newPack.CommentSite = "Перенос файлов";
-                    newPack.Comment = "Перенос файлов в архив приема";
-                    var name = Path.GetFileName(fi.FilePach);
-                    var ID = "NOT_ID";
-                    if (newPack.ID.HasValue)
-                        ID = newPack.ID.Value.ToString();
-                    var DIR = Path.Combine(AppConfig.Property.InputDir, "Archive", DateTime.Now.ToString("yyyy_MM_dd"),
-                        "SITE", newPack.codeMOstr, ID);
-                    FilesManager.CopyFileTo(fi.FilePach, Path.Combine(DIR, name));
-                    name = Path.GetFileName(fi.filel.FilePach);
-                    FilesManager.CopyFileTo(fi.filel.FilePach, Path.Combine(DIR, name));
-                }
-            }
-            catch (Exception ex)
-            {
-                WcfInterface.AddLog($"Ошибка при переносе файлов в архив с сайта:{ex.Message}",
-                    EventLogEntryType.Error);
-                fail = true;
-            }
-
-            if (!fail)
-            {
-                var th = new Thread(CloserPack) {IsBackground = true};
-                var itth = new ItemThreadList {pac = newPack, th = th};
-                listTH.Add(itth);
-                var obj = new object[] {newPack, true};
-                th.Start(obj);
-            }
-            else
-            {
-                newPack.CommentSite = "Что то пошло не так...";
-                newPack.Status = StatusFilePack.FLKERR;
-            }*/
-        }
-
-
-
-
+   
 
      }
 }

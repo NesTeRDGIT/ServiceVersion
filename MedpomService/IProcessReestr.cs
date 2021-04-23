@@ -176,9 +176,9 @@ namespace MedpomService
                                     {
                                         if (ProcessList.Count != 0)
                                         {
-                                            var tbl = mybd.GetErrorView();
+                                            var err = mybd.GetErrorView();
                                             currentpack.PATH_STAT = Path.Combine(AppConfig.Property.ProcessDir, currentpack.CodeMO, SvodFileNameXLS);
-                                            excelProtokol.ExportExcel2(tbl, currentpack.PATH_STAT);
+                                            excelProtokol.ExportErrorView(err, currentpack.PATH_STAT);
                                         }
                                     }
                                     catch (Exception ex)
@@ -190,7 +190,7 @@ namespace MedpomService
 
                                     //Формируем сводный файл
 
-                                    excelProtokol.CreateExcelSvod2(currentpack, Path.Combine(AppConfig.Property.ProcessDir, currentpack.CodeMO, SvodFileNameXLS), mybd.SVOD_FILE_TEMP99(), mybd.STAT_VIDMP_TEMP99(), mybd.STAT_FULL_TEMP99());
+                                    excelProtokol.CreateExcelSvod(currentpack, Path.Combine(AppConfig.Property.ProcessDir, currentpack.CodeMO, SvodFileNameXLS), mybd.SVOD_FILE_TEMP99(), mybd.STAT_VIDMP_TEMP99(), mybd.STAT_FULL_TEMP99());
                                     currentpack.CommentSite = "Удаление предыдущей выгрузки";
                                     currentpack.Comment = $"Обработка пакета: Очистка базы {AppConfig.Property.xml_h_zglv_transfer} от {currentpack.CodeMO}";
                                     try

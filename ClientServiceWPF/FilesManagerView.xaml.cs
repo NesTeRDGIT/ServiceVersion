@@ -43,12 +43,12 @@ namespace ClientServiceWPF
         }
         void SetControlForm(List<string> card, bool activ)
         {
-            buttonPriory.IsEnabled = card.Contains("SetPriority");
-            buttonClear.IsEnabled = card.Contains("ClearFileManagerList") && !activ;
-            buttonDeletePack.IsEnabled = card.Contains("DelPack");
-            buttonSaveToArc.IsEnabled = card.Contains("SaveProcessArch");
-            MenuItemRepeat.IsEnabled = card.Contains("RepeatClosePac");
-            MenuItemBreakTimeout.IsEnabled = card.Contains("StopTimeAway");
+            buttonPriory.IsEnabled = card.Contains(nameof(IWcfInterface.SetPriority));
+            buttonClear.IsEnabled = card.Contains(nameof(IWcfInterface.ClearFileManagerList)) && !activ;
+            buttonDeletePack.IsEnabled = card.Contains(nameof(IWcfInterface.DelPack));
+            buttonSaveToArc.IsEnabled = card.Contains(nameof(IWcfInterface.SaveProcessArch));
+            MenuItemRepeat.IsEnabled = card.Contains(nameof(IWcfInterface.RepeatClosePac));
+            MenuItemBreakTimeout.IsEnabled = card.Contains(nameof(IWcfInterface.StopTimeAway));
         }
 
 

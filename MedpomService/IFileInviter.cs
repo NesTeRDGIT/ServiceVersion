@@ -226,12 +226,12 @@ namespace MedpomService
                 var FullPath = Fitem.path;
                 FileList.RemoveAt(0);
 
-                SchemaChecking.PrichinAv? pr;
+                PrichinAv? pr;
                 var flagcontinue = false;
-                while (!SchemaChecking.CheckFileAv(FullPath, out pr))
+                while (!FilesHelper.CheckFileAv(FullPath, out pr))
                 {
                     if (pr.HasValue)
-                        if (pr.Value == SchemaChecking.PrichinAv.NOT_FOUND)
+                        if (pr.Value == PrichinAv.NOT_FOUND)
                         {
                             Logger.AddLog($"Не удалось найти файл {FullPath}", LogType.Error);
                             flagcontinue = true;

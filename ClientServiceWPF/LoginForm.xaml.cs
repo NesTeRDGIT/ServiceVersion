@@ -30,6 +30,8 @@ namespace ClientServiceWPF
         public MyServiceCallback callback;
         public string DIALOG_MESSAGE = null;
 
+        public static List<string> SecureCard { get; set; } = new List<string>();
+
         public LoginForm()
         {
             InitializeComponent();
@@ -121,7 +123,6 @@ namespace ClientServiceWPF
             }
         }
 
-        public static List<string> SecureCard = new List<string>();
      
 
         private string Log { get; set; }

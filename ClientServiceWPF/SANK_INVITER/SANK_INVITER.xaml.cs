@@ -31,8 +31,6 @@ namespace ClientServiceWPF.SANK_INVITER
     /// </summary>
     public partial class SANK_INVITER : Window, INotifyPropertyChanged
     {
-      
-
         SchemaCollection scoll = new SchemaCollection();
         SchemaChecking sc = new SchemaChecking();
         public List<FileItemEx> Files { get; set; } = new List<FileItemEx>();
@@ -361,10 +359,10 @@ namespace ClientServiceWPF.SANK_INVITER
                     if (item.Process.In(StepsProcess.NotInvite,StepsProcess.FlkErr, StepsProcess.FlkOk, StepsProcess.XMLxsd) && item.filel?.Process.In(StepsProcess.NotInvite, StepsProcess.FlkErr, StepsProcess.FlkOk, StepsProcess.XMLxsd)==true) continue;
                     item.FileLog.Append();
                     item.filel?.FileLog.Append();
-                    var vers_file_l = SchemaChecking.GetCode_fromXML(item.filel.FilePach, "VERSION");
-                    var vers_file = SchemaChecking.GetCode_fromXML(item.FilePach, "VERSION");
-                    var year = SchemaChecking.GetCode_fromXML(item.FilePach, "YEAR");
-                    var month = SchemaChecking.GetCode_fromXML(item.FilePach, "MONTH");
+                    var vers_file_l = SchemaChecking.GetELEMENT(item.filel.FilePach, "VERSION");
+                    var vers_file = SchemaChecking.GetELEMENT(item.FilePach, "VERSION");
+                    var year = SchemaChecking.GetELEMENT(item.FilePach, "YEAR");
+                    var month = SchemaChecking.GetELEMENT(item.FilePach, "MONTH");
                     var dt_file = new DateTime(Convert.ToInt32(year), Convert.ToInt32(month), 1);
 
 
@@ -580,7 +578,7 @@ namespace ClientServiceWPF.SANK_INVITER
 
 
                     item.FileLog.Append();
-                    var VALUE = SchemaChecking.GetCode_fromXML(item.FilePach, "CODE", "CODE_MO", "YEAR", "DSCHET", "NSCHET");
+                    var VALUE = SchemaChecking.GetELEMENTs(item.FilePach, "CODE", "CODE_MO", "YEAR", "DSCHET", "NSCHET");
 
                     cmd.SelectCommand.Parameters["CODE"].Value = Convert.ToInt32(VALUE["CODE"]);
                     cmd.SelectCommand.Parameters["CODE_MO"].Value = VALUE["CODE_MO"];
@@ -1332,7 +1330,7 @@ namespace ClientServiceWPF.SANK_INVITER
                 {
                     var db = CreateMyBD();
                     var t = db.GetZGLV_BYFileName(zl.ZGLV.FILENAME);
-                    if (t.Rows.Count != 0)
+                    if (t.Count != 0)
                     {
                         ErrList.Add(new ErrorProtocolXML
                         {
@@ -1681,7 +1679,7 @@ namespace ClientServiceWPF.SANK_INVITER
             mybd.BeginTransaction();
             try
             {
-                var EL = SchemaChecking.GetCode_fromXML(fi.FilePach, "FILENAME", "CODE", "CODE_MO", "YEAR", "MONTH");
+                var EL = SchemaChecking.GetELEMENTs(fi.FilePach, "FILENAME", "CODE", "CODE_MO", "YEAR", "MONTH");
                 //Заголовок санкций
                 var id = mybd.AddSankZGLV(EL["FILENAME"], Convert.ToInt32(EL["CODE"]), Convert.ToInt32(EL["CODE_MO"]), set.FLAG_MEE? 1: 0, Convert.ToInt32(EL["YEAR"]), Convert.ToInt32(EL["MONTH"]), set.YEAR, set.MONTH, fi.ZGLV_ID.Value, set.SMO, fi.DOP_REESTR ?? false, isNotFinish);
 
@@ -1843,9 +1841,10 @@ namespace ClientServiceWPF.SANK_INVITER
             {
                 try
                 {
-                    var CODE = Convert.ToInt32(SchemaChecking.GetCode_fromXML(item.FilePach, "CODE"));
-                    var CODE_MO = Convert.ToInt32(SchemaChecking.GetCode_fromXML(item.FilePach, "CODE_MO"));
-                    var YEAR = Convert.ToInt32(SchemaChecking.GetCode_fromXML(item.FilePach, "YEAR"));
+                    var el = SchemaChecking.GetELEMENTs(item.FilePach, "CODE", "CODE_MO", "YEAR");
+                    var CODE = Convert.ToInt32(el["CODE"]);
+                    var CODE_MO = Convert.ToInt32(el["CODE_MO"]);
+                    var YEAR = Convert.ToInt32(el["YEAR"]);
                     var f = new FindReestr(CODE_MO, CODE, YEAR);
                     if (f.ShowDialog() == true)
                     {
