@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ArrayOfSchemaElement xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ArrayOfSchemaElement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <SchemaElement>
     <name>ZL_LIST</name>
     <Type>O</Type>
@@ -50,9 +50,9 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>9</ZnakMest>
               <ZnakMestPosDot>0</ZnakMestPosDot>
-              <Enum />
             </format>
             <Elements />
           </SchemaElement>
@@ -71,9 +71,9 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>8</ZnakMest>
               <ZnakMestPosDot>0</ZnakMestPosDot>
-              <Enum />
             </format>
             <Elements />
           </SchemaElement>
@@ -94,9 +94,9 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>4</ZnakMest>
               <ZnakMestPosDot>0</ZnakMestPosDot>
-              <Enum />
             </format>
             <Elements />
           </SchemaElement>
@@ -106,9 +106,9 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>2</ZnakMest>
               <ZnakMestPosDot>0</ZnakMestPosDot>
-              <Enum />
             </format>
             <Elements />
           </SchemaElement>
@@ -148,9 +148,9 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>15</ZnakMest>
               <ZnakMestPosDot>2</ZnakMestPosDot>
-              <Enum />
             </format>
             <Elements />
           </SchemaElement>
@@ -171,9 +171,9 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>15</ZnakMest>
               <ZnakMestPosDot>2</ZnakMestPosDot>
-              <Enum />
             </format>
             <Elements />
           </SchemaElement>
@@ -183,9 +183,9 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>15</ZnakMest>
               <ZnakMestPosDot>2</ZnakMestPosDot>
-              <Enum />
             </format>
             <Elements />
           </SchemaElement>
@@ -195,9 +195,9 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>15</ZnakMest>
               <ZnakMestPosDot>2</ZnakMestPosDot>
-              <Enum />
             </format>
             <Elements />
           </SchemaElement>
@@ -207,11 +207,53 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>15</ZnakMest>
               <ZnakMestPosDot>2</ZnakMestPosDot>
-              <Enum />
             </format>
             <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>REF</name>
+            <Type>Y</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>FIRST_CODE</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <Enum />
+                  <ZnakMest>8</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>FIRST_YEAR</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <Enum />
+                  <ZnakMest>4</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>FIRST_MONTH</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <Enum />
+                  <ZnakMest>2</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                </format>
+              </SchemaElement>
+            </Elements>
           </SchemaElement>
           <SchemaElement>
             <name>DISP</name>
@@ -239,9 +281,9 @@
             <Unique>true</Unique>
             <UniqueGlobal>true</UniqueGlobal>
             <format xsi:type="TypeSDigit">
+              <Enum />
               <ZnakMest>8</ZnakMest>
               <ZnakMestPosDot>0</ZnakMestPosDot>
-              <Enum />
             </format>
           </SchemaElement>
           <SchemaElement>
@@ -250,12 +292,12 @@
             <Unique>false</Unique>
             <UniqueGlobal>false</UniqueGlobal>
             <format xsi:type="TypeSDigit">
-              <ZnakMest>1</ZnakMest>
-              <ZnakMestPosDot>0</ZnakMestPosDot>
               <Enum>
                 <int>0</int>
                 <int>1</int>
               </Enum>
+              <ZnakMest>1</ZnakMest>
+              <ZnakMestPosDot>0</ZnakMestPosDot>
             </format>
           </SchemaElement>
           <SchemaElement>
@@ -282,9 +324,9 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>1</ZnakMest>
                   <ZnakMestPosDot>0</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
               </SchemaElement>
@@ -391,11 +433,22 @@
                 <Unique>true</Unique>
                 <UniqueGlobal>true</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>11</ZnakMest>
                   <ZnakMestPosDot>0</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>FIRST_IDCASE</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <Enum />
+                  <ZnakMest>11</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                </format>
               </SchemaElement>
               <SchemaElement>
                 <name>VIDPOM</name>
@@ -403,9 +456,9 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>4</ZnakMest>
                   <ZnakMestPosDot>0</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
               </SchemaElement>
@@ -426,12 +479,12 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
-                  <ZnakMest>1</ZnakMest>
-                  <ZnakMestPosDot>0</ZnakMestPosDot>
                   <Enum>
                     <int>0</int>
                     <int>1</int>
                   </Enum>
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
                 </format>
                 <Elements />
               </SchemaElement>
@@ -457,12 +510,12 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
-                  <ZnakMest>1</ZnakMest>
-                  <ZnakMestPosDot>0</ZnakMestPosDot>
                   <Enum>
                     <int>1</int>
                     <int>0</int>
                   </Enum>
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
                 </format>
                 <Elements />
               </SchemaElement>
@@ -472,9 +525,9 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>2</ZnakMest>
                   <ZnakMestPosDot>0</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
               </SchemaElement>
@@ -484,9 +537,9 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>1</ZnakMest>
                   <ZnakMestPosDot>0</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
               </SchemaElement>
@@ -563,11 +616,11 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
-                      <ZnakMest>1</ZnakMest>
-                      <ZnakMestPosDot>0</ZnakMestPosDot>
                       <Enum>
                         <int>1</int>
                       </Enum>
+                      <ZnakMest>1</ZnakMest>
+                      <ZnakMestPosDot>0</ZnakMestPosDot>
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -577,12 +630,12 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
-                      <ZnakMest>1</ZnakMest>
-                      <ZnakMestPosDot>0</ZnakMestPosDot>
                       <Enum>
                         <int>1</int>
                         <int>0</int>
                       </Enum>
+                      <ZnakMest>1</ZnakMest>
+                      <ZnakMestPosDot>0</ZnakMestPosDot>
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -592,13 +645,13 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
-                      <ZnakMest>1</ZnakMest>
-                      <ZnakMestPosDot>0</ZnakMestPosDot>
                       <Enum>
                         <int>1</int>
                         <int>2</int>
                         <int>3</int>
                       </Enum>
+                      <ZnakMest>1</ZnakMest>
+                      <ZnakMestPosDot>0</ZnakMestPosDot>
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -626,11 +679,11 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
-                          <ZnakMest>1</ZnakMest>
-                          <ZnakMestPosDot>0</ZnakMestPosDot>
                           <Enum>
                             <int>1</int>
                           </Enum>
+                          <ZnakMest>1</ZnakMest>
+                          <ZnakMestPosDot>0</ZnakMestPosDot>
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -640,13 +693,13 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
-                          <ZnakMest>1</ZnakMest>
-                          <ZnakMestPosDot>0</ZnakMestPosDot>
                           <Enum>
                             <int>1</int>
                             <int>2</int>
                             <int>3</int>
                           </Enum>
+                          <ZnakMest>1</ZnakMest>
+                          <ZnakMestPosDot>0</ZnakMestPosDot>
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -665,9 +718,9 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
+                          <Enum />
                           <ZnakMest>2</ZnakMest>
                           <ZnakMestPosDot>0</ZnakMestPosDot>
-                          <Enum />
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -677,8 +730,6 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
-                          <ZnakMest>2</ZnakMest>
-                          <ZnakMestPosDot>0</ZnakMestPosDot>
                           <Enum>
                             <int>1</int>
                             <int>2</int>
@@ -687,6 +738,8 @@
                             <int>5</int>
                             <int>6</int>
                           </Enum>
+                          <ZnakMest>2</ZnakMest>
+                          <ZnakMestPosDot>0</ZnakMestPosDot>
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -696,9 +749,9 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
+                          <Enum />
                           <ZnakMest>4</ZnakMest>
                           <ZnakMestPosDot>0</ZnakMestPosDot>
-                          <Enum />
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -708,9 +761,9 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
+                          <Enum />
                           <ZnakMest>1</ZnakMest>
                           <ZnakMestPosDot>0</ZnakMestPosDot>
-                          <Enum />
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -750,9 +803,9 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
+                          <Enum />
                           <ZnakMest>3</ZnakMest>
                           <ZnakMestPosDot>0</ZnakMestPosDot>
-                          <Enum />
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -762,9 +815,9 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
+                          <Enum />
                           <ZnakMest>3</ZnakMest>
                           <ZnakMestPosDot>0</ZnakMestPosDot>
-                          <Enum />
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -776,9 +829,9 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
+                      <Enum />
                       <ZnakMest>5</ZnakMest>
                       <ZnakMestPosDot>2</ZnakMestPosDot>
-                      <Enum />
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -788,9 +841,9 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
+                      <Enum />
                       <ZnakMest>15</ZnakMest>
                       <ZnakMestPosDot>2</ZnakMestPosDot>
-                      <Enum />
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -800,9 +853,9 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
+                      <Enum />
                       <ZnakMest>15</ZnakMest>
                       <ZnakMestPosDot>2</ZnakMestPosDot>
-                      <Enum />
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -868,12 +921,12 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
-                          <ZnakMest>1</ZnakMest>
-                          <ZnakMestPosDot>0</ZnakMestPosDot>
                           <Enum>
                             <int>0</int>
                             <int>1</int>
                           </Enum>
+                          <ZnakMest>1</ZnakMest>
+                          <ZnakMestPosDot>0</ZnakMestPosDot>
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -894,9 +947,9 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
+                          <Enum />
                           <ZnakMest>15</ZnakMest>
                           <ZnakMestPosDot>2</ZnakMestPosDot>
-                          <Enum />
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -906,9 +959,9 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
+                          <Enum />
                           <ZnakMest>15</ZnakMest>
                           <ZnakMestPosDot>2</ZnakMestPosDot>
-                          <Enum />
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -918,9 +971,9 @@
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
                         <format xsi:type="TypeSDigit">
+                          <Enum />
                           <ZnakMest>9</ZnakMest>
                           <ZnakMestPosDot>0</ZnakMestPosDot>
-                          <Enum />
                         </format>
                         <Elements />
                       </SchemaElement>
@@ -967,9 +1020,9 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>2</ZnakMest>
                   <ZnakMestPosDot>0</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
               </SchemaElement>
@@ -979,9 +1032,9 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>15</ZnakMest>
                   <ZnakMestPosDot>2</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
               </SchemaElement>
@@ -991,9 +1044,9 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>1</ZnakMest>
                   <ZnakMestPosDot>0</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
               </SchemaElement>
@@ -1003,9 +1056,9 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>15</ZnakMest>
                   <ZnakMestPosDot>2</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
               </SchemaElement>
@@ -1033,9 +1086,9 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
+                      <Enum />
                       <ZnakMest>15</ZnakMest>
                       <ZnakMestPosDot>2</ZnakMestPosDot>
-                      <Enum />
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -1045,9 +1098,9 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
+                      <Enum />
                       <ZnakMest>2</ZnakMest>
                       <ZnakMestPosDot>0</ZnakMestPosDot>
-                      <Enum />
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -1068,9 +1121,9 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
+                      <Enum />
                       <ZnakMest>3</ZnakMest>
                       <ZnakMestPosDot>0</ZnakMestPosDot>
-                      <Enum />
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -1121,9 +1174,9 @@
                     <Unique>false</Unique>
                     <UniqueGlobal>false</UniqueGlobal>
                     <format xsi:type="TypeSDigit">
+                      <Enum />
                       <ZnakMest>1</ZnakMest>
                       <ZnakMestPosDot>0</ZnakMestPosDot>
-                      <Enum />
                     </format>
                     <Elements />
                   </SchemaElement>
@@ -1135,9 +1188,9 @@
                 <Unique>false</Unique>
                 <UniqueGlobal>false</UniqueGlobal>
                 <format xsi:type="TypeSDigit">
+                  <Enum />
                   <ZnakMest>15</ZnakMest>
                   <ZnakMestPosDot>2</ZnakMestPosDot>
-                  <Enum />
                 </format>
                 <Elements />
               </SchemaElement>

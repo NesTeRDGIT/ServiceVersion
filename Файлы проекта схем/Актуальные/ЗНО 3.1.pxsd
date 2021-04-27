@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<ArrayOfSchemaElement xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ArrayOfSchemaElement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
   <SchemaElement>
     <name>ZL_LIST</name>
     <Type>O</Type>
@@ -212,6 +212,48 @@
               <Enum />
             </format>
             <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>REF</name>
+            <Type>Y</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>FIRST_CODE</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>8</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>FIRST_YEAR</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>4</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>FIRST_MONTH</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>2</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+            </Elements>
           </SchemaElement>
         </Elements>
       </SchemaElement>
@@ -430,6 +472,17 @@
                   <Enum />
                 </format>
                 <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>FIRST_IDCASE</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>11</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
               </SchemaElement>
               <SchemaElement>
                 <name>USL_OK</name>

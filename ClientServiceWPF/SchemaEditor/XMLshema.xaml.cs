@@ -1,98 +1,235 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Documents;
+using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
-using Microsoft.Win32;
+using System.Xml;
+using System.Xml.Serialization;
+using DocumentFormat.OpenXml;
+using DocumentFormat.OpenXml.Presentation;
 using ServiceLoaderMedpomData.Annotations;
+using Clipboard = System.Windows.Clipboard;
+using MessageBox = System.Windows.MessageBox;
+using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
+using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
 
 namespace ClientServiceWPF.SchemaEditor
 {
     /// <summary>
     /// Логика взаимодействия для XMLshema.xaml
     /// </summary>
-    public partial class XMLshema : Window, INotifyPropertyChanged
+    public partial class XMLshema : Window
     {
-        private XMLSchemaFile XMLshemaMy = new XMLSchemaFile();
-        private CollectionViewSource CVSSchema;
-        public List<SchemaElement> CurrentElements => XMLshemaMy.SchemaElements;
+        private XMLSchemaVM VM;
         public XMLshema()
         {
             InitializeComponent();
-            CVSSchema = (CollectionViewSource) FindResource("CVSSchema");
+            VM = (XMLSchemaVM)FindResource("VM");
+
+        }
+        private void MenuItemClose_Click(object sender, RoutedEventArgs e)
+        {
+            Close();
+        }
+        private void ListBoxEnumDigit_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            VM.SelectedDigitEnum = ListBoxEnumDigit.SelectedItems.Cast<int>().ToList();
         }
 
-        public string CurrentPath
+
+        private void ListBoxStringEnum_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            get { return TextBoxPath.Text;}
-            set { TextBoxPath.Text = value; }
+            VM.SelectedStringEnum = ListBoxStringEnum.SelectedItems.Cast<string>().ToList();
+        }
+    }
+
+
+    public class XMLSchemaVM:INotifyPropertyChanged
+    {
+        private XMLSchemaFile XMLSchema { get; set; }= new XMLSchemaFile();
+
+        string _StatusOperation;
+
+        public string StatusOperation
+        {
+            get { return _StatusOperation; }
+            set { _StatusOperation = value; OnPropertyChanged();}
         }
 
-
-
-        private void MenuItemNew_OnClick(object sender, RoutedEventArgs e)
+        private void SetTimeStatusOperation(string value,int MS)
         {
-            TextBoxPath.Text = "";
-        }
-
-        private OpenFileDialog ofd = new OpenFileDialog() {Filter = "Файлы проекта схемы(*.pxsd)|*.pxsd"};
-        private SaveFileDialog sfd = new SaveFileDialog() {Filter = "Файлы проекта схемы(*.pxsd)|*.pxsd"};
-        private SaveFileDialog sfd_XSD = new SaveFileDialog() { Filter = "Файлы схемы(*.xsd)|*.xsd" };
-        private void MenuItemOpen_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (ofd.ShowDialog() == true)
+            StatusOperation = value;
+            Task.Run(() =>
             {
-                XMLshemaMy.LoadFromFile(ofd.FileName);
-                CurrentPath = ofd.FileName;
-                OnPropertyChanged("CurrentElements");
-                //RefreshTreeView();
+                var t = Task.Delay(MS);
+                t.Wait();
+                _StatusOperation = "";
+                OnPropertyChanged(nameof(StatusOperation));
+            });
+        }
+
+        public class SPRRow
+        {
+            public string Name { get; set; }
+            public object Value { get; set; }
+        }
+      
+
+        public List<SPRRow> TypeElementSPR 
+        {
+            get
+            {
+                var SPR = new List<SPRRow>();
+                foreach (var te in (TypeElement[])Enum.GetValues(typeof(TypeElement)))
+                {
+                    SPR.Add(new SPRRow() { Name = te.toRusName(), Value = te });
+                }
+                return SPR;
             }
         }
 
-        private void MenuItemSave_OnClick(object sender, RoutedEventArgs e)
+        public List<SPRRow> formatEnumSPR
         {
-            if (TextBoxPath.Text == "")
+            get
             {
-                if (sfd.ShowDialog() == true)
+                var SPR = new List<SPRRow>();
+                foreach (var te in (formatEnum[])Enum.GetValues(typeof(formatEnum)))
                 {
-
-                    XMLshemaMy.SaveToFile(sfd.FileName);
-                    CurrentPath = sfd.FileName;
+                    SPR.Add(new SPRRow() { Name = te.toRusName(), Value = te });
                 }
+                return SPR;
+            }
+        }
+
+        public ObservableCollection<SchemaElementVM> Elements { get; private set ; } = new ObservableCollection<SchemaElementVM>();
+
+        private void RefreshElements()
+        {
+            Elements.Clear();
+            foreach (var item in XMLSchema.SchemaElements.Select(x => CreateSchemaElementVM(x, SchemaElementVM_Propertyselect, IsSelectedList, IsExpandedList)))
+            {
+                Elements.Add(item);
+            }
+        }
+
+
+        private SchemaElementVM CreateSchemaElementVM(SchemaElement sc, PropertyChangedEventHandler callback, List<SchemaElement> IsSelected, List<SchemaElement> IsExpanded)
+        {
+            var item = new SchemaElementVM(sc);
+           
+            if (IsSelected.Contains(sc))
+                item.IsSelected = true;
+            if (IsExpanded.Contains(sc))
+                item.IsExpanded = true;
+            if (sc.Elements != null)
+            {
+                item.Elements = new ObservableCollection<SchemaElementVM>( sc.Elements.Select(x=> CreateSchemaElementVM(x, callback, IsSelected, IsExpanded)));
+            }
+            item.PropertyChanged += callback;
+            return item;
+        }
+
+        List<SchemaElement> IsExpandedList = new List<SchemaElement>();
+        List<SchemaElement> IsSelectedList = new List<SchemaElement>();
+
+        private void SchemaElementVM_Propertyselect(object sender, PropertyChangedEventArgs e)
+        {
+            var item = sender as SchemaElementVM;
+            if (e.PropertyName == nameof(SchemaElementVM.IsSelected) && item!=null)
+            {
+                if (item.IsSelected)
+                    CurrentElement = item;
+
+                if (item.IsSelected)
+                {
+                    if (!IsSelectedList.Contains(item.baseElement))
+                        IsSelectedList.Add(item.baseElement);
+                }
+                else
+                {
+                    if (IsSelectedList.Contains(item.baseElement))
+                        IsSelectedList.Remove(item.baseElement);
+                }
+
+            }
+            if (e.PropertyName == nameof(SchemaElementVM.IsExpanded) && item != null)
+            {
+                if (item.IsExpanded)
+                {
+                    if(!IsExpandedList.Contains(item.baseElement))
+                        IsExpandedList.Add(item.baseElement);
+                }
+                else
+                {
+                    if (IsExpandedList.Contains(item.baseElement))
+                        IsExpandedList.Remove(item.baseElement);
+                }
+            }
+        }
+
+
+        private string _CurrentPath = "";
+        public string CurrentPath
+        {
+            get { return _CurrentPath; }
+            set { _CurrentPath = value;OnPropertyChanged(); }
+        }
+
+        public ICommand Save => new Command(o =>
+        {
+            if (string.IsNullOrEmpty(CurrentPath))
+            {
+                SaveAs.Execute(null);
             }
             else
             {
-                XMLshemaMy.SaveToFile(TextBoxPath.Text);
+                XMLSchema.SaveToFile(CurrentPath);
+                SetTimeStatusOperation("Сохранено", 5000);
             }
-        }
-
-        private void MenuItemSaveAs_Click(object sender, RoutedEventArgs e)
-        {
+        });
+        public ICommand SaveAs => new Command(o =>
+        { 
+            var sfd = new SaveFileDialog() { Filter = "Файлы проекта схемы(*.pxsd)|*.pxsd" };
             if (sfd.ShowDialog() == true)
             {
-                XMLshemaMy.SaveToFile(sfd.FileName);
+                XMLSchema.SaveToFile(sfd.FileName);
                 CurrentPath = sfd.FileName;
+                SetTimeStatusOperation("Сохранено", 5000);
             }
-        }
-
-        private void MenuItemCompile_Click(object sender, RoutedEventArgs e)
+        });
+        public ICommand Open => new Command(o =>
+        {
+            var ofd = new OpenFileDialog() { Filter = "Файлы проекта схемы(*.pxsd)|*.pxsd" };
+            if (ofd.ShowDialog() == true)
+            {
+                XMLSchema.LoadFromFile(ofd.FileName);
+                CurrentPath = ofd.FileName;
+                RefreshElements();
+                OnPropertyChanged(nameof(Elements));
+            }
+        });
+        public ICommand Compile => new Command(o =>
         {
             try
             {
-                sfd_XSD.FileName = System.IO.Path.GetFileNameWithoutExtension(CurrentPath);
-                if (sfd_XSD.ShowDialog() == true)
-                    if (XMLshemaMy.Compile(sfd_XSD.FileName))
+                var sfd = new SaveFileDialog {Filter = "Файлы схемы(*.xsd)|*.xsd", FileName = !string.IsNullOrEmpty(CurrentPath) ? System.IO.Path.GetFileNameWithoutExtension(CurrentPath) : ""};
+                if (sfd.ShowDialog() == true)
+                    if (XMLSchema.Compile(sfd.FileName))
                     {
                         MessageBox.Show(@"Создание схемы успешно!");
                     }
@@ -101,352 +238,231 @@ namespace ClientServiceWPF.SchemaEditor
             {
                 MessageBox.Show(ex.Message);
             }
+        });
+        public ICommand New => new Command(o =>
+        {
+            CurrentPath = "";
+            XMLSchema.Clear();
+            RefreshElements();
+            OnPropertyChanged(nameof(Elements));
+        });
+        public ICommand AddDigitEnumCommand => new Command(o =>
+        {
+            try
+            {
+                CurrentElement.AddEnumDigit(Convert.ToInt32(o));
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
          
-        }
-
-        private void MenuItemClose_Click(object sender, RoutedEventArgs e)
-        {
-            Close();
-        }
-
-        private void buttonNewNode_Click(object sender, RoutedEventArgs e)
+        });
+        public ICommand AddStringEnumCommand => new Command(o =>
         {
             try
             {
-                if (string.IsNullOrEmpty(TextBoxName.Text))
-                {
-                    MessageBox.Show("Имя не может быть пустым");
-                    return;
-                }
-                var current = currentElement;
-                XMLshemaMy.InsertAfter(current, GetElement());
+                CurrentElement.AddEnumString(o.ToString());
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
+            }
+
+        });
+        public IList<int> SelectedDigitEnum { get; set; }
+        public ICommand RemoveDigitEnumCommand => new Command(o =>
+        {
+            try
+            {
+                CurrentElement.RemoveEnumDigit(SelectedDigitEnum);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+        });
+        public IList<string> SelectedStringEnum { get; set; }
+        public ICommand RemoveStringEnumCommand => new Command(o =>
+        {
+            try
+            {
+                CurrentElement.RemoveEnumString(SelectedStringEnum);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+        });
+        public ICommand CommitCommand => new Command(o =>
+        {
+            try
+            {
+                CurrentElement.Commit();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand MoveUpCommand => new Command(o =>
+        {
+            try
+            {
+                var curr = CurrentElement;
+                XMLSchema.ElementUp(curr.baseElement);
+                RefreshElements();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand MoveDownCommand => new Command(o =>
+        {
+            try
+            {
+                XMLSchema.ElementDown(CurrentElement.baseElement);
+                RefreshElements();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand RefreshCommand => new Command(o =>
+        {
+            try
+            {
+                RefreshElements();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand DeleteCommand => new Command(o =>
+        {
+            try
+            {
+                XMLSchema.RemoveAt(CurrentElement.baseElement);
+                RefreshElements();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand ClearCommand => new Command(o =>
+        {
+            try
+            {
+                XMLSchema.Clear();
+                Elements.Clear();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand AddNodeCommand => new Command(o =>
+        {
+            try
+            {
+                var curr = CurrentElement;
+                var newElement = new SchemaElement() {name = "Новый узел"};
+                if(curr!=null)
+                    newElement.CopyFrom(curr.baseElement);
+                XMLSchema.InsertAfter(curr?.baseElement, newElement);
+                RefreshElements();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand AddChildCommand => new Command(o =>
+        {
+            try
+            {
+                var curr = CurrentElement;
+                var newElement = new SchemaElement() { name = "Новый узел" };
+                if (curr != null && curr.format is TypeSComplex)
+                    curr.baseElement.Elements.Add(newElement);
+                RefreshElements();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand CopyCommand => new Command(o =>
+        {
+            try
+            {
+                var current = CurrentElement;
+                if (current != null)
+                    Clipboard.SetText(ToString(current.baseElement));
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message);
+            }
+        });
+        public ICommand PasteCommand => new Command(o =>
+        {
+            try
+            {
+                var current = CurrentElement;
+                var xml = Clipboard.GetText();
+                var newItem = FromString(xml);
+                if (current != null && newItem != null)
+                    XMLSchema.InsertAfter(current.baseElement, newItem);
+            }
+            catch (Exception exception)
+            {
+                MessageBox.Show(exception.Message);
             }
             finally
             {
-                UpdateTrieView();
+                RefreshElements();
             }
-        }
-
-        private void buttonNewChild_Click(object sender, RoutedEventArgs e)
+        });
+        string ToString(SchemaElement sc)
         {
-            try
+            using (var ms = new MemoryStream())
             {
-                if (string.IsNullOrEmpty(TextBoxName.Text))
+                var ser = new XmlSerializer(typeof(SchemaElement));
+                ser.Serialize(ms, sc);
+                ms.Seek(0, SeekOrigin.Begin);
+                using (var sr = new StreamReader(ms))
                 {
-                    MessageBox.Show("Имя не может быть пустым");
-                    return;
-                }
-
-                if (currentElement.Elements == null)
-                    return;
-
-                var current = currentElement;
-
-                var item = GetElement();
-                current.Elements.Add(item);
-                current.IsExpanded = true;
-                item.IsSelected = true;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            finally
-            {
-                UpdateTrieView();
-            }
-        }
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
-        SchemaElement currentElement => TreeViewSchema.SelectedItem as SchemaElement;
-        private void TreeView_OnSelectedItemChanged(object sender, RoutedPropertyChangedEventArgs<object> e)
-        {
-            SetElement(currentElement);
-        }
-        public enum TypeEnum
-        {
-            NONE,
-            NUMBER,
-            STRING,
-            COMPLEX,
-            DATE,
-            DATETIME
-        }
-
-        private void SetElement(SchemaElement item)
-        {
-            if (item == null)
-            {
-                item = new SchemaElement();
-                item.format = new TypeSComplex();
-            }
-                
-            TextBoxName.Text = item.name;
-            switch (item.Type)
-            {
-                case TypeElement.O: ComboBoxType.SelectedIndex = 0; break;
-                case TypeElement.OM: ComboBoxType.SelectedIndex = 1; break;
-                case TypeElement.N: ComboBoxType.SelectedIndex = 2; break;
-                case TypeElement.NM: ComboBoxType.SelectedIndex = 3; break;
-                case TypeElement.Y: ComboBoxType.SelectedIndex = 4; break;
-                case TypeElement.YM: ComboBoxType.SelectedIndex = 5; break;
-                default:
-                    throw new Exception($"Неизвестный тип элемента: {item.Type}");
-            }
-
-            TextBoxFormat.Text = item.format.toSTRRUS();
-            var type = TypeEnum.NONE;
-            var formatString = item.format as TypeSString;
-            var formatNumber = item.format as TypeSDigit;
-            var formatDate = item.format as TypeSDate;
-            var formatComplex = item.format as TypeSComplex;
-            var formatDateTime = item.format as TypeSTime;
-
-
-            TabControlType.SelectedIndex = -1;
-            var listEn = new List<object>();
-            
-            if (formatString != null)
-            {
-                type = TypeEnum.STRING;
-                listEn = formatString.Enum.Select(x => (object) x).ToList();
-                TabItemString.IsSelected = true;
-            }
-
-            if (formatNumber != null)
-            {
-                type = TypeEnum.NUMBER;
-                listEn = formatNumber.Enum.Select(x => (object)x).ToList();
-                TabItemNumber.IsSelected = true;
-            }
-            if (formatDate != null) type = TypeEnum.DATE;
-            buttonNewChild.IsEnabled = false;
-            if (formatComplex != null)
-            {
-                type = TypeEnum.COMPLEX;
-                buttonNewChild.IsEnabled = true;
-            }
-            if (formatDateTime != null) type = TypeEnum.DATETIME;
-
-            switch (type)
-            {
-                case TypeEnum.STRING: ComboBoxDataType.SelectedIndex = 0; break;
-                case TypeEnum.NUMBER: ComboBoxDataType.SelectedIndex = 1; break;
-                case TypeEnum.DATE: ComboBoxDataType.SelectedIndex = 2; break;
-                case TypeEnum.COMPLEX: ComboBoxDataType.SelectedIndex = 3; break;
-                case TypeEnum.DATETIME: ComboBoxDataType.SelectedIndex = 4; break;
-                default:
-                    throw new Exception($"Неизвестный тип данных элемента: {item.format}");
-            }
-
-
-            SetStringParam(formatString);
-            SetNumberParam(formatNumber);
-          
-            CheckBoxIndex.IsChecked = item.Unique;
-            CheckBoxIndexGlobal.IsChecked = item.UniqueGlobal;
-            SetEnum(listEn);
-        }
-
-        private SchemaElement GetElement()
-        {
-            var item = new SchemaElement();
-            item.name = TextBoxName.Text;
-
-            switch (ComboBoxType.SelectedIndex)
-            {
-                case 0: item.Type =  TypeElement.O; break;
-                case 1: item.Type = TypeElement.OM; break;
-                case 2: item.Type = TypeElement.N; break;
-                case 3: item.Type = TypeElement.NM; break;
-                case 4: item.Type = TypeElement.Y; break;
-                case 5: item.Type = TypeElement.YM; break;
-                default:
-                    throw new Exception($"Неизвестный тип элемента: {item.Type}");
-            }
-            var type = TypeEnum.NONE;
-
-            switch (ComboBoxDataType.SelectedIndex)
-            {
-                case 0: item.format = new TypeSString(); type = TypeEnum.STRING;  break;
-                case 1: item.format = new TypeSDigit(); type = TypeEnum.NUMBER; break;
-                case 2: item.format = new TypeSDate(); type = TypeEnum.DATE;  break;
-                case 3: item.format = new TypeSComplex(); type = TypeEnum.COMPLEX; break;
-                case 4: item.format = new TypeSTime(); type = TypeEnum.DATETIME;  break;
-                default:
-                    throw new Exception($"Неизвестный тип данных элемента: {item.format}");
-            }
-
-            switch (type)
-            {
-                case TypeEnum.STRING: GetStringParam(item.format as TypeSString); break;
-                case TypeEnum.NUMBER: GetNumberParam(item.format as TypeSDigit); break;
-            }
-           item.Unique = CheckBoxIndex.IsChecked==true;
-           item.UniqueGlobal = CheckBoxIndexGlobal.IsChecked == true;
-
-           return item;
-        }
-
-        private void SetStringParam(TypeSString item)
-        {
-            TextBoxStringCountAll.Text = item!=null? item.ZnakMest.ToString() :"";
-           
-        }
-        private void SetNumberParam(TypeSDigit item)
-        {
-            TextBoxNumberCountAll.Text = item != null ? item.ZnakMest.ToString() : "";
-            TextBoxNumberCountPoint.Text = item != null ? item.ZnakMestPosDot.ToString() : "";
-          
-        }
-
-        private void GetStringParam(TypeSString item)
-        {
-            item.ZnakMest = Convert.ToInt32(TextBoxStringCountAll.Text);
-            item.Enum = ListBoxEnums.Items.Cast<string>().ToList();
-
-        }
-        private void GetNumberParam(TypeSDigit item)
-        {
-            item.ZnakMest = Convert.ToInt32(TextBoxNumberCountAll.Text);
-            item.ZnakMestPosDot = Convert.ToInt32(TextBoxNumberCountPoint.Text);
-            item.Enum = ListBoxEnums.Items.Cast<string>().Select(x=>Convert.ToInt32(x)).ToList();
-        }
-
-
-        private void SetEnum(List<object> List)
-        {
-            ListBoxEnums.Items.Clear();
-            if (List != null)
-                foreach (var en in List)
-                {
-                    ListBoxEnums.Items.Add(en);
-                }
-        }
-
-        private void buttonUpdate_Click(object sender, RoutedEventArgs e)
-        {
-            UpdateTrieView();
-        }
-
-        private void UpdateTrieView()
-        {
-            CVSSchema.View.Refresh();
-        }
-
-        private void buttonDelete_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var curr = currentElement;
-                if (curr != null)
-                {
-                    XMLshemaMy.RemoveAt(curr);
+                    return sr.ReadToEnd();
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            finally
-            {
-                UpdateTrieView();
-            }
         }
-
-        private void ButtonDeleteAll_OnClick(object sender, RoutedEventArgs e)
+        SchemaElement FromString(string str)
         {
-            try
+            using (var sr = new StringReader(str))
             {
-                if (MessageBox.Show("Вы уверены что хотите очистить список?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                using (var xml = XmlReader.Create(sr))
                 {
-                    XMLshemaMy.Clear();
+                    var ser = new XmlSerializer(typeof(SchemaElement));
+                    return (SchemaElement)ser.Deserialize(xml);
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            finally
-            {
-                UpdateTrieView();
-            }
+
         }
 
-        private void buttonAccept_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (string.IsNullOrEmpty(TextBoxName.Text))
-                {
-                    MessageBox.Show("Имя не может быть пустым");
-                    return;
-                }
 
-                var current = currentElement;
-                current.CopyFrom(GetElement());
 
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            finally
-            {
-                UpdateTrieView();
-            }
-        }
 
-        private void buttonAddEnum_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var value = TextBoxEnum.Text.Trim();
-                if (string.IsNullOrEmpty(value))
-                {
-                    MessageBox.Show("Не возможно добавить пустое перечисляемое значение");
-                    return;
-                }
-                if(!ListBoxEnums.Items.Contains(value))
-                    ListBoxEnums.Items.Add(value);
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void MenuItemEnumDelete_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var list = ListBoxEnums.SelectedItems.Cast<object>().ToList();
-                foreach (var item in list)
-                {
-                    if (ListBoxEnums.Items.Contains(item))
-                        ListBoxEnums.Items.Remove(item);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-        public class FindPredicat
+        class FindPredicat<T>
         {
             public string FindText { get; set; }
-            public List<List<SchemaElement>> FindNODE { get; set; } = new List<List<SchemaElement>>();
+            public List<T> FindNODE { get; set; } = new List<T>();
             private int CurrItem { get; set; }
 
             public void Clear()
@@ -456,40 +472,40 @@ namespace ClientServiceWPF.SchemaEditor
                 CurrItem = -1;
             }
 
-            public List<SchemaElement> GetNEXT()
+            public T GetNEXT()
             {
                 CurrItem++;
                 if (CurrItem < FindNODE.Count) return FindNODE[CurrItem];
-                return null;
+                return default(T);
             }
 
         }
 
-        FindPredicat FindP = new FindPredicat();
+        FindPredicat<SchemaElementVM> FindP = new FindPredicat<SchemaElementVM>();
 
-        private void buttonFind_Click(object sender, RoutedEventArgs e)
+        public ICommand FindNodeCommand => new Command(o =>
         {
             try
             {
-                var findstr = textBoxFind.Text.ToUpper();
+                var findstr = o.ToString();
                 if (!string.IsNullOrEmpty(findstr))
                 {
-                 
+
                     if (FindP.FindText != findstr)
                     {
                         FindP.Clear();
                         FindP.FindText = findstr;
-                        var items = XMLshemaMy.FindName(findstr);
+                        var items = FindName(findstr, Elements);
                         foreach (var item in items)
                         {
-                            FindP.FindNODE.Add( XMLshemaMy.FindPath(item));
+                            FindP.FindNODE.Add(item);
                         }
                     }
 
                     var nod = FindP.GetNEXT();
                     if (nod != null)
                     {
-                        SelectedNodes(nod);
+                        ShowElement(nod);
                     }
                     else
                     {
@@ -503,67 +519,347 @@ namespace ClientServiceWPF.SchemaEditor
                 MessageBox.Show(ex.Message);
                 FindP.Clear();
             }
+        });
+
+        private SchemaElementVM FindParent(SchemaElementVM item, IEnumerable<SchemaElementVM> source)
+        {
+            foreach (var s_item in source)
+            {
+                if (s_item.Elements.Contains(item))
+                    return s_item;
+                var t = FindParent(item, s_item.Elements);
+                if (t != null)
+                    return t;
+            }
+            return null;
+
         }
 
-        private void SelectedNodes(List<SchemaElement> items)
-        {
-            for (var i = 0; i < items.Count-1; i++)
-            {
-                items[i].IsExpanded = true;
-            }
-            items.Last().IsSelected = true;
-          
-        }
 
-        private void ButtonUp_OnClick(object sender, RoutedEventArgs e)
+        private void ShowElement(SchemaElementVM item)
         {
-            try
+            var parent = item;
+            do
             {
-                var current = currentElement;
-                XMLshemaMy.ElementUp(current);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            finally
-            {
-                UpdateTrieView();
-            }
-        }
-
-        private void ButtonDown_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var current = currentElement;
-                XMLshemaMy.ElementDown(current);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            finally
-            {
-                UpdateTrieView();
-            }
-        }
-
-        private void ComboBoxDataType_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (TabItemNumber != null && TabItemString != null)
-            {
-                TabItemNumber.IsSelected = false;
-                TabItemString.IsSelected = false;
-                switch (ComboBoxDataType.SelectedIndex)
+                parent = FindParent(parent, Elements);
+                if (parent != null)
                 {
-                    case 0: TabItemString.IsSelected = true; break;
-                    case 1: TabItemNumber.IsSelected = true;  break;
-                    default: break;
-
+                    parent.IsExpanded = true;
                 }
             }
-         
+            while (parent != null);
+            item.IsSelected = true;
+        }
+
+        private List<SchemaElementVM> FindName(string Name, IEnumerable<SchemaElementVM> items)
+        {
+            var result = new List<SchemaElementVM>();
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    if (item.name?.ToUpper() == Name)
+                    {
+                        result.Add(item);
+                    }
+                    result.AddRange(FindName(Name, item.Elements));
+                }
+            }
+            return result;
+        }
+
+       
+
+
+
+
+          
+
+        SchemaElementVM _CurrentElement;
+
+        public SchemaElementVM CurrentElement
+        {
+            get { return _CurrentElement;}
+            set { _CurrentElement?.Rollback(); _CurrentElement = value; OnPropertyChanged(); }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public enum formatEnum
+    {
+        TypeSString,
+        TypeSComplex,
+        TypeSDigit,
+        TypeSDate,
+        TypeSTime
+    }
+
+    public static class ExtSchema
+    {
+        public static string toRusName(this formatEnum fe)
+        {
+            switch (fe)
+            {
+                case formatEnum.TypeSString:
+                    return "Строка";
+                case formatEnum.TypeSComplex:
+                    return "Комплексный";
+                case formatEnum.TypeSDigit:
+                    return "Число";
+                case formatEnum.TypeSDate:
+                    return "Дата(ГГГГ-ММ-ДД)";
+                case formatEnum.TypeSTime:
+                    return "Время(HH: MM:SS)";
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(fe), fe, null);
+            }
+        }
+    }
+
+    public class SchemaElementVM:INotifyPropertyChanged
+    {
+        public SchemaElement baseElement { get; set; }
+        public SchemaElementVM(SchemaElement item)
+        {
+            baseElement = item;
+            Rollback();
+            RefreshEnums();
+            
+        }
+
+        private void RefreshEnums()
+        {
+            EnumDigit.Clear();
+            if (TypeSDigit != null)
+                foreach (var e in TypeSDigit.Enum)
+                {
+                    EnumDigit.Add(e);
+                }
+
+            EnumString.Clear();
+            if (TypeSString != null)
+                foreach (var e in TypeSString.Enum)
+                {
+                    EnumString.Add(e);
+                }
+        }
+
+        public TypeElement Type => baseElement.Type;
+        public string name => baseElement.name;
+        public TypeS format => baseElement.format;
+        public bool Unique => baseElement.Unique;
+        public bool UniqueGlobal => baseElement.UniqueGlobal;
+        public string formatStr => baseElement.format.toSTRRUS();
+
+
+        public bool HasChild => baseElement.format is TypeSComplex;
+
+
+        public TypeSString TypeSString => format as TypeSString;
+        public TypeSDigit TypeSDigit => format as TypeSDigit;
+
+
+        public ObservableCollection<int> EnumDigit { get; set; } = new ObservableCollection<int>();
+
+        public ObservableCollection<string> EnumString{ get; set; } = new ObservableCollection<string>();
+
+
+        public void AddEnumDigit(int value)
+        {
+            if (TypeSDigit != null)
+            {
+                EnumDigit.Add(value);
+            }
+        }
+
+        public void AddEnumString(string value)
+        {
+            if (TypeSString != null)
+            {
+                EnumString.Add(value);
+            }
+        }
+
+
+        public void RemoveEnumDigit(IEnumerable<int> value)
+        {
+            if (TypeSDigit != null)
+            {
+                foreach (var val in value)
+                {
+                    EnumDigit.Remove(val);
+                }
+            }
+        }
+
+        public void RemoveEnumString(IEnumerable<string> value)
+        {
+            if (TypeSString != null)
+            {
+                foreach (var val in value)
+                {
+                    EnumString.Remove(val);
+                }
+            }
+        }
+
+
+        private bool _IsExpanded;
+        public bool IsExpanded
+        {
+            get { return _IsExpanded; }
+            set { _IsExpanded = value; OnPropertyChanged(); }
+        }
+
+        private bool _IsSelected;
+        public bool IsSelected
+        {
+            get { return _IsSelected;}
+            set { _IsSelected = value;OnPropertyChanged(); }
+        }
+        public ObservableCollection<SchemaElementVM> Elements { get; set; } = new ObservableCollection<SchemaElementVM>();
+        private TypeElement _TypeEdit;
+        public  TypeElement TypeEdit
+        {
+            get { return _TypeEdit; }
+            set { _TypeEdit = value;OnPropertyChanged(); }
+        }
+        private string _nameEdit;
+        public  string nameEdit
+        {
+            get { return _nameEdit; }
+            set { _nameEdit = value; OnPropertyChanged(); }
+        }
+        private TypeS _formatEdit;
+        public  TypeS formatEdit
+        {
+            get { return _formatEdit; }
+            set { _formatEdit = value; OnPropertyChanged();OnPropertyChanged("format_type"); }
+        }
+        public formatEnum format_type
+        {
+            get
+            {
+                if (formatEdit is TypeSString)
+                    return formatEnum.TypeSString;
+                if (formatEdit is TypeSComplex)
+                    return formatEnum.TypeSComplex;
+                if (formatEdit is TypeSDigit)
+                    return formatEnum.TypeSDigit;
+                if (formatEdit is TypeSDate)
+                    return formatEnum.TypeSDate;
+                if (formatEdit is TypeSTime)
+                    return formatEnum.TypeSTime;
+                throw new Exception("Error format_type");
+            }
+            set
+            {
+                switch (value)
+                {
+                    case formatEnum.TypeSString:
+                        formatEdit = new TypeSString();
+                        break;
+                    case formatEnum.TypeSComplex:
+                        formatEdit = new TypeSString();
+                        break;
+                    case formatEnum.TypeSDigit:
+                        formatEdit = new TypeSDigit();
+                        break;
+                    case formatEnum.TypeSDate:
+                        formatEdit = new TypeSDate();
+                        break;
+                    case formatEnum.TypeSTime:
+                        formatEdit = new TypeSTime();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(value), value, null);
+                }
+            }
+        }
+        private bool _UniqueEdit;
+        public  bool UniqueEdit
+        {
+            get { return _UniqueEdit; }
+            set { _UniqueEdit = value; OnPropertyChanged(); }
+        }
+        private bool _UniqueGlobalEdit;
+        public  bool UniqueGlobalEdit
+        {
+            get { return _UniqueGlobalEdit; }
+            set { _UniqueGlobalEdit = value; OnPropertyChanged(); }
+        }
+
+        public void Commit()
+        {
+            baseElement.Type = TypeEdit;
+            baseElement.name = nameEdit;
+            baseElement.format = formatEdit;
+            baseElement.Unique = UniqueEdit;
+            baseElement.UniqueGlobal = UniqueGlobalEdit;
+            if (TypeSString != null)
+            {
+                TypeSString.Enum.Clear();
+                TypeSString.Enum.AddRange(EnumString);
+            }
+            if (TypeSDigit != null)
+            {
+                TypeSDigit.Enum.Clear();
+                TypeSDigit.Enum.AddRange(EnumDigit);
+            }
+
+            OnPropertyChanged(nameof(Type));
+            OnPropertyChanged(nameof(name));
+            OnPropertyChanged(nameof(format));
+            OnPropertyChanged(nameof(Unique));
+            OnPropertyChanged(nameof(UniqueGlobal));
+
+
+
+        }
+        public void Rollback()
+        {
+            TypeEdit = baseElement.Type;
+            nameEdit = baseElement.name;
+            formatEdit = baseElement.format;
+            UniqueEdit = baseElement.Unique;
+            UniqueGlobalEdit = baseElement.UniqueGlobal;
+        }
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+    public class Command : ICommand
+    {
+        private Action<object> execute;
+        private Func<object, bool> canExecute;
+        public event EventHandler CanExecuteChanged;
+
+        public Command(Action<object> execute, Func<object, bool> canExecute = null)
+        {
+            this.execute = execute;
+            this.canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            return this.canExecute == null || this.canExecute(parameter);
+        }
+
+        public void Execute(object parameter)
+        {
+            this.execute(parameter);
         }
     }
 

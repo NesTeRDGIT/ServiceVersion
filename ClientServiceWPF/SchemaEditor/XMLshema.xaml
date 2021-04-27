@@ -4,31 +4,43 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientServiceWPF.SchemaEditor"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         mc:Ignorable="d"
         Name="this"
         Title="XMLshema" Height="674" Width="869.637" Style="{DynamicResource StyleWindow}">
     <Window.Resources>
+        <local:XMLSchemaVM x:Key="VM"></local:XMLSchemaVM>
         <local:ConvectorEnum x:Key="ConvectorEnum"/>
         <local:ConvectorTypeEnum x:Key="ConvectorTypeEnum"/>
-        <CollectionViewSource x:Key="CVSSchema" Source="{Binding CurrentElements, ElementName=this}"  d:DesignSource="{d:DesignInstance {x:Type local:SchemaElement}, CreateList=True}"/>
+        <DataTemplate x:Key="DataTemplateTextBlock">
+            <TextBlock Text="{Binding}"></TextBlock>
+        </DataTemplate>
     </Window.Resources>
+    <Window.DataContext>
+        <Binding Source="{StaticResource VM}"></Binding>
+    </Window.DataContext>
+   
+    <Window.InputBindings>
+        <KeyBinding Gesture="CTRL+S" Command="{Binding Save }" />
+        <KeyBinding Gesture="CTRL+G" Command="{Binding Compile}" />
+    </Window.InputBindings>
     <Grid>
         <Menu VerticalAlignment="Top">
             <MenuItem Header="Файл">
-                <MenuItem Header="Новый" Name="MenuItemNew" Click="MenuItemNew_OnClick"></MenuItem>
-                <MenuItem Header="Открыть..." Name="MenuItemOpen" Click="MenuItemOpen_OnClick"></MenuItem>
+                <MenuItem Header="Новый" Command="{Binding Open}"></MenuItem>
+                <MenuItem Header="Открыть..." Command="{Binding Open}"></MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="Сохранить" Name="MenuItemSave" Click="MenuItemSave_OnClick"></MenuItem>
-                <MenuItem Header="Сохранить как..." Name="MenuItemSaveAs" Click="MenuItemSaveAs_Click"></MenuItem>
-                <MenuItem Header="Компиляция" Name="MenuItemCompile" Click="MenuItemCompile_Click"></MenuItem>
+                <MenuItem Header="Сохранить"  Command="{Binding Save}" ToolTip="CTRL+S"></MenuItem>
+                <MenuItem Header="Сохранить как..."  Command="{Binding SaveAs}"></MenuItem>
+                <MenuItem Header="Компиляция"  Command="{Binding Compile}" ToolTip="CTRL+G"></MenuItem>
                 <Separator></Separator>
                 <MenuItem Header="Выход" Name="MenuItemClose" Click="MenuItemClose_Click"></MenuItem>
             </MenuItem>
         </Menu>
         <GroupBox Header="Схема" Margin="0,23,326,0">
             <Grid>
-                <TextBox Name="TextBoxPath" Height="20" VerticalAlignment="Top" Text="" IsReadOnly="True" Foreground="Gray" ></TextBox>
-                <TreeView Margin="0,20,30,29" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSSchema}}" SelectedItemChanged="TreeView_OnSelectedItemChanged" Name="TreeViewSchema">
+                <TextBox Name="TextBoxPath" Height="20" VerticalAlignment="Top" Text="{Binding CurrentPath, Mode=OneWay}" IsReadOnly="True" Foreground="Gray" ></TextBox>
+                <TreeView Margin="0,20,30,29" ItemsSource="{Binding Mode=OneWay, Path=Elements}"  Name="TreeViewSchema"   >
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Path=Elements}">
                             <StackPanel Orientation="Horizontal">
@@ -89,7 +101,7 @@
                                 </TextBlock>
 
                             </StackPanel>
-                           
+
                         </HierarchicalDataTemplate>
                     </TreeView.ItemTemplate>
                     <TreeView.ItemContainerStyle>
@@ -98,100 +110,115 @@
                             <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}"></Setter>
                         </Style>
                     </TreeView.ItemContainerStyle>
+                    <TreeView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Name="MenuItemCopy" Header="Копировать элемент" Command="{Binding CopyCommand}" ToolTip="CTRL+C"></MenuItem>
+                            <MenuItem Name="MenuItemPaste" Header="Вставить элемент" Command="{Binding PasteCommand}" ToolTip="CTRL+G"></MenuItem>
+                        </ContextMenu>
+                    </TreeView.ContextMenu>
+                    <TreeView.InputBindings>
+                        <KeyBinding Gesture="Ctrl+C" Command="{Binding CopyCommand}"></KeyBinding>
+                        <KeyBinding Gesture="Ctrl+V" Command="{Binding PasteCommand}"></KeyBinding>
+                    </TreeView.InputBindings>
                 </TreeView>
-                <Button x:Name="buttonDelete" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="26" Height="24" Style="{DynamicResource ButtonDelete}" Click="buttonDelete_Click"/>
-                <Button x:Name="buttonDeleteAll"  HorizontalAlignment="Left" Margin="31,0,0,0" VerticalAlignment="Bottom" Width="26" Height="24" Style="{DynamicResource ButtonDeleteAll}" Click="ButtonDeleteAll_OnClick"/>
-                <Button x:Name="buttonFind" HorizontalAlignment="Left" Margin="210,0,0,0" VerticalAlignment="Bottom" Width="26" Height="24" Style="{DynamicResource ButtonFind}" Click="buttonFind_Click"/>
-                <Button x:Name="buttonUpdate" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="26" Height="24" Click="buttonUpdate_Click" Style="{DynamicResource ButtonUpd}"/>
-                <TextBox x:Name="textBoxFind" HorizontalAlignment="Left" Height="23" Margin="62,0,0,1" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Width="143"/>
-                <Button x:Name="buttonUp" HorizontalAlignment="Right" VerticalAlignment="Top" Width="26" Height="24" Margin="0,22,-1,0" Style="{DynamicResource ButtonArrowUp}" Click="ButtonUp_OnClick"/>
-                <Button x:Name="buttonDown" HorizontalAlignment="Right" VerticalAlignment="Top" Width="26" Height="24" Margin="0,51,-1,0" Style="{DynamicResource ButtonArrowDown}" Click="ButtonDown_OnClick"/>
+                <Button x:Name="buttonDelete" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="26" Height="24" Style="{DynamicResource ButtonDelete}" Command="{Binding DeleteCommand}"/>
+                <Button x:Name="buttonDeleteAll"  HorizontalAlignment="Left" Margin="31,0,0,0" VerticalAlignment="Bottom" Width="26" Height="24" Style="{DynamicResource ButtonDeleteAll}" Command="{Binding ClearCommand}"/>
+                <Button x:Name="buttonFind" HorizontalAlignment="Left" Margin="210,0,0,0" VerticalAlignment="Bottom" Width="26" Height="24" Style="{DynamicResource ButtonFind}" Command="{Binding FindNodeCommand}" CommandParameter="{Binding ElementName=textBoxFind, Path=Text}"/>
+                <Button x:Name="buttonUpdate" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="26" Height="24" Command="{Binding RefreshCommand}" Style="{DynamicResource ButtonUpd}"/>
+                <TextBox x:Name="textBoxFind" HorizontalAlignment="Left" Height="23" Margin="62,0,0,1" TextWrapping="Wrap" Text="" VerticalAlignment="Bottom" Width="143" >
+                    <TextBox.InputBindings>
+                        <KeyBinding Command="{Binding FindNodeCommand}"  CommandParameter="{Binding ElementName=textBoxFind, Path=Text}" Key="Return" />
+                    </TextBox.InputBindings>
+                </TextBox>
+                <Button x:Name="buttonUp" HorizontalAlignment="Right" VerticalAlignment="Top" Width="26" Height="24" Margin="0,22,-1,0" Style="{DynamicResource ButtonArrowUp}" Command="{Binding MoveUpCommand}" />
+                <Button x:Name="buttonDown" HorizontalAlignment="Right" VerticalAlignment="Top" Width="26" Height="24" Margin="0,51,-1,0" Style="{DynamicResource ButtonArrowDown}" Command="{Binding MoveDownCommand}"/>
+                <TextBlock  Margin="241,0,31,0" TextWrapping="Wrap" Text="{Binding StatusOperation, Mode=OneWay}" VerticalAlignment="Bottom" Height="24" TextAlignment="Center" />
             </Grid>
         </GroupBox>
         <GroupBox HorizontalAlignment="Right" Width="321" Header="Действия" Margin="0,23,0,0">
             <Grid>
                 <GroupBox Header="Новый" Height="64" VerticalAlignment="Top">
                     <Grid>
-                        <Button x:Name="buttonNewNode" Content="Узел" HorizontalAlignment="Left" VerticalAlignment="Top" Width="81" Height="24" Margin="10,10,0,0" Click="buttonNewNode_Click" Style="{DynamicResource MainButton}" />
-                        <Button x:Name="buttonNewChild" Content="Ветвь" HorizontalAlignment="Right" VerticalAlignment="Top" Width="81" Height="24" Margin="0,10,10,0" Click="buttonNewChild_Click" Style="{DynamicResource MainButton}" IsEnabled="False" />
+                        <Button x:Name="buttonNewNode" Content="Узел" HorizontalAlignment="Left" VerticalAlignment="Top" Width="81" Height="24" Margin="10,10,0,0" Command="{Binding AddNodeCommand}" Style="{DynamicResource MainButton}"  />
+                        <Button x:Name="buttonNewChild" Content="Ветвь" HorizontalAlignment="Right" VerticalAlignment="Top" Width="81" Height="24" Margin="0,10,10,0" Command="{Binding AddChildCommand}" Style="{DynamicResource MainButton}" IsEnabled="{Binding CurrentElement.HasChild}" />
                     </Grid>
                 </GroupBox>
                 <GroupBox Header="Элемент" Margin="0,64,0,0">
                     <Grid>
                         <Label HorizontalAlignment="Left" Width="95" Height="26" VerticalAlignment="Top">Наименование</Label>
-                        <TextBox Margin="95,0,0,0" Height="26" VerticalAlignment="Top" Name="TextBoxName" ></TextBox>
+                        <TextBox Margin="95,0,0,0" Height="26" VerticalAlignment="Top" Text="{Binding CurrentElement.nameEdit, Mode=TwoWay}" ></TextBox>
                         <Label HorizontalAlignment="Left" Width="95" Height="26" VerticalAlignment="Top" Content="Тип" Margin="0,31,0,0"/>
-                        <ComboBox Margin="95,31,0,0" Height="26" VerticalAlignment="Top" Name="ComboBoxType" SelectedIndex="0">
-                            <ComboBox.Items>
-                                <ComboBoxItem>Обязательный</ComboBoxItem>
-                                <ComboBoxItem>Обязательный множественный</ComboBoxItem>
-                                <ComboBoxItem>Не обязательный</ComboBoxItem>
-                                <ComboBoxItem>Не обязательный множественный</ComboBoxItem>
-                                <ComboBoxItem>Условно-обязательный</ComboBoxItem>
-                                <ComboBoxItem>Условно-обязательный множественный</ComboBoxItem>
-                            </ComboBox.Items>
-                        </ComboBox>
+                        <ComboBox Margin="95,31,0,0" Height="26" VerticalAlignment="Top" SelectedIndex="0" SelectedValue="{Binding CurrentElement.TypeEdit ,Mode=TwoWay}" ItemsSource="{Binding TypeElementSPR}" SelectedValuePath="Value" DisplayMemberPath="Name" />
                         <Label HorizontalAlignment="Left" Width="95" Height="26" VerticalAlignment="Top" Content="Формат" Margin="0,62,0,0"/>
-                        <TextBox Margin="95,62,0,0" Height="98" VerticalAlignment="Top" IsReadOnly="True" Foreground="Gray" Name="TextBoxFormat"/>
+                        <TextBox Margin="95,62,0,0" Height="98" VerticalAlignment="Top" IsReadOnly="True" Foreground="Gray"  Text="{Binding CurrentElement.formatStr, Mode=OneWay}" TextWrapping="Wrap"/>
                         <GroupBox Header="Редактор типа" Margin="0,165,0,44">
                             <Grid>
                                 <Label HorizontalAlignment="Left" Width="76" Height="26" VerticalAlignment="Top" Content="Тип данных" Margin="1,0,0,0"/>
-                                <ComboBox Margin="83,0,0,0" Height="26" VerticalAlignment="Top" Name="ComboBoxDataType" SelectedIndex="0" SelectionChanged="ComboBoxDataType_SelectionChanged">
-                                    <ComboBox.Items>
-                                        <ComboBoxItem>Строка</ComboBoxItem>
-                                        <ComboBoxItem>Число</ComboBoxItem>
-                                        <ComboBoxItem>Дата(ГГГГ-ММ-ДД)</ComboBoxItem>
-                                        <ComboBoxItem>Комплексный</ComboBoxItem>
-                                        <ComboBoxItem>Время(HH:MM:SS)</ComboBoxItem>
-                                    </ComboBox.Items>
-                                </ComboBox>
-                                <TabControl Margin="0,31,0,0" Height="87" VerticalAlignment="Top" Name="TabControlType">
-                                    <TabControl.ItemContainerStyle>
-                                        <Style TargetType="{x:Type TabItem}">
-                                            <Setter Property="Visibility" Value="Collapsed"/>
+                                <ComboBox Margin="83,0,0,0" Height="26" VerticalAlignment="Top" SelectedValue="{Binding CurrentElement.format_type, Mode=TwoWay}"  ItemsSource="{Binding formatEnumSPR}" SelectedValuePath="Value" DisplayMemberPath="Name" />
+                                <TabControl Margin="0,31,0,0" Height="163" VerticalAlignment="Top">
+                                    <TabControl.Resources>
+                                        <Style x:Key="TabStyle" TargetType="TabItem">
+                                            <Setter Property="Visibility" Value="Hidden"></Setter>
                                         </Style>
-                                    </TabControl.ItemContainerStyle>
-                                    <TabItem Header="number" Name="TabItemNumber" >
+                                    </TabControl.Resources>
+                                    <TabItem Header="number" >
                                         <Grid>
                                             <Label HorizontalAlignment="Left" Width="87" Height="26" VerticalAlignment="Top">Всего знаков</Label>
-                                            <TextBox Margin="136,0,0,0" Text="0" Height="26" VerticalAlignment="Top" Name="TextBoxNumberCountAll"></TextBox>
+                                            <TextBox Margin="136,0,0,0"  Height="26" VerticalAlignment="Top"  Text="{Binding CurrentElement.TypeSDigit.ZnakMest, Mode=TwoWay}" ></TextBox>
                                             <Label HorizontalAlignment="Left" Width="136" Height="26" VerticalAlignment="Top" Content="Знаков после запятой" Margin="0,31,0,0"/>
-                                            <TextBox Margin="136,31,0,0" Text="0" Height="26" VerticalAlignment="Top" Name="TextBoxNumberCountPoint"/>
+                                            <TextBox Margin="136,31,0,0" Height="26" VerticalAlignment="Top"  Text="{Binding CurrentElement.TypeSDigit.ZnakMestPosDot, Mode=TwoWay}"/>
+                                            <ListBox Margin="136,62,0,0" Name="ListBoxEnumDigit"  SelectionMode="Extended" ItemsSource="{Binding CurrentElement.EnumDigit, NotifyOnSourceUpdated=True}" ItemTemplate="{StaticResource DataTemplateTextBlock}" SelectionChanged="ListBoxEnumDigit_OnSelectionChanged">
+                                                <ListBox.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Удалить"  Command="{Binding RemoveDigitEnumCommand}"></MenuItem>
+                                                    </ContextMenu>
+                                                </ListBox.ContextMenu>
+                                            </ListBox>
+                                            <TextBox Name="TextBoxNumberEnum" Height="26" VerticalAlignment="Top" Margin="4,62,209,0" />
+                                            <Button  Content="+" HorizontalAlignment="Right" VerticalAlignment="Top" Width="26" Height="24" Margin="0,62,178,0" Style="{DynamicResource MainButton}" Command="{Binding AddDigitEnumCommand}" CommandParameter="{Binding ElementName=TextBoxNumberEnum, Path=Text}" />
                                         </Grid>
-                                     
+                                        <TabItem.Style>
+                                            <Style TargetType="TabItem" BasedOn="{StaticResource TabStyle}">
+                                                <Setter Property="IsSelected" Value="False"></Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CurrentElement.format_type, Mode=OneWay}" Value="{x:Static local:formatEnum.TypeSDigit}">
+                                                        <Setter Property="IsSelected" Value="True"></Setter>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TabItem.Style>
                                     </TabItem>
-                                    <TabItem Header="string" IsSelected="False" Name="TabItemString">
+                                    <TabItem Header="string" >
                                         <Grid>
                                             <Label HorizontalAlignment="Left" Width="87" Height="26" VerticalAlignment="Top">Всего знаков</Label>
-                                            <TextBox Margin="136,0,0,0" Text="0" Height="26" VerticalAlignment="Top" Name="TextBoxStringCountAll"></TextBox>
+                                            <TextBox Margin="136,0,0,0" Height="26" VerticalAlignment="Top"  Text="{Binding CurrentElement.TypeSString.ZnakMest}"></TextBox>
+                                            <ListBox Name="ListBoxStringEnum" Margin="136,62,0,0"  SelectionMode="Extended" ItemsSource="{Binding CurrentElement.EnumString}" ItemTemplate="{StaticResource DataTemplateTextBlock}" SelectionChanged="ListBoxStringEnum_OnSelectionChanged">
+                                                <ListBox.ContextMenu>
+                                                    <ContextMenu>
+                                                        <MenuItem Header="Удалить" Command="{Binding RemoveStringEnumCommand}" ></MenuItem>
+                                                    </ContextMenu>
+                                                </ListBox.ContextMenu>
+                                            </ListBox>
+                                            <TextBox Text="" Height="26" VerticalAlignment="Top" Margin="4,62,209,0" Name="TextBoxNewValueString"/>
+                                            <Button  Content="+" HorizontalAlignment="Right" VerticalAlignment="Top" Width="26" Height="24" Margin="0,62,178,0" Style="{DynamicResource MainButton}" Command="{Binding AddStringEnumCommand}" CommandParameter="{Binding ElementName=TextBoxNewValueString, Path=Text}"/>
                                         </Grid>
-                                      
+                                        <TabItem.Style>
+                                            <Style TargetType="TabItem"  BasedOn="{StaticResource TabStyle}">
+                                                <Setter Property="IsSelected" Value="False"></Setter>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding CurrentElement.format_type, Mode=OneWay}" Value="{x:Static local:formatEnum.TypeSString}">
+                                                        <Setter Property="IsSelected" Value="True"></Setter>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TabItem.Style>
                                     </TabItem>
                                 </TabControl>
-                                <GroupBox Header="Набор значений" Margin="0,123,0,0">
-                                    <Grid>
-                                        <CheckBox Content="Индекс" Height="19" VerticalAlignment="Top" Margin="10,1,197,0" Name="CheckBoxIndex"/>
-                                        <CheckBox Content="Глобальный" Height="19" VerticalAlignment="Top" Margin="81,1,97,0" Name="CheckBoxIndexGlobal"/>
-                                        <TextBox Name="TextBoxEnum" Text="" Height="26" VerticalAlignment="Top" Margin="10,25,197,0"/>
-                                        <Button x:Name="buttonAddEnum" Content="+" HorizontalAlignment="Right" VerticalAlignment="Top" Width="26" Height="24" Margin="0,25,166,0" Style="{DynamicResource MainButton}" Click="buttonAddEnum_Click"/>
-                                        <ListBox Margin="10,54,10,0" Name="ListBoxEnums" SelectionMode="Multiple">
-                                            <ListBox.ItemTemplate>
-                                                <DataTemplate>
-                                                    <TextBlock Text="{Binding}"></TextBlock>
-                                                </DataTemplate>
-                                            </ListBox.ItemTemplate>
-                                            <ListBox.ContextMenu>
-                                                <ContextMenu>
-                                                    <MenuItem Header="Удалить" Name="MenuItemEnumDelete" Click="MenuItemEnumDelete_OnClick"></MenuItem>
-                                                </ContextMenu>
-                                            </ListBox.ContextMenu>
-                                        </ListBox>
-
-                                    </Grid>
-                                </GroupBox>
+                                <CheckBox Content="Индекс" Height="19" VerticalAlignment="Top" Margin="6,201,213,0"  IsChecked="{Binding CurrentElement.UniqueEdit, Mode=TwoWay}"/>
+                                <CheckBox Content="Глобальный" Height="19" VerticalAlignment="Top" Margin="77,201,113,0" IsChecked="{Binding CurrentElement.UniqueGlobalEdit, Mode=TwoWay}"/>
                             </Grid>
                         </GroupBox>
-                        <Button x:Name="buttonAccept" Content="Изменить" VerticalAlignment="Bottom" Height="24"  Style="{DynamicResource MainButton}" Margin="10,0" Click="buttonAccept_Click"/>
+                        <Button x:Name="buttonAccept" Content="Изменить" VerticalAlignment="Bottom" Height="24"  Style="{DynamicResource MainButton}" Margin="10,0" Command="{Binding CommitCommand}" />
                     </Grid>
                 </GroupBox>
 

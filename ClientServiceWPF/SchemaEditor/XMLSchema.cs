@@ -87,7 +87,7 @@ namespace ClientServiceWPF.SchemaEditor
         /// <summary>
         /// Значения энумератора(Варианты)
         /// </summary>
-        public List<int> Enum;
+        public List<int> Enum { get; set; }
         /// <summary>
         /// Конструктор
         /// </summary>
@@ -209,25 +209,8 @@ namespace ClientServiceWPF.SchemaEditor
     /// Элемент класса схема
     /// </summary>
     [XmlInclude(typeof(TypeSComplex)), XmlInclude(typeof(TypeSDigit)), XmlInclude(typeof(TypeSString)), XmlInclude(typeof(TypeSDate)), XmlInclude(typeof(TypeSTime))]
-    public class SchemaElement:INotifyPropertyChanged
+    public class SchemaElement
     {
-        [XmlIgnore]
-        private bool _IsSelected;
-        [XmlIgnore]
-        public bool IsSelected
-        {
-            get { return _IsSelected;}
-            set { _IsSelected = value; OnPropertyChanged(); }
-        }
-        [XmlIgnore]
-        private bool _IsExpanded;
-        [XmlIgnore]
-        public bool IsExpanded
-        {
-            get { return _IsExpanded; }
-            set { _IsExpanded = value; OnPropertyChanged(); }
-        }
-
 
         /// <summary>
         /// Наименование элемента
@@ -249,10 +232,20 @@ namespace ClientServiceWPF.SchemaEditor
         /// </summary>
       
         public bool UniqueGlobal { get; set; }
+
+        private TypeS _format;
         /// <summary>
         /// Тип данных элемента
         /// </summary>
-        public TypeS format { get; set; }
+        public TypeS format
+        {
+            get { return _format;}
+            set
+            {
+                _format = value;
+                Elements = !(_format is TypeSComplex) ? null : new List<SchemaElement>();
+            }
+        }
         /// <summary>
         /// Вложеные элементы
         /// </summary>
@@ -327,7 +320,16 @@ namespace ClientServiceWPF.SchemaEditor
 
         public void InsertAfter(SchemaElement from, SchemaElement item)
         {
-            item.Elements = item.format is TypeSComplex ? new List<SchemaElement>() : null;
+            if (item.format is TypeSComplex)
+            {
+                if(item.Elements ==null)
+                    item.Elements = new List<SchemaElement>();
+            }
+            else
+            {
+                item.Elements = null;
+            }
+         
             if (from==null)
                 SchemaElements.Add(item);
             else
@@ -479,7 +481,7 @@ namespace ClientServiceWPF.SchemaEditor
             parent.Elements.Remove(item);
         }
 
-        public void ElementUp(SchemaElement item)
+        public bool ElementUp(SchemaElement item)
         {
             var path = FindPath(item);
             var parent = path[path.Count - 2];
@@ -489,10 +491,13 @@ namespace ClientServiceWPF.SchemaEditor
                 var back = parent.Elements[indexCurr - 1];
                 parent.Elements[indexCurr - 1] = parent.Elements[indexCurr];
                 parent.Elements[indexCurr] = back;
+                return true;
             }
+
+            return false;
         }
 
-        public void ElementDown(SchemaElement item)
+        public bool ElementDown(SchemaElement item)
         {
             var path = FindPath(item);
             var parent = path[path.Count - 2];
@@ -502,7 +507,9 @@ namespace ClientServiceWPF.SchemaEditor
                 var back = parent.Elements[indexCurr + 1];
                 parent.Elements[indexCurr + 1] = parent.Elements[indexCurr];
                 parent.Elements[indexCurr] = back;
+                return true;
             }
+            return false;
         }
         /// <summary>
         /// Поднять элемент на уровень вверх
@@ -1112,5 +1119,30 @@ namespace ClientServiceWPF.SchemaEditor
 
 
     }
+
+    public static class Ext
+    {
+        public static  string toRusName(this TypeElement te)
+        {
+            switch (te)
+            {
+                case TypeElement.O:
+                    return "Обязательный";
+                case TypeElement.OM:
+                    return "Обязательный множественный";
+                case TypeElement.NM:
+                    return "Не обязательный множественный";
+                case TypeElement.N:
+                    return "Не обязательный";
+                case TypeElement.YM:
+                    return "Условно - обязательный множественный";
+                case TypeElement.Y:
+                    return "Условно - обязательный";
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(te), te, null);
+            }
+        }
+    }
+
 
 }
