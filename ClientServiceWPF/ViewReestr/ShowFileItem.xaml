@@ -4,17 +4,22 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientServiceWPF"
+        xmlns:class="clr-namespace:ClientServiceWPF.Class"
         mc:Ignorable="d"
         xmlns:medpom="clr-namespace:ServiceLoaderMedpomData;assembly=ServiceLoaderMedpomData"
         x:Name="this"
         Title="Просмотр пакета" Height="455.017" Width="804.89" Style="{DynamicResource StyleWindow}">
     <Window.Resources>
-        <CollectionViewSource x:Key="CVSFileList"   d:DesignSource="{d:DesignInstance {x:Type medpom:FileItem}, CreateList=True}" Source="{Binding ElementName=this, Path=FileItems}"></CollectionViewSource>
+        <CollectionViewSource x:Key="CVSFileList"   d:DesignSource="{d:DesignInstance {x:Type medpom:FileItem}, CreateList=True}" Source="{Binding pack.Files}"></CollectionViewSource>
+        <class:BindingProxy x:Key="SelectedFileItems" Data="{Binding ElementName=this, Path=SelectedFileItems}"></class:BindingProxy>
     </Window.Resources>
+    <Window.DataContext>
+        <Binding ElementName="this" Path="VM"></Binding>
+    </Window.DataContext>
     <Grid>
         <GroupBox Header="Список файлов" Margin="0,0,0,140">
             <Grid>
-                <DataGrid Margin="0,0,0,35" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSFileList}}" IsReadOnly="True" Name="DataGridFileList">
+                <DataGrid Margin="0,0,0,35" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSFileList}}" IsReadOnly="True" Name="DataGridFileList" SelectionUnit="CellOrRowHeader" SelectedCellsChanged="DataGridFileList_OnSelectedCellsChanged">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Имя файла" Binding="{Binding FileName}" Width="Auto"></DataGridTextColumn>
                         <DataGridTextColumn Header="Тип файла" Binding="{Binding Type}"  Width="Auto"></DataGridTextColumn>
@@ -22,18 +27,15 @@
                         <DataGridTextColumn Header="Комментарий" Binding="{Binding Comment}"  Width="Auto"></DataGridTextColumn>
                         <DataGridTextColumn Header="Дата создания" Binding="{Binding DateCreate, StringFormat=dd.MM.yyyy HH:mm}"  Width="Auto"></DataGridTextColumn>
                         <DataGridTextColumn Header="Путь к файлу" Binding="{Binding FilePach}" Width="100"></DataGridTextColumn>
-
                         <DataGridTextColumn Header="Имя файла(перс)" Binding="{Binding filel.FileName}" Width="Auto"></DataGridTextColumn>
                         <DataGridTextColumn Header="Тип файла(перс)" Binding="{Binding filel.Type}" Width="Auto"></DataGridTextColumn>
                         <DataGridTextColumn Header="Комментарий(перс)" Binding="{Binding filel.Comment}" Width="Auto"></DataGridTextColumn>
                         <DataGridTextColumn Header="Путь к файлу(перс)" Binding="{Binding filel.FilePach}" Width="100"></DataGridTextColumn>
-
-
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Показать основной файл" Name="MenuItemShowMain" Click="MenuItemShowMain_Click"/>
-                            <MenuItem Header="Показать файл персональных данных" Name="MenuItemShowPers" Click="MenuItemShowPers_Click"></MenuItem>
+                            <MenuItem Header="Показать основные файлы" Name="MenuItemShowMain" Command="{Binding ShowFileInFolder}" CommandParameter="{Binding Source={StaticResource SelectedFileItems}, Path=Data}"/>
+                            <MenuItem Header="Показать файлы логов" Name="MenuItemShowPers" Command="{Binding ShowLogsInFolder}" CommandParameter="{Binding Source={StaticResource SelectedFileItems}, Path=Data}"/>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
                 </DataGrid>
@@ -42,11 +44,12 @@
         </GroupBox>
         <GroupBox Header="Действие" Height="140" VerticalAlignment="Bottom">
             <Grid>
-                <ProgressBar Margin="284,8,10,0" Height="27" VerticalAlignment="Top" Name="ProgressBarMain"></ProgressBar>
-                <ProgressBar Margin="284,65,10,0" Height="27" VerticalAlignment="Top" Name="ProgressBarDownload"></ProgressBar>
-                <Label Margin="284,91,10,0" Height="27" VerticalAlignment="Top" Name="LabelDownload" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"></Label>
-                <Label Margin="284,35,10,0" Height="27" VerticalAlignment="Top" Name="LabelMain" HorizontalContentAlignment="Center" VerticalContentAlignment="Center"></Label>
-                <Button Margin="10,8,0,0" HorizontalAlignment="Left" Width="182" Height="27" VerticalAlignment="Top" Style="{DynamicResource MainButton}" Content="Скачать локально..." Name="ButtonDownload" Click="ButtonDownload_Click"></Button>
+                <ProgressBar Margin="284,8,10,0" Height="27" VerticalAlignment="Top" Name="ProgressBarMain" Maximum="{Binding DownloadProgress.Max}" Value="{Binding DownloadProgress.Value}"/>
+                <Label Margin="284,35,10,0" Height="27" VerticalAlignment="Top" Name="LabelMain" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="{Binding DownloadFileProgress.Text}"/>
+                <ProgressBar Margin="284,65,10,0" Height="27" VerticalAlignment="Top" Name="ProgressBarDownload" Maximum="{Binding DownloadFileProgress.Max}" Value="{Binding DownloadFileProgress.Value}"/>
+                <Label Margin="284,91,10,0" Height="27" VerticalAlignment="Top" Name="LabelDownload" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="{Binding DownloadFileProgress.Text}"/>
+              
+                <Button Margin="10,8,0,0" HorizontalAlignment="Left" Width="182" Height="27" VerticalAlignment="Top" Style="{DynamicResource MainButton}" Content="Скачать локально..." Name="ButtonDownload"  Command="{Binding SaveFileLocal}"></Button>
             </Grid>
         </GroupBox>
     </Grid>

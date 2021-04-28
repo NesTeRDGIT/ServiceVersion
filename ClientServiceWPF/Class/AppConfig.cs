@@ -25,14 +25,10 @@ namespace ClientServiceWPF.Class
         public string xml_h_b_prot { get; set; }
         public string xml_h_usl { get; set; }
         public string xml_h_sank { get; set; }
-
         public string xml_l_zglv { get; set; }
         public string xml_l_pers { get; set; }
-
         public string schemaOracle { get; set; }
-
         public string ConnectionString { get; set; }
-
         public string seq_ZGLV { get; set; }
         public string seq_SCHET { get; set; }
         public string seq_ZAP { get; set; }
@@ -47,14 +43,11 @@ namespace ClientServiceWPF.Class
         public string seq_schemaOracle { get; set; }
         public string seq_xml_h_lek_pr { get; set; }
         public string seq_xml_h_onk_usl { get; set; }
-
-
         public string xml_h_onk_usl { get; set; }
         public string xml_h_lek_pr { get; set; }
         public string xml_h_date_inj { get; set; }
         public string xml_h_cons { get; set; }
         public string xml_h_code_exp { get; set; }
-
         public string xml_h_ds2 { get; set; }
         public string xml_h_ds3 { get; set; }
         public string xml_h_crit { get; set; }
@@ -83,7 +76,6 @@ namespace ClientServiceWPF.Class
                 st.Close();
             }
         }
-
         static AppConfig()
         {
             Load();

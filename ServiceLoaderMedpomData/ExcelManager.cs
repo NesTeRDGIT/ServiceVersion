@@ -12,7 +12,7 @@ using NPOI.HSSF.Util;
 using NPOI.SS.Util;
 
 namespace ServiceLoaderMedpomData
-{
+{/*
     /// <summary>
     /// Выравнивание в ячейке
     /// </summary>
@@ -377,7 +377,7 @@ namespace ServiceLoaderMedpomData
 
     }
 
-   
+   */
 
 
 

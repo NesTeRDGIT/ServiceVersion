@@ -27,6 +27,7 @@ namespace ClientServiceWPF
     /// </summary>
     public partial class FilesManagerView : Window, INotifyPropertyChanged
     {
+        List<FilePacket> _SelectedFilePacket = new List<FilePacket>();
         public  FilesManagerViewVM VM { get; set; } = new FilesManagerViewVM(LoginForm.wcf,  new ExcelFilePacket());
         public FilesManagerView(bool isActive)
         {
@@ -53,9 +54,20 @@ namespace ClientServiceWPF
 
 
         public ICommand FocusElementCommand { get; set; }= new Command(o => { (o as UIElement)?.Focus(); });
+
+
       
 
-        public List<FilePacket> SelectedFilePacket => dataGrid.SelectedCells.Select(x =>(FilePacket) x.Item).Distinct().ToList(); 
+        public List<FilePacket> SelectedFilePacket
+        {
+            get
+            {
+                _SelectedFilePacket.Clear();
+                _SelectedFilePacket.AddRange(dataGrid.SelectedCells.Select(x => (FilePacket)x.Item).Distinct());
+                return _SelectedFilePacket;
+            }
+        }
+
         private void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
            VM.ShowDetailCommand.Execute(SelectedFilePacket);

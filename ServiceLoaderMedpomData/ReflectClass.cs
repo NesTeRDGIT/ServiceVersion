@@ -9,9 +9,9 @@ namespace ServiceLoaderMedpomData
     {  // Данный метод выводит информацию о содержащихся в классе методах
         public static MethodInfo[] MethodReflectInfo<T>() where T : class
         {
-            Type t = typeof(T);
+            var t = typeof(T);
             // Получаем коллекцию методов
-            MethodInfo[] MArr = t.GetMethods();
+            var MArr = t.GetMethods();
             return MArr;
         }
     }

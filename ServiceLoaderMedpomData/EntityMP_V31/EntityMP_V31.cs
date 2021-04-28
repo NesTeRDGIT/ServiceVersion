@@ -547,8 +547,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         }
 
     }
-
-
     [Serializable]   
     public class ZGLV
     {    
@@ -595,8 +593,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal SD_Z { get; set; }
     }
-
-    
     [Serializable]   
     public class SCHET
     {
@@ -722,7 +718,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         }
         #endregion
     }
-
     [Serializable]
     public class REF
     {
@@ -733,7 +728,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal FIRST_MONTH { get; set; }
     }
-    
     [Serializable]
     public class ZAP
     {
@@ -795,8 +789,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlIgnore]
         public List<Z_SL> Z_SL_list { get; set; }
     }
-
-    
     [Serializable]
     public class PACIENT
     {
@@ -912,8 +904,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string LPU_REG { get; set; }
     }
-
-    
     [Serializable]
     public  class Z_SL
     {
@@ -1155,21 +1145,17 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         }
 
     }
-
-
     public class DS_SLUCH_ID
     {
         public string DS { get; set; }
         public decimal? SLUCH_ID { get; set; }
     }
-
     public class CRIT_SLUCH_ID
     {
         public decimal? ORD { get; set; }
         public string CRIT { get; set; }
         public decimal? SLUCH_ID { get; set; }
     }
-
     [Serializable]
     public  class SL
     {
@@ -1553,7 +1539,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string COMENTSL { get; set; }
     }
-    
     [Serializable]
     public class DS2_N
     {
@@ -1597,7 +1582,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
 
     }
-
     public class NAZR
     {
         public static NAZR Get(DataRow row)
@@ -1686,8 +1670,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
 
     }
-
-    
     [Serializable]
     public  class ONK_SL
     {
@@ -1884,10 +1866,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             return REC_RSLT.HasValue;
         }
     }
-
-    
     [Serializable]
-    public partial class B_PROT
+    public class B_PROT
     {
         public static B_PROT Get(DataRow row)
         {
@@ -1915,10 +1895,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified, DataType = "date")]
         public DateTime D_PROT { get; set; }
     }
-
-    
     [Serializable]
-    public partial class KSG_KPG
+    public class KSG_KPG
     {
         public static KSG_KPG Get(DataRow row, IEnumerable<DataRow> CRIT)
         {
@@ -2011,10 +1989,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement("SL_KOEF", Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public List<SL_KOEF> SL_KOEF { get; set; }
     }
-
-    
     [Serializable]
-    public partial class SL_KOEF
+    public  class SL_KOEF
     {
         public static SL_KOEF Get(DataRow row)
         {
@@ -2043,10 +2019,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal Z_SL { get; set; }
     }
-
-    
-
-
     [Serializable]
     public class SANK
     {
@@ -2203,7 +2175,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlIgnore]
         public string GetSL_ID => string.Join(",", SL_ID);
     }
-
     public class CODE_EXP
     {
         [XmlIgnore]
@@ -2211,8 +2182,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlText]
         public string VALUE { get; set; }
     }
-
-
     [Serializable]
     public  class USL
     {
@@ -2419,8 +2388,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             return NOT_VR.HasValue;
         }
     }
-
-
     [Serializable]
     public  class NAPR
     {
@@ -2478,7 +2445,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string NAPR_USL { get; set; }
     }
-
     [Serializable]
     public class CONS
     {
@@ -2521,8 +2487,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             return DT_CONS.HasValue;
         }
     }
-
-
     [Serializable]
     public  class ONK_USL
     {
@@ -2615,8 +2579,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             return LUCH_TIP.HasValue;
         }
     }
-
-
     [Serializable]
     public class LEK_PR
     {
@@ -2663,7 +2625,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public List<DATE_INJ> DATE_INJ { get; set; } = new List<EntityMP_V31.DATE_INJ>();
 
     }
-
     public class DATE_INJ
     {
         [XmlIgnore]
@@ -2672,9 +2633,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public DateTime VALUE { get; set; }
 
     }
-
-
-
     [Serializable]
     [XmlType(AnonymousType = true)]
     [XmlRoot(Namespace = "", IsNullable = false)]
@@ -2726,8 +2684,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
     }
-
-    
     [Serializable]
     [XmlType(AnonymousType = true)]
     public  class PERSZGLV
@@ -2768,8 +2724,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public string FILENAME1 { get; set; }
 
     }
-
-    
     [Serializable]
     public  class PERS
     {
@@ -2941,8 +2895,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public string COMENTP { get; set; }
 
     }
-
-    
     public static class ExtZLLIST
     {
 

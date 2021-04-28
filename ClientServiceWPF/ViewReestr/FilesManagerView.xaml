@@ -4,15 +4,16 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientServiceWPF"
+        xmlns:class="clr-namespace:ClientServiceWPF.Class"
         mc:Ignorable="d"
         xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:medpom="clr-namespace:ServiceLoaderMedpomData;assembly=ServiceLoaderMedpomData"
         Name="this"
-        xmlns:class="clr-namespace:ClientServiceWPF.Class"
         Title="Просмотр процесса обработки" Height="469" Width="915" Style="{DynamicResource StyleWindow}" Closing="FilesManagerView_OnClosing" Loaded="FilesManagerView_OnLoaded" WindowState="Maximized" >
     <Window.Resources>
         <local:ArrayParamConverter x:Key="ArrayParamConverter"></local:ArrayParamConverter>
         <CollectionViewSource x:Key="CVSFiles" Source="{Binding ElementName=this, Path=VM.List}"  d:DesignSource="{d:DesignInstance {x:Type medpom:FilePacket}, CreateList=True}"></CollectionViewSource>
+        <class:BindingProxy x:Key="SelectedFilePacket" Data="{Binding ElementName=this, Path=SelectedFilePacket}"></class:BindingProxy>
     </Window.Resources>
     <Window.InputBindings>
         <KeyBinding Gesture="Ctrl+F" Command="{Binding ElementName=this, Path=FocusElementCommand}" CommandParameter="{Binding ElementName=textBoxFindCODE_MO}"></KeyBinding>
@@ -44,13 +45,13 @@
             </DataGrid.Columns>
             <DataGrid.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Состав файлов" Name="MenuItemView" FontWeight="Bold"  Command="{Binding ShowDetailCommand}" CommandParameter="{Binding ElementName=this, Path=SelectedFilePacket}"></MenuItem>
+                    <MenuItem Header="Состав файлов" Name="MenuItemView" FontWeight="Bold"  Command="{Binding ShowDetailCommand}" CommandParameter="{Binding Source={StaticResource SelectedFilePacket}, Path=Data}"></MenuItem>
                     <Separator/>
-                    <MenuItem Header="Повтор проверки" Name="MenuItemRepeat"  Command="{Binding RepeatCheckCommand}" CommandParameter="{Binding ElementName=this, Path=SelectedFilePacket}"></MenuItem>
+                    <MenuItem Header="Повтор проверки" Name="MenuItemRepeat"  Command="{Binding RepeatCheckCommand}" CommandParameter="{Binding Source={StaticResource SelectedFilePacket}, Path=Data}"></MenuItem>
                     <Separator/>
-                    <MenuItem Header="Закончить ожидание" Name="MenuItemBreakTimeout" Command="{Binding BreakTimeoutCommand}" CommandParameter="{Binding ElementName=this, Path=SelectedFilePacket}"></MenuItem>
+                    <MenuItem Header="Закончить ожидание" Name="MenuItemBreakTimeout" Command="{Binding BreakTimeoutCommand}" CommandParameter="{Binding Source={StaticResource SelectedFilePacket}, Path=Data}"></MenuItem>
                     <Separator/>
-                    <MenuItem Header="Прервать" Name="MenuItemBreakProcess" Command="{Binding BreakProcessCommand}" CommandParameter="{Binding ElementName=this, Path=SelectedFilePacket}"></MenuItem>
+                    <MenuItem Header="Прервать" Name="MenuItemBreakProcess" Command="{Binding BreakProcessCommand}" CommandParameter="{Binding Source={StaticResource SelectedFilePacket}, Path=Data}"></MenuItem>
                 </ContextMenu>
             </DataGrid.ContextMenu>
             <DataGrid.Resources>
@@ -63,11 +64,6 @@
                     <EventSetter Event="MouseDoubleClick" Handler="DataGridRow_MouseDoubleClick" ></EventSetter>
                 </Style>
             </DataGrid.RowStyle>
-            <i:Interaction.Triggers>
-                <i:EventTrigger EventName="SelectionChanged">
-                    <i:InvokeCommandAction Command="{Binding SelectionChangedCommand, ElementName=YourUserControlName}" CommandParameter="{Binding SelectedItems, ElementName=GridName}" />
-                </i:EventTrigger>
-            </i:Interaction.Triggers>
         </DataGrid>
         <TextBox x:Name="textBoxFindMO_NAME" HorizontalAlignment="Left" Height="23" TextWrapping="Wrap" VerticalAlignment="Top" Width="84" Margin="210,0,0,0">
             <TextBox.InputBindings>

@@ -81,7 +81,7 @@ namespace MedpomService
                     case TypeDOWLOAD.File:
                         PATH = PAC.Files[FILE].FilePach; break;
                     case TypeDOWLOAD.FileL:
-                        PATH = PAC.Files[FILE].filel.FileName; break;
+                        PATH = PAC.Files[FILE].filel.FilePach; break;
                     case TypeDOWLOAD.FILE_STAT:
                         PATH = PAC.PATH_STAT; break;
                     case TypeDOWLOAD.FILE_LOG:
@@ -126,7 +126,7 @@ namespace MedpomService
                     case TypeDOWLOAD.File:
                         PATH = PAC.Files[FILE].FilePach; break;
                     case TypeDOWLOAD.FileL:
-                        PATH = PAC.Files[FILE].filel.FileName; break;
+                        PATH = PAC.Files[FILE].filel.FilePach; break;
                     case TypeDOWLOAD.FILE_STAT:
                         PATH = PAC.PATH_STAT; break;
                     case TypeDOWLOAD.FILE_LOG:

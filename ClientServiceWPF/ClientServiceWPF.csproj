@@ -82,6 +82,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Class\BindingProxy.cs" />
     <Compile Include="Class\Command.cs" />
     <Compile Include="Class\Converters.cs" />
     <Compile Include="Class\DuplexSettings.cs" />
@@ -90,10 +91,10 @@
     <Compile Include="Class\RusNumber.cs" />
     <Compile Include="Class\ServerRef.cs" />
     <Compile Include="Class\ShowSelectedInExplorer.cs" />
-    <Compile Include="EdditProc.xaml.cs">
+    <Compile Include="Setting\EdditProc.xaml.cs">
       <DependentUpon>EdditProc.xaml</DependentUpon>
     </Compile>
-    <Compile Include="FilesManagerView.xaml.cs">
+    <Compile Include="ViewReestr\FilesManagerView.xaml.cs">
       <DependentUpon>FilesManagerView.xaml</DependentUpon>
     </Compile>
     <Compile Include="Launcher\Launcher.xaml.cs">
@@ -108,16 +109,16 @@
     <Compile Include="MEK_RESULT\ExportFile.xaml.cs">
       <DependentUpon>ExportFile.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MonitorReestr.xaml.cs">
+    <Compile Include="ViewReestr\MonitorReestr.xaml.cs">
       <DependentUpon>MonitorReestr.xaml</DependentUpon>
     </Compile>
-    <Compile Include="NewSchemaItem.xaml.cs">
+    <Compile Include="Setting\NewSchemaItem.xaml.cs">
       <DependentUpon>NewSchemaItem.xaml</DependentUpon>
     </Compile>
-    <Compile Include="PRINT_FILE_XLSX.xaml.cs">
+    <Compile Include="MEK_RESULT\PRINT_FILE_XLSX.xaml.cs">
       <DependentUpon>PRINT_FILE_XLSX.xaml</DependentUpon>
     </Compile>
-    <Compile Include="ProgressForm.xaml.cs">
+    <Compile Include="ViewReestr\ProgressForm.xaml.cs">
       <DependentUpon>ProgressForm.xaml</DependentUpon>
     </Compile>
     <Compile Include="RemoteFolderDialog.xaml.cs">
@@ -133,11 +134,10 @@
     <Compile Include="SchemaEditor\XMLshema.xaml.cs">
       <DependentUpon>XMLshema.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Setting.xaml.cs">
+    <Compile Include="Setting\Setting.xaml.cs">
       <DependentUpon>Setting.xaml</DependentUpon>
     </Compile>
-    <Compile Include="Settings.cs" />
-    <Compile Include="ShowFileItem.xaml.cs">
+    <Compile Include="ViewReestr\ShowFileItem.xaml.cs">
       <DependentUpon>ShowFileItem.xaml</DependentUpon>
     </Compile>
     <Compile Include="USER_EDIT\Method.xaml.cs">
@@ -155,18 +155,18 @@
     <Compile Include="USER_EDIT\USER_ROLE.xaml.cs">
       <DependentUpon>USER_ROLE.xaml</DependentUpon>
     </Compile>
-    <Compile Include="VOLUM_CONTROL.xaml.cs">
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL.xaml.cs">
       <DependentUpon>VOLUM_CONTROL.xaml</DependentUpon>
     </Compile>
     <Page Include="MEK_RESULT\ACT_MEK.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="EdditProc.xaml">
+    <Page Include="Setting\EdditProc.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="FilesManagerView.xaml">
+    <Page Include="ViewReestr\FilesManagerView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -204,19 +204,19 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MonitorReestr.xaml">
+    <Page Include="ViewReestr\MonitorReestr.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="NewSchemaItem.xaml">
+    <Page Include="Setting\NewSchemaItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="PRINT_FILE_XLSX.xaml">
+    <Page Include="MEK_RESULT\PRINT_FILE_XLSX.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ProgressForm.xaml">
+    <Page Include="ViewReestr\ProgressForm.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -236,11 +236,11 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="Setting.xaml">
+    <Page Include="Setting\Setting.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="ShowFileItem.xaml">
+    <Page Include="ViewReestr\ShowFileItem.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -268,7 +268,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="VOLUM_CONTROL.xaml">
+    <Page Include="MEK_RESULT\VOLUM_CONTROL.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
