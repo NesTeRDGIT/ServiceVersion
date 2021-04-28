@@ -12,21 +12,19 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Forms;
+
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+
 using System.Xml;
 using System.Xml.Serialization;
-using DocumentFormat.OpenXml;
-using DocumentFormat.OpenXml.Presentation;
+
+
 using ServiceLoaderMedpomData.Annotations;
 using Clipboard = System.Windows.Clipboard;
 using MessageBox = System.Windows.MessageBox;
 using OpenFileDialog = Microsoft.Win32.OpenFileDialog;
 using SaveFileDialog = Microsoft.Win32.SaveFileDialog;
+using  ClientServiceWPF.Class;
 
 namespace ClientServiceWPF.SchemaEditor
 {
@@ -840,28 +838,7 @@ namespace ClientServiceWPF.SchemaEditor
         }
     }
 
-    public class Command : ICommand
-    {
-        private Action<object> execute;
-        private Func<object, bool> canExecute;
-        public event EventHandler CanExecuteChanged;
-
-        public Command(Action<object> execute, Func<object, bool> canExecute = null)
-        {
-            this.execute = execute;
-            this.canExecute = canExecute;
-        }
-
-        public bool CanExecute(object parameter)
-        {
-            return this.canExecute == null || this.canExecute(parameter);
-        }
-
-        public void Execute(object parameter)
-        {
-            this.execute(parameter);
-        }
-    }
+   
 
 
     public class ConvectorTypeEnum : IValueConverter

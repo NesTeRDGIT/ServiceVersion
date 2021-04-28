@@ -126,6 +126,105 @@ namespace ServiceLoaderMedpomData.Tests
         }
 
 
+        [TestMethod(), Description("Поле FIRST_IDCASE не подлежит заполнению без указания тэга SCHET\\REF")]
+        public void CheckXML_H_31_ERR_FIRST_IDCASE_NOT_REF()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID);
+            file.ZAP.SelectMany(x => x.Z_SL_list).ToList().ForEach(x=>x.FIRST_IDCASE = 0);
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1)).Where(x => x.Comment == "Поле FIRST_IDCASE не подлежит заполнению без указания тэга SCHET\\REF").ToList();
+                Assert.IsTrue(res.Count !=0, $"Ошибку не видит");
+            }
 
-}
+        }
+
+        [TestMethod(), Description("Поле FIRST_IDCASE обязательно к заполнению при указании тэга SCHET\\REF")]
+        public void CheckXML_H_31_ERR_FIRST_IDCASE_REF()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID);
+            file.SCHET.REF = new REF();
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1)).Where(x => x.Comment == "Поле FIRST_IDCASE обязательно к заполнению при указании тэга SCHET\\REF").ToList();
+                Assert.IsTrue(res.Count != 0, $"Ошибку не видит");
+            }
+
+
+        }
+
+        [TestMethod(), Description("Признак исправленной записи = 1 недопустим без указания тэга SCHET\\REF")]
+        public void CheckXML_H_31_ERR_PR_NOV_NOT_REF()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID);
+            file.ZAP.ForEach(x=>x.PR_NOV = 1);
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1)).Where(x=>x.Comment == "Признак исправленной записи = 1 недопустим без указания тэга SCHET\\REF").ToList();
+                Assert.IsTrue(res.Count != 0, $"Ошибку не видит");
+            }
+
+
+
+        }
+        [TestMethod(), Description("Признак исправленной записи = 0 недопустим при указании тэга SCHET\\REF")]
+        public void CheckXML_H_31_ERR_PR_NOV_REF()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID);
+            file.SCHET.REF = new REF();
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1)).Where(x => x.Comment == "Признак исправленной записи = 0 недопустим при указании тэга SCHET\\REF").ToList();
+                Assert.IsTrue(res.Count != 0, $"Ошибку не видит");
+            }
+
+        }
+
+
+        [TestMethod(), Description("Проверка файлов на схему - REF правильная XML")]
+        public void CheckXML_H_31_ERR_FIRST_IDCASE_WITH_REF()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID);
+            file.SCHET.REF = new REF();
+            file.ZAP.SelectMany(x => x.Z_SL_list).ToList().ForEach(x => x.FIRST_IDCASE = 0);
+            file.ZAP.ForEach(x=>x.PR_NOV = 1);
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count == 0, $"Правильное заполнение");
+            }
+        }
+
+
+        private string GetXML(ZL_LIST file)
+        {
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                using (var sr = new StreamReader(ms))
+                {
+
+                    return sr.ReadToEnd();
+                }
+            }
+        }
+
+
+    }
 }

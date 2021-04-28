@@ -550,7 +550,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
 
     [Serializable]   
-    public partial class ZGLV
+    public class ZGLV
     {    
 
         public static ZGLV Get(DataRow row)
@@ -598,7 +598,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
     
     [Serializable]   
-    public partial class SCHET
+    public class SCHET
     {
         public static SCHET Get(DataRow row)
         {
@@ -692,6 +692,10 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? SANK_EKMP { get; set; }
+
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
+        public REF REF { get; set; }
+
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string DISP { get; set; }
 
@@ -719,15 +723,25 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         #endregion
     }
 
+    [Serializable]
+    public class REF
+    {
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public decimal FIRST_CODE { get; set; }
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public decimal FIRST_YEAR { get; set; }
+        [XmlElement(Form = XmlSchemaForm.Unqualified)]
+        public decimal FIRST_MONTH { get; set; }
+    }
     
     [Serializable]
-    public partial class ZAP
+    public class ZAP
     {
         public static ZAP Get(DataRow row)
         {
             try
             {
-                ZAP item = new ZAP();
+                var item = new ZAP();
                 item.N_ZAP = Convert.ToDecimal(row["N_ZAP"]);
 
                 if (row["SCHET_ID"] != DBNull.Value)
@@ -784,7 +798,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
     
     [Serializable]
-    public partial class PACIENT
+    public class PACIENT
     {
         public static PACIENT Get(DataRow row)
         {
@@ -907,7 +921,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                Z_SL item = new Z_SL();
+                var item = new Z_SL();
                 if(row["DATE_Z_1"] !=DBNull.Value)
                     item.DATE_Z_1 = Convert.ToDateTime(row["DATE_Z_1"]);
                 if (row["DATE_Z_2"] != DBNull.Value)
@@ -985,6 +999,13 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal IDCASE { get; set; }
+
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
+        public decimal? FIRST_IDCASE { get; set; }
+        public bool ShouldSerializeFIRST_IDCASE()
+        {
+            return FIRST_IDCASE.HasValue;
+        }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? USL_OK { get; set; }

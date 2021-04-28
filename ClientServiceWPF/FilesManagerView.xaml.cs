@@ -1,23 +1,23 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
+using System.Windows.Threading;
 using ClientServiceWPF.Class;
 using ExcelManager;
 using ServiceLoaderMedpomData;
-using KeyEventArgs = System.Windows.Input.KeyEventArgs;
+using ServiceLoaderMedpomData.Annotations;
+using DataGrid = System.Windows.Controls.DataGrid;
 using MessageBox = System.Windows.MessageBox;
 
 namespace ClientServiceWPF
@@ -25,67 +25,215 @@ namespace ClientServiceWPF
     /// <summary>
     /// Логика взаимодействия для FilesManagerView.xaml
     /// </summary>
-    public partial class FilesManagerView : Window
+    public partial class FilesManagerView : Window, INotifyPropertyChanged
     {
-        IWcfInterface wcf => LoginForm.wcf;
-
-
-        public BindingList<FilePacket> List { get; set; } = new BindingList<FilePacket>();
-
-        private CollectionViewSource CVSFiles;
-
-        public FilesManagerView(bool Activ)
+        public  FilesManagerViewVM VM { get; set; } = new FilesManagerViewVM(LoginForm.wcf,  new ExcelFilePacket());
+        public FilesManagerView(bool isActive)
         {
             InitializeComponent();
-            labelUPDATE.Visibility = Visibility.Hidden;
-            CVSFiles = (CollectionViewSource) this.FindResource("CVSFiles");
-            SetControlForm(LoginForm.SecureCard, Activ);
+            VM.SetRight(LoginForm.SecureCard, isActive);
         }
-        void SetControlForm(List<string> card, bool activ)
+        /// <summary>
+        /// Действие при уведомлении сервера об обновлении
+        /// </summary>
+        public void UpdateList()
         {
-            buttonPriory.IsEnabled = card.Contains(nameof(IWcfInterface.SetPriority));
-            buttonClear.IsEnabled = card.Contains(nameof(IWcfInterface.ClearFileManagerList)) && !activ;
-            buttonDeletePack.IsEnabled = card.Contains(nameof(IWcfInterface.DelPack));
-            buttonSaveToArc.IsEnabled = card.Contains(nameof(IWcfInterface.SaveProcessArch));
-            MenuItemRepeat.IsEnabled = card.Contains(nameof(IWcfInterface.RepeatClosePac));
-            MenuItemBreakTimeout.IsEnabled = card.Contains(nameof(IWcfInterface.StopTimeAway));
+            VM.UpdateListCommand.Execute(null);
+        }
+       
+        private void FilesManagerView_OnClosing(object sender, CancelEventArgs e)
+        {
+           VM.OnClose();
+        }
+     
+        private void FilesManagerView_OnLoaded(object sender, RoutedEventArgs e)
+        {
+            VM.OnLoad();
         }
 
 
+        public ICommand FocusElementCommand { get; set; }= new Command(o => { (o as UIElement)?.Focus(); });
+      
 
-        private void buttonFindCODE_MO_Click(object sender, RoutedEventArgs e)
+        public List<FilePacket> SelectedFilePacket => dataGrid.SelectedCells.Select(x =>(FilePacket) x.Item).Distinct().ToList(); 
+        private void DataGridRow_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            var CODE_MO = textBoxFindCODE_MO.Text.ToUpper();
+           VM.ShowDetailCommand.Execute(SelectedFilePacket);
+        }
+
+        private void dataGrid_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            var dg = sender as DataGrid;
+            if (dg?.SelectedItem != null)
+            {
+                dg.ScrollIntoView(dg.SelectedItem);
+            }
+        }
+
+        
+        private void DataGrid_OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
+        {
+            OnPropertyChanged(nameof(SelectedFilePacket));
+        }
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+    }
+
+
+    public class FilesManagerViewVM:INotifyPropertyChanged
+    {
+        private IExcelFilePacket xlsFilePacket;
+
+        Dispatcher dispatcher;
+        private IWcfInterface wcf;
+
+        private FilePacket _SelectItem;
+        public FilePacket SelectItem
+        {
+            get { return _SelectItem; }
+            set { _SelectItem = value; OnPropertyChanged(); }
+        }
+
+
+        private string _StatusOperation;
+        public string StatusOperation
+        {
+            get { return _StatusOperation; }
+            set { _StatusOperation = value; OnPropertyChanged(); }
+        }
+
+        public ObservableCollection<FilePacket> List { get; set; } = new ObservableCollection<FilePacket>();
+        private List<string> _WcfRight = new List<string>();
+        private List<string> WcfRight
+        {
+            get { return _WcfRight;}
+            set { _WcfRight = value; OnPropertyChanged(); }
+        }
+        private bool _isActive;
+        private bool isActive
+        {
+            get { return _isActive; }
+            set { _isActive = value; OnPropertyChanged(); }
+        }
+        public FilesManagerViewVM(IWcfInterface wcf, IExcelFilePacket xlsFilePacket)
+        {
+            dispatcher = Dispatcher.CurrentDispatcher;
+            this.wcf = wcf;
+            this.xlsFilePacket = xlsFilePacket;
+        
+        }
+        public void SetRight(List<string> WcfRight, bool isActive)
+        {
+            this.WcfRight = WcfRight;
+            this.isActive = isActive;
+        }
+
+        public void OnLoad()
+        {
+            wcf.RegisterNewFileManager();
+            UpdateList();
+        }
+
+
+        public void OnClose()
+        {
+            try
+            {
+                Task.Run(() =>
+                {
+                    CancelUpdateList = true;
+                    lock (ProgressThread)
+                    {
+                        wcf.UnRegisterNewFileManager();
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+
+        public ICommand UpdateListCommand=> new Command(o => { UpdateList(); });
+
+
+
+        private bool CancelUpdateList;
+
+        public void UpdateList()
+        {
+            if (!CancelUpdateList)
+            {
+                Task.Run(() => { UpdateListThread(); });
+            }
+        }
+        private readonly object ProgressThread = new object();
+        private void UpdateListThread()
+        {
+            lock (ProgressThread)
+            {
+                try
+                {
+                    dispatcher.Invoke(() =>{StatusOperation = @"Запрос данных...";});
+                    var listtmp = wcf.GetFileManagerList();
+                    dispatcher.Invoke(() =>
+                    {
+                        StatusOperation = @"Обновление списка...";
+                        RefreshDate(listtmp);
+                      
+                        StatusOperation = "";
+                    });
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+            }
+        }
+        private void RefreshDate(List<FilePacket> list)
+        {
+            for (var i = 0; i < list.Count; i++)
+            {
+                if (i < List.Count)
+                    List[i].CopyFrom(list[i]);
+                else
+                    List.Add(list[i]);
+            }
+
+            for (var i = list.Count; i < List.Count; i++)
+            {
+                List.RemoveAt(i);
+            }
+
+            if (list.Count == 0)
+                List.Clear();
+        }
+
+
+        public ICommand FindCodeMOCommand => new Command(o =>
+        {
+            var CODE_MO = o.ToString().ToUpper();
             foreach (var fp in List)
             {
                 if (fp.CodeMO == CODE_MO)
                 {
-                    SetCurrent(fp);
-                    return;
+                    SelectItem = fp;
                 }
             }
-        }
-
-        private void TextBoxFindCODE_MO_OnKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter)
-            {
-                buttonFindCODE_MO_Click(buttonFindCODE_MO, new RoutedEventArgs());
-            }
-        }
-
-
-   
-
-
-
+        });
         private FindPredicate<FilePacket, string> FindPRED { get; set; } = new FindPredicate<FilePacket, string>();
-
-
-
-        private void buttonFindMO_NAME_Click(object sender, RoutedEventArgs e)
+        public ICommand FindNAM_MOKCommand => new Command(o =>
         {
-            var name = textBoxFindMO_NAME.Text.ToUpper();
+            var name = o.ToString().ToUpper();
             if (FindPRED.FindValue != name)
             {
                 FindPRED.Clear();
@@ -96,7 +244,7 @@ namespace ClientServiceWPF
             var FindValue = FindPRED.Next();
             if (FindValue != null)
             {
-                SetCurrent(FindValue);
+                SelectItem = FindValue;
             }
             else
             {
@@ -104,110 +252,114 @@ namespace ClientServiceWPF
                 MessageBox.Show("Поиск достиг конца списка");
             }
 
-        }
+        });
 
-        public void SetCurrent(FilePacket item)
-        {
-            dataGrid.SelectedCells.Clear();
-            CVSFiles.View.MoveCurrentTo(item);
-            dataGrid.ScrollIntoView(item);
-        }
+       
 
-        private bool CancelUpdateList;
-
-        public void UpdateList()
-        {
-            if (!CancelUpdateList)
-            {
-                var th = new Thread(UpdateListThread) {IsBackground = true};
-                th.Start();
-            }
-        }
-
-        private readonly object ProgressThread  = new object();
-        private void UpdateListThread()
-        {
-            lock (ProgressThread)
-            {
-                try
-                {
-                    this.Dispatcher.Invoke(() =>
-                    {
-                        try
-                        {
-                            labelUPDATE.Content = @"Запрос данных...";
-                            labelUPDATE.Visibility = Visibility.Visible;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show(ex.Message);
-                        }
-                    });
-
-                    var listtmp = wcf.GetFileManagerList();
-                    //Thread.Sleep(30000);
-                    this.Dispatcher.Invoke(() =>
-                    {
-                        try
-                        {
-                            labelUPDATE.Content = @"Обновление списка...";
-                            RefreshDate(List, listtmp);
-                            labelUPDATE.Visibility = Visibility.Hidden;
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show(ex.Message);
-                        }
-                    });
-
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-        }
-
-
-
-        private void RefreshDate(BindingList<FilePacket> mainlist, List<FilePacket> list)
-        {
-            for (var i = 0; i < list.Count; i++)
-            {
-                if (i < mainlist.Count)
-                    mainlist[i].CopyFrom(list[i]);
-                else
-                    mainlist.Add(list[i]);
-            }
-
-            for (var i = list.Count; i < mainlist.Count; i++)
-            {
-                mainlist.RemoveAt(i);
-            }
-
-            if (list.Count == 0)
-                mainlist.Clear();
-        }
-
-
-        private void buttonUpdate_Click(object sender, RoutedEventArgs e)
-        {
-            UpdateList();
-        }
-
-        private bool isClosed = false;
-        private Thread CloseConnectTh;
-        private void FilesManagerView_OnClosing(object sender, CancelEventArgs e)
+        public ICommand SetPriorCommand => new Command(o =>
         {
             try
             {
-                if (!isClosed)
+                var objects = (object[])o;
+                var prior = (string)objects[0];
+                var items = (List<FilePacket>)objects[1];
+                if (items.Count != 0)
                 {
-                    e.Cancel = true;
-                    if (CloseConnectTh==null || CloseConnectTh.IsAlive == false)
+                    foreach (var item in items)
                     {
-                        CloseConnectTh = new Thread(CloseConnect) { IsBackground = true };
-                        CloseConnectTh.Start();
+                        wcf.SetPriority(item.guid, Convert.ToInt32(prior));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }, o => WcfRight.Contains(nameof(IWcfInterface.SetPriority)));
+        public ICommand ToArchiveCommand => new Command(o =>
+        {
+            try
+            {
+                wcf.SaveProcessArch();
+                var form = new ProgressForm();
+                form.ShowDialog();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }, o => WcfRight.Contains(nameof(IWcfInterface.SaveProcessArch)));
+
+        public ICommand ClearCommand => new Command(o =>
+        {
+            try
+            {
+                if (MessageBox.Show($@"Очистка пакетов приведет к отмене текущих операций вы уверены?{Environment.NewLine}Это также приведет к удалению всех связанных файлов", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    wcf.ClearFileManagerList();
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }, o => WcfRight.Contains(nameof(IWcfInterface.ClearFileManagerList)) && !isActive);
+
+
+        public ICommand DeletePackCommand => new Command(o =>
+        {
+            try
+            {
+                var items = (List<FilePacket>)o;
+                if (items.Count != 0)
+                {
+                    if (MessageBox.Show($@"Вы уверены что хотите удалить пакет(ы)?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                        wcf.DelPack(items.First().guid);
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }, o => WcfRight.Contains(nameof(IWcfInterface.DelPack)));
+
+        SaveFileDialog sdf = new SaveFileDialog { Filter = @"Файлы Excel(*.xlsx)|*.xlsx" };
+
+        public ICommand ToXLSCommand => new Command(o =>
+        {
+            try
+            {
+                sdf.FileName = $"Прием реестров от {DateTime.Now:dd.MM.yyyy HH mm}";
+                if (sdf.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        xlsFilePacket.PrintExcel(List, sdf.FileName);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+
+        public ICommand RepeatCheckCommand => new Command(o =>
+        {
+            try
+            {
+                var selected = (List<FilePacket>)o;
+                if (selected.Count != 0)
+                {
+                    if (MessageBox.Show(selected.Count != 1 ? $"Вы уверены что хотите повторить проверку {selected.Count} пакетов?" : "Вы уверены что хотите повторить проверку пакета?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        var index = selected.Select(x => x.guid).ToArray();
+                        wcf.RepeatClosePac(index);
                     }
                 }
             }
@@ -215,72 +367,96 @@ namespace ClientServiceWPF
             {
                 MessageBox.Show(ex.Message);
             }
-        }
+        }, o => WcfRight.Contains(nameof(IWcfInterface.RepeatClosePac)));
 
-        private void CloseConnect()
+
+        public ICommand BreakTimeoutCommand => new Command(o =>
         {
             try
             {
-                CancelUpdateList = true;
-                lock (ProgressThread)
+                var selected = (List<FilePacket>)o;
+                if (selected.Count != 0)
                 {
-                    wcf.UnRegisterNewFileManager();
+                    if (MessageBox.Show(selected.Count != 1 ? $"Вы уверены что хотите закончить ожидание {selected.Count} пакетов?" : "Вы уверены что хотите закончить ожидание пакета?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        foreach (var t in selected)
+                        {
+                            wcf.StopTimeAway(List.IndexOf(t));
+                        }
+                    }
                 }
-                isClosed = true;
-                Dispatcher.Invoke(() => { this.Close(); });
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-        }
+        }, o => WcfRight.Contains(nameof(IWcfInterface.StopTimeAway)));
 
-
-
-        private void TextBoxFindMO_NAME_OnKeyUp(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter && TextBoxFindMO_NAMEKeyPress)
-            {
-                buttonFindMO_NAME_Click(buttonFindMO_NAME, new RoutedEventArgs());
-            }
-
-            TextBoxFindMO_NAMEKeyPress = false;
-        }
-
-        private bool TextBoxFindMO_NAMEKeyPress = false;
-        private void TextBoxFindMO_NAME_OnKeyDown(object sender, KeyEventArgs e)
-        {
-            TextBoxFindMO_NAMEKeyPress = true;
-        }
-
-        private void FilesManagerView_OnLoaded(object sender, RoutedEventArgs e)
-        {
-            UpdateList();
-            wcf.RegisterNewFileManager();
-        }
-        private SaveFileDialog sdf = new SaveFileDialog { Filter = @"Файлы Excel(*.xlsx)|*.xlsx" };
-        private void buttonXLS_Click(object sender, RoutedEventArgs e)
-        {
-            sdf.FileName = $"Прием реестров от {DateTime.Now:dd.MM.yyyy HH mm}";
-            if (sdf.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                try
-                {
-                    PrintExcel(List, sdf.FileName);
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
-            }
-        }
-
-
-        void PrintExcel(BindingList<FilePacket> mainlist, string path)
+        public ICommand BreakProcessCommand => new Command(o =>
         {
             try
             {
-                var sort_list = mainlist.OrderBy(FilePacket => FilePacket.CodeMO);
+                var selected = (List<FilePacket>)o;
+                if (selected.Count != 0)
+                {
+                    if (MessageBox.Show(selected.Count != 1 ? $"Вы уверены что хотите прервать обработку {selected.Count} пакетов?" : "Вы уверены что хотите прервать обработку пакета?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        foreach (var t in selected)
+                        {
+                            wcf.BreakProcessPac(t.guid);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }, o => WcfRight.Contains(nameof(IWcfInterface.BreakProcessPac)));
+
+        public ICommand ShowDetailCommand => new Command(o =>
+        {
+            try
+            {
+                var selected = (List<FilePacket>)o;
+                if (selected.Count != 0)
+                {
+                    var form = new ShowFileItem(selected[0]);
+                    form.ShowDialog();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+
+
+        #region  INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+    }
+
+    public interface IExcelFilePacket
+    {
+        void PrintExcel(IEnumerable<FilePacket> FilePackets, string path);
+    }
+
+    public class ExcelFilePacket : IExcelFilePacket
+    {
+       public void PrintExcel(IEnumerable<FilePacket> FilePackets, string path)
+        {
+            try
+            {
+                var sort_list = FilePackets.OrderBy(FilePacket => FilePacket.CodeMO).ToList();
 
                 using (var xls = new ExcelOpenXML(path, "Прием реестров"))
                 {
@@ -303,61 +479,15 @@ namespace ClientServiceWPF
                     xls.SetColumnWidth(7, 55);
                     foreach (var pack in sort_list)
                     {
-                        var countDD = 0;
-                        var countDF = 0;
-                        var countDO = 0;
-                        var countDP = 0;
-                        var countDR = 0;
-                        var countDS = 0;
-                        var countDU = 0;
-                        var countDV = 0;
-                        var countH = 0;
-                        var countT = 0;
-                        var countC = 0;
+                        var cec = new ENUM_COUNT<FileType>();
                         var CurrRow = Rowindex;
+                    
                         foreach (var fi in pack.Files)
                         {
                             MRow = xls.GetRow(Rowindex);
-
-                            switch (fi.Type)
-                            {
-                                case FileType.DD:
-                                    countDD++;
-                                    break;
-                                case FileType.DF:
-                                    countDF++;
-                                    break;
-                                case FileType.DO:
-                                    countDO++;
-                                    break;
-                                case FileType.DP:
-                                    countDP++;
-                                    break;
-                                case FileType.DR:
-                                    countDR++;
-                                    break;
-                                case FileType.DS:
-                                    countDS++;
-                                    break;
-                                case FileType.DU:
-                                    countDU++;
-                                    break;
-                                case FileType.DV:
-                                    countDV++;
-                                    break;
-                                case FileType.H:
-                                    countH++;
-                                    break;
-                                case FileType.T:
-                                    countT++;
-                                    break;
-                                case FileType.C:
-                                    countC++;
-                                    break;
-                            }
-
-
-
+                          
+                            if(fi.Type.HasValue)
+                                cec.AddCount(fi.Type.Value);
                             var Style = StyleValue;
                             if (fi.Process == StepsProcess.ErrorXMLxsd || fi.Process == StepsProcess.FlkErr || fi.Process == StepsProcess.Invite || fi.Process == StepsProcess.NotInvite)
                                 Style = StyleErr;
@@ -371,32 +501,8 @@ namespace ClientServiceWPF
                             xls.PrintCell(MRow, 8, fi.Comment, Style);
                             Rowindex++;
                         }
-                        var tmp = "";
-                        if (countH != 0)
-                            tmp += "H(" + countH + ");";
-                        if (countDD != 0)
-                            tmp += "DD(" + countDD + ");";
-                        if (countDF != 0)
-                            tmp += "DF(" + countDF + ");";
-                        if (countDO != 0)
-                            tmp += "DO(" + countDO + ");";
-                        if (countDP != 0)
-                            tmp += "DP(" + countDP + ");";
-                        if (countDR != 0)
-                            tmp += "DR(" + countDR + ");";
-                        if (countDS != 0)
-                            tmp += "DS(" + countDS + ");";
-                        if (countDU != 0)
-                            tmp += "DU(" + countDU + ");";
-                        if (countDV != 0)
-                            tmp += "DV(" + countDV + ");";
-                        if (countT != 0)
-                            tmp += "T(" + countT + ");";
-                        if (countC != 0)
-                            tmp += "C(" + countC + ");";
 
-
-                        xls.PrintCell(CurrRow, 4, tmp, countH != 0 ? StyleValue : StyleErr);
+                        xls.PrintCell(CurrRow, 4, cec.GetString(null), cec[FileType.H] != 0 ? StyleValue : StyleErr);
                         index++;
                     }
                     xls.AutoSizeColumns(1, 6);
@@ -406,7 +512,7 @@ namespace ClientServiceWPF
 
                     xls.PrintCell(Rowindex, 2, "", StyleValue);
                     xls.PrintCell(Rowindex, 3, "", StyleValue);
-                    xls.PrintCell(Rowindex, 1, $"Всего: {mainlist.Count} пакетов", StyleValue);
+                    xls.PrintCell(Rowindex, 1, $"Всего: {sort_list.Count} пакетов", StyleValue);
                     xls.AddMergedRegion(new CellRangeAddress(Rowindex, 1, Rowindex, 3));
 
                     xls.Save();
@@ -415,14 +521,12 @@ namespace ClientServiceWPF
                         ShowSelectedInExplorer.FileOrFolder(path);
                     }
                 }
-                    
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.FullError());
             }
         }
-
         string FilesItemStatus(StepsProcess value)
         {
             switch (value)
@@ -435,158 +539,48 @@ namespace ClientServiceWPF
                 case StepsProcess.FlkOk: return "Файл принят.";
                 default: return "Неизвестно";
             }
-
         }
-
-        private List<FilePacket> SelectedFilePacket => dataGrid.SelectedCells.Select(x =>(FilePacket) x.Item).Distinct().ToList(); 
-
-        private void buttonPriory_Click(object sender, RoutedEventArgs e)
+        private class ENUM_COUNT<T>
         {
-            try
+            Dictionary<T, int> CountDic = new Dictionary<T, int>();
+            public ENUM_COUNT()
             {
-                var selected = SelectedFilePacket;
-                if (selected.Count != 0)
+                foreach (var value in (T[]) typeof(T).GetEnumValues())
                 {
-                    foreach (var item in selected)
-                    {
-                        wcf.SetPriority(item.guid, Convert.ToInt32(textBoxPriory.Text));
-                    }
+                    CountDic.Add(value, 0);
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-           
-        }
 
-
-        private void buttonClear_Click(object sender, RoutedEventArgs e)
-        {
-            if (MessageBox.Show($@"Очистка пакетов приведет к отмене текущих операций вы уверены?{Environment.NewLine}Это также приведет к удалению всех связанных файлов", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            public void AddCount(T val)
             {
-                wcf.ClearFileManagerList();
-            }
-        }
-
-        private void buttonDeletePack_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var selected = SelectedFilePacket;
-                if (selected.Count != 0)
-                {
-                    if (MessageBox.Show($@"Вы уверены что хотите удалить пакет?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                        wcf.DelPack(selected.First().guid);
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void buttonSaveToArc_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                wcf.SaveProcessArch();
-
-                var form = new ProgressForm();
-                form.ShowDialog();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void MenuItemRepeat_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var selected = SelectedFilePacket;
-                if (selected.Count != 0)
-                {
-                    if (MessageBox.Show(selected.Count != 1? $"Вы уверены что хотите повторить проверку {selected.Count} пакетов?" : "Вы уверены что хотите повторить проверку пакета?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    {
-                        var index = selected.Select(x => x.guid).ToArray();
-                        wcf.RepeatClosePac(index);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void MenuItemBreakTimeout_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var selected = SelectedFilePacket;
-                if (selected.Count != 0)
-                {
-                    if (MessageBox.Show(selected.Count != 1 ? $"Вы уверены что хотите закончить ожидание {selected.Count} пакетов?" : "Вы уверены что хотите закончить ожидание пакета?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    {
-                        foreach (var t in selected)
-                        {
-                            wcf.StopTimeAway(List.IndexOf(t));
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void MenuItemBreakProcess_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var selected = SelectedFilePacket;
-                if (selected.Count != 0)
-                {
-                    if (MessageBox.Show(selected.Count != 1 ? $"Вы уверены что хотите прервать обработку {selected.Count} пакетов?" : "Вы уверены что хотите прервать обработку пакета?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    {
-                        foreach (var t in selected)
-                        {
-                            wcf.BreakProcessPac(t.guid);
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void MenuItemView_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var selected = SelectedFilePacket;
-                if (selected.Count != 0)
-                {
-                    var form = new ShowFileItem(selected[0]);
-                    form.ShowDialog();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
+                if (CountDic.ContainsKey(val))
+                    CountDic[val]++;
             }
 
-         
-        }
+            public string GetString(params T[] filter)
+            {
+                return string.Join(",", CountDic.Where(x => (filter == null || filter.Contains(x.Key)) && x.Value!=0).Select(x => $"{x.Key.ToString()}({x.Value})"));
+            }
 
-        private void EventSetter_OnHandler(object sender, MouseButtonEventArgs e)
-        {
-            MenuItemView_OnClick(MenuItemView, new RoutedEventArgs());
+            public int this[T val] => CountDic[val];
+
         }
     }
+
+
+    public class ArrayParamConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            return values.ToArray();
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
+  
+
 }

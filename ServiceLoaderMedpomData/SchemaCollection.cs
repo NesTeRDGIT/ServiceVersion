@@ -1088,6 +1088,8 @@ namespace ServiceLoaderMedpomData
         public XML_Element<string> OKATO_OMS { get; set; } = new XML_Element<string>();
         public XML_Element<int?> SD_Z { get; set; } = new XML_Element<int?>();
         public XML_Element<decimal?> SUMMAV { get; set; } = new XML_Element<decimal?>();
+        public XML_Element<string> REF { get; set; } = new XML_Element<string>();
+
         public decimal SUMV_SUM { get; set; }
         public int IDCASE_COUNT { get; set; }
         public XML_FileType TypeFile
@@ -1128,11 +1130,16 @@ namespace ServiceLoaderMedpomData
             SUMMAV.Clear();
             SUMV_SUM = 0;
             IDCASE_COUNT = 0;
+            REF.Clear();
         }
+
     }
 
     class XML_Z_SL_item
     {
+        
+        public XML_Element<string> FIRST_IDCASE { get; set; } = new XML_Element<string>();
+        public XML_Element<string> PR_NOV { get; set; } = new XML_Element<string>();
         public XML_Element<string> P_OTK { get;  set; } = new XML_Element<string>();
         public XML_Element<string> RSLT_D { get;  set; } = new XML_Element<string>();
         public XML_Element<decimal> SUMV { get; set; } = new XML_Element<decimal>();
@@ -1147,6 +1154,8 @@ namespace ServiceLoaderMedpomData
             USL_OK.Clear();
             SUM_M_SUM = 0;
             SUMV_USL_SUM = 0;
+            PR_NOV.Clear();
+            FIRST_IDCASE.Clear();
         }
     }
 
@@ -1219,6 +1228,7 @@ namespace ServiceLoaderMedpomData
         private bool _isSCHET { get; set; }
         private bool _isZGLV { get; set; }
         private bool _isSANK { get; set; }
+        private bool _isZAP { get; set; }
 
         public void BeginZ_SL()
         {
@@ -1272,9 +1282,20 @@ namespace ServiceLoaderMedpomData
         {
             _isSANK = false;
         }
+
+        public void BeginZAP()
+        {
+            _isZAP = true;
+        }
+        public void EndZAP()
+        {
+            _isZAP = false;
+        }
+
         public bool IsZGLV => _isZGLV;
         public bool IsSCHET => _isSCHET;
         public bool IsZ_SL => _isZ_SL && !IsSL;
+        public bool IsZAP => _isZAP && !_isZ_SL;
         public bool IsSL => _isSL && !IsUSL;
         public bool IsUSL => _isUSL;
 
@@ -1364,6 +1385,8 @@ namespace ServiceLoaderMedpomData
                             if (tx.IsSCHET)
                                 SCHET.SUMMAV = CreateDecimalNullXML_Element(reader);
                             break;
+                     
+                       
                         case "SUMV":
                             if (tx.IsZ_SL)
                             {
@@ -1388,6 +1411,15 @@ namespace ServiceLoaderMedpomData
                         case "IDCASE":
                             if (tx.IsZ_SL)
                                 SCHET.IDCASE_COUNT++;
+                            break;
+                        case "FIRST_IDCASE":
+                            if (tx.IsZ_SL)
+                                Z_SL.FIRST_IDCASE = CreateStringXML_Element(reader);
+                            break;
+                            
+                        case "PR_NOV":
+                            if (tx.IsZAP)
+                                Z_SL.PR_NOV = CreateStringXML_Element(reader);
                             break;
                         case "DS1":
                             if (tx.IsSL)
@@ -1506,6 +1538,16 @@ namespace ServiceLoaderMedpomData
                         case "SANK":
                             tx.BeginSANK();
                             break;
+                        case "ZAP":
+                            tx.BeginZAP();
+                            break;
+                        case "REF":
+                            if (tx.IsSCHET)
+                            {
+                                SCHET.REF = CreateStringXML_Element(reader);
+                                SCHET.REF.value = "true";
+                            }
+                            break;
 
                     }
                     break;
@@ -1537,8 +1579,10 @@ namespace ServiceLoaderMedpomData
                             tx.EndSCHET();
                             break;
                         case "ZGLV":
-
                             tx.EndZGLV();
+                            break;
+                        case "ZAP":
+                            tx.EndZAP();
                             break;
                     }
                     break;
@@ -1562,6 +1606,20 @@ namespace ServiceLoaderMedpomData
             {
                 if (Math.Round(Z_SL.SUMV.value, 2) != Math.Round(Z_SL.SUMV_USL_SUM, 2))
                     Error(XmlSeverityType.Error, Z_SL.SUMV.POS.LINE, Z_SL.SUMV.POS.POS, $"Сумма законченного случая({Math.Round(Z_SL.SUMV.value, 2)}) не равна сумме услуг({Math.Round(Z_SL.SUMV_USL_SUM, 2)})", "SUMV");
+
+                var isRef = !string.IsNullOrEmpty(SCHET.REF.value);
+                if (Z_SL.PR_NOV.value == "1" && !isRef)
+                    Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Признак исправленной записи = 1 недопустим без указания тэга SCHET\\REF", "SUMV");
+                if (Z_SL.PR_NOV.value == "0" && isRef)
+                    Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Признак исправленной записи = 0 недопустим при указании тэга SCHET\\REF", "SUMV");
+
+                var isFIRST_IDCASE = !string.IsNullOrEmpty(Z_SL.FIRST_IDCASE.value);
+                if (isFIRST_IDCASE && !isRef)
+                    Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Поле FIRST_IDCASE не подлежит заполнению без указания тэга SCHET\\REF", "SUMV");
+                if (!isFIRST_IDCASE && isRef)
+                    Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Поле FIRST_IDCASE обязательно к заполнению при указании тэга SCHET\\REF", "SUMV");
+
+
             }
         }
         private void CheckUSL()
