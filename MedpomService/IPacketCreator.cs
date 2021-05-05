@@ -16,8 +16,9 @@ namespace MedpomService
 
     public class PacketCreator : IPacketCreator
     {
-        private IRepository mybd { get; set; }
-        private ISchemaCheck SchemaCheck { get; set; }
+        private IRepository mybd { get; }
+        private ISchemaCheck SchemaCheck { get; }
+        private ThreadManager<CloserPackParam> listTH { get; } = new ThreadManager<CloserPackParam>();
 
 
         string SvodFileNameXLS = "FileStat.xlsx";
@@ -38,7 +39,7 @@ namespace MedpomService
             th.Start(param);
         }
 
-        private ThreadManager<CloserPackParam> listTH = new ThreadManager<CloserPackParam>();
+      
         private class CloserPackParam
         {
             public FilePacket pack { get; set; }
@@ -159,8 +160,10 @@ namespace MedpomService
                         Logger.AddLog($"Ошибка сохранения подписи: {ex1.Message} для {item.FileName}", LogType.Error);
                     }
                 }
+                pack.CloserLogFiles();
                 //Проверка схемы
                 SchemaCheck.StartCheck(pack);
+                
             }
             catch (Exception ex)
             {
@@ -171,7 +174,6 @@ namespace MedpomService
             }
             finally
             {
-                pack.CloserLogFiles();
                 listTH.RemoveTh(Thread.CurrentThread);
             }
         }

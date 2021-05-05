@@ -118,7 +118,7 @@
                                         </Grid>
                                         <DataTemplate.Triggers>
                                             <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=DataGridRow}, Path=DataContext.IsErr}" Value="True">
-                                                <Setter TargetName="ImageCS" Property="Source" Value="Image/error.png"/>
+                                                <Setter TargetName="ImageCS" Property="Source" Value="../Image/error.png"/>
                                                 <Setter TargetName="ImageCS" Property="ToolTip" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=DataGridRow}, Path=DataContext.ErrComment}"/>
                                             </DataTrigger>
                                         </DataTemplate.Triggers>

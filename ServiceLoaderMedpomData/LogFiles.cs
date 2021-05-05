@@ -51,8 +51,11 @@ namespace ServiceLoaderMedpomData
         public void Close()
         {
             if (SW == null) return;
-            SW.Close();            
-            SW = null;
+            lock (SW)
+            {
+                SW.Close();
+                SW = null;
+            }
         }
         /// <summary>
         /// Открыть файл для добавления
@@ -62,6 +65,7 @@ namespace ServiceLoaderMedpomData
             if (SW != null) return ;
             Stream st = File.Open(filename, FileMode.Append, FileAccess.Write);
             SW = new StreamWriter(st);
+
         }
 
         public void Reset()

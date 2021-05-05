@@ -198,12 +198,7 @@ namespace MedpomService
 
         public void ClearEventLogEntry()
         {
-            var EventLog = new EventLog();
-            if (EventLog.Exists("MedpomServiceLog"))
-            {
-                EventLog.Source = "MedpomServiceLog";
-                EventLog.Clear();
-            }
+            Logger.Clear();
         }
 
         public bool SetPriority(Guid guid, int priority)
@@ -244,25 +239,25 @@ namespace MedpomService
         }
 
 
-        ProgressClass progress;
+        private ProgressClass progress = new ProgressClass();
         public void SaveProcessArch()
         {
             if (progress != null)
             {
+                
                 if (progress.Active)
                 {
                     throw new FaultException("Операция уже выполняется!!!");
                 }
             }
-            progress = new ProgressClass { Active = true };
-            var th = new Thread(SaveProgressFolder) { IsBackground = true };
-            th.Start();
+            Task.Run(() => { SaveProgressFolder(); });
         }
 
         private void SaveProgressFolder()
         {
             try
             {
+                progress.Active = true;
                 var pathDir = Path.Combine(AppConfig.Property.InputDir, DateTime.Now.Year.ToString(), DateTime.Now.ToString("MMMMMMMMMMMMM"));
                 if (!Directory.Exists(pathDir))
                     Directory.CreateDirectory(pathDir);
@@ -273,7 +268,6 @@ namespace MedpomService
                     num++;
                     path = Path.Combine(pathDir, $"PROCESS{num}.zip");
                 }
-
                 using (var zf = new ZipFile(path, Encoding.GetEncoding("cp866")))
                 {
                     zf.AddDirectory(AppConfig.Property.ProcessDir, "PROCESS");
@@ -317,9 +311,6 @@ namespace MedpomService
             }
         }
 
-        /*public delegate void AddFileFunct(string File);
-        public event AddFileFunct addFileFunct;
-        */
         public void AddListFile(List<string> List)
         {
             if (!FileInviter.isActivateFileAuto() && FileInviter.isFileInviter())
@@ -341,8 +332,11 @@ namespace MedpomService
                 var item = PacketQuery.FindPack(guid);
                 if (item != null)
                 {
-                    processReestr.Break(item);
-                    SchemaCheck.Break(item);
+                    Task.Run(() =>
+                    {
+                        processReestr.Break(item);
+                        SchemaCheck.Break(item);
+                    });
                 }
             }
             catch (Exception ex)
@@ -361,12 +355,14 @@ namespace MedpomService
                 {
                     throw new FaultException("Повтор возможен только при статусах: FLKOK,FLKERR");
                 }
-
-                foreach (var pack in packs)
+                Task.Run(() =>
                 {
-                    pack.Status = StatusFilePack.Close;
-                    SchemaCheck.StartReCheck(pack);
-                }
+                    foreach (var pack in packs)
+                    {
+                        pack.Status = StatusFilePack.Close;
+                        SchemaCheck.StartReCheck(pack);
+                    }
+                });
             }
             catch (Exception ex)
             {

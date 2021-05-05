@@ -321,7 +321,7 @@ namespace MedpomService
             });
         }
 
-        public void AddFile(string[] Files)
+        public void AddFile(params string[] Files)
         {
             foreach (var file in Files)
             {

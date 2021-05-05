@@ -11,6 +11,7 @@ namespace ServiceLoaderMedpomData
     public interface ILogger
     {
         void AddLog(string log, LogType type);
+        void Clear();
     }
     public enum LogType
     {
@@ -30,12 +31,7 @@ namespace ServiceLoaderMedpomData
         {
             try
             {
-             
-                if (!EventLog.SourceExists(nameLog))
-                {
-                    EventLog.CreateEventSource(nameLog, nameLog);
-                }
-                var el = new EventLog {Source = nameLog};
+                var el = GetLog();
                 el.WriteEntry(log, LogTypeToLogEntryType(type));
             }
 
@@ -44,6 +40,22 @@ namespace ServiceLoaderMedpomData
                 // ignored
             }
         }
+
+        private EventLog GetLog()
+        {
+            if (!EventLog.SourceExists(nameLog))
+            {
+                EventLog.CreateEventSource(nameLog, nameLog);
+            }
+            return  new EventLog { Source = nameLog };
+        }
+
+        public void Clear()
+        {
+            var EventLog = GetLog();
+            EventLog.Clear();
+        }
+
         private EventLogEntryType LogTypeToLogEntryType(LogType lt)
         {
             switch (lt)

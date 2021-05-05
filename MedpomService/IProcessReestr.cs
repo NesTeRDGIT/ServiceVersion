@@ -56,7 +56,7 @@ namespace MedpomService
                 {
                     var currentpack = PacketQuery.GetHighPriority();
                     if (currentpack!=null)
-                    { 
+                    {
                         try
                         {
                             if (currentpack.Status == StatusFilePack.XMLSchemaOK)
@@ -205,6 +205,7 @@ namespace MedpomService
                                             currentpack.Comment = $"При очистке базы {AppConfig.Property.xml_h_zglv_transfer} от {currentpack.CodeMO}: {e.Message}";
                                             Logger.AddLog($"При очистке базы {AppConfig.Property.xml_h_zglv_transfer} от {currentpack.CodeMO}: {e.Message}", LogType.Error);
                                         }
+
                                         throw new Exception("Ошибка при очистке TEMP100");
                                     }
 
@@ -314,6 +315,7 @@ namespace MedpomService
                                             {
                                                 fi.WriteLnFull("Ошибка переноса");
                                             }
+
                                             currentpack.CommentSite = "Что то пошло не так...";
                                             currentpack.Comment = $"Ошибка при переносе в месячную БД: {ex.Message}";
                                             Logger.AddLog($"Ошибка при переносе в месячную БД для {currentpack.CodeMO}: {ex.Message}", LogType.Error);
@@ -337,7 +339,7 @@ namespace MedpomService
                                     currentpack.Comment = "Обработка пакета: Завершено";
                                     currentpack.CommentSite = "Завершено";
                                     //Сохраняем файлы(журнала и работы) на всякий случай.
-                                    SaveFilesParam();
+
                                     DBinvitePac = null;
                                 }
                             }
@@ -362,6 +364,10 @@ namespace MedpomService
                             Logger.AddLog($"Ошибка при переносе в БД {currentpack.CodeMO} ({ex.Source}:{ex.Message})", LogType.Error);
                             currentpack.CloserLogFiles();
                         }
+                        finally
+                        {
+                            SaveFilesParam();
+                        }
                     }
 
                     Thread.Sleep(1000);
@@ -372,6 +378,7 @@ namespace MedpomService
             {
                 DBinvitePac = null;
                 Logger.AddLog($"Ошибка в потоке ФЛК ({ex.Source}:{ex.Message})", LogType.Error);
+                SaveFilesParam();
             }
         }
         string PathEXE = Process.GetCurrentProcess().MainModule?.FileName;

@@ -74,12 +74,8 @@ namespace MedpomService
         {
             return $"{FP.CodeMO} результат приема МП от {DateTime.Now:dd_MM_yyyy HH_mm}";
         }
-        private string GetErrorName(MatchParseFileName FP)
-        {
-            return FP.Ni != null ? $"{FP.Ni} ошибки МП от {DateTime.Now:dd_MM_yyyy HH_mm}" : $"UNKNOWN ошибки МП от {DateTime.Now:dd_MM_yyyy HH_mm}";
-        }
-
-        private object Flag;
+     
+        private object Flag = new object();
         public void CreateMessage(string Message, string FilePath, params string[] Attachment)
         {
             Monitor.Enter(Flag);

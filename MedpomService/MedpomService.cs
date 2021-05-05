@@ -26,11 +26,8 @@ namespace MedpomService
 {
     public partial class MedpomService : ServiceBase
     {
-        //SchemaColection SC;//Схемы
-        //  JournalReception jor;//Журнал приема
-        WcfInterface wi;//ВКФ сервис. Взаимодействие с сервером 
-
-     
+       WcfInterface wi;//ВКФ сервис. Взаимодействие с сервером 
+        
         public static string SysLog = "";
         public static string SysPass = "";
 

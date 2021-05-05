@@ -8,7 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ServiceLoaderMedpomData.EntityMP_V31;
 
-namespace ServiceLoaderMedpomData.Tests
+namespace ServiceLoaderMedpomDataTests
 {
     [TestClass()]
     public class SchemaCheckingTests
@@ -65,6 +65,44 @@ namespace ServiceLoaderMedpomData.Tests
             var res = sc.CheckXML(T_VALID, PATH_XSD_T31, new CheckXMLValidator(VersionMP.V3_1));
             Assert.IsTrue(res.Count == 0, $"Для правильной XML не верную схему пишет: {string.Join(";", res.Select(x => x.Comment))}");
         }
+        [TestMethod(), Description("Проверка файлов H на схему - правильное выполнение")]
+        public void CheckXML_T_VALID_31_AND_KSLP()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID);
+            file.ZAP.Select(x=>x.Z_SL).SelectMany(x=>x.SL).ToList()
+                .ForEach(x=>x.KSG_KPG= new KSG_KPG() {N_KSG = "KSG", SL_KOEF = new List<SL_KOEF> { new SL_KOEF()}, CRIT = new List<string> {"CRIT"} });
+         
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count == 0, $"Видит ошибку которой нет");
+            }
+
+          
+        }
+
+        private string C_EMPTY_ELEMENT = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\C_EMPTY_ELEMENT.XML";
+        [TestMethod(), Description("Проверка файлов C на схему - пустой элемент <SMO/>")]
+        public void CheckXML_C_EMPTY_ELEMENT()
+        {
+            var file = ZL_LIST.ReadFromFile(C_EMPTY_ELEMENT);
+          
+            var t = GetXML(file);
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count == 1, $"Видит ошибку которой нет");
+            }
+
+
+        }
+
         [TestMethod(), Description("Проверка файлов на схему - ошибка суммы")]
         public void CheckXML_H_31_ERR_SUMMAV_NOT_EQ_SUMV()
         {
@@ -85,6 +123,7 @@ namespace ServiceLoaderMedpomData.Tests
         {
             var file = ZL_LIST.ReadFromFile(H_VALID);
             file.ZGLV.SD_Z = 0;
+
             using (var ms = new MemoryStream())
             {
                 file.WriteXml(ms);

@@ -48,7 +48,6 @@
                 <Label Margin="284,35,10,0" Height="27" VerticalAlignment="Top" Name="LabelMain" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="{Binding DownloadFileProgress.Text}"/>
                 <ProgressBar Margin="284,65,10,0" Height="27" VerticalAlignment="Top" Name="ProgressBarDownload" Maximum="{Binding DownloadFileProgress.Max}" Value="{Binding DownloadFileProgress.Value}"/>
                 <Label Margin="284,91,10,0" Height="27" VerticalAlignment="Top" Name="LabelDownload" HorizontalContentAlignment="Center" VerticalContentAlignment="Center" Content="{Binding DownloadFileProgress.Text}"/>
-              
                 <Button Margin="10,8,0,0" HorizontalAlignment="Left" Width="182" Height="27" VerticalAlignment="Top" Style="{DynamicResource MainButton}" Content="Скачать локально..." Name="ButtonDownload"  Command="{Binding SaveFileLocal}"></Button>
             </Grid>
         </GroupBox>

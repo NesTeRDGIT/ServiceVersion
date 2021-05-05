@@ -1220,87 +1220,6 @@ namespace ServiceLoaderMedpomData
         }
     }
 
-    class TreeXML
-    {
-        private bool _isZ_SL { get; set; }
-        private bool _isSL { get; set; }
-        private bool _isUSL { get; set; }
-        private bool _isSCHET { get; set; }
-        private bool _isZGLV { get; set; }
-        private bool _isSANK { get; set; }
-        private bool _isZAP { get; set; }
-
-        public void BeginZ_SL()
-        {
-            _isZ_SL = true;
-        }
-        public void EndZ_SL()
-        {
-            _isZ_SL = false;
-        }
-
-        public void BeginSL()
-        {
-            _isSL = true;
-        }
-        public void EndSL()
-        {
-            _isSL = false;
-        }
-
-        public void BeginUSL()
-        {
-            _isUSL = true;
-        }
-        public void EndUSL()
-        {
-            _isUSL = false;
-        }
-
-        public void BeginSCHET()
-        {
-            _isSCHET = true;
-        }
-        public void EndSCHET()
-        {
-            _isSCHET = false;
-        }
-
-        public void BeginZGLV()
-        {
-            _isZGLV = true;
-        }
-        public void EndZGLV()
-        {
-            _isZGLV = false;
-        }
-        public void BeginSANK()
-        {
-            _isSANK= true;
-        }
-        public void EndSANK()
-        {
-            _isSANK = false;
-        }
-
-        public void BeginZAP()
-        {
-            _isZAP = true;
-        }
-        public void EndZAP()
-        {
-            _isZAP = false;
-        }
-
-        public bool IsZGLV => _isZGLV;
-        public bool IsSCHET => _isSCHET;
-        public bool IsZ_SL => _isZ_SL && !IsSL;
-        public bool IsZAP => _isZAP && !_isZ_SL;
-        public bool IsSL => _isSL && !IsUSL;
-        public bool IsUSL => _isUSL;
-
-        public bool IsSANK => IsZ_SL && _isSANK;
-    }
 
     class MyValidatorV31 : IValidatorXML
     {
@@ -1308,7 +1227,7 @@ namespace ServiceLoaderMedpomData
         private readonly DateTime DT_04_2020 = new DateTime(2020, 04, 01);
         private readonly DateTime DT_03_2021 = new DateTime(2021, 03, 01);
 
-        private string prevnodes = "";
+      
 
         private XML_SCHET_item SCHET = new XML_SCHET_item();
         private XML_Z_SL_item Z_SL = new XML_Z_SL_item();
@@ -1316,7 +1235,7 @@ namespace ServiceLoaderMedpomData
         private XML_USL_item USL = new XML_USL_item();
         private XML_SANK_item SANK = new XML_SANK_item();
 
-        TreeXML tx = new TreeXML();
+        
 
 
         public MyValidatorV31(ErrorActionEvent err)
@@ -1355,239 +1274,155 @@ namespace ServiceLoaderMedpomData
 
         public void Check(XmlReader reader)
         {
+            depthXml.NextNode(reader);
             switch (reader.NodeType)
             {
                 case XmlNodeType.Text:
-
-                    switch (prevnodes)
+                    switch (depthXml.Path)
                     {
-                        case "YEAR":
-                            if (tx.IsSCHET)
+                        case "ZL_LIST/ZGLV/YEAR":
                                 SCHET.YEAR = CreateIntXML_Element(reader);
                             break;
-                        case "MONTH":
-                            if (tx.IsSCHET)
+                        case "ZL_LIST/ZGLV/MONTH":
                                 SCHET.MONTH = CreateIntXML_Element(reader);
                             break;
-                        case "FILENAME":
-                            if (tx.IsZGLV)
+                        case "ZL_LIST/ZGLV/FILENAME":
                                 SCHET.FILENAME = CreateStringXML_Element(reader);
                             break;
                         case "OKATO_OMS":
-                            if (tx.IsZGLV)
                                 SCHET.OKATO_OMS = CreateStringXML_Element(reader);
                             break;
-                        case "SD_Z":
-                            if (tx.IsZGLV)
+                        case "ZL_LIST/ZGLV/SD_Z":
                                 SCHET.SD_Z = CreateIntNullXML_Element(reader);
                             break;
-                        case "SUMMAV":
-                            if (tx.IsSCHET)
+                        case "ZL_LIST/SCHET/SUMMAV":
                                 SCHET.SUMMAV = CreateDecimalNullXML_Element(reader);
                             break;
-                     
-                       
-                        case "SUMV":
-                            if (tx.IsZ_SL)
-                            {
+                        case "ZL_LIST/ZAP/Z_SL/SUMV":
                                 Z_SL.SUMV = CreateDecimalXML_Element(reader);
                                 SCHET.SUMV_SUM += Z_SL.SUMV.value;
-                            }
                             break;
-                        case "SUM_M":
-                            if (tx.IsSL)
-                            {
+                        case "ZL_LIST/ZAP/Z_SL/SL/SUM_M":
                                 SL.SUM_M = CreateDecimalXML_Element(reader);
                                 Z_SL.SUM_M_SUM += SL.SUM_M.value;
-                            }
                             break;
-                        case "SUMV_USL":
-                            if (tx.IsUSL)
-                            {
-                                USL.SUMV_USL = CreateDecimalXML_Element(reader);
-                                Z_SL.SUMV_USL_SUM += USL.SUMV_USL.value;
-                            }
-                            break;
-                        case "IDCASE":
-                            if (tx.IsZ_SL)
+                        case "ZL_LIST/ZAP/Z_SL/IDCASE":
                                 SCHET.IDCASE_COUNT++;
                             break;
-                        case "FIRST_IDCASE":
-                            if (tx.IsZ_SL)
+                        case "ZL_LIST/ZAP/Z_SL/FIRST_IDCASE":
                                 Z_SL.FIRST_IDCASE = CreateStringXML_Element(reader);
                             break;
-                            
-                        case "PR_NOV":
-                            if (tx.IsZAP)
+                        case "ZL_LIST/ZAP/PR_NOV":
                                 Z_SL.PR_NOV = CreateStringXML_Element(reader);
                             break;
-                        case "DS1":
-                            if (tx.IsSL)
-                            {
+                        case "ZL_LIST/ZAP/Z_SL/SL/DS1":
                                 SL.DS1 = CreateStringXML_Element(reader);
-                            }
                             break;
-                        case "TARIF":
-                            if (tx.IsSL)
-                            {
+                        case "ZL_LIST/ZAP/Z_SL/SL/TARIF":
                                 SL.TARIF = CreateStringXML_Element(reader);
-                            }
                             break;
-                        case "DS2":
-                            if (tx.IsSL)
+                        case "ZL_LIST/ZAP/Z_SL/SL/DS2":
                                 SL.DS2.Add(CreateStringXML_Element(reader));
                             break;
-                        case "DS_ONK":
-                            if (tx.IsSL)
+                        case "ZL_LIST/ZAP/Z_SL/SL/DS_ONK":
                                 SL.DS_ONK = CreateStringXML_Element(reader);
                             break;
-                        case "USL_OK":
-                            if (tx.IsZ_SL)
+                        case "ZL_LIST/ZAP/Z_SL/USL_OK":
                                 Z_SL.USL_OK = CreateStringXML_Element(reader);
                             break;
-                        case "REAB":
-                            if (tx.IsSL)
+                        case "ZL_LIST/ZAP/Z_SL/SL/REAB":
                                 SL.REAB = CreateStringXML_Element(reader);
                             break;
-                        case "C_ZAB":
-                            if (tx.IsSL)
+                        case "ZL_LIST/ZAP/Z_SL/SL/C_ZAB":
                                 SL.C_ZAB = CreateStringXML_Element(reader);
                             break;
-                        case "RSLT_D":
-                            if (tx.IsZ_SL)
+                        case "ZL_LIST/ZAP/Z_SL/RSLT_D":
                                 Z_SL.RSLT_D = CreateStringXML_Element(reader); 
                             break;
-                        case "PRVS":
-                            if (tx.IsUSL)
-                            {
+                        case "ZL_LIST/ZAP/Z_SL/SL/USL/PRVS":
                                 USL.PRVS = CreateStringXML_Element(reader); 
-                            }
                             break;
-                        case "PR_D_N":
-                            if (tx.IsSL)
-                            {
+                        case "ZL_LIST/ZAP/Z_SL/SL/PR_D_N":
                                 SL.PR_D_N = CreateStringXML_Element(reader);
-                            }
                             break;
-                        case "P_OTK":
-                            if (tx.IsZ_SL)
-                            {
+                        case "ZL_LIST/ZAP/Z_SL/P_OTK":
                                 Z_SL.P_OTK = CreateStringXML_Element(reader);
-                            }
-                            if (tx.IsUSL)
-                            {
+                            break;
+                        case "ZL_LIST/ZAP/Z_SL/SL/USL/SUMV_USL":
+                                USL.SUMV_USL = CreateDecimalXML_Element(reader);
+                                Z_SL.SUMV_USL_SUM += USL.SUMV_USL.value;
+                            break;
+                        case "ZL_LIST/ZAP/Z_SL/SL/USL/P_OTK":
                                 USL.P_OTK = CreateStringXML_Element(reader); 
-                            }
                             break;
-                        case "CODE_MD":
-                            if (tx.IsUSL)
-                            {
+                        case "ZL_LIST/ZAP/Z_SL/SL/USL/CODE_MD":
                                 USL.CODE_MD = CreateStringXML_Element(reader);
-                            }
                             break;
-                        case "S_SUM":
-                            if (tx.IsSANK)
+                        case "ZL_LIST/ZAP/Z_SL/SANK/S_SUM":
                                 SANK.S_SUM = CreateDecimalXML_Element(reader);
                             break;
-                        case "SL_ID":
-                            if (tx.IsSANK)
+                        case "ZL_LIST/ZAP/Z_SL/SANK/SL_ID":
                                 SANK.SL_ID.Add(CreateStringXML_Element(reader));
                             break;
-                        case "CODE_EXP":
-                            if (tx.IsSANK)
+                        case "ZL_LIST/ZAP/Z_SL/SANK/CODE_EXP":
                                 SANK.CODE_EXP.Add(CreateStringXML_Element(reader));
                             break;
-                        case "S_TIP":
-                            if (tx.IsSANK)
+                        case "ZL_LIST/ZAP/Z_SL/SANK/S_TIP":
                                 SANK.S_TIP = CreateIntXML_Element(reader);
                             break;
-                        case "S_OSN":
-                            if (tx.IsSANK)
+                        case "ZL_LIST/ZAP/Z_SL/SANK/S_OSN":
                                 SANK.S_OSN = CreateIntXML_Element(reader);
                             break;
                     }
 
                     break;
                 case XmlNodeType.Element:
-                    prevnodes = reader.Name;
-                    switch (reader.Name)
+                    switch (depthXml.Path)
                     {
-                        case "ONK_SL":
-                            if(tx.IsSL)
+                        case "ZL_LIST/ZAP/Z_SL/SL/ONK_SL":
                                 SL.IsONK_SL = true;
                             break;
-                        case "CONS":
-                            if (tx.IsSL)
+                        case "ZL_LIST/ZAP/Z_SL/SL/CONS":
                                 SL.IsCONS = true;
                             break;
-                        case "SL":
-                            tx.BeginSL();
-                            break;
-                        case "USL":
-                            tx.BeginUSL();
-                            break;
-                        case "Z_SL":
-                            tx.BeginZ_SL();
-                            break;
-                        case "SCHET":
-                            tx.BeginSCHET();
-                            break;
-                        case "ZGLV":
-                            tx.BeginZGLV();
-                            break;
-                        case "SANK":
-                            tx.BeginSANK();
-                            break;
-                        case "ZAP":
-                            tx.BeginZAP();
-                            break;
-                        case "REF":
-                            if (tx.IsSCHET)
-                            {
-                                SCHET.REF = CreateStringXML_Element(reader);
-                                SCHET.REF.value = "true";
-                            }
+                     
+                        case "ZL_LIST/SCHET/REF":
+                            SCHET.REF = CreateStringXML_Element(reader);
+                            SCHET.REF.value = "true";
                             break;
 
                     }
                     break;
    
                 case XmlNodeType.EndElement:
-                    switch (reader.Name)
+                    switch (depthXml.Path)
                     {
-                        case "USL":
-                            CheckUSL();
-                            tx.EndUSL();
-                            USL.Clear();
+                        case "ZL_LIST/ZAP/Z_SL/SL/USL":
+                                CheckUSL();
+                                USL.Clear();
                             break;
-                        case "Z_SL":
-                            CheckZ_SL();
-                            tx.EndZ_SL();
-                            Z_SL.Clear();
+                        case "ZL_LIST/ZAP/Z_SL":
+                                CheckZ_SL();
+                                Z_SL.Clear();
                             break;
-                        case "SANK":
-                            CheckSANK();
-                            tx.EndSANK();
-                            SANK.Clear();
+                        case "ZL_LIST/ZAP/Z_SL/SANK":
+                                CheckSANK();
+                                SANK.Clear();
                             break;
-                        case "SL":
-                            CheckONK();
-                            tx.EndSL();
-                            SL.Clear();
-                            break;
-                        case "SCHET":
-                            tx.EndSCHET();
-                            break;
-                        case "ZGLV":
-                            tx.EndZGLV();
-                            break;
-                        case "ZAP":
-                            tx.EndZAP();
+                        case "ZL_LIST/ZAP/Z_SL/SL":
+                                CheckONK();
+                                SL.Clear();
                             break;
                     }
                     break;
             }
+
+           
+
+
         }
+        DepthXML depthXml = new DepthXML();
+
 
         private void CheckSANK()
         {
@@ -1750,6 +1585,62 @@ namespace ServiceLoaderMedpomData
             CheckSCHET();
         }
     }
+
+
+    public class DepthXML
+    {
+        List<string> Nodes = new List<string>();
+        private int Depth = -1;
+        private void AddDepth(string Name)
+        {
+            Depth++;
+            Nodes.Add(Name);
+        }
+
+        private void RemoveDepth()
+        {
+            Depth--;
+            Nodes.RemoveAt(Nodes.Count-1);
+        }
+
+        private void SetLast(string Name)
+        {
+            Nodes.Remove(Nodes.Last());
+            Nodes.Add(Name);
+        }
+        
+        public string Path => string.Join("/", Nodes);
+        public void NextNode(XmlReader r)
+        {
+           
+            if (r.NodeType == XmlNodeType.Element)
+            {
+                var comp = r.Depth.CompareTo(Depth);
+                switch (comp)
+                {
+                    case 0: SetLast(r.Name); break;
+                    case 1: AddDepth(r.Name); break;
+                   default:
+                       throw new Exception($"Непредвиденное поведение при поддержке метки XML: {r.NodeType}:{r.Name}");
+                   
+                }
+            }
+
+            if (r.NodeType == XmlNodeType.EndElement)
+            {
+                var comp = r.Depth.CompareTo(Depth);
+                switch (comp)
+                {
+                    case -1: RemoveDepth(); break;
+                    case 0: break;
+                    default:
+                        throw new Exception($"Непредвиденное поведение при поддержке метки XML: {r.NodeType}:{r.Name}");
+                }
+            }
+        }
+
+    }
+
 
     class ProtocolValidator31 : IValidatorXML
     {

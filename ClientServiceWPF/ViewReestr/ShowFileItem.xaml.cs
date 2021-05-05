@@ -248,6 +248,8 @@ namespace ClientServiceWPF
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
+
+      
     }
 
 
@@ -377,7 +379,6 @@ namespace ClientServiceWPF
                 {
                     System.IO.Directory.CreateDirectory(path);
                 }
-                Thread.Sleep(10000);
                 dispatcher.Invoke(() =>
                 {
                     DownloadProgress.Value = 0;

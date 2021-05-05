@@ -106,10 +106,12 @@ namespace MedpomService
             if (item.filel != null)
                 item.filel.PropertyChanged -= Item_PropertyChanged;
         }
+
         public void SaveToFile(string path)
         {
             FM.SaveToFile(path);
         }
+
         public FilePacket GetHighPriority()
         {
             return FM.GetIndexHighPriority();

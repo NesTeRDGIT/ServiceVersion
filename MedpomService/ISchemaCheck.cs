@@ -15,8 +15,6 @@ using ServiceLoaderMedpomData;
 namespace MedpomService
 {
   
-
-
     public interface ISchemaCheck
     {
         void StartCheck(FilePacket fp);

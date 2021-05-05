@@ -1,0 +1,61 @@
+﻿<Window x:Class="FileTransfer.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:FileTransfer"
+        xmlns:class="clr-namespace:FileTransfer.Class"
+        mc:Ignorable="d"
+        Name="this"
+        Title="MainWindow" Height="562.625" Width="897">
+    <Window.Resources>
+        <CollectionViewSource x:Key="CVSTransferRule" Source="{Binding TransferList}"  d:DesignSource="{d:DesignInstance {x:Type local:TransferVM}, CreateList=True}"></CollectionViewSource>
+        <CollectionViewSource x:Key="CVSLogs" Source="{Binding LogList}"  d:DesignSource="{d:DesignInstance {x:Type local:LogItem}, CreateList=True}"></CollectionViewSource>
+        <class:BindingProxy x:Key="BindingProxy" Data="{Binding ElementName=this, Path=ListViewSelected}"></class:BindingProxy>
+    </Window.Resources>
+    <Window.DataContext>
+        <Binding ElementName="this" Path="VM"></Binding>
+    </Window.DataContext>
+    <Grid>
+        <GroupBox Header="Протокол работы" Margin="0,0,0,25" HorizontalAlignment="Left" Width="516">
+            <ListView x:Name="listView_Copy" Margin="0,0,-2,26" ItemsSource="{Binding Source={StaticResource CVSLogs}}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Тип" DisplayMemberBinding="{Binding IsError}" Width="Auto"/>
+                        <GridViewColumn Header="Текст" DisplayMemberBinding="{Binding Text}"  Width="Auto"/>
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </GroupBox>
+        <GroupBox Header="Доступные задачи" Margin="521,0,0,25">
+            <Grid>
+                <ListView x:Name="listView" Margin="0,39,0,25" ItemsSource="{Binding Source={StaticResource CVSTransferRule}}" SelectionChanged="ListView_OnSelectionChanged">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Активно" DisplayMemberBinding="{Binding isActive}" Width="Auto"/>
+                            <GridViewColumn Header="Периодичность" DisplayMemberBinding="{Binding TransferRule.TimeOut}"  Width="Auto"/>
+                            <GridViewColumn Header="Каталог источник" DisplayMemberBinding="{Binding TransferRule.PathDestination}"  Width="Auto"/>
+                            <GridViewColumn Header="Каталог назначения"  DisplayMemberBinding="{Binding TransferRule.PathSource}"  Width="Auto"/>
+                            <GridViewColumn Header="Пользователь"  DisplayMemberBinding="{Binding TransferRule.User.FULL_USER}"  Width="Auto"/>
+                        </GridView>
+                    </ListView.View>
+                    <ListView.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Новая задача" Command="{Binding NewTransferVMCommand}"></MenuItem>
+                            <MenuItem Header="Редактировать" Command="{Binding EditTransferVMCommand}" CommandParameter="{Binding Source={StaticResource BindingProxy}, Path=Data}"></MenuItem>
+                            <MenuItem Header="Действия">
+                                <MenuItem Header="Запустить"  Command="{Binding StartTransferVMCommand}" CommandParameter="{Binding Source={StaticResource BindingProxy}, Path=Data}"></MenuItem>
+                                <MenuItem Header="Остановить"  Command="{Binding StopTransferVMCommand}" CommandParameter="{Binding Source={StaticResource BindingProxy}, Path=Data}"></MenuItem>
+                            </MenuItem>
+                            <Separator></Separator>
+                            <MenuItem Header="Удалить"  Command="{Binding RemoveTransferVMCommand}" CommandParameter="{Binding Source={StaticResource BindingProxy}, Path=Data}"></MenuItem>
+
+                        </ContextMenu>
+                    </ListView.ContextMenu>
+                </ListView>
+                <Button Content="Обновить" HorizontalAlignment="Right" Margin="0,0,0,2" VerticalAlignment="Bottom" Width="75" RenderTransformOrigin="0.538,0.567" Command="{Binding RefreshStatusCommand}"/>
+
+            </Grid>
+        </GroupBox>
+    </Grid>
+</Window>
