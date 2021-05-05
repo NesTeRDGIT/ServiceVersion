@@ -235,8 +235,7 @@ namespace ServiceLoaderMedpomData
 
     public class MYBDOracleNEW : IRepository
     {
-
-        OracleConnection con;
+        private OracleConnection con { get; set; }
         string ConnStr = "";
         //Имя таблиц
         TableInfo H_ZGLV;
@@ -279,10 +278,9 @@ namespace ServiceLoaderMedpomData
         {
             this.curr_month = curr_month.Month;
             this.curr_year = curr_month.Year;
-            con = new OracleConnection(_con);
             ConnStr = _con;
-            /////
-            //Читаем имена таблиц в бд
+            con = new OracleConnection(ConnStr);
+           
             H_ZGLV = _H_ZGLV;
             H_SCHET = _H_SCHET;
             H_SANK = _H_SANK;
@@ -314,18 +312,20 @@ namespace ServiceLoaderMedpomData
 
         private  List<OracleConnection> Cons = new List<OracleConnection>();
         private  List<OracleCommand> CMDs = new List<OracleCommand>();
-        private bool IsDispose = false;
-        private OracleCommand NewOracleCommand(string cmdText, OracleConnection con)
+        private bool IsDispose;
+        private OracleCommand NewOracleCommand(string cmdText, OracleConnection connect)
         {
             if(IsDispose)
                 throw  new Exception("Невозможно создать команду - получен сигнал уничтожения объекта");
-            var t = new OracleCommand(cmdText, con);
-            CMDs.Add(t);
-            return t;
+            var cmd = new OracleCommand(cmdText, connect);
+            if (Transaction && connect == con)
+                cmd.Transaction = Tran;
+            CMDs.Add(cmd);
+            return cmd;
         }
-
         private void  RemoveOracleCommand(OracleCommand cmd)
         {
+            if (cmd == null) return;
             if (IsDispose)
                 return;
             var t =  CMDs.FirstOrDefault(x => x == cmd);
@@ -334,7 +334,6 @@ namespace ServiceLoaderMedpomData
                CMDs.Remove(t);
            }
         }
-
         private OracleConnection NewOracleConnection(string connectionString)
         {
             if (IsDispose)
@@ -343,10 +342,9 @@ namespace ServiceLoaderMedpomData
             Cons.Add(t);
             return t;
         }
-
-
         private void RemoveOracleConnection(OracleConnection conn)
         {
+            if (conn == null) return;
             if (IsDispose)
                 return;
             var t = Cons.FirstOrDefault(x => x == conn);
@@ -355,59 +353,82 @@ namespace ServiceLoaderMedpomData
                 Cons.Remove(t);
             }
         }
+        private void OpenConnectionCommand(OracleCommand cmd)
+        {
+            if (cmd == null) return;
+            if (IsDispose)
+                return;
+            if (!Transaction || cmd.Connection != con)
+            {
+                if (cmd.Connection.State != ConnectionState.Open)
+                    cmd.Connection.Open();
+            }
+        }
+        private void CloseConnectionCommand(OracleCommand cmd)
+        {
+            if (cmd == null) return;
+            if (IsDispose)
+                return;
+            if (!Transaction || cmd.Connection != con)
+            {
+                cmd.Connection.Close();
+            }
+        }
 
         public int AddSankZGLV(string FILENAME, int CODE, int CODE_MO, int FLAG_MEE, int YEAR, int MONTH, int YEAR_SANK, int MONTH_SANK, int ZGLV_ID_BASE, string SMO, bool DOP_FLAG, bool isNotFinish)
         {
-            var cmd = NewOracleCommand($@"insert into xml_h_sank_zglv_v3
+            OracleCommand cmd = null;
+            try
+            {
+                cmd = NewOracleCommand($@"insert into xml_h_sank_zglv_v3
   (filename, code, code_mo, flag_mee, year, month, month_sank, year_sank,zglv_id_base,smo,DOP_FLAG,isNotFinish)
 values
   (:filename, :code, :code_mo, :flag_mee, :year, :month, :month_sank, :year_sank,:zglv_id_base,:smo,:DOP_FLAG,:isNotFinish)
 returning  zglv_id into :id", con);
 
-            cmd.Parameters.Add("filename", FILENAME);
-            cmd.Parameters.Add("code", CODE);
-            cmd.Parameters.Add("code_mo", CODE_MO);
-            cmd.Parameters.Add("flag_mee", FLAG_MEE);
-            cmd.Parameters.Add("year", YEAR);
-            cmd.Parameters.Add("month", MONTH);
-            cmd.Parameters.Add("month_sank", MONTH_SANK);
-            cmd.Parameters.Add("year_sank", YEAR_SANK);
-            cmd.Parameters.Add("zglv_id_base", ZGLV_ID_BASE);
-            cmd.Parameters.Add("smo", SMO);
-            cmd.Parameters.Add("DOP_FLAG", DOP_FLAG? 1:0);
-            cmd.Parameters.Add("isNotFinish", isNotFinish ? 1 : 0); 
-            cmd.Parameters.Add("id", OracleDbType.Decimal, ParameterDirection.ReturnValue);
+                cmd.Parameters.Add("filename", FILENAME);
+                cmd.Parameters.Add("code", CODE);
+                cmd.Parameters.Add("code_mo", CODE_MO);
+                cmd.Parameters.Add("flag_mee", FLAG_MEE);
+                cmd.Parameters.Add("year", YEAR);
+                cmd.Parameters.Add("month", MONTH);
+                cmd.Parameters.Add("month_sank", MONTH_SANK);
+                cmd.Parameters.Add("year_sank", YEAR_SANK);
+                cmd.Parameters.Add("zglv_id_base", ZGLV_ID_BASE);
+                cmd.Parameters.Add("smo", SMO);
+                cmd.Parameters.Add("DOP_FLAG", DOP_FLAG ? 1 : 0);
+                cmd.Parameters.Add("isNotFinish", isNotFinish ? 1 : 0);
+                cmd.Parameters.Add("id", OracleDbType.Decimal, ParameterDirection.ReturnValue);
 
-            if (Transaction)
-                cmd.Transaction = Tran;
-
-            if (!Transaction)
-                cmd.Connection.Open();
-            cmd.ExecuteNonQuery();
-
-            if (!Transaction)
-                cmd.Connection.Close();
-
-            RemoveOracleCommand(cmd);
-            var x = Convert.ToInt32(((Oracle.ManagedDataAccess.Types.OracleDecimal)cmd.Parameters["id"].Value).Value);
-            return x;
-
+                OpenConnectionCommand(cmd);
+                cmd.ExecuteNonQuery();
+                CloseConnectionCommand(cmd);
+                var x = Convert.ToInt32(((Oracle.ManagedDataAccess.Types.OracleDecimal) cmd.Parameters["id"].Value).Value);
+                return x;
+            }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
 
         public void UpdateSankZGLV(int ZGLV_ID, int ZGLV_ID_BASE)
         {
-            var cmd = NewOracleCommand(@"update xml_h_sank_zglv_v3 t set zglv_id_base = :ZGLV_ID_BASE
-where t.zglv_id = :ZGLV_ID", con);
-            cmd.Parameters.Add("ZGLV_ID_BASE", ZGLV_ID_BASE);
-            cmd.Parameters.Add("ZGLV_ID", ZGLV_ID);
-            if (Transaction)
-                cmd.Transaction = Tran;
-            else
-                cmd.Connection.Open();
-            cmd.ExecuteNonQuery();
-            if (!Transaction)
-                cmd.Connection.Close();
-            RemoveOracleCommand(cmd);
+            OracleCommand cmd = null;
+            try
+            {
+                cmd = NewOracleCommand(@"update xml_h_sank_zglv_v3 t set zglv_id_base = :ZGLV_ID_BASE where t.zglv_id = :ZGLV_ID", con);
+                cmd.Parameters.Add("ZGLV_ID_BASE", ZGLV_ID_BASE);
+                cmd.Parameters.Add("ZGLV_ID", ZGLV_ID);
+                OpenConnectionCommand(cmd);
+                cmd.ExecuteNonQuery();
+                CloseConnectionCommand(cmd);
+            }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
+           
         }
         public void InsertFile(ZL_LIST zl, PERS_LIST pe)
         {
@@ -448,17 +469,16 @@ where t.zglv_id = :ZGLV_ID", con);
         /// <param name="zl"></param>
         void Insert(ZL_LIST zl)
         {
-            var ZS = zl.ZAP.SelectMany(x => x.Z_SL_list);
-            var pacient = zl.ZAP.Select(x => x.PACIENT);
-            var sluch = ZS.SelectMany(x => x.SL);
-            var usl = sluch.SelectMany(x => x.USL);
-            var onk = sluch.Select(x => x.ONK_SL);
-            var sank = ZS.SelectMany(x => x.SANK);
-            var onk_usl = sluch.Where(x => x.ONK_SL != null).SelectMany(x => x.ONK_SL.ONK_USL);
-            var lek_pr = onk_usl.SelectMany(x => x.LEK_PR);
-            zl.SetID(GetSec(H_ZGLV.SeqName, 1), GetSec(H_SCHET.SeqName, 1), GetSec(H_ZAP.SeqName, zl.ZAP.Count), GetSec(H_PAC.SeqName, pacient.Count()),
-                GetSec(H_Z_SLUCH.SeqName, ZS.Count()), GetSec(H_SLUCH.SeqName, sluch.Count()),
-                GetSec(H_USL.SeqName, usl.Count()), GetSec(H_SANK.SeqName, sank.Count()), GetSec(H_ONK_USL.SeqName, onk_usl.Count()), GetSec(H_LEK_PR.SeqName, lek_pr.Count()));
+            var ZS = zl.ZAP.SelectMany(x => x.Z_SL_list).ToList();
+            var pacient = zl.ZAP.Select(x => x.PACIENT).ToList();
+            var sluch = ZS.SelectMany(x => x.SL).ToList();
+            var usl = sluch.SelectMany(x => x.USL).ToList();
+            var sank = ZS.SelectMany(x => x.SANK).ToList();
+            var onk_usl = sluch.Where(x => x.ONK_SL != null).SelectMany(x => x.ONK_SL.ONK_USL).ToList();
+            var lek_pr = onk_usl.SelectMany(x => x.LEK_PR).ToList();
+            zl.SetID(GetSec(H_ZGLV.SeqName, 1), GetSec(H_SCHET.SeqName, 1), GetSec(H_ZAP.SeqName, zl.ZAP.Count), GetSec(H_PAC.SeqName, pacient.Count),
+                GetSec(H_Z_SLUCH.SeqName, ZS.Count), GetSec(H_SLUCH.SeqName, sluch.Count),
+                GetSec(H_USL.SeqName, usl.Count), GetSec(H_SANK.SeqName, sank.Count), GetSec(H_ONK_USL.SeqName, onk_usl.Count), GetSec(H_LEK_PR.SeqName, lek_pr.Count));
           
             if (zl.ZGLV.Vers < 3.1m)
             {
@@ -468,29 +488,28 @@ where t.zglv_id = :ZGLV_ID", con);
                     throw new Exception($"Ошибка при поиске санкций: {string.Join(",", er)}");
                 }
             }
-
             InsertZGLV(zl.ZGLV);
             InsertSCHET(zl.SCHET);
             InsertZAP(zl.ZAP);
-            InsertPACINET(pacient);
+            InsertPACIENT(pacient);
             InsertZ_SLUCH(ZS);
             InsertSLUCH(sluch);
             InsertUSL(usl);
-            InsertNAZR(sluch.SelectMany(x => x.NAZ));
-            InsertNAPR(sluch.SelectMany(x => x.NAPR));
+            InsertNAZR(sluch.SelectMany(x => x.NAZ).ToList());
+            InsertNAPR(sluch.SelectMany(x => x.NAPR).ToList());
             InsertONK_USL(onk_usl);
             InsertLEK_PR(lek_pr);
-            InsertDATE_INJ(lek_pr.SelectMany(x => x.DATE_INJ));
-            InsertCONS(sluch.SelectMany(x => x.CONS));
-            InsertB_PROT(sluch.Where(x => x.ONK_SL != null).SelectMany(y => y.ONK_SL.B_PROT));
-            InsertB_DIAG(sluch.Where(x => x.ONK_SL != null).SelectMany(y => y.ONK_SL.B_DIAG));
-            InsertSL_KOEF(sluch.Where(x => x.KSG_KPG != null).SelectMany(y => y.KSG_KPG.SL_KOEF));
+            InsertDATE_INJ(lek_pr.SelectMany(x => x.DATE_INJ).ToList());
+            InsertCONS(sluch.SelectMany(x => x.CONS).ToList());
+            InsertB_PROT(sluch.Where(x => x.ONK_SL != null).SelectMany(y => y.ONK_SL.B_PROT).ToList());
+            InsertB_DIAG(sluch.Where(x => x.ONK_SL != null).SelectMany(y => y.ONK_SL.B_DIAG).ToList());
+            InsertSL_KOEF(sluch.Where(x => x.KSG_KPG != null).SelectMany(y => y.KSG_KPG.SL_KOEF).ToList());
             InsertSANK(sank);
-            InsertH_DS2_N(sluch.SelectMany(x => x.DS2_N));
-            InsertH_DS2(sluch.SelectMany(x => x.GetDS2()));
-            InsertH_DS3(sluch.SelectMany(x => x.GetDS3()));
-            InsertCRIT(sluch.Where(x => x.KSG_KPG != null).SelectMany(y => y.KSG_KPG.GetCRIT_SLUCH_ID(y.SLUCH_ID)));
-            InsertCODE_EXP(sank.SelectMany(y => y.CODE_EXP));
+            InsertH_DS2_N(sluch.SelectMany(x => x.DS2_N).ToList());
+            InsertH_DS2(sluch.SelectMany(x => x.GetDS2()).ToList());
+            InsertH_DS3(sluch.SelectMany(x => x.GetDS3()).ToList());
+            InsertCRIT(sluch.Where(x => x.KSG_KPG != null).SelectMany(y => y.KSG_KPG.GetCRIT_SLUCH_ID(y.SLUCH_ID)).ToList());
+            InsertCODE_EXP(sank.SelectMany(y => y.CODE_EXP).ToList());
         }
         Dictionary<string, decimal?> Insert(PERS_LIST pe)
         {
@@ -502,15 +521,10 @@ where t.zglv_id = :ZGLV_ID", con);
         #region ВСТАВКА ТАБЛИЦ
         void InsertL_ZGLV(PERSZGLV item)
         {
+            OracleCommand cmd = null;
             try
             {
-                var cmd = NewOracleCommand(
-                    $@"insert into {L_ZGLV.FullTableName} (DATA, FILENAME, FILENAME1, VERSION, ZGLV_ID)
-                                                                                  values
-  (:DATA, :FILENAME, :FILENAME1, :VERSION, :ZGLV_ID)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
-
+                cmd = NewOracleCommand($@"insert into {L_ZGLV.FullTableName} (DATA, FILENAME, FILENAME1, VERSION, ZGLV_ID) values (:DATA, :FILENAME, :FILENAME1, :VERSION, :ZGLV_ID)", con);
                 cmd.Parameters.Add("DATA", item.DATA);
                 cmd.Parameters.Add("FILENAME", item.FILENAME.ToUpper());
                 cmd.Parameters.Add("FILENAME1", item.FILENAME1.ToUpper());
@@ -518,26 +532,28 @@ where t.zglv_id = :ZGLV_ID", con);
                 cmd.Parameters.Add("VERSION", item.ZGLV_ID);
                 var t = cmd.ExecuteNonQuery();
                 if (t != 1) throw new Exception("Не полная вставка L_ZGLV");
-                RemoveOracleCommand(cmd);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertZGLV: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertPERS(IEnumerable<PERS> Items)
+        void InsertPERS(List<PERS> Items)
         {
+            OracleCommand cmd = null;
             try
             {
                 if (!Items.Any()) return;
-                var cmd = NewOracleCommand(
-                    $@"insert into {L_PERS.FullTableName} (COMENTP, DOCNUM, DOCSER, DOCTYPE,DOST,DOST_P,DR,DR_P,FAM,FAM_P,ID_PAC,IM,IM_P,MR,OKATOG,OKATOP,OT,OT_P,SNILS,TEL,W,W_P,PERS_ID,ZGLV_ID,DOCDATE,DOCORG)
+                cmd = NewOracleCommand($@"insert into {L_PERS.FullTableName} (COMENTP, DOCNUM, DOCSER, DOCTYPE,DOST,DOST_P,DR,DR_P,FAM,FAM_P,ID_PAC,IM,IM_P,MR,OKATOG,OKATOP,OT,OT_P,SNILS,TEL,W,W_P,PERS_ID,ZGLV_ID,DOCDATE,DOCORG)
                                                                                   values
                                                                  (:COMENTP, :DOCNUM, :DOCSER, :DOCTYPE,:DOST,:DOST_P,:DR,:DR_P,:FAM,:FAM_P,:ID_PAC,:IM,:IM_P,:MR,:OKATOG,:OKATOP,:OT,:OT_P,:SNILS,:TEL,:W,:W_P,:PERS_ID,:ZGLV_ID,:DOCDATE,:DOCORG)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
+               
                 cmd.BindByName = true;
-                cmd.ArrayBindCount = Items.Count();
+                cmd.ArrayBindCount = Items.Count;
                 cmd.Parameters.Add("COMENTP", Items.Select(x => x.COMENTP).ToArray());
                 cmd.Parameters.Add("DOCNUM", Items.Select(x => x.DOCNUM == null ? x.DOCNUM : x.DOCNUM.ToUpper()).ToArray());
                 cmd.Parameters.Add("DOCSER", Items.Select(x => x.DOCSER == null ? x.DOCSER : x.DOCSER.ToUpper()).ToArray());
@@ -562,56 +578,56 @@ where t.zglv_id = :ZGLV_ID", con);
                 cmd.Parameters.Add("W_P", OracleDbType.Decimal, Items.Select(x => x.W_P ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("PERS_ID", OracleDbType.Decimal, Items.Select(x => x.PERS_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("ZGLV_ID", OracleDbType.Decimal, Items.Select(x => x.ZGLV_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
                 cmd.Parameters.Add("DOCDATE", OracleDbType.Date, Items.Select(x => x.DOCDATE ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("DOCORG", Items.Select(x => x.DOCORG == null ? x.DOCORG : x.DOCORG.ToUpper()).ToArray());
 
                 var t = cmd.ExecuteNonQuery();
-                RemoveOracleCommand(cmd);
-                if (t != Items.Count()) throw new Exception($"Не полная вставка PERS вставлено {t} из {Items.Count()}");
+                if (t != Items.Count) throw new Exception($"Не полная вставка PERS вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertPERS: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
         void InsertZGLV(ZGLV item)
         {
+            OracleCommand cmd = null;
             try
             {
-                var cmd = NewOracleCommand(
-                    $@"insert into {H_ZGLV.FullTableName} (zglv_id, version, data, filename, sd_z)
-                                                                                  values
-  (:zglv_id, :version, :data, :filename, :sd_z)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
+                cmd = NewOracleCommand($@"insert into {H_ZGLV.FullTableName} (zglv_id, version, data, filename, sd_z) values (:zglv_id, :version, :data, :filename, :sd_z)", con);
                 cmd.Parameters.Add("zglv_id", item.ZGLV_ID);
                 cmd.Parameters.Add("version", item.VERSION);
                 cmd.Parameters.Add("data", item.DATA);
                 cmd.Parameters.Add("filename", item.FILENAME.ToUpper());
                 cmd.Parameters.Add("sd_z", item.SD_Z);
                 var t = cmd.ExecuteNonQuery();
-                RemoveOracleCommand(cmd);
                 if (t != 1) throw new Exception("Не полная вставка ZGLV");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertZGLV: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
 
         }
 
         void InsertSCHET(SCHET item)
         {
+            OracleCommand cmd = null;
             try
             {
-                var cmd = NewOracleCommand(
-                    $@"insert into {H_SCHET.FullTableName} 
+                cmd = NewOracleCommand($@"insert into {H_SCHET.FullTableName} 
 (CODE, CODE_MO, COMENTS, DISP, DSCHET,MONTH,NSCHET,PLAT,SANK_EKMP,SANK_MEE,SANK_MEK,SCHET_ID,SUMMAP,SUMMAV,YEAR,ZGLV_ID,DOP_FLAG,YEAR_BASE, MONTH_BASE,FIRST_CODE,FIRST_MONTH, FIRST_YEAR)
 values
 (:CODE, :CODE_MO, :COMENTS, :DISP, :DSCHET,:MONTH,:NSCHET,:PLAT,:SANK_EKMP,:SANK_MEE,:SANK_MEK,:SCHET_ID,:SUMMAP,:SUMMAV,:YEAR,:ZGLV_ID,:DOP_FLAG,:YEAR_BASE,:MONTH_BASE,:FIRST_CODE,:FIRST_MONTH, :FIRST_YEAR)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
+                
                 cmd.Parameters.Add("CODE", item.CODE);
                 cmd.Parameters.Add("CODE_MO", item.CODE_MO);
                 cmd.Parameters.Add("COMENTS", item.COMENTS);
@@ -634,56 +650,57 @@ values
                 cmd.Parameters.Add("FIRST_CODE", item.REF?.FIRST_CODE);
                 cmd.Parameters.Add("FIRST_MONTH", item.REF?.FIRST_MONTH);
                 cmd.Parameters.Add("FIRST_YEAR", item.REF?.FIRST_YEAR);
-
                 var t = cmd.ExecuteNonQuery();
                 if (t != 1) throw new Exception("Не полная вставка SCHET");
-                RemoveOracleCommand(cmd);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertSCHET: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
 
-        void InsertZAP(IEnumerable<ZAP> Items)
+        void InsertZAP(List<ZAP> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_ZAP.FullTableName} (N_ZAP, PR_NOV, SCHET_ID, ZAP_ID)
-                                                                                  values
-                                                                                  (:N_ZAP, :PR_NOV, :SCHET_ID, :ZAP_ID)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_ZAP.FullTableName} (N_ZAP, PR_NOV, SCHET_ID, ZAP_ID) values (:N_ZAP, :PR_NOV, :SCHET_ID, :ZAP_ID)", con);
                 cmd.BindByName = true;
-                cmd.ArrayBindCount = Items.Count();
+                cmd.ArrayBindCount = Items.Count;
                 cmd.Parameters.Add("N_ZAP", Items.Select(x => x.N_ZAP).ToArray());
                 cmd.Parameters.Add("PR_NOV", Items.Select(x => x.PR_NOV).ToArray());
                 cmd.Parameters.Add("SCHET_ID", OracleDbType.Decimal, Items.Select(x => x.SCHET_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("ZAP_ID", OracleDbType.Decimal, Items.Select(x => x.ZAP_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
 
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception($"Не полная вставка ZAP вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка ZAP вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertZAP: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertPACINET(IEnumerable<PACIENT> Items)
+        void InsertPACIENT(List<PACIENT> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand(
-                    $@"insert into {H_PAC.FullTableName} (ID_PAC, INV, MSE, NOVOR, NPOLIS, PACIENT_ID, SMO, SMO_NAM,  SMO_OGRN ,SMO_OK, SPOLIS, ST_OKATO,  VNOV_D, VPOLIS, ZAP_ID,SMO_TFOMS,PERS_ID)
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_PAC.FullTableName} (ID_PAC, INV, MSE, NOVOR, NPOLIS, PACIENT_ID, SMO, SMO_NAM,  SMO_OGRN ,SMO_OK, SPOLIS, ST_OKATO,  VNOV_D, VPOLIS, ZAP_ID,SMO_TFOMS,PERS_ID)
                                                                                   values
                                                                                   (:ID_PAC, :INV, :MSE, :NOVOR, :NPOLIS, :PACIENT_ID, :SMO, :SMO_NAM,  :SMO_OGRN ,:SMO_OK, :SPOLIS, :ST_OKATO,  :VNOV_D, :VPOLIS, :ZAP_ID,:SMO_TFOMS,:PERS_ID)", con);
 
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = Items.Count();
+              
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("ID_PAC", Items.Select(x => x.ID_PAC).ToArray());
                 cmd.Parameters.Add("INV", OracleDbType.Decimal, Items.Select(x => x.INV ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
@@ -704,79 +721,84 @@ values
                 cmd.Parameters.Add("PERS_ID", OracleDbType.Decimal, Items.Select(x => x.PERS_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
 
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception(
-                    $"Не полная вставка PACIENT вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка PACIENT вставлено {t} из {Items.Count}");
+               
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertPACINET: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertZ_SLUCH(IEnumerable<Z_SL> Items)
+        void InsertZ_SLUCH(List<Z_SL> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                var listItems = Items.ToList();
-                if (!listItems.Any()) return;
-                var cmd = NewOracleCommand($@"insert into {H_Z_SLUCH.FullTableName} 
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_Z_SLUCH.FullTableName} 
 (DATE_Z_1,DATE_Z_2,FOR_POM,IDCASE,IDSP,ISHOD,KD_Z,LPU,NPR_DATE,NPR_MO,OPLATA,OS_SLUCH,P_OTK,RSLT,RSLT_D,SANK_IT,SLUCH_Z_ID,SUMP,SUMV,USL_OK,VBR,VB_P,VIDPOM,VNOV_M, ZAP_ID, PACIENT_ID,FIRST_IDCASE)
 values
 (:DATE_Z_1,:DATE_Z_2,:FOR_POM,:IDCASE,:IDSP,:ISHOD,:KD_Z,:LPU,:NPR_DATE,:NPR_MO,:OPLATA,:OS_SLUCH,:P_OTK,:RSLT,:RSLT_D,:SANK_IT,:SLUCH_Z_ID,:SUMP,:SUMV,:USL_OK,:VBR,:VB_P,:VIDPOM,:VNOV_M, :ZAP_ID,:PACIENT_ID,:FIRST_IDCASE)", con);
 
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = listItems.Count;
+              
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
-                cmd.Parameters.Add("DATE_Z_1", listItems.Select(x => x.DATE_Z_1).ToArray());
-                cmd.Parameters.Add("DATE_Z_2", listItems.Select(x => x.DATE_Z_2).ToArray());
-                cmd.Parameters.Add("FOR_POM", OracleDbType.Decimal, listItems.Select(x => x.FOR_POM ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("IDCASE", listItems.Select(x => x.IDCASE).ToArray());
-                cmd.Parameters.Add("IDSP", listItems.Select(x => x.IDSP).ToArray());
-                cmd.Parameters.Add("ISHOD", OracleDbType.Decimal, listItems.Select(x => x.ISHOD ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("KD_Z", OracleDbType.Decimal, listItems.Select(x => x.KD_Z ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("LPU", listItems.Select(x => x.LPU).ToArray());
-                cmd.Parameters.Add("NPR_DATE", OracleDbType.Date, listItems.Select(x => x.NPR_DATE ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("NPR_MO", listItems.Select(x => x.NPR_MO).ToArray());
-                cmd.Parameters.Add("OPLATA", OracleDbType.Decimal, listItems.Select(x => x.OPLATA ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DATE_Z_1", Items.Select(x => x.DATE_Z_1).ToArray());
+                cmd.Parameters.Add("DATE_Z_2", Items.Select(x => x.DATE_Z_2).ToArray());
+                cmd.Parameters.Add("FOR_POM", OracleDbType.Decimal, Items.Select(x => x.FOR_POM ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("IDCASE", Items.Select(x => x.IDCASE).ToArray());
+                cmd.Parameters.Add("IDSP", Items.Select(x => x.IDSP).ToArray());
+                cmd.Parameters.Add("ISHOD", OracleDbType.Decimal, Items.Select(x => x.ISHOD ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("KD_Z", OracleDbType.Decimal, Items.Select(x => x.KD_Z ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("LPU", Items.Select(x => x.LPU).ToArray());
+                cmd.Parameters.Add("NPR_DATE", OracleDbType.Date, Items.Select(x => x.NPR_DATE ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NPR_MO", Items.Select(x => x.NPR_MO).ToArray());
+                cmd.Parameters.Add("OPLATA", OracleDbType.Decimal, Items.Select(x => x.OPLATA ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
 
-                cmd.Parameters.Add("OS_SLUCH", listItems.Select(x => x.OS_SLUCHstr()).ToArray());
-                cmd.Parameters.Add("P_OTK", OracleDbType.Decimal, listItems.Select(x => x.P_OTK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("RSLT", OracleDbType.Decimal, listItems.Select(x => x.RSLT ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("RSLT_D", OracleDbType.Decimal, listItems.Select(x => x.RSLT_D ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SANK_IT", OracleDbType.Decimal, listItems.Select(x => x.SANK_IT ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("OS_SLUCH", Items.Select(x => x.OS_SLUCHstr()).ToArray());
+                cmd.Parameters.Add("P_OTK", OracleDbType.Decimal, Items.Select(x => x.P_OTK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("RSLT", OracleDbType.Decimal, Items.Select(x => x.RSLT ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("RSLT_D", OracleDbType.Decimal, Items.Select(x => x.RSLT_D ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SANK_IT", OracleDbType.Decimal, Items.Select(x => x.SANK_IT ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
 
-                cmd.Parameters.Add("SLUCH_Z_ID", OracleDbType.Decimal, listItems.Select(x => x.SLUCH_Z_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SUMP", OracleDbType.Decimal, listItems.Select(x => x.SUMP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SUMV", listItems.Select(x => x.SUMV).ToArray());
-                cmd.Parameters.Add("USL_OK", OracleDbType.Decimal, listItems.Select(x => x.USL_OK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SLUCH_Z_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_Z_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SUMP", OracleDbType.Decimal, Items.Select(x => x.SUMP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SUMV", Items.Select(x => x.SUMV).ToArray());
+                cmd.Parameters.Add("USL_OK", OracleDbType.Decimal, Items.Select(x => x.USL_OK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
 
                 cmd.Parameters.Add("VBR", OracleDbType.Decimal, Items.Select(x => x.VBR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("VB_P", OracleDbType.Decimal, Items.Select(x => x.VB_P ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("VIDPOM", Items.Select(x => x.VIDPOM).ToArray());
 
-                cmd.Parameters.Add("VNOV_M", listItems.Select(x => x.VNOV_Mstr()).ToArray());
-                cmd.Parameters.Add("ZAP_ID", OracleDbType.Decimal, listItems.Select(x => x.ZAP_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("PACIENT_ID", OracleDbType.Decimal, listItems.Select(x => x.PACIENT_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("FIRST_IDCASE", OracleDbType.Decimal, listItems.Select(x => x.FIRST_IDCASE ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("VNOV_M", Items.Select(x => x.VNOV_Mstr()).ToArray());
+                cmd.Parameters.Add("ZAP_ID", OracleDbType.Decimal, Items.Select(x => x.ZAP_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("PACIENT_ID", OracleDbType.Decimal, Items.Select(x => x.PACIENT_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("FIRST_IDCASE", OracleDbType.Decimal, Items.Select(x => x.FIRST_IDCASE ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
 
 
                 var t = cmd.ExecuteNonQuery();
-                if (t != listItems.Count) throw new Exception($"Не полная вставка Z_SLUCH вставлено {t} из {listItems.Count}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка Z_SLUCH вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertZ_SLUCH: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertSLUCH(IEnumerable<SL> Items)
+        void InsertSLUCH(List<SL> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                var listSluch = Items.ToList();
-                if (!listSluch.Any()) return;
-                var cmd = NewOracleCommand($@"insert into {H_SLUCH.FullTableName} 
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_SLUCH.FullTableName} 
 (CODE_MES1,CODE_MES2, COMENTSL, DATE_1, DATE_2, DET, DN, DS0, DS1, DS1_PR,C_ZAB, DS_ONK,ED_COL,
             IDDOKT, KD, BZTSZ, IT_SL, KOEF_D, KOEF_U, KOEF_UP, KOEF_Z, KSG_PG, N_KSG, SL_K, VER_KSG,LPU_1,METOD_HMP,NHISTORY, PODR, PROFIL, PROFIL_K, PRVS,
              PR_D_N, P_CEL, P_PER, REAB, SLUCH_ID, SLUCH_Z_ID, SL_ID, SUM_M, TAL_D, TAL_NUM,TAL_P,TARIF, VERS_SPEC, VID_HMP, PACIENT_ID, DS1_T, MTSTZ, ONK_M, ONK_N, ONK_T, SOD, STAD,
@@ -786,201 +808,176 @@ values
             :IDDOKT,:KD,:BZTSZ,:IT_SL,:KOEF_D,:KOEF_U,:KOEF_UP,:KOEF_Z,:KSG_PG,:N_KSG,:SL_K,:VER_KSG,:LPU_1,:METOD_HMP,:NHISTORY,:PODR,:PROFIL,:PROFIL_K,:PRVS,
 :PR_D_N,:P_CEL,:P_PER,:REAB,:SLUCH_ID,:SLUCH_Z_ID,:SL_ID,:SUM_M,:TAL_D,:TAL_NUM,:TAL_P,:TARIF,:VERS_SPEC,:VID_HMP, :PACIENT_ID,:DS1_T, :MTSTZ, :ONK_M, :ONK_N, :ONK_T, :SOD, :STAD,
 :K_FR, :WEI, :HEI, :BSA,:EXTR, :SUM_MP)", con);
-
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = listSluch.Count();
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
-                cmd.Parameters.Add("CODE_MES1", listSluch.Select(x => x.CODE_MES1str()).ToArray());
-                cmd.Parameters.Add("CODE_MES2", listSluch.Select(x => x.CODE_MES2).ToArray());
-                cmd.Parameters.Add("COMENTSL", listSluch.Select(x => x.COMENTSL).ToArray());
-                cmd.Parameters.Add("DATE_1", listSluch.Select(x => x.DATE_1).ToArray());
-                cmd.Parameters.Add("DATE_2", listSluch.Select(x => x.DATE_2).ToArray());
-                cmd.Parameters.Add("DET", OracleDbType.Decimal, listSluch.Select(x => x.DET ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("DN", OracleDbType.Decimal, listSluch.Select(x => x.DN ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                cmd.Parameters.Add("DS0", listSluch.Select(x => x.DS0).ToArray());
-                cmd.Parameters.Add("DS1", listSluch.Select(x => x.DS1).ToArray());
-
-                cmd.Parameters.Add("DS1_PR", OracleDbType.Decimal, listSluch.Select(x => x.DS1_PR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                cmd.Parameters.Add("C_ZAB", OracleDbType.Decimal, listSluch.Select(x => x.C_ZAB ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("DS_ONK", OracleDbType.Decimal, listSluch.Select(x => x.DS_ONK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("ED_COL", OracleDbType.Decimal, listSluch.Select(x => x.ED_COL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-
-
-                cmd.Parameters.Add("IDDOKT", listSluch.Select(x => x.IDDOKT).ToArray());
-                cmd.Parameters.Add("KD", OracleDbType.Decimal, listSluch.Select(x => x.KD ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("BZTSZ", OracleDbType.Decimal, listSluch.Select(x => x.KSG_KPG?.BZTSZ ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("IT_SL", OracleDbType.Decimal, listSluch.Select(x => x.KSG_KPG != null ? x.KSG_KPG.IT_SL ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("KOEF_D", OracleDbType.Decimal, listSluch.Select(x => x.KSG_KPG?.KOEF_D ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("KOEF_U", OracleDbType.Decimal, listSluch.Select(x => x.KSG_KPG?.KOEF_U ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("KOEF_UP", OracleDbType.Decimal, listSluch.Select(x => x.KSG_KPG?.KOEF_UP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("KOEF_Z", OracleDbType.Decimal, listSluch.Select(x => x.KSG_KPG?.KOEF_Z ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("KSG_PG", OracleDbType.Decimal, listSluch.Select(x => x.KSG_KPG?.KSG_PG ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("N_KSG", OracleDbType.Varchar2, listSluch.Select(x => x.KSG_KPG != null ? x.KSG_KPG.N_KSG : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SL_K", OracleDbType.Decimal, listSluch.Select(x => x.KSG_KPG?.SL_K ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("VER_KSG", OracleDbType.Varchar2, listSluch.Select(x => x.KSG_KPG?.VER_KSG ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                cmd.Parameters.Add("LPU_1", listSluch.Select(x => x.LPU_1).ToArray());
-                cmd.Parameters.Add("METOD_HMP", OracleDbType.Decimal, listSluch.Select(x => x.METOD_HMP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                cmd.Parameters.Add("NHISTORY", listSluch.Select(x => x.NHISTORY).ToArray());
-                cmd.Parameters.Add("PODR", OracleDbType.Decimal, listSluch.Select(x => x.PODR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("PROFIL", OracleDbType.Decimal, listSluch.Select(x => x.PROFIL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("PROFIL_K", OracleDbType.Decimal, listSluch.Select(x => x.PROFIL_K ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("PRVS", OracleDbType.Decimal, listSluch.Select(x => x.PRVS ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-
-
-                cmd.Parameters.Add("PR_D_N", OracleDbType.Decimal, listSluch.Select(x => x.PR_D_N ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("P_CEL", listSluch.Select(x => x.P_CEL).ToArray());
-                cmd.Parameters.Add("P_PER", OracleDbType.Decimal, listSluch.Select(x => x.P_PER ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("REAB", OracleDbType.Decimal, listSluch.Select(x => x.REAB ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, listSluch.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SLUCH_Z_ID", OracleDbType.Decimal, listSluch.Select(x => x.SLUCH_Z_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SL_ID", listSluch.Select(x => x.SL_ID).ToArray());
-                cmd.Parameters.Add("SUM_M", listSluch.Select(x => x.SUM_M).ToArray());
-                cmd.Parameters.Add("TAL_D", OracleDbType.Date, listSluch.Select(x => x.TAL_D ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("TAL_NUM", listSluch.Select(x => x.TAL_NUM).ToArray());
-                cmd.Parameters.Add("TAL_P", OracleDbType.Date, listSluch.Select(x => x.TAL_P ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("TARIF", OracleDbType.Decimal, listSluch.Select(x => x.TARIF ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("VERS_SPEC", listSluch.Select(x => x.VERS_SPEC).ToArray());
-                cmd.Parameters.Add("VID_HMP", listSluch.Select(x => x.VID_HMP).ToArray());
-                cmd.Parameters.Add("PACIENT_ID", OracleDbType.Decimal, listSluch.Select(x => x.PACIENT_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-
-                cmd.Parameters.Add("DS1_T", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.DS1_T ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("MTSTZ", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.MTSTZ ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                cmd.Parameters.Add("ONK_M", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.ONK_M ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("ONK_N", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.ONK_N ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("ONK_T", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.ONK_T ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SOD", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.SOD ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                cmd.Parameters.Add("STAD", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.STAD ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("K_FR", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.K_FR ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("WEI", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.WEI ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("HEI", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.HEI ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("BSA", OracleDbType.Decimal, listSluch.Select(x => x.ONK_SL != null ? x.ONK_SL.BSA ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-
-                cmd.Parameters.Add("EXTR", OracleDbType.Decimal, listSluch.Select(x => x.EXTR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SUM_MP", OracleDbType.Decimal, listSluch.Select(x => x.SUM_MP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-
+                cmd.Parameters.Add("CODE_MES1", Items.Select(x => x.CODE_MES1str()).ToArray());
+                cmd.Parameters.Add("CODE_MES2", Items.Select(x => x.CODE_MES2).ToArray());
+                cmd.Parameters.Add("COMENTSL", Items.Select(x => x.COMENTSL).ToArray());
+                cmd.Parameters.Add("DATE_1", Items.Select(x => x.DATE_1).ToArray());
+                cmd.Parameters.Add("DATE_2", Items.Select(x => x.DATE_2).ToArray());
+                cmd.Parameters.Add("DET", OracleDbType.Decimal, Items.Select(x => x.DET ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DN", OracleDbType.Decimal, Items.Select(x => x.DN ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DS0", Items.Select(x => x.DS0).ToArray());
+                cmd.Parameters.Add("DS1", Items.Select(x => x.DS1).ToArray());
+                cmd.Parameters.Add("DS1_PR", OracleDbType.Decimal, Items.Select(x => x.DS1_PR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("C_ZAB", OracleDbType.Decimal, Items.Select(x => x.C_ZAB ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DS_ONK", OracleDbType.Decimal, Items.Select(x => x.DS_ONK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("ED_COL", OracleDbType.Decimal, Items.Select(x => x.ED_COL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("IDDOKT", Items.Select(x => x.IDDOKT).ToArray());
+                cmd.Parameters.Add("KD", OracleDbType.Decimal, Items.Select(x => x.KD ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("BZTSZ", OracleDbType.Decimal, Items.Select(x => x.KSG_KPG?.BZTSZ ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("IT_SL", OracleDbType.Decimal, Items.Select(x => x.KSG_KPG != null ? x.KSG_KPG.IT_SL ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("KOEF_D", OracleDbType.Decimal, Items.Select(x => x.KSG_KPG?.KOEF_D ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("KOEF_U", OracleDbType.Decimal, Items.Select(x => x.KSG_KPG?.KOEF_U ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("KOEF_UP", OracleDbType.Decimal, Items.Select(x => x.KSG_KPG?.KOEF_UP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("KOEF_Z", OracleDbType.Decimal, Items.Select(x => x.KSG_KPG?.KOEF_Z ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("KSG_PG", OracleDbType.Decimal, Items.Select(x => x.KSG_KPG?.KSG_PG ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("N_KSG", OracleDbType.Varchar2, Items.Select(x => x.KSG_KPG != null ? x.KSG_KPG.N_KSG : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SL_K", OracleDbType.Decimal, Items.Select(x => x.KSG_KPG?.SL_K ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("VER_KSG", OracleDbType.Varchar2, Items.Select(x => x.KSG_KPG?.VER_KSG ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("LPU_1", Items.Select(x => x.LPU_1).ToArray());
+                cmd.Parameters.Add("METOD_HMP", OracleDbType.Decimal, Items.Select(x => x.METOD_HMP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NHISTORY", Items.Select(x => x.NHISTORY).ToArray());
+                cmd.Parameters.Add("PODR", OracleDbType.Decimal, Items.Select(x => x.PODR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("PROFIL", OracleDbType.Decimal, Items.Select(x => x.PROFIL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("PROFIL_K", OracleDbType.Decimal, Items.Select(x => x.PROFIL_K ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("PRVS", OracleDbType.Decimal, Items.Select(x => x.PRVS ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("PR_D_N", OracleDbType.Decimal, Items.Select(x => x.PR_D_N ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("P_CEL", Items.Select(x => x.P_CEL).ToArray());
+                cmd.Parameters.Add("P_PER", OracleDbType.Decimal, Items.Select(x => x.P_PER ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("REAB", OracleDbType.Decimal, Items.Select(x => x.REAB ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SLUCH_Z_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_Z_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SL_ID", Items.Select(x => x.SL_ID).ToArray());
+                cmd.Parameters.Add("SUM_M", Items.Select(x => x.SUM_M).ToArray());
+                cmd.Parameters.Add("TAL_D", OracleDbType.Date, Items.Select(x => x.TAL_D ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("TAL_NUM", Items.Select(x => x.TAL_NUM).ToArray());
+                cmd.Parameters.Add("TAL_P", OracleDbType.Date, Items.Select(x => x.TAL_P ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("TARIF", OracleDbType.Decimal, Items.Select(x => x.TARIF ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("VERS_SPEC", Items.Select(x => x.VERS_SPEC).ToArray());
+                cmd.Parameters.Add("VID_HMP", Items.Select(x => x.VID_HMP).ToArray());
+                cmd.Parameters.Add("PACIENT_ID", OracleDbType.Decimal, Items.Select(x => x.PACIENT_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DS1_T", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.DS1_T ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("MTSTZ", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.MTSTZ ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("ONK_M", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.ONK_M ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("ONK_N", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.ONK_N ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("ONK_T", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.ONK_T ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SOD", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.SOD ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("STAD", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.STAD ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("K_FR", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.K_FR ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("WEI", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.WEI ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("HEI", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.HEI ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("BSA", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.BSA ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("EXTR", OracleDbType.Decimal, Items.Select(x => x.EXTR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SUM_MP", OracleDbType.Decimal, Items.Select(x => x.SUM_MP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 var t = cmd.ExecuteNonQuery();
-                if (t != listSluch.Count) throw new Exception($"Не полная вставка SLUCH вставлено {t} из {listSluch.Count}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка SLUCH вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertSLUCH: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertUSL(IEnumerable<USL> Items)
+        void InsertUSL(List<USL> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                var listUSL = Items.ToList();
-                if (!listUSL.Any()) return;
-                var cmd = NewOracleCommand($@"insert into {H_USL.FullTableName} 
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_USL.FullTableName} 
 (CODE_MD,CODE_USL,COMENTU,DATE_IN,DATE_OUT, DET, DS, IDSERV, KOL_USL, LPU, LPU_1, NPL, USL_ID, PODR, PROFIL,PRVS,P_OTK, SLUCH_ID, TARIF, VID_VME, SUMP_USL, SUMV_USL)
 values
 (:CODE_MD,:CODE_USL,:COMENTU,:DATE_IN,:DATE_OUT, :DET, :DS, :IDSERV, :KOL_USL, :LPU, :LPU_1, :NPL,:USL_ID,:PODR, :PROFIL,:PRVS,:P_OTK, :SLUCH_ID, :TARIF,:VID_VME,:SUMP_USL,:SUMV_USL)", con);
-
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = listUSL.Count;
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
-                cmd.Parameters.Add("CODE_MD", listUSL.Select(x => x.CODE_MD).ToArray());
-                cmd.Parameters.Add("CODE_USL", listUSL.Select(x => x.CODE_USL).ToArray());
-                cmd.Parameters.Add("COMENTU", listUSL.Select(x => x.COMENTU).ToArray());
-                cmd.Parameters.Add("DATE_IN", listUSL.Select(x => x.DATE_IN).ToArray());
-                cmd.Parameters.Add("DATE_OUT", listUSL.Select(x => x.DATE_OUT).ToArray());
-                cmd.Parameters.Add("DET", OracleDbType.Decimal, listUSL.Select(x => x.DET ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("DS", listUSL.Select(x => x.DS).ToArray());
-                cmd.Parameters.Add("IDSERV", listUSL.Select(x => x.IDSERV).ToArray());
-                cmd.Parameters.Add("KOL_USL", OracleDbType.Decimal, listUSL.Select(x => x.KOL_USL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("LPU", listUSL.Select(x => x.LPU).ToArray());
-                cmd.Parameters.Add("LPU_1", listUSL.Select(x => x.LPU_1).ToArray());
-                cmd.Parameters.Add("NPL", OracleDbType.Decimal, listUSL.Select(x => x.NPL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("CODE_MD", Items.Select(x => x.CODE_MD).ToArray());
+                cmd.Parameters.Add("CODE_USL", Items.Select(x => x.CODE_USL).ToArray());
+                cmd.Parameters.Add("COMENTU", Items.Select(x => x.COMENTU).ToArray());
+                cmd.Parameters.Add("DATE_IN", Items.Select(x => x.DATE_IN).ToArray());
+                cmd.Parameters.Add("DATE_OUT", Items.Select(x => x.DATE_OUT).ToArray());
+                cmd.Parameters.Add("DET", OracleDbType.Decimal, Items.Select(x => x.DET ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DS", Items.Select(x => x.DS).ToArray());
+                cmd.Parameters.Add("IDSERV", Items.Select(x => x.IDSERV).ToArray());
+                cmd.Parameters.Add("KOL_USL", OracleDbType.Decimal, Items.Select(x => x.KOL_USL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("LPU", Items.Select(x => x.LPU).ToArray());
+                cmd.Parameters.Add("LPU_1", Items.Select(x => x.LPU_1).ToArray());
+                cmd.Parameters.Add("NPL", OracleDbType.Decimal, Items.Select(x => x.NPL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
 
-                cmd.Parameters.Add("PODR", OracleDbType.Decimal, listUSL.Select(x => x.PODR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("PROFIL", OracleDbType.Decimal, listUSL.Select(x => x.PROFIL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("PRVS", OracleDbType.Decimal, listUSL.Select(x => x.PRVS ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("P_OTK", OracleDbType.Decimal, listUSL.Select(x => x.P_OTK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, listUSL.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SUMV_USL", listUSL.Select(x => x.SUMV_USL).ToArray());
-                cmd.Parameters.Add("TARIF", OracleDbType.Decimal, listUSL.Select(x => x.TARIF ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("USL_ID", OracleDbType.Decimal, listUSL.Select(x => x.USL_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("VID_VME", listUSL.Select(x => x.VID_VME).ToArray());
-                cmd.Parameters.Add("SUMP_USL", OracleDbType.Decimal, listUSL.Select(x => x.SUMP_USL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("PODR", OracleDbType.Decimal, Items.Select(x => x.PODR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("PROFIL", OracleDbType.Decimal, Items.Select(x => x.PROFIL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("PRVS", OracleDbType.Decimal, Items.Select(x => x.PRVS ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("P_OTK", OracleDbType.Decimal, Items.Select(x => x.P_OTK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SUMV_USL", Items.Select(x => x.SUMV_USL).ToArray());
+                cmd.Parameters.Add("TARIF", OracleDbType.Decimal, Items.Select(x => x.TARIF ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("USL_ID", OracleDbType.Decimal, Items.Select(x => x.USL_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("VID_VME", Items.Select(x => x.VID_VME).ToArray());
+                cmd.Parameters.Add("SUMP_USL", OracleDbType.Decimal, Items.Select(x => x.SUMP_USL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 var t = cmd.ExecuteNonQuery();
-                if (t != listUSL.Count) throw new Exception($"Не полная вставка USL вставлено {t} из {listUSL.Count}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка USL вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertUSL: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertNAZR(IEnumerable<NAZR> Items)
+        void InsertNAZR(List<NAZR> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                var listNAZR = Items.ToList();
-                if (!listNAZR.Any()) return;
+                if (!Items.Any()) return;
 
-                var cmd = NewOracleCommand($@"insert into {H_NAZR.FullTableName} 
+                cmd = NewOracleCommand($@"insert into {H_NAZR.FullTableName} 
 (NAZ_N, NAZ_PK, NAZ_PMP, NAZ_R, NAZ_SP, NAZ_V, SLUCH_ID, NAZ_USL, NAPR_DATE, NAPR_MO)
 values
 (:NAZ_N, :NAZ_PK, :NAZ_PMP, :NAZ_R, :NAZ_SP, :NAZ_V, :SLUCH_ID, :NAZ_USL, :NAPR_DATE, :NAPR_MO)", con);
-
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = listNAZR.Count;
+               
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
-                cmd.Parameters.Add("NAZ_N", listNAZR.Select(x => x.NAZ_N).ToArray());
-                cmd.Parameters.Add("NAZ_PK", OracleDbType.Decimal, listNAZR.Select(x => x.NAZ_PK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("NAZ_PMP", OracleDbType.Decimal, listNAZR.Select(x => x.NAZ_PMP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("NAZ_R", listNAZR.Select(x => x.NAZ_R).ToArray());
-                cmd.Parameters.Add("NAZ_SP", OracleDbType.Decimal, listNAZR.Select(x => x.NAZ_SP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("NAZ_V", OracleDbType.Decimal, listNAZR.Select(x => x.NAZ_V ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, listNAZR.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                cmd.Parameters.Add("NAZ_USL", OracleDbType.Varchar2, listNAZR.Select(x => x.NAZ_USL).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("NAPR_DATE", OracleDbType.Date, listNAZR.Select(x => x.NAPR_DATE ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("NAPR_MO", OracleDbType.Varchar2, listNAZR.Select(x => x.NAPR_MO).ToArray(), ParameterDirection.Input);
-
-
+                cmd.Parameters.Add("NAZ_N", Items.Select(x => x.NAZ_N).ToArray());
+                cmd.Parameters.Add("NAZ_PK", OracleDbType.Decimal, Items.Select(x => x.NAZ_PK ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NAZ_PMP", OracleDbType.Decimal, Items.Select(x => x.NAZ_PMP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NAZ_R", Items.Select(x => x.NAZ_R).ToArray());
+                cmd.Parameters.Add("NAZ_SP", OracleDbType.Decimal, Items.Select(x => x.NAZ_SP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NAZ_V", OracleDbType.Decimal, Items.Select(x => x.NAZ_V ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NAZ_USL", OracleDbType.Varchar2, Items.Select(x => x.NAZ_USL).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NAPR_DATE", OracleDbType.Date, Items.Select(x => x.NAPR_DATE ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NAPR_MO", OracleDbType.Varchar2, Items.Select(x => x.NAPR_MO).ToArray(), ParameterDirection.Input);
 
                 var t = cmd.ExecuteNonQuery();
-                if (t != listNAZR.Count) throw new Exception($"Не полная вставка NAZR вставлено {t} из {listNAZR.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка NAZR вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertNAZR: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertNAPR(IEnumerable<NAPR> Items)
+        void InsertNAPR(List<NAPR> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_NAPR.FullTableName} 
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_NAPR.FullTableName} 
 (MET_ISSL, NAPR_DATE, NAPR_USL, NAPR_V,NAPR_MO, SLUCH_ID, IDSERV,USL_ID)
 values
 (:MET_ISSL, :NAPR_DATE, :NAPR_USL, :NAPR_V,:NAPR_MO, :SLUCH_ID, :IDSERV,:USL_ID)", con);
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = Items.Count();
+             
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("MET_ISSL", OracleDbType.Decimal, Items.Select(x => x.MET_ISSL ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("NAPR_DATE", Items.Select(x => x.NAPR_DATE).ToArray());
@@ -991,54 +988,51 @@ values
                 cmd.Parameters.Add("IDSERV", Items.Select(x => x.IDSERV).ToArray());
                 cmd.Parameters.Add("USL_ID", OracleDbType.Decimal, Items.Select(x => x.USL_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception($"Не полная вставка NAPR вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка NAPR вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertNAPR: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertB_PROT(IEnumerable<B_PROT> Items)
+        void InsertB_PROT(List<B_PROT> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_B_PROT.FullTableName} 
-(D_PROT,PROT,SLUCH_ID)
-values
-(:D_PROT,:PROT,:SLUCH_ID)", con);
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = Items.Count();
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_B_PROT.FullTableName} (D_PROT,PROT,SLUCH_ID) values (:D_PROT,:PROT,:SLUCH_ID)", con);
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("D_PROT", Items.Select(x => x.D_PROT).ToArray());
                 cmd.Parameters.Add("PROT", Items.Select(x => x.PROT).ToArray());
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
 
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception(
-                    $"Не полная вставка B_PROT вставлено {t} из {Items.Count()}");
+                if (t != Items.Count) throw new Exception($"Не полная вставка B_PROT вставлено {t} из {Items.Count}");
                 RemoveOracleCommand(cmd);
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertB_PROT: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertB_DIAG(IEnumerable<B_DIAG> Items)
+        void InsertB_DIAG(List<B_DIAG> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_B_DIAG.FullTableName} 
-( DIAG_CODE, DIAG_RSLT, DIAG_TIP, DIAG_DATE, SLUCH_ID, REC_RSLT)
-values
-(:DIAG_CODE,:DIAG_RSLT,:DIAG_TIP,:DIAG_DATE,:SLUCH_ID,:REC_RSLT)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = Items.Count();
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_B_DIAG.FullTableName} (DIAG_CODE, DIAG_RSLT, DIAG_TIP, DIAG_DATE, SLUCH_ID, REC_RSLT) values (:DIAG_CODE,:DIAG_RSLT,:DIAG_TIP,:DIAG_DATE,:SLUCH_ID,:REC_RSLT)", con);
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("DIAG_CODE", OracleDbType.Decimal, Items.Select(x => x.DIAG_CODE).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("DIAG_RSLT", OracleDbType.Decimal, Items.Select(x => x.DIAG_RSLT ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
@@ -1047,54 +1041,52 @@ values
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("REC_RSLT", OracleDbType.Decimal, Items.Select(x => x.REC_RSLT ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception(
-                    $"Не полная вставка B_DIAG вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка B_DIAG вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertB_DIAG: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertCONS(IEnumerable<CONS> Items)
+        void InsertCONS(List<CONS> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_CONS.FullTableName} 
-(PR_CONS, DT_CONS, SLUCH_ID, IDSERV)
-values
-(:PR_CONS, :DT_CONS, :SLUCH_ID, :IDSERV)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = Items.Count();
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_CONS.FullTableName} (PR_CONS, DT_CONS, SLUCH_ID, IDSERV) values (:PR_CONS, :DT_CONS, :SLUCH_ID, :IDSERV)", con);
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
-
                 cmd.Parameters.Add("PR_CONS", OracleDbType.Decimal, Items.Select(x => x.PR_CONS ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("DT_CONS", OracleDbType.Date, Items.Select(x => x.DT_CONS ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("IDSERV", OracleDbType.Varchar2, Items.Select(x => x.IDSERV).ToArray(), ParameterDirection.Input);
-
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception($"Не полная вставка CONS вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка CONS вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertCONS: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertONK_USL(IEnumerable<ONK_USL> Items)
+        void InsertONK_USL(List<ONK_USL> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_ONK_USL.FullTableName} 
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_ONK_USL.FullTableName} 
 (USL_TIP, HIR_TIP, LEK_TIP_L, LEK_TIP_V, LUCH_TIP, SLUCH_ID, ONK_USL_ID,IDSERV, PPTR)
 values
 (:USL_TIP, :HIR_TIP, :LEK_TIP_L, :LEK_TIP_V, :LUCH_TIP, :SLUCH_ID, :ONK_USL_ID,:IDSERV,:PPTR)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
                 cmd.Parameters.Add("USL_TIP", OracleDbType.Decimal, Items.Select(x => x.USL_TIP).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("HIR_TIP", OracleDbType.Decimal, Items.Select(x => x.HIR_TIP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("LEK_TIP_L", OracleDbType.Decimal, Items.Select(x => x.LEK_TIP_L ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
@@ -1104,115 +1096,104 @@ values
                 cmd.Parameters.Add("ONK_USL_ID", OracleDbType.Decimal, Items.Select(x => x.ONK_USL_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("IDSERV", OracleDbType.Varchar2, Items.Select(x => x.IDSERV).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("PPTR", OracleDbType.Decimal, Items.Select(x => x.PPTR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.ArrayBindCount = Items.Count();
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
-
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception(
-                    $"Не полная вставка ONK_USL вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка ONK_USL вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertONK_USL: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertLEK_PR(IEnumerable<LEK_PR> Items)
+        void InsertLEK_PR(List<LEK_PR> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_LEK_PR.FullTableName} 
-(LEK_PR_ID,ONK_USL_ID, REGNUM,CODE_SH)
-values
-(:LEK_PR_ID, :ONK_USL_ID, :REGNUM,:CODE_SH)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_LEK_PR.FullTableName} (LEK_PR_ID,ONK_USL_ID, REGNUM,CODE_SH) values (:LEK_PR_ID, :ONK_USL_ID, :REGNUM,:CODE_SH)", con);
                 cmd.Parameters.Add("LEK_PR_ID", OracleDbType.Decimal, Items.Select(x => x.LEK_PR_ID).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("ONK_USL_ID", OracleDbType.Decimal, Items.Select(x => x.ONK_USL_ID).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("REGNUM", OracleDbType.Varchar2, Items.Select(x => x.REGNUM).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("CODE_SH", OracleDbType.Varchar2, Items.Select(x => x.CODE_SH).ToArray(), ParameterDirection.Input);
-
-                cmd.ArrayBindCount = Items.Count();
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
-
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception(
-                    $"Не полная вставка LEK_PR вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка LEK_PR вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertLEK_PR: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertDATE_INJ(IEnumerable<DATE_INJ> Items)
+        void InsertDATE_INJ(List<DATE_INJ> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_LEK_DATE_INJ.FullTableName} 
-(LEK_PR_ID, DATE_INJ)
-values
-(:LEK_PR_ID, :DATE_INJ)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_LEK_DATE_INJ.FullTableName} (LEK_PR_ID, DATE_INJ) values (:LEK_PR_ID, :DATE_INJ)", con);
                 cmd.Parameters.Add("LEK_PR_ID", OracleDbType.Decimal, Items.Select(x => x.LEK_PR_ID).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("DATE_INJ", OracleDbType.Date, Items.Select(x => x.VALUE).ToArray(), ParameterDirection.Input);
-
-
-                cmd.ArrayBindCount = Items.Count();
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
-
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception(
-                    $"Не полная вставка ONK_USL вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка ONK_USL вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertDATE_INJ: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertSL_KOEF(IEnumerable<SL_KOEF> Items)
+        void InsertSL_KOEF(List<SL_KOEF> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_KSLP.FullTableName} 
-(IDSL,Z_SL,SLUCH_ID)
-values
-(:IDSL,:Z_SL,:SLUCH_ID)", con);
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = Items.Count();
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_KSLP.FullTableName} (IDSL,Z_SL,SLUCH_ID) values (:IDSL,:Z_SL,:SLUCH_ID)", con);
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("IDSL", Items.Select(x => x.IDSL).ToArray());
                 cmd.Parameters.Add("Z_SL", Items.Select(x => x.Z_SL).ToArray());
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception(
-                    $"Не полная вставка SL_KOEF вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка SL_KOEF вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertSL_KOEF: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertSANK(IEnumerable<SANK> Items)
+        void InsertSANK(List<SANK> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_SANK.FullTableName} 
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_SANK.FullTableName} 
 (SANK_ID,SLUCH_ID,SLUCH_Z_ID,S_CODE,S_COM,S_IST, S_OSN, S_SUM, S_TIP,S_YEAR,S_MONTH,S_TEM, S_PLAN, S_FINE, S_IDSERV,S_ZGLV_ID,DATE_ACT,NUM_ACT,SL_ID)
 values
 (:SANK_ID,:SLUCH_ID,:SLUCH_Z_ID,:S_CODE,:S_COM,:S_IST, :S_OSN, :S_SUM, :S_TIP, :S_YEAR,:S_MONTH,:S_TEM, :S_PLAN, :S_FINE,:S_IDSERV,:S_ZGLV_ID,:DATE_ACT,:NUM_ACT,:SL_ID)", con);
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = Items.Count();
+               
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("SANK_ID", OracleDbType.Decimal, Items.Select(x => x.SANK_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
@@ -1230,170 +1211,155 @@ values
                 cmd.Parameters.Add("S_FINE", OracleDbType.Decimal, Items.Select(x => x.S_FINE ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("S_IDSERV", Items.Select(x => x.S_IDSERV).ToArray());
                 cmd.Parameters.Add("S_ZGLV_ID", OracleDbType.Decimal, Items.Select(x => x.S_ZGLV_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-
                 cmd.Parameters.Add("DATE_ACT", OracleDbType.Date, Items.Select(x => x.DATE_ACT ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("NUM_ACT", OracleDbType.Varchar2, Items.Select(x => x.NUM_ACT).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("SL_ID", OracleDbType.Varchar2, Items.Select(x => x.GetSL_ID).ToArray(), ParameterDirection.Input);
-
-
-
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception($"Не полная вставка SANK вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка SANK вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertSANK: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertCODE_EXP(IEnumerable<CODE_EXP> Items)
+        void InsertCODE_EXP(List<CODE_EXP> Items)
         {
+            OracleCommand cmd = null;
             try
             {
-                if (Items.Count() == 0) return;
-                var cmd = NewOracleCommand($@"insert into {H_CODE_EXP.FullTableName} 
-(SANK_ID,CODE_EXP)
-values
-(:SANK_ID,:CODE_EXP)", con);
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
-                cmd.ArrayBindCount = Items.Count();
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_CODE_EXP.FullTableName} (SANK_ID,CODE_EXP) values (:SANK_ID,:CODE_EXP)", con);
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("SANK_ID", OracleDbType.Decimal, Items.Select(x => x.SANK_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("CODE_EXP", Items.Select(x => x.VALUE).ToArray());
-
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception(
-                    $"Не полная вставка CODE_EXP вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка CODE_EXP вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertCODE_EXP: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertH_DS2_N(IEnumerable<DS2_N> Items)
+        void InsertH_DS2_N(List<DS2_N> Items)
         {
+            OracleCommand cmd = null;
             try
             {
                 if (!Items.Any()) return;
-                var cmd = NewOracleCommand($@"insert into {H_DS2_N.FullTableName} 
-(DS2,DS2_PR,PR_DS2_N,SLUCH_ID)
-values
-(:DS2,:DS2_PR,:PR_DS2_N,:SLUCH_ID)", con);
-                cmd.ArrayBindCount = Items.Count();
+                cmd = NewOracleCommand($@"insert into {H_DS2_N.FullTableName} (DS2,DS2_PR,PR_DS2_N,SLUCH_ID) values (:DS2,:DS2_PR,:PR_DS2_N,:SLUCH_ID)", con);
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("DS2", Items.Select(x => x.DS2).ToArray());
                 cmd.Parameters.Add("DS2_PR", OracleDbType.Decimal, Items.Select(x => x.DS2_PR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("PR_DS2_N", OracleDbType.Decimal, Items.Select(x => x.PR_DS2_N ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception($"Не полная вставка DS2_N вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка DS2_N вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertH_DS2_N: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
 
-        void InsertH_DS2(IEnumerable<DS_SLUCH_ID> Items)
+        void InsertH_DS2(List<DS_SLUCH_ID> Items)
         {
+            OracleCommand cmd = null;
             try
             {
                 if (!Items.Any()) return;
-                var cmd = NewOracleCommand($@"insert into {H_DS2.FullTableName} 
-(DS2,SLUCH_ID)
-values
-(:DS2,:SLUCH_ID)", con);
-                cmd.ArrayBindCount = Items.Count();
+                cmd = NewOracleCommand($@"insert into {H_DS2.FullTableName} (DS2,SLUCH_ID) values (:DS2,:SLUCH_ID)", con);
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("DS2", Items.Select(x => x.DS).ToArray());
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception($"Не полная вставка DS2 вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка DS2 вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertH_DS2: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertH_DS3(IEnumerable<DS_SLUCH_ID> Items)
+        void InsertH_DS3(List<DS_SLUCH_ID> Items)
         {
+            OracleCommand cmd = null;
             try
             {
                 if (!Items.Any()) return;
-                var cmd = NewOracleCommand($@"insert into {H_DS3.FullTableName} 
-(DS3,SLUCH_ID)
-values
-(:DS3,:SLUCH_ID)", con);
-                cmd.ArrayBindCount = Items.Count();
+                cmd = NewOracleCommand($@"insert into {H_DS3.FullTableName} (DS3,SLUCH_ID) values (:DS3,:SLUCH_ID)", con);
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("DS3", Items.Select(x => x.DS).ToArray());
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception($"Не полная вставка DS3 вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка DS3 вставлено {t} из {Items.Count}");
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertH_DS3: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
-        void InsertCRIT(IEnumerable<CRIT_SLUCH_ID> Items)
+        void InsertCRIT(List<CRIT_SLUCH_ID> Items)
         {
+            OracleCommand cmd = null;
             try
             {
                 if (!Items.Any()) return;
-                var cmd = NewOracleCommand($@"insert into {H_CRIT.FullTableName} 
-(CRIT,SLUCH_ID,ORD )
-values
-(:CRIT,:SLUCH_ID,:ORD)", con);
-                cmd.ArrayBindCount = Items.Count();
+                cmd = NewOracleCommand($@"insert into {H_CRIT.FullTableName}  (CRIT,SLUCH_ID,ORD) values (:CRIT,:SLUCH_ID,:ORD)", con);
+                cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("CRIT", Items.Select(x => x.CRIT).ToArray());
-                cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("ORD", OracleDbType.Decimal, Items.Select(x => x.ORD ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
-
-                if (Transaction)
-                    cmd.Transaction = Tran;
+                cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object) DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("ORD", OracleDbType.Decimal, Items.Select(x => x.ORD ?? (object) DBNull.Value).ToArray(), ParameterDirection.Input);
                 var t = cmd.ExecuteNonQuery();
-                if (t != Items.Count()) throw new Exception($"Не полная вставка CRIT вставлено {t} из {Items.Count()}");
-                RemoveOracleCommand(cmd);
+                if (t != Items.Count) throw new Exception($"Не полная вставка CRIT вставлено {t} из {Items.Count}");
+             
             }
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertCRIT: {ex.Message}", ex);
             }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
         }
 
         #endregion
-
-
-
 
         public Task<bool> DeleteTemp100TASK(string code_mo)
         {
             return Task.Factory.StartNew(() =>
             {
-                using (var connect = NewOracleConnection(ConnStr))
+                OracleConnection connect = null;
+                OracleCommand cmd = null;
+                try
                 {
-                    using (var cmd = NewOracleCommand(
-              @"begin DELETE_REESTR_TEMP100(:code_mo); end;", connect))
+                    using (connect = NewOracleConnection(ConnStr))
                     {
-                        try
+                        using (cmd = NewOracleCommand(@"begin DELETE_REESTR_TEMP100(:code_mo); end;", connect))
                         {
                             cmd.Parameters.Add("code_mo", code_mo);
                             connect.Open();
@@ -1403,14 +1369,14 @@ values
                             RemoveOracleConnection(connect);
                             return true;
                         }
-                        catch (Exception)
-                        {
-                            RemoveOracleCommand(cmd);
-                            RemoveOracleConnection(connect);
-                            throw;
-                        }
                     }
                 }
+                finally
+                {
+                    RemoveOracleCommand(cmd);
+                    RemoveOracleConnection(connect);
+                }
+
             });
         }
         public List<SVOD_FILE_Row> SVOD_FILE_TEMP99()
@@ -1795,7 +1761,7 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
             var SL = Z_SL.SelectMany(x => x.SL).ToList();
             var SANK = Z_SL.SelectMany(x => x.SANK).ToList();
             var USL = SL.SelectMany(x => x.USL).ToList();
-            var EXP = SANK.SelectMany(x => x.CODE_EXP).Where(x=>!string.IsNullOrEmpty(x.VALUE));
+            var EXP = SANK.SelectMany(x => x.CODE_EXP).Where(x=>!string.IsNullOrEmpty(x.VALUE)).ToList();
 
 
             //Если до версии 3.1 то ставим на санкции случай
@@ -1904,7 +1870,7 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
             var SL = Z_SL.SelectMany(x => x.SL).ToList();
             var SANK = Z_SL.SelectMany(x => x.SANK).ToList();
             var USL = SL.SelectMany(x => x.USL).ToList();
-            var EXP = SANK.SelectMany(x => x.CODE_EXP).Where(x => !string.IsNullOrEmpty(x.VALUE));
+            var EXP = SANK.SelectMany(x => x.CODE_EXP).Where(x => !string.IsNullOrEmpty(x.VALUE)).ToList();
 
 
             //Если до версии 3.1 то ставим на санкции случай
@@ -2459,31 +2425,42 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
         /// <returns>Значение sequence</returns>
         public int GetSec(string sec_name, int count)
         {
-            if (count == 0)
-                return 0;
-            int x;
-            using (var conn = NewOracleConnection(ConnStr))
+            OracleConnection conn = null;
+            OracleCommand cmd = null;
+            try
             {
-                using (var cmd = NewOracleCommand($"select {sec_name}.nextval from dual", conn))
+                if (count == 0)
+                    return 0;
+                int x;
+                using (conn = NewOracleConnection(ConnStr))
                 {
-                    cmd.Connection.Open();
-                    x = Convert.ToInt32(cmd.ExecuteScalar());
-                    if (count > 1)
+                    using (cmd = NewOracleCommand($"select {sec_name}.nextval from dual", conn))
                     {
-                        cmd.CommandText = $"alter sequence {sec_name} increment by {(count - 1)}";
+                        cmd.Connection.Open();
+                        x = Convert.ToInt32(cmd.ExecuteScalar());
+                        if (count > 1)
+                        {
+                            cmd.CommandText = $"alter sequence {sec_name} increment by {count - 1}";
+                            cmd.ExecuteScalar();
+                            cmd.CommandText = $"select {sec_name}.nextval from dual";
+                            cmd.ExecuteScalar();
+                        }
+
+                        cmd.CommandText = $"alter sequence {sec_name} increment by 1";
                         cmd.ExecuteScalar();
-                        cmd.CommandText = $"select {sec_name}.nextval from dual";
-                        cmd.ExecuteScalar();
+                        cmd.Connection.Close();
+                    
                     }
-                    cmd.CommandText = $"alter sequence {sec_name} increment by 1";
-                    cmd.ExecuteScalar();
-                    cmd.Connection.Close();
-                    RemoveOracleCommand(cmd);
                 }
-                RemoveOracleConnection(conn);
+                return x;
             }
-            
-            return x;
+            finally
+            {
+                RemoveOracleCommand(cmd);
+                RemoveOracleConnection(conn);
+
+            }
+           
         }
 
         bool Transaction;

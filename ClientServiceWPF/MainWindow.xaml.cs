@@ -1,7 +1,9 @@
 ﻿using ServiceLoaderMedpomData;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.Text;
 using System.Threading;
@@ -102,6 +104,16 @@ namespace ClientServiceWPF
 
 
         public List<EntriesMy> Entries { get; set; } = new List<EntriesMy>();
+
+        class TEST_CLASS
+        {
+            public string PROP1 { get; set; } = "PROP1";
+            public string PROP2 { get; set; } = "PROP1";
+            public string PROP3 { get; set; } = "PROP1";
+            public string PROP4 { get; set; } = "PROP1";
+            public string PROP5 { get; set; } = "PROP1";
+
+        }
         private void buttonRefreshLog_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -109,6 +121,9 @@ namespace ClientServiceWPF
                 Entries.Clear();
                 Entries.AddRange(wcf.GetEventLogEntry(Convert.ToInt32(textBoxCountLog.Text)));
                 CollectionViewSourceLOG.View.Refresh();
+
+
+
             }
             catch (Exception ex)
             {
