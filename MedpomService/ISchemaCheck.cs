@@ -44,25 +44,26 @@ namespace MedpomService
             this.excelProtokol = excelProtokol;
             this.Logger = Logger;
         }
-
-
-        private ThreadManager<CheckPackParam> thList = new ThreadManager<CheckPackParam>();
+    
+        private TASKManager<CheckPackParam> taskList = new TASKManager<CheckPackParam>();
 
         public void StartCheck(FilePacket fp)
         {
-           var th = new Thread(CheckPack) {IsBackground = true};
            var param = new CheckPackParam {isResetLog = false, pack = fp};
-           thList.AddListTh(th, param);
-           th.Start(param);
+           var cts = new CancellationTokenSource();
+           var task = new Task(() => CheckPack(param, cts.Token));
+           taskList.AddTask(task, cts, param);
+           task.Start();
         }
 
         public void StartReCheck(FilePacket fp)
         {
             ClearCatalog(fp);
-            var th = new Thread(CheckPack) { IsBackground = true };
             var param = new CheckPackParam { isResetLog = true, pack = fp };
-            thList.AddListTh(th, param);
-            th.Start(param);
+            var cts = new CancellationTokenSource();
+            var task = new Task(() => CheckPack(param, cts.Token));
+            taskList.AddTask(task, cts, param);
+            task.Start();
         }
 
         private void ClearCatalog(FilePacket fp)
@@ -122,8 +123,8 @@ namespace MedpomService
         {
             await Task.Run(() =>
             {
-                var item = thList.Get().FirstOrDefault(x => x.Param.pack == fp);
-                item?.Th.Abort();
+                var item = taskList.Get().FirstOrDefault(x => x.Param.pack == fp);
+                item?.CTS?.Cancel();
             });
         }
 
@@ -168,9 +169,11 @@ namespace MedpomService
             public bool isResetLog { get; set; }
         }
 
-        private void CheckPack(object _param)
+
+     
+
+        private void CheckPack(CheckPackParam param, CancellationToken cancel)
         {
-            var param = (CheckPackParam)_param;
             var pack = param.pack;
             var isResetLog = param.isResetLog;
             try
@@ -193,6 +196,7 @@ namespace MedpomService
 
                 foreach (var item in pack.Files)
                 {
+                    cancel.ThrowIfCancellationRequested();
                     if (item.Process == StepsProcess.NotInvite || item.Process == StepsProcess.FlkErr) continue;
                     var vers_file = ReadVersion(item);
                     var vers_file_l = ReadVersion(item.filel);
@@ -218,6 +222,7 @@ namespace MedpomService
                     }
                 }
 
+                cancel.ThrowIfCancellationRequested();
                 //Проверка на уникальность кода внутри пакета
                 try
                 {
@@ -229,7 +234,7 @@ namespace MedpomService
                 }
 
                 //Проверка уникальности файла
-
+                cancel.ThrowIfCancellationRequested();
                 foreach (var fi in pack.Files)
                 {
                     try
@@ -248,10 +253,11 @@ namespace MedpomService
                         throw new Exception($"Ошибка при проверке уникальности файла: {ex.Message}", ex);
                     }
                 }
+
                 pack.Status = StatusFilePack.XMLSchemaOK;
                 pack.Comment = "Обработка пакета: Ожидание ФЛК";
                 pack.CommentSite = "Ожидание проверки";
-                if (pack.Files.Count(x=>x.Process== StepsProcess.XMLxsd && x.filel.Process== StepsProcess.XMLxsd) == 0)
+                if (pack.Files.Count(x => x.Process == StepsProcess.XMLxsd && x.filel.Process == StepsProcess.XMLxsd) == 0)
                 {
                     //Закрываем все и фурмируем ошибки
                     pack.Status = StatusFilePack.FLKOK;
@@ -263,6 +269,12 @@ namespace MedpomService
                     pack.CommentSite = "Завершено";
                 }
             }
+            catch (OperationCanceledException ex)
+            {
+                pack.Status = StatusFilePack.FLKERR;
+                pack.CommentSite = "Отмена обработки пользователем";
+                pack.Comment = "Ошибка проверки схемы: Отмена обработки пользователем";
+            }
             catch (Exception ex)
             {
                 pack.Status = StatusFilePack.FLKERR;
@@ -272,7 +284,8 @@ namespace MedpomService
             finally
             {
                 pack.CloserLogFiles();
-                thList.RemoveTh(Thread.CurrentThread);
+                if(Task.CurrentId.HasValue)
+                    taskList.RemoveTask(Task.CurrentId.Value);
             }
         }
 
@@ -476,25 +489,25 @@ namespace MedpomService
                 }
                 if (string.IsNullOrEmpty(FILE.FileName))
                 {
-                    FILE_L.CommentAndLog = "Файл не имеет FILENAME";
+                    FILE.CommentAndLog = "Файл не имеет FILENAME";
                     return false;
                 }
 
                 if (checkL)
                 {
                     var el_l = SchemaChecking.GetELEMENTs(FILE_L.FilePach, "FILENAME", "FILENAME1");
-                    var FileName = el_l["FILENAME"]??"";
-                    var FileName1 = el_l["FILENAME1"]??"";
+                    var FileName = el_l["FILENAME"];
+                    var FileName1 = el_l["FILENAME1"];
 
 
-                    if (FileName.ToUpper() != Path.GetFileNameWithoutExtension(FILE_L.FileName).ToUpper())
+                    if (FileName != Path.GetFileNameWithoutExtension(FILE_L.FileName))
                     {
-                        FILE_L.CommentAndLog = $"Файл {FILE_L.FileName} имеет не корректный FILENAME = {FileName.ToUpper()}";
+                        FILE_L.CommentAndLog = $"Файл {FILE_L.FileName} имеет не корректный FILENAME = {FileName}";
                         return false;
                     }
-                    if (FileName1.ToUpper() != Path.GetFileNameWithoutExtension(FILE.FileName).ToUpper())
+                    if (FileName1 != Path.GetFileNameWithoutExtension(FILE.FileName))
                     {
-                        FILE_L.CommentAndLog = $"Файл {FILE.FileName} имеет не корректный FILENAME1 = {FileName1.ToUpper()}";
+                        FILE_L.CommentAndLog = $"Файл {FILE.FileName} имеет не корректный FILENAME1 = {FileName1}";
                         return false;
                     }
                 }
@@ -504,39 +517,36 @@ namespace MedpomService
                 var CODE_MO = el["CODE_MO"];
                 var YEAR = el["YEAR"];
 
-                if (FILENAME.ToUpper() != Path.GetFileNameWithoutExtension(FILE.FileName).ToUpper())
+                if (FILENAME != Path.GetFileNameWithoutExtension(FILE.FileName))
                 {
-                    FILE.CommentAndLog = $"Файл {FILE.FileName} имеет не корректный FILENAME = {FILENAME.ToUpper()}";
+                    FILE.CommentAndLog = $"Файл {FILE.FileName} имеет не корректный FILENAME = {FILENAME}";
                     return false;
                 }
 
                 var ZGLV = bd.GetZGLV_BYFileName(FILENAME);
                 if (ZGLV.Count != 0)
                 {
-                    FILE.CommentAndLog = $"Файл {FILE.FileName} FILENAME = {FILENAME.ToUpper()}, который присутствует в предыдущих периодах";
-                    FILE.FileLog.WriteLn(string.Join(Environment.NewLine, ZGLV.Select(zglv => $"Файл {zglv.FILENAME} от {zglv.DSCHET:dd-MM-yyyy}")));
+                    FILE.CommentAndLog = $"Файл {FILE.FileName} FILENAME = {FILENAME}, который присутствует в предыдущих периодах{Environment.NewLine}{string.Join(Environment.NewLine, ZGLV.Select(zglv => $"Файл {zglv.FILENAME} от {zglv.DSCHET:dd-MM-yyyy}"))}";
                     return false;
                 }
 
                 ZGLV = bd.GetZGLV_BYCODE_CODE_MO(Convert.ToInt32(CODE), CODE_MO, Convert.ToInt32(YEAR));
                 if (ZGLV.Count != 0)
                 {
-                    FILE.CommentAndLog = $"Файл имеет код счета который присутствует в предыдущих периодах code = {CODE}";
-                    FILE.FileLog.WriteLn(string.Join(Environment.NewLine, ZGLV.Select(zglv => $"Файл {zglv.FILENAME} code = {zglv.CODE} от {zglv.DSCHET:dd-MM-yyyy}")));
+                    FILE.CommentAndLog = $"Файл имеет код счета который присутствует в предыдущих периодах code = {CODE}{Environment.NewLine}{string.Join(Environment.NewLine, ZGLV.Select(zglv => $"Файл {zglv.FILENAME} code = {zglv.CODE} от {zglv.DSCHET:dd-MM-yyyy}"))}";
                     return false;
                 }
 
                 if (MO != CODE_MO)
                 {
-                    FILE.CommentAndLog = $"Код МО указанный в наименовании файла не совпадает с тэгом CODE_MO";
+                    FILE.CommentAndLog ="Код МО указанный в наименовании файла не совпадает с тэгом CODE_MO";
                     return false;
                 }
-
                 return true;
             }
             catch (Exception ex)
             {
-                Logger.AddLog($"Ошибка при проверке на соответствие имен файлов для {FILE.FileName}: {ex.Message}", LogType.Error);
+                Logger.AddLog($"Ошибка при проверке на соответствие имен файлов для {FILE.FileName}: {ex.Message} {ex.StackTrace}", LogType.Error);
                 return false;
             }
         }

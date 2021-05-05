@@ -43,19 +43,17 @@ namespace MedpomService
             this.Logger = Logger;
         }
         private CancellationTokenSource BDinviteCancellationTokenSource;
-        private Thread thWorkProcess;
+        private Task thWorkProcess;
         private FilePacket DBinvitePac;
         private IRepository mybd { get; set; }
-        private void WorkProcess()
+        private  void WorkProcess(CancellationToken cancel)
         {
             try
             {
-                BDinviteCancellationTokenSource = new CancellationTokenSource();
-                var cancel = BDinviteCancellationTokenSource.Token;
                 while (!cancel.IsCancellationRequested && AppConfig.Property.FILE_ON)
                 {
                     var currentpack = PacketQuery.GetHighPriority();
-                    if (currentpack!=null)
+                    if (currentpack != null)
                     {
                         try
                         {
@@ -69,7 +67,7 @@ namespace MedpomService
                                 {
                                     try
                                     {
-                                        CheckCancel(cancel);
+                                        cancel.ThrowIfCancellationRequested();
                                         mybd.TruncALL();
                                     }
                                     catch (CancelException)
@@ -99,7 +97,7 @@ namespace MedpomService
                                     {
                                         try
                                         {
-                                            CheckCancel(cancel);
+                                            cancel.ThrowIfCancellationRequested();
                                             if (fi.Process != StepsProcess.XMLxsd) continue;
                                             currentpack.Comment = $"Обработка пакета: Перенос данных в БД ({fi.FileName})";
                                             fi.Comment = "Перенос файла";
@@ -131,7 +129,7 @@ namespace MedpomService
 
                                     Task clearTemp100Task = null;
                                     var ProcessList = currentpack.Files.Where(x => x.Process == StepsProcess.FlkOk && x.filel.Process == StepsProcess.FlkOk).ToList();
-                                    CheckCancel(cancel);
+                                    cancel.ThrowIfCancellationRequested();
                                     //ОЧИСТКА БАЗЫ ПЕРЕНОСА
                                     if (AppConfig.Property.TransferBD)
                                     {
@@ -160,7 +158,7 @@ namespace MedpomService
                                             fi.WriteLnFull(":Начало ФЛК:");
                                         }
 
-                                        CheckCancel(cancel);
+                                        cancel.ThrowIfCancellationRequested();
                                         CheckFLK_ALL(mybd, currentpack, cancel);
                                         foreach (var fi in ProcessList)
                                         {
@@ -213,7 +211,7 @@ namespace MedpomService
                                     //Перенос в месячную БД
                                     if (AppConfig.Property.TransferBD)
                                     {
-                                        CheckCancel(cancel);
+                                        cancel.ThrowIfCancellationRequested();
                                         try
                                         {
                                             foreach (var fi in currentpack.Files)
@@ -332,7 +330,7 @@ namespace MedpomService
 
 
                                     GC.Collect();
-                                    //Закрываем все и фурмируем ошибки
+                                    //Закрываем все и формируемым ошибки
                                     currentpack.CloserLogFiles();
                                     messageMo.CreateErrorMessage(currentpack);
                                     currentpack.Status = StatusFilePack.FLKOK;
@@ -353,8 +351,6 @@ namespace MedpomService
                             currentpack.Comment = "Обработка прервана пользователем";
                             Logger.AddLog($"Прерывание потока выполнения {currentpack.CodeMO}", LogType.Error);
                             DBinvitePac = null;
-
-                            return;
                         }
                         catch (Exception ex)
                         {
@@ -370,14 +366,22 @@ namespace MedpomService
                         }
                     }
 
-                    Thread.Sleep(1000);
+                    var delay = Task.Delay(1000, cancel);
+                    delay.Wait(cancel);
                     DBinvitePac = null;
                 }
             }
+            catch (CancelException)
+            {
+
+            }
             catch (Exception ex)
             {
-                DBinvitePac = null;
                 Logger.AddLog($"Ошибка в потоке ФЛК ({ex.Source}:{ex.Message})", LogType.Error);
+            }
+            finally
+            {
+                DBinvitePac = null;
                 SaveFilesParam();
             }
         }
@@ -468,7 +472,7 @@ namespace MedpomService
             var cList = new List<TableName> { TableName.ZGLV, TableName.SCHET, TableName.ZAP, TableName.PACIENT, TableName.SLUCH, TableName.USL, TableName.L_ZGLV, TableName.L_PERS, };
             foreach (var tn in cList)
             {
-                CheckCancel(cancel);
+                cancel.ThrowIfCancellationRequested();
                 try
                 {
                     CheckFLK(bd, pack, tn, cancel);
@@ -490,10 +494,7 @@ namespace MedpomService
                 Logger.AddLog($"Ошибка при выполнении {or.NAME_PROC}({or.Comment}) для {pack.CodeMO}", LogType.Error);
             }
         }
-        private void CheckCancel(CancellationToken cancel)
-        {
-            if (cancel.IsCancellationRequested) throw new CancelException();
-        }
+       
 
         public CheckingList GetCheckingList()
         {
@@ -517,14 +518,14 @@ namespace MedpomService
 
         public bool IsBDInvite()
         {
-            return thWorkProcess != null && thWorkProcess.IsAlive;
+            return thWorkProcess != null && thWorkProcess.Status== TaskStatus.Running;
         }
 
         public void StartBDInvite()
         {
             LoadCheckingList();
-            thWorkProcess = new Thread(WorkProcess) {IsBackground = true};
-            thWorkProcess.Start();
+            BDinviteCancellationTokenSource = new CancellationTokenSource();
+            thWorkProcess = Task.Run(() => { WorkProcess(BDinviteCancellationTokenSource.Token);});
         }
 
         public void StopBDInvite()
@@ -542,11 +543,11 @@ namespace MedpomService
                 BDinviteCancellationTokenSource?.Cancel();
                 mybd?.Dispose();
                 Logger.AddLog($"Ожидание прерывания потока переноса в БД для {FP.CodeMO}", LogType.Error);
-                while (thWorkProcess.ThreadState == System.Threading.ThreadState.Running)
+                while (thWorkProcess.Status == TaskStatus.Running)
                 {
-                    Thread.Sleep(1000);
+                    var del =  Task.Delay(1000);
+                    del.Wait();
                 }
-
                 DBinvitePac = null;
                 StartBDInvite();
                 Logger.AddLog("Прерывание успешно", LogType.Error);

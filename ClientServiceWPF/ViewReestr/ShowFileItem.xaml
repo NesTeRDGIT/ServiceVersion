@@ -19,7 +19,7 @@
     <Grid>
         <GroupBox Header="Список файлов" Margin="0,0,0,140">
             <Grid>
-                <DataGrid Margin="0,0,0,35" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSFileList}}" IsReadOnly="True" Name="DataGridFileList" SelectionUnit="CellOrRowHeader" SelectedCellsChanged="DataGridFileList_OnSelectedCellsChanged">
+                <DataGrid Margin="0,0,0,35" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSFileList}}" IsReadOnly="True" Name="DataGridFileList" AutoGenerateColumns="False" SelectionUnit="CellOrRowHeader" SelectedCellsChanged="DataGridFileList_OnSelectedCellsChanged">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Имя файла" Binding="{Binding FileName}" Width="Auto"></DataGridTextColumn>
                         <DataGridTextColumn Header="Тип файла" Binding="{Binding Type}"  Width="Auto"></DataGridTextColumn>

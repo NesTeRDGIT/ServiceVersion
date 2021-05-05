@@ -78,7 +78,13 @@ namespace ClientServiceWPF
             var dg = sender as DataGrid;
             if (dg?.SelectedItem != null)
             {
+
                 dg.ScrollIntoView(dg.SelectedItem);
+                var listRemove = dg.SelectedCells.Where(cell => cell.Item != dg.SelectedItem).ToList();
+                foreach (var cell in listRemove)
+                {
+                    dg.SelectedCells.Remove(cell);
+                }
             }
         }
 
@@ -97,6 +103,8 @@ namespace ClientServiceWPF
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
         #endregion
+
+      
     }
 
 
@@ -201,7 +209,6 @@ namespace ClientServiceWPF
                     {
                         StatusOperation = @"Обновление списка...";
                         RefreshDate(listtmp);
-                      
                         StatusOperation = "";
                     });
                 }

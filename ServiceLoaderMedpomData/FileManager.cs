@@ -635,7 +635,6 @@ $@"Наименование файла должно быть
         public void CopyFrom(FileItemBase item)
         {
             SIGN_DIR = item.SIGN_DIR;
-
             SIGN_BUH = item.SIGN_DIR;
             SIGN_ISP = item.SIGN_ISP;
             PATH_LOG_XML = item.PATH_LOG_XML;
@@ -649,6 +648,7 @@ $@"Наименование файла должно быть
             Version = item.Version;
             ZGLV_ID = item.ZGLV_ID;
             DOP_REESTR = item.DOP_REESTR;
+            FileLog = item.FileLog;
             if (item.ErrList != null)
             {
                 ErrList = new List<ErrorProtocolXML>();
@@ -1048,6 +1048,7 @@ $@"Наименование файла должно быть
         public void CopyFrom(FilePacket item)
         {
             this.ID = item.ID;
+            this.guid = item.guid;
             this.IST = item.IST;
             this.WARNNING = item.WARNNING;
             this.PATH_STAT = item.PATH_STAT;

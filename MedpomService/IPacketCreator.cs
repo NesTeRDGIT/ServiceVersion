@@ -18,10 +18,10 @@ namespace MedpomService
     {
         private IRepository mybd { get; }
         private ISchemaCheck SchemaCheck { get; }
-        private ThreadManager<CloserPackParam> listTH { get; } = new ThreadManager<CloserPackParam>();
+        private TASKManager<CloserPackParam> listTH { get; } = new TASKManager<CloserPackParam>();
 
 
-        string SvodFileNameXLS = "FileStat.xlsx";
+       
         private ILogger Logger;
         public PacketCreator(IRepository mybd, ISchemaCheck SchemaCheck, ILogger Logger)
         {
@@ -33,10 +33,14 @@ namespace MedpomService
 
         public void StartAway(FilePacket fp)
         {
-            var th = new Thread(CloserPack) { IsBackground = true };
             var param = new CloserPackParam { pack = fp };
-            listTH.AddListTh(th, param);
-            th.Start(param);
+            var cts = new CancellationTokenSource();
+            var task = new Task(()=>
+            {
+                CloserPack(param, cts.Token);
+            });
+            listTH.AddTask(task, cts, param);
+            task.Start();
         }
 
       
@@ -45,13 +49,17 @@ namespace MedpomService
             public FilePacket pack { get; set; }
         }
 
+        private void Delay(int MS)
+        {
+            var task = Task.Delay(MS);
+            task.Wait();
+        }
         /// <summary>
         /// Поток на закрытие схемы пакета
         /// </summary>
         /// <param name="_pack">Массив [2]. 1 - пакет(FilePacket) 2 - ожидать ли файлы(bool)</param>
-        private void CloserPack(object _param)
+        private void CloserPack(CloserPackParam param, CancellationToken cancel)
         {
-            var param = (CloserPackParam)_param;
             var pack = param.pack;
             try
             {
@@ -70,7 +78,7 @@ namespace MedpomService
                     sec++;
                     pack.Comment = $"Обработка пакета: Ожидание файлов {AppConfig.Property.TimePacketOpen - sec} сек";
                     pack.CommentSite = $"Формирование пакета {AppConfig.Property.TimePacketOpen - sec} сек";
-                    Thread.Sleep(1000);
+                    Delay(1000);
                 }
 
                 pack.Status = StatusFilePack.Close;
@@ -95,7 +103,7 @@ namespace MedpomService
                         {
                             pack.Comment = $"Каталог {Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO)} занят.({ex.Message})";
                             pack.CommentSite = "Рабочий каталог занят... Ожидание освобождения";
-                            Thread.Sleep(5000);
+                            Delay(5000);
                         }
                     }
                 }
@@ -163,7 +171,6 @@ namespace MedpomService
                 pack.CloserLogFiles();
                 //Проверка схемы
                 SchemaCheck.StartCheck(pack);
-                
             }
             catch (Exception ex)
             {
@@ -174,7 +181,8 @@ namespace MedpomService
             }
             finally
             {
-                listTH.RemoveTh(Thread.CurrentThread);
+                if(Task.CurrentId.HasValue)
+                    listTH.RemoveTask(Task.CurrentId.Value);
             }
         }
 

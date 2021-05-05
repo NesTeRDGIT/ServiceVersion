@@ -91,6 +91,12 @@ namespace MedpomService
         /// Список поступивших архивов
         /// </summary>
         private List<FileListItem> ArchiveFileList { get; set; } = new List<FileListItem>();
+
+        private void Delay(int ms)
+        {
+            var del = Task.Delay(ms);
+            del.Wait();
+        }
         /// <summary>
         /// обработка файла архива ZIP
         /// </summary>
@@ -104,7 +110,7 @@ namespace MedpomService
                 var ArchiveFileListFiller = ArchiveFileList.Where(x => (DateTime.Now - x.DateIN).Milliseconds > 500).ToList();
                 if (ArchiveFileListFiller.Count == 0)
                 {
-                    Thread.Sleep(1500);
+                    Delay(1500);
                     continue;
                 }
 
@@ -127,7 +133,7 @@ namespace MedpomService
                         {
                             throw new Exception($"Не удалось найти файл {FullPath}");
                         }
-                        Thread.Sleep(1000);
+                        Delay(1000);
                     }
 
                     var fp = ParseFileName.Parse(Name);
@@ -218,7 +224,7 @@ namespace MedpomService
             {
                 if (FileList.Count == 0)
                 {
-                    Thread.Sleep(500);
+                    Delay(500);
                     continue;
                 }
                 var Fitem = FileList[0];
@@ -331,14 +337,14 @@ namespace MedpomService
 
 
         private CancellationTokenSource CTSThArchive;
-        private Thread ThArchive;
+        private Task ThArchive;
 
 
         public void StartArchiveInviter()
         {
             if(isArchiveInviter())
                 throw new Exception("Поток приема архивов уже запущен");
-            ThArchive = new Thread(ArchiveInviter) {IsBackground = true};
+            ThArchive = new Task(ArchiveInviter) ;
             ThArchive.Start();
         }
 
@@ -350,16 +356,16 @@ namespace MedpomService
 
         public bool isArchiveInviter()
         {
-            return ThArchive != null && ThArchive.IsAlive;
+            return ThArchive != null && ThArchive.Status == TaskStatus.Running;
         }
 
         private CancellationTokenSource CTSThFiles;
-        private Thread ThFiles;
+        private Task ThFiles;
         public void StartFileInviter()
         {
             if (isFileInviter())
                 throw new Exception("Поток приема файлов уже запущен");
-            ThFiles = new Thread(FilesInviter) { IsBackground = true };
+            ThFiles = new Task(FilesInviter);
             ThFiles.Start();
         }
 
@@ -372,7 +378,7 @@ namespace MedpomService
 
         public bool isFileInviter()
         {
-            return ThFiles != null && ThFiles.IsAlive;
+            return ThFiles != null && ThFiles.Status == TaskStatus.Running;
         }
 
         public void ActivateFileAuto(bool value, string path)

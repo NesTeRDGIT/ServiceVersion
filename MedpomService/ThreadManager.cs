@@ -32,4 +32,32 @@ namespace MedpomService
         }
     }
 
+
+
+    public class TASKItem<T>
+    {
+        public Task Task { get; set; }
+        public CancellationTokenSource CTS { get; set; }
+        public T Param { get; set; }
+    }
+    public class TASKManager<T>
+    {
+        List<TASKItem<T>> listCloser = new List<TASKItem<T>>();
+
+        public void AddTask(Task th, CancellationTokenSource cts, T param)
+        {
+            listCloser.Add(new TASKItem<T> { Param = param, Task = th, CTS = cts });
+        }
+        public void RemoveTask(int ID)
+        {
+            var item = listCloser.FirstOrDefault(x => x.Task.Id == ID);
+            if(item!=null)
+                listCloser.Remove(item);
+        }
+
+        public List<TASKItem<T>> Get()
+        {
+            return listCloser;
+        }
+    }
 }

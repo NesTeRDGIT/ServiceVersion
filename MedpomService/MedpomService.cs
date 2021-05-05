@@ -117,8 +117,10 @@ namespace MedpomService
                 if (AppConfig.Property.FILE_ON)
                     wi.StartProcess(AppConfig.Property.MainTypePriem, AppConfig.Property.AUTO, AppConfig.Property.OtchetDate);
 
-                var th = new Thread(SendNewFileManagerThread);
-                th.Start();
+                Task.Run(() =>
+                {
+                    SendNewFileManagerThread();
+                });
             }
             catch(Exception ex)
             {
@@ -369,7 +371,8 @@ namespace MedpomService
                     }
 
                 }
-                Thread.Sleep(2000);
+                var del = Task.Delay(2000);
+                del.Wait();
             }
         }
         #endregion

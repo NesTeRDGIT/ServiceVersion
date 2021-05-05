@@ -1,7 +1,9 @@
 ﻿using ServiceLoaderMedpomData;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.Text;
 using System.Threading;
@@ -102,6 +104,16 @@ namespace ClientServiceWPF
 
 
         public List<EntriesMy> Entries { get; set; } = new List<EntriesMy>();
+
+        class TEST_CLASS
+        {
+            public string PROP1 { get; set; } = "PROP1";
+            public string PROP2 { get; set; } = "PROP1";
+            public string PROP3 { get; set; } = "PROP1";
+            public string PROP4 { get; set; } = "PROP1";
+            public string PROP5 { get; set; } = "PROP1";
+
+        }
         private void buttonRefreshLog_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -109,6 +121,9 @@ namespace ClientServiceWPF
                 Entries.Clear();
                 Entries.AddRange(wcf.GetEventLogEntry(Convert.ToInt32(textBoxCountLog.Text)));
                 CollectionViewSourceLOG.View.Refresh();
+
+
+
             }
             catch (Exception ex)
             {
@@ -186,7 +201,8 @@ namespace ClientServiceWPF
   
 
         public List<StatusOper> ListOP { get; set; } = new List<StatusOper>();
-        private Thread thERR;
+        private Task TaskCheckErr;
+        private CancellationTokenSource TaskCheckErrCTS;
         private bool Active;
         private void RefreshStatusOperation()
         {
@@ -248,10 +264,11 @@ namespace ClientServiceWPF
 
                 if (buttonRefreshLog.IsEnabled)
                 {
-                    if (thERR == null)
+                    if (TaskCheckErr == null)
                     {
-                        thERR = new Thread(checkErr) {IsBackground = true};
-                        thERR.Start();
+                        TaskCheckErrCTS = new CancellationTokenSource();
+                        TaskCheckErr = new Task(()=>{checkErr(TaskCheckErrCTS.Token);});
+                        TaskCheckErr.Start();
                     }
                 }
 
@@ -268,9 +285,9 @@ namespace ClientServiceWPF
         }
 
 
-        void checkErr()
+        void checkErr(CancellationToken cancel)
         {
-            while (true)
+            while (!cancel.IsCancellationRequested)
             {
                 try
                 {
@@ -293,7 +310,9 @@ namespace ClientServiceWPF
                         System.Windows.Forms.MessageBox.Show($@"Ошибка в потоке проверки ошибок: {ex.Message}");
                     });
                 }
-                Thread.Sleep(600000);
+
+                var del = Task.Delay(600000,cancel);
+                del.Wait(cancel);
             }
         }
 
@@ -320,6 +339,7 @@ namespace ClientServiceWPF
             user_closed = true;
             ni.Visible = false;
             ni.Dispose();
+            TaskCheckErrCTS?.Cancel();
             if(Shutdown)
                 Application.Current.Shutdown();
         }

@@ -618,13 +618,13 @@ namespace ServiceLoaderMedpomData
 
         public static Dictionary<string, string> GetELEMENTs(string path, params string[] ElementName)
         {
-            var res = new Dictionary<string, string>();
-   
+            var res = ElementName.ToDictionary(item => item, item => "");
+            var FindElement = new List<string>();
+           
             using (Stream FileSteam = new FileStream(path, FileMode.Open, FileAccess.Read))
             {
                 using (var reader = XmlReader.Create(FileSteam))
                 {
-                   
                     while (reader.Read())
                     {
                         if (reader.NodeType != XmlNodeType.Element) continue;
@@ -632,17 +632,11 @@ namespace ServiceLoaderMedpomData
                         {
                             if (reader.Name != el) continue;
                             reader.Read();
-                            if (res.ContainsKey(el))
-                            {
-                                res[el] = reader.Value;
-                            }
-                            else
-                            {
-                                res.Add(el, reader.Value);
-                            }
-                            if(res.Count== ElementName.Length)
-                                break;
+                            res[el] = reader.Value;
+                            FindElement.Add(el);
                         }
+                        if (FindElement.Count == ElementName.Length)
+                            break;
                     }
                     reader.Close();
                     FileSteam.Close();

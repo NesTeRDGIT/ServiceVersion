@@ -206,10 +206,10 @@
                                                             <Style TargetType="Image">
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding Check}" Value="True">
-                                                                        <Setter Property="Source" Value="Image/button_ok.png"></Setter>
+                                                                        <Setter Property="Source" Value="../Image/button_ok.png"></Setter>
                                                                     </DataTrigger>
                                                                     <DataTrigger Binding="{Binding Check}" Value="False">
-                                                                        <Setter Property="Source" Value="Image/error.png"></Setter>
+                                                                        <Setter Property="Source" Value="../Image/error.png"></Setter>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -259,10 +259,10 @@
                                                             <Style TargetType="Image">
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding Check}" Value="True">
-                                                                        <Setter Property="Source" Value="Image/button_ok.png"></Setter>
+                                                                        <Setter Property="Source" Value="../Image/button_ok.png"></Setter>
                                                                     </DataTrigger>
                                                                     <DataTrigger Binding="{Binding Check}" Value="False">
-                                                                        <Setter Property="Source" Value="Image/error.png"></Setter>
+                                                                        <Setter Property="Source" Value="../Image/error.png"></Setter>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -297,10 +297,10 @@
                                                             <Style TargetType="{x:Type Image}">
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding Check}" Value="True">
-                                                                        <Setter Property="Source" Value="Image/button_ok.png"/>
+                                                                        <Setter Property="Source" Value="../Image/button_ok.png"/>
                                                                     </DataTrigger>
                                                                     <DataTrigger Binding="{Binding Check}" Value="False">
-                                                                        <Setter Property="Source" Value="Image/error.png"/>
+                                                                        <Setter Property="Source" Value="../Image/error.png"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -341,10 +341,10 @@
                                                             <Style TargetType="Image">
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding Check}" Value="True">
-                                                                        <Setter Property="Source" Value="Image/button_ok.png"></Setter>
+                                                                        <Setter Property="Source" Value="../Image/button_ok.png"></Setter>
                                                                     </DataTrigger>
                                                                     <DataTrigger Binding="{Binding Check}" Value="False">
-                                                                        <Setter Property="Source" Value="Image/error.png"></Setter>
+                                                                        <Setter Property="Source" Value="../Image/error.png"></Setter>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
@@ -415,10 +415,10 @@
                                                             <Style TargetType="Image">
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding Excist}" Value="{x:Static medpom:StateExistProcedure.Exist}">
-                                                                        <Setter Property="Source" Value="Image/button_ok.png"></Setter>
+                                                                        <Setter Property="Source" Value="../Image/button_ok.png"></Setter>
                                                                     </DataTrigger>
                                                                     <DataTrigger Binding="{Binding Excist}" Value="{x:Static medpom:StateExistProcedure.NotExcist}">
-                                                                        <Setter Property="Source" Value="Image/error.png"></Setter>
+                                                                        <Setter Property="Source" Value="../Image/error.png"></Setter>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
