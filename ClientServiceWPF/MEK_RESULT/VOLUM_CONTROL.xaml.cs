@@ -1634,15 +1634,15 @@ namespace ClientServiceWPF
 
                 case 4:
                 case 5:
-                case 6: return KOL_Q2;
+                case 6: return KOL_Q1+KOL_Q2;
 
                 case 7:
                 case 8:
-                case 9: return KOL_Q3;
+                case 9: return KOL_Q1 + KOL_Q2+KOL_Q3;
 
                 case 10:
                 case 11:
-                case 12: return KOL_Q4;
+                case 12: return KOL_Q1 + KOL_Q2 + KOL_Q3+KOL_Q4;
                 default: return 0;
             }
 
@@ -1658,15 +1658,15 @@ namespace ClientServiceWPF
 
                 case 4:
                 case 5:
-                case 6: return SUM_Q2;
+                case 6: return SUM_Q1+SUM_Q2;
 
                 case 7:
                 case 8:
-                case 9: return SUM_Q3;
+                case 9: return SUM_Q1 + SUM_Q2+SUM_Q3;
 
                 case 10:
                 case 11:
-                case 12: return SUM_Q4;
+                case 12: return SUM_Q1 + SUM_Q2 + SUM_Q3 + SUM_Q4;
                 default: return 0;
             }
 

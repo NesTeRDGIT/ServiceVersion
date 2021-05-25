@@ -27,7 +27,7 @@ namespace ClientServiceWPF
     /// </summary>
     public partial class FilesManagerView : Window, INotifyPropertyChanged
     {
-        List<FilePacket> _SelectedFilePacket = new List<FilePacket>();
+       
         public  FilesManagerViewVM VM { get; set; } = new FilesManagerViewVM(LoginForm.wcf,  new ExcelFilePacket());
         public FilesManagerView(bool isActive)
         {
@@ -56,8 +56,8 @@ namespace ClientServiceWPF
         public ICommand FocusElementCommand { get; set; }= new Command(o => { (o as UIElement)?.Focus(); });
 
 
-      
 
+        List<FilePacket> _SelectedFilePacket = new List<FilePacket>();
         public List<FilePacket> SelectedFilePacket
         {
             get

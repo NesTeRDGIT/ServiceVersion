@@ -4,15 +4,15 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientServiceWPF.SANK_INVITER"
-        xmlns:medpom="clr-namespace:ServiceLoaderMedpomData;assembly=ServiceLoaderMedpomData"
-        xmlns:Class="clr-namespace:ClientServiceWPF.Class" x:Class="ClientServiceWPF.SANK_INVITER.SANK_INVITER"
-        xmlns:wcf="clr-namespace:ServiceLoaderMedpomData;assembly=ServiceLoaderMedpomData"
+        xmlns:class="clr-namespace:ClientServiceWPF.Class" x:Class="ClientServiceWPF.SANK_INVITER.SANK_INVITER"
         mc:Ignorable="d"
         x:Name="this"
-        Title="Прием санкций" Height="618.667" Width="935.363" Style="{DynamicResource StyleWindow}" Loaded="this_Loaded">
+        Title="Прием санкций" Height="664.667" Width="935.363" Style="{DynamicResource StyleWindow}" Loaded="this_Loaded">
     <Window.Resources>
-        <Class:ConverterBoolToYesNO x:Key="ConverterBoolToYesNO"/>
-        <CollectionViewSource x:Key="CVSFiles" Source="{Binding ElementName=this, Path=Files}"  d:DesignSource="{d:DesignInstance {x:Type local:FileItemEx}, CreateList=True}"/>
+        <class:BoolInverterConverter x:Key="BoolInverterConverter"/>
+        <class:ConverterBoolToYesNO x:Key="ConverterBoolToYesNO"/>
+        <class:BindingProxy x:Key="selectedFileItems" Data="{Binding ElementName=this, Path=selectedFileItems}"></class:BindingProxy>
+        <CollectionViewSource x:Key="CVSFiles" Source="{Binding FileItems}"  d:DesignSource="{d:DesignInstance {x:Type local:FileItemVM}, CreateList=True}"/>
         <Brush x:Key="brXSDErr" >Yellow</Brush>
         <Brush x:Key="brNotInvite" >LightGray</Brush>
         <Brush x:Key="brFlkErr" >SandyBrown</Brush>
@@ -21,6 +21,9 @@
         <Brush x:Key="brIDErr" >LightSalmon</Brush>
         <Brush x:Key="brInsertErr" >Tomato</Brush>
     </Window.Resources>
+    <Window.DataContext>
+        <Binding ElementName="this" Path="VM"></Binding>
+    </Window.DataContext>
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*"/>
@@ -28,137 +31,150 @@
         </Grid.ColumnDefinitions>
         <Menu x:Name="menu" Height="20" VerticalAlignment="Top" Grid.ColumnSpan="2">
             <MenuItem Header="Файл">
-                <MenuItem x:Name="MenuItemAddFile" Header="Добавить файлы" Click="MenuItemAddFile_Click"/>
+                <MenuItem  Header="Добавить файлы" Command="{Binding AddFilesCommand}"/>
                 <Separator/>
-                <MenuItem x:Name="MenuItemClear" Header="Очистить" Click="MenuItemClear_Click"/>
+                <MenuItem Header="Очистить"  Command="{Binding ClearFilesCommand}"/>
             </MenuItem>
         </Menu>
-        <GroupBox Header="Файлы" Margin="0,20,2,19">
+        <GroupBox Grid.Column="0" Header="Файлы" Margin="0,20,2,19">
             <Grid>
-                <DataGrid x:Name="DataGridFiles" Margin="0,0,0,52" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSFiles}}" IsReadOnly="True" AutoGenerateColumns="False" SelectionUnit="CellOrRowHeader">
+                <DataGrid x:Name="DataGridFiles" Margin="0,0,0,52" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSFiles}}" IsReadOnly="True" AutoGenerateColumns="False" SelectionUnit="CellOrRowHeader" SelectedCellsChanged="DataGridFiles_OnSelectedCellsChanged">
                     <DataGrid.Resources>
                         <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}" Color="{Binding Source={StaticResource BrushSelect}}" />
                         <SolidColorBrush x:Key="{x:Static Member=SystemColors.InactiveSelectionHighlightBrushKey }" Color="{Binding Source={StaticResource BrushSelect}}" />
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="Имя" Binding="{Binding FileName}" Width="Auto"/>
-                        <DataGridTextColumn Header="Тип" Binding="{Binding Type}" Width="Auto"/>
-                        <DataGridTextColumn Header="Этап" Binding="{Binding Process}" Width="Auto"/>
-                        <DataGridTextColumn Header="Комментарий" Binding="{Binding Comment}" Width="Auto"/>
-                        <DataGridTextColumn Header="Доп реестр" Binding="{Binding DOP_REESTR, Converter={StaticResource ConverterBoolToYesNO}}" Width="Auto"/>
-                        <DataGridTextColumn Header="ZGLV__ID" Binding="{Binding ZGLV_ID}" Width="Auto"/>
-                        <DataGridTextColumn Header="Версия" Binding="{Binding Version}" Width="Auto"/>
+                        <DataGridTextColumn Header="XSD" Binding="{Binding Flag.XSD}" Width="Auto"/>
+                        <DataGridTextColumn Header="IDErr" Binding="{Binding Flag.IDErr}" Width="Auto"/>
+                        <DataGridTextColumn Header="ErrDOP" Binding="{Binding Flag.ErrDOP}" Width="Auto"/>
+                        <DataGridTextColumn Header="FLK_OK" Binding="{Binding Flag.FLK_OK}" Width="Auto"/>
+                        <DataGridTextColumn Header="Inserted" Binding="{Binding Flag.Inserted}" Width="Auto"/>
 
-                        <DataGridTextColumn Header="Имя(перс)" Binding="{Binding filel.FileName}" Width="Auto"/>
-                        <DataGridTextColumn Header="Тип(перс)" Binding="{Binding filel.Type}" Width="Auto"/>
-                        <DataGridTextColumn Header="Этап(перс)" Binding="{Binding filel.Process}" Width="Auto"/>
-                        <DataGridTextColumn Header="Комментарий(перс)" Binding="{Binding filel.Comment}" Width="Auto"/>
-                        <DataGridTextColumn Header="Версия(перс)" Binding="{Binding filel.Version}" Width="Auto"/>
-                        <DataGridTextColumn Header="Путь" Binding="{Binding FilePach}" Width="100"/>
-                        <DataGridTextColumn Header="Путь(перс)" Binding="{Binding filel.FilePach}" Width="100"/>
+
+                        <DataGridTextColumn Header="Имя" Binding="{Binding Item.FileName}" Width="Auto"/>
+                        <DataGridTextColumn Header="Тип" Binding="{Binding Item.Type}" Width="Auto"/>
+                        <DataGridTextColumn Header="Этап" Binding="{Binding Item.Process}" Width="Auto"/>
+                        <DataGridTextColumn Header="Комментарий" Binding="{Binding Item.Comment}" Width="Auto"/>
+                        <DataGridTextColumn Header="Доп реестр" Binding="{Binding Item.DOP_REESTR, Converter={StaticResource ConverterBoolToYesNO}}" Width="Auto"/>
+                        <DataGridTextColumn Header="ZGLV__ID" Binding="{Binding Item.ZGLV_ID}" Width="Auto"/>
+                        <DataGridTextColumn Header="Версия" Binding="{Binding Item.Version}" Width="Auto"/>
+
+                        <DataGridTextColumn Header="Имя(перс)" Binding="{Binding Item.filel.FileName}" Width="Auto"/>
+                        <DataGridTextColumn Header="Тип(перс)" Binding="{Binding Item.filel.Type}" Width="Auto"/>
+                        <DataGridTextColumn Header="Этап(перс)" Binding="{Binding Item.filel.Process}" Width="Auto"/>
+                        <DataGridTextColumn Header="Комментарий(перс)" Binding="{Binding Item.filel.Comment}" Width="Auto"/>
+                        <DataGridTextColumn Header="Версия(перс)" Binding="{Binding Item.filel.Version}" Width="Auto"/>
+                        <DataGridTextColumn Header="Путь" Binding="{Binding Item.FilePach}" Width="100"/>
+                        <DataGridTextColumn Header="Путь(перс)" Binding="{Binding Item.filel.FilePach}" Width="100"/>
                     </DataGrid.Columns>
                     <DataGrid.ContextMenu>
                         <ContextMenu>
-                            <MenuItem Header="Показать файл" x:Name="MenuItemShowFile" Click="MenuItemShowFile_Click" ></MenuItem>
-                            <MenuItem Header="Показать лог"  x:Name="MenuItemShowLog" Click="MenuItemShowLog_Click"></MenuItem>
+                            <MenuItem Header="Показать файл" Command="{Binding ShowFileHCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}" ></MenuItem>
+                            <MenuItem Header="Показать лог"  Command="{Binding ShowFileHLogCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}"></MenuItem>
                             <Separator></Separator>
-                            <MenuItem Header="Показать файл(Перс)" x:Name="MenuItemShowFileL" Click="MenuItemShowFileL_Click"  ></MenuItem>
-                            <MenuItem Header="Показать лог(Перс)"  x:Name="MenuItemShowLogL" Click="MenuItemShowLogL_Click" ></MenuItem>
+                            <MenuItem Header="Показать файл(Перс)" Command="{Binding ShowFileLCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}"  ></MenuItem>
+                            <MenuItem Header="Показать лог(Перс)"  Command="{Binding ShowFileLLogCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}" ></MenuItem>
                             <Separator></Separator>
-                            <MenuItem Header="Поиск реестра" x:Name="MenuItemFindReestr" Click="MenuItemFindReestr_Click"></MenuItem>
-                            <MenuItem Header="Установить\Снять флаг Доп.реестр" x:Name="MenuItemSetDOP" Click="MenuItemSetDOP_Click"></MenuItem>
+                            <MenuItem Header="Поиск реестра" Command="{Binding FindItemCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}"></MenuItem>
+                            <MenuItem Header="Установить\Снять флаг Доп.реестр" Command="{Binding SetDOP_REESTRCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}"></MenuItem>
+                            <MenuItem Header="Установить правильную схему" Command="{Binding SetValidXSDCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}" ></MenuItem>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
 
                     <DataGrid.RowStyle>
                         <Style TargetType="DataGridRow">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding Process}" Value="{x:Static wcf:StepsProcess.NotInvite}">
+                                <DataTrigger Binding="{Binding Flag.Invite}" Value="False">
                                     <Setter Property="Background" Value="{Binding Source={StaticResource brNotInvite}}"></Setter>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding SANK_STATUS}" Value="{x:Static local:enumSANK_STATUS.ERROR_XSD}">
+                                <DataTrigger Binding="{Binding Flag.XSD}" Value="False">
                                     <Setter Property="Background" Value="{Binding Source={StaticResource brXSDErr}}"></Setter>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding SANK_STATUS}" Value="{x:Static local:enumSANK_STATUS.ERROR_DOP}">
+                                <DataTrigger Binding="{Binding Flag.ErrDOP}" Value="True">
                                     <Setter Property="Background" Value="{Binding Source={StaticResource brDOPErr}}"></Setter>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding SANK_STATUS}"  Value="{x:Static local:enumSANK_STATUS.ERROR_ID}">
-                                    <Setter Property="Background"  Value="{Binding Source={StaticResource brIDErr}}"></Setter>
+                                <DataTrigger Binding="{Binding Flag.IDErr}" Value="True">
+                                    <Setter Property="Background" Value="{Binding Source={StaticResource brIDErr}}"></Setter>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding SANK_STATUS}" Value="{x:Static local:enumSANK_STATUS.ERROR_FLK}">
+                                <DataTrigger Binding="{Binding Flag.FLK_OK}" Value="False">
                                     <Setter Property="Background" Value="{Binding Source={StaticResource brFlkErr}}"></Setter>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding SANK_STATUS}" Value="{x:Static local:enumSANK_STATUS.ERROR_INSERT}">
+                                <DataTrigger Binding="{Binding Flag.Inserted}" Value="False">
                                     <Setter Property="Background"  Value="{Binding Source={StaticResource brInsertErr}}"></Setter>
                                 </DataTrigger>
-                                <DataTrigger Binding="{Binding SANK_STATUS}" Value="{x:Static local:enumSANK_STATUS.INSERTED}">
+                                <DataTrigger Binding="{Binding Flag.Inserted}" Value="True">
                                     <Setter Property="Background" Value="{Binding Source={StaticResource brInsert}}"></Setter>
                                 </DataTrigger>
-
 
                             </Style.Triggers>
                         </Style>
                     </DataGrid.RowStyle>
                 </DataGrid>
                 <Label Height="27" VerticalAlignment="Bottom" HorizontalAlignment="Left" Width="146" Content="Путь к папке с логами"/>
-                <TextBox x:Name="TextBoxPathLog" Margin="146,0,31,4" Height="20" VerticalAlignment="Bottom" IsReadOnly="True" Foreground="Gray"/>
-                <Button x:Name="ButtonPathLogBrouse" HorizontalAlignment="Right" Width="20" Height="20" VerticalAlignment="Bottom" Margin="0,0,6,4" Style="{DynamicResource BrouseButton}" Click="ButtonPathLogBrouse_Click"/>
+                <TextBox  Margin="146,0,31,4" Height="20" VerticalAlignment="Bottom" IsReadOnly="True" Foreground="Gray" Text="{Binding Param.LogFolder}"/>
+                <Button HorizontalAlignment="Right" Width="20" Height="20" VerticalAlignment="Bottom" Margin="0,0,6,4" Style="{DynamicResource BrouseButton}" Command="{Binding SelectLogFolderCommand}"/>
                 <Label Height="27" VerticalAlignment="Bottom" HorizontalAlignment="Right" Width="140" Content="{Binding Items.Count, ElementName=DataGridFiles, Mode=OneWay}" Margin="0,0,0,25" VerticalContentAlignment="Center" HorizontalContentAlignment="Right"/>
             </Grid>
         </GroupBox>
         <GroupBox Header="Тип загрузки" Margin="3,20,0,0" Height="254" VerticalAlignment="Top" Grid.Column="1">
             <Grid>
-                <Button x:Name="ButtonXSD" Height="20" VerticalAlignment="Top" Margin="10,10,10,0" Style="{DynamicResource MainButton}" Content="Проверить схему" Click="ButtonXSD_Click"/>
-                <Button x:Name="ButtonFIND" Height="20" VerticalAlignment="Top" Margin="10,35,10,0" Style="{DynamicResource MainButton}" Content="Найти" Click="ButtonFIND_Click"/>
-                <Button x:Name="ButtonFLK" Height="20" VerticalAlignment="Top" Margin="10,60,10,0" Style="{DynamicResource MainButton}" Content="ФЛК" Click="ButtonFLK_Click"/>
-                <Button x:Name="ButtonToBase" Height="20" VerticalAlignment="Top" Margin="10,85,10,0" Style="{DynamicResource MainButton}" Content="Перенос в БД" Click="ButtonToBase_Click"/>
+                <Button Height="20" VerticalAlignment="Top" Margin="10,10,10,0" Style="{DynamicResource MainButton}" Content="Проверить схему" Command="{Binding CheckSchemaCommand}" />
+                <Button Height="20" VerticalAlignment="Top" Margin="10,35,10,0" Style="{DynamicResource MainButton}" Content="Найти" Command="{Binding FindReestrCommand}"/>
+                <Button Height="20" VerticalAlignment="Top" Margin="10,60,10,0" Style="{DynamicResource MainButton}" Content="ФЛК" Command="{Binding CheckFLKCommand}"/>
+                <Button Height="20" VerticalAlignment="Top" Margin="10,85,10,0" Style="{DynamicResource MainButton}" Content="Перенос в БД" Command="{Binding InsertCommand}"/>
 
-                <GroupBox Header="Тип файлов" Margin="0,110,0,0">
+                <GroupBox Header="Тип файлов" Margin="0,110,0,0" IsEnabled="{Binding Processing.Active, Converter={StaticResource BoolInverterConverter}}" >
                     <Grid>
-                        <RadioButton x:Name="radioButtonMEK" Content="МЭК" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="True" Click="RadioButtonMEK_OnClick"/>
-                        <RadioButton x:Name="radioButtonMEE" Content="МЭЭ\ЭКМП" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Click="RadioButtonMEE_OnClick"/>
-                        <CheckBox x:Name="CheckBoxSUMP" IsChecked="False" Margin="10,30,0,0" HorizontalAlignment="Left" Width="161" Height="18" VerticalAlignment="Top" Content="Перезаписывать SUMP"/>
-                        <CheckBox x:Name="CheckBoxNot_Finish" IsChecked="False" Margin="10,48,0,0" Height="18" VerticalAlignment="Top" HorizontalAlignment="Left" Width="164" Content="Незавершенные санкции"/>
-                        <CheckBox x:Name="CheckBoxValidateSumMee" IsChecked="True" Margin="10,66,0,0" Height="17" VerticalAlignment="Top" HorizontalAlignment="Left" Width="142" Content="Валидация сумм МЭЭ"/>
-                        <CheckBox x:Name="CheckBoxEXTFLK"  IsChecked="True" Margin="10,83,0,0" Height="17" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" Content="Усиленный ФЛК"/>
+                        <RadioButton  Content="МЭК" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="{Binding Param.FLAG_MEE, Converter={StaticResource BoolInverterConverter}}"  />
+                        <RadioButton  Content="МЭЭ\ЭКМП" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" IsChecked="{Binding Param.FLAG_MEE}"/>
+                        <CheckBox  IsChecked="{Binding Param.RewriteSum}" Margin="10,30,0,0" HorizontalAlignment="Left" Width="161" Height="18" VerticalAlignment="Top" Content="Перезаписывать SUMP" IsEnabled="{Binding Param.FLAG_MEE, Converter={StaticResource BoolInverterConverter}}"/>
+                        <CheckBox  IsChecked="{Binding Param.NOT_FINISH_SANK}" Margin="10,48,0,0" Height="18" VerticalAlignment="Top" HorizontalAlignment="Left" Width="164" Content="Незавершенные санкции"  IsEnabled="{Binding Param.FLAG_MEE}"/>
+                        <CheckBox  IsChecked="{Binding Param.EXT_FLK}" Margin="10,66,0,0" Height="17" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" Content="Усиленный ФЛК"/>
                     </Grid>
 
                 </GroupBox>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Период" Margin="3,274,0,0" Height="74" VerticalAlignment="Top" Grid.Column="1">
+        <GroupBox Header="Период" Margin="3,274,0,0" Height="74" VerticalAlignment="Top" Grid.Column="1"  IsEnabled="{Binding Processing.Active, Converter={StaticResource BoolInverterConverter}}">
             <Grid>
-                <DatePicker x:Name="DatePickerPeriod" VerticalAlignment="Top" Margin="0,2,0,0" Class:DatePickerCalendar.IsMonthYear="True" Class:DatePickerDateFormat.DateFormat="MM.yyyy"/>
-                <TextBox x:Name="TextBoxSMO" VerticalAlignment="Top" Margin="0,29,0,0" Height="22" HorizontalAlignment="Left" Width="71"/>
-                <ComboBox x:Name="ComboBoxSMO"  VerticalAlignment="Top" Margin="76,29,0,0" SelectionChanged="ComboBoxSMO_SelectionChanged"/>
+                <DatePicker VerticalAlignment="Top" Margin="0,2,0,0" class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" SelectedDate="{Binding Param.PERIOD}"/>
+                <TextBox VerticalAlignment="Top" Margin="0,29,0,0" Height="22" HorizontalAlignment="Left" Width="71" IsReadOnly="True" Text="{Binding Param.SMO}"/>
+                <ComboBox   VerticalAlignment="Top" Margin="76,29,0,0" Text="{Binding Param.SMO}" ItemsSource="{Binding ElementName=this, Path=SMO_LIST}"/>
             </Grid>
         </GroupBox>
         <GroupBox Header="Статистика" Margin="3,347,-5,20" Grid.Column="1">
             <Grid>
-                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10">Ошибка схемы</Label>
-                <Border Name="BorderXSD" Margin="80,0,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1" Background="{Binding Source={StaticResource brXSDErr}}"></Border>
-                <Label Name="LabelXSD" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="0" Margin="103,0,0,0"/>
-                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Доп?" Margin="0,28,0,0"/>
-                <Border x:Name="BorderDop" Margin="80,28,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1"  Background="{Binding Source={StaticResource brDOPErr}}"/>
-                <Label x:Name="LabelDop" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="0" Margin="103,28,0,0"/>
-                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Нет ID" Margin="0,56,0,0"/>
-                <Border x:Name="BorderNOT_ID" Margin="80,56,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1"  Background="{Binding Source={StaticResource brIDErr}}"/>
-                <Label x:Name="LabelNOT_ID" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="0" Margin="103,56,0,0"/>
-                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Ошибки ФЛК" Margin="0,84,0,0" />
-                <Border x:Name="BorderFLK" Margin="80,84,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1" Background="{Binding Source={StaticResource brFlkErr}}"/>
-                <Label x:Name="LabelFLK" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="0" Margin="103,84,0,0"/>
-                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Ошибки Insert" Margin="0,112,0,0"/>
-                <Border x:Name="BorderInsertERR" Margin="80,112,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1" Background="{Binding Source={StaticResource brInsertErr}}"/>
-                <Label x:Name="LabelInsertERR" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="0" Margin="103,112,0,0"/>
-                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Загружено" Margin="0,140,0,0"/>
-                <Border x:Name="BorderInsert" Margin="80,140,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1"  Background="{Binding Source={StaticResource brInsert}}"/>
-                <Label x:Name="LabelInsert" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="0" Margin="103,140,0,0"/>
-                <Button x:Name="ButtonBreakInsert" Height="20" VerticalAlignment="Top" Margin="10,168,10,0" Style="{DynamicResource MainButton}" Content="Прервать загрузку" Click="ButtonBreakInsert_Click"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Margin="10,37,0,0">Ошибка схемы</Label>
+                <Border Margin="90,37,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1" Background="{Binding Source={StaticResource brXSDErr}}"></Border>
+                <Label  Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="{Binding STAT.ERR_XSD}" Margin="113,37,0,0" />
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Доп?" Margin="10,65,0,0"/>
+                <Border Margin="90,65,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1"  Background="{Binding Source={StaticResource brDOPErr}}"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="{Binding STAT.ERR_DOP}" Margin="113,65,0,0"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Нет ID" Margin="10,93,0,0"/>
+                <Border Margin="90,93,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1"  Background="{Binding Source={StaticResource brIDErr}}"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="{Binding STAT.NOT_ID}" Margin="113,93,0,0"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Ошибки ФЛК" Margin="10,121,0,0" />
+                <Border Margin="90,121,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1" Background="{Binding Source={StaticResource brFlkErr}}"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="{Binding STAT.ERR_FLK}" Margin="113,121,0,0"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Ошибки Insert" Margin="10,149,0,0"/>
+                <Border Margin="90,149,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1" Background="{Binding Source={StaticResource brInsertErr}}"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="{Binding STAT.ERR_INSERT}" Margin="113,149,0,0"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Content="Загружено" Margin="10,177,0,0"/>
+                <Border Margin="90,177,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1"  Background="{Binding Source={StaticResource brInsert}}"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="{Binding STAT.Inserted}" Margin="113,177,0,0"/>
+                <Button Height="20" VerticalAlignment="Top" Margin="10,205,10,0" Style="{DynamicResource MainButton}" Content="Прервать загрузку"   Command="{Binding BreakCommand}"/>
+                <Label Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="80" FontSize="10" Margin="10,9,0,0" Content="Ошибка имени"/>
+                <Border Margin="90,9,0,0" Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="23" BorderBrush="Black" BorderThickness="1" Background="{Binding Source={StaticResource brNotInvite}}"/>
+                <Label  Height="23" VerticalAlignment="Top" HorizontalAlignment="Left" Width="90" FontSize="10" Content="{Binding STAT.ERR_INVITE}" Margin="113,9,0,0" />
             </Grid>
         </GroupBox>
-        <StatusBar Height="20" VerticalAlignment="Bottom" Grid.ColumnSpan="2">
-            <ProgressBar Width="200" Height="10" Name="ProgressBarTool"></ProgressBar>
-            <TextBlock Name="TextBlockTool"  Text=""></TextBlock>
+        <StatusBar Grid.Column="0" Height="20" VerticalAlignment="Bottom" Padding="0" HorizontalContentAlignment="Stretch" HorizontalAlignment="Stretch">
+            <StatusBarItem Padding="0">
+                <ProgressBar Width="200" Height="20" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}" IsIndeterminate="{Binding Progress1.IsIndeterminate}"/>
+            </StatusBarItem>
+            <StatusBarItem Padding="10,0,0,0">
+                <TextBlock  Text="{Binding Progress1.Text}"/>
+            </StatusBarItem>
         </StatusBar>
     </Grid>
 </Window>

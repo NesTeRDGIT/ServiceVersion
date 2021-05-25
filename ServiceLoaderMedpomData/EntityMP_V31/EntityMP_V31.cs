@@ -600,7 +600,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                SCHET item = new SCHET();
+                var item = new SCHET();
                 item.CODE = Convert.ToDecimal(row["CODE"]);
                 item.CODE_MO = row["CODE_MO"].ToString();
                 if (row["COMENTS"] != DBNull.Value)
@@ -631,6 +631,13 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 item.YEAR = Convert.ToDecimal(row["YEAR"]);
                 if (row["ZGLV_ID"] != DBNull.Value)
                     item.ZGLV_ID = Convert.ToDecimal(row["ZGLV_ID"]);
+
+
+                if (row["FIRST_CODE"]!=DBNull.Value)
+                {
+                    item.REF = new REF {FIRST_CODE = Convert.ToInt64(row["FIRST_CODE"]), FIRST_MONTH = Convert.ToInt32(row["FIRST_MONTH"]), FIRST_YEAR = Convert.ToInt32(row["FIRST_YEAR"])};
+                }
+
                 return item;
             }
             catch(Exception ex)
@@ -722,11 +729,11 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     public class REF
     {
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
-        public decimal FIRST_CODE { get; set; }
+        public long FIRST_CODE { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
-        public decimal FIRST_YEAR { get; set; }
+        public int FIRST_YEAR { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
-        public decimal FIRST_MONTH { get; set; }
+        public int FIRST_MONTH { get; set; }
     }
     [Serializable]
     public class ZAP
@@ -964,6 +971,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     item.setVNOV_M(row["VNOV_M"].ToString());
                 if (row["ZAP_ID"] != DBNull.Value)
                     item.ZAP_ID = Convert.ToDecimal(row["ZAP_ID"]);
+                if (row["FIRST_IDCASE"]!=DBNull.Value)
+                    item.FIRST_IDCASE = Convert.ToInt64(row["FIRST_IDCASE"]);
                 return item;
             }
             catch (Exception ex)
@@ -991,7 +1000,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public decimal IDCASE { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
-        public decimal? FIRST_IDCASE { get; set; }
+        public long? FIRST_IDCASE { get; set; }
         public bool ShouldSerializeFIRST_IDCASE()
         {
             return FIRST_IDCASE.HasValue;

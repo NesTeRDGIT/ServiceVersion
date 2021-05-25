@@ -214,6 +214,39 @@
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>
+              <xs:element msprop:Orders="13" minOccurs="0" name="REF" nillable="true">
+                <xs:complexType>
+                  <xs:sequence>
+                    <xs:element minOccurs="1" name="FIRST_CODE">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="8" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="100000000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="FIRST_YEAR">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="4" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="10000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="1" name="FIRST_MONTH">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="2" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="100" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                  </xs:sequence>
+                </xs:complexType>
+              </xs:element>
             </xs:sequence>
           </xs:complexType>
         </xs:element>
@@ -370,6 +403,15 @@
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
+                    <xs:element minOccurs="0" name="FIRST_IDCASE" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="11" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="100000000000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
                     <xs:element minOccurs="1" name="USL_OK">
                       <xs:simpleType>
                         <xs:restriction base="xs:decimal">
@@ -451,7 +493,7 @@
                     </xs:element>
                     <xs:element minOccurs="0" maxOccurs="unbounded" name="VNOV_M" nillable="true">
                       <xs:complexType>
-                        <xs:simpleContent msdata:ColumnName="VNOV_M" msdata:Ordinal="0" msprop:Orders="10">
+                        <xs:simpleContent msdata:ColumnName="VNOV_M" msdata:Ordinal="0" msprop:Orders="11">
                           <xs:extension base="VNOV_M" />
                         </xs:simpleContent>
                       </xs:complexType>
@@ -476,7 +518,7 @@
                     </xs:element>
                     <xs:element minOccurs="0" maxOccurs="unbounded" name="OS_SLUCH" nillable="true">
                       <xs:complexType>
-                        <xs:simpleContent msdata:ColumnName="OS_SLUCH" msdata:Ordinal="0" msprop:Orders="12">
+                        <xs:simpleContent msdata:ColumnName="OS_SLUCH" msdata:Ordinal="0" msprop:Orders="13">
                           <xs:extension base="OS_SLUCH" />
                         </xs:simpleContent>
                       </xs:complexType>
@@ -490,7 +532,7 @@
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
-                    <xs:element msprop:Orders="13" minOccurs="1" maxOccurs="unbounded" name="SL">
+                    <xs:element msprop:Orders="14" minOccurs="1" maxOccurs="unbounded" name="SL">
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element minOccurs="1" name="SL_ID">
@@ -1103,7 +1145,7 @@
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
-                    <xs:element msprop:Orders="17" minOccurs="0" maxOccurs="unbounded" name="SANK" nillable="true">
+                    <xs:element msprop:Orders="18" minOccurs="0" maxOccurs="unbounded" name="SANK" nillable="true">
                       <xs:complexType>
                         <xs:sequence>
                           <xs:element minOccurs="1" name="S_CODE">

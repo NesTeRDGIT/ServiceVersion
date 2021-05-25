@@ -115,7 +115,7 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                Logger.AddLog($"Ошибка в ClearCatalog: {ex.Message}", LogType.Error);
+                throw new Exception($"Ошибка в ClearCatalog: {ex.Message}", ex);
             }
         }
 

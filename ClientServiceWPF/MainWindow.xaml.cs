@@ -1,8 +1,11 @@
 ﻿using ServiceLoaderMedpomData;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel;
 using System.Text;
@@ -17,7 +20,10 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
+using ClientServiceWPF.Class;
 using ClientServiceWPF.MEK_RESULT;
+using ServiceLoaderMedpomData.Annotations;
 
 namespace ClientServiceWPF
 {
@@ -26,37 +32,14 @@ namespace ClientServiceWPF
     /// </summary>
     public partial class MainWindow : Window
     {
-
+        public MainWindowVM VM { get; set; } = new MainWindowVM(Dispatcher.CurrentDispatcher);
         public IWcfInterface wcf => LoginForm.wcf;
-        public static MyServiceCallback callback { set; get; }
-        private CollectionViewSource CollectionViewSourceLOG;
-        private CollectionViewSource CollectionViewSourceStatusOP;
 
         System.Windows.Forms.NotifyIcon ni = new System.Windows.Forms.NotifyIcon();
         public MainWindow()
         {
-            var f = new LoginForm();
-            if (f.ShowDialog() == true)
-            {
-                callback = f.callback;
-                var form = new Launcher.Launcher();
-                form.ShowDialog();
-                if (form.RESTART)
-                {
-                    Environment.Exit(0);
-                    return;
-                }
-                ((ICommunicationObject)wcf).Faulted += LoginForm_Faulted;
-                ((ICommunicationObject)wcf).Closed += LoginForm_Faulted;
-
-            }
-
+            ConnectWCF();
             InitializeComponent();
-            SetControlForm(LoginForm.SecureCard);
-            RefreshStatusOperation();
-
-            CollectionViewSourceLOG = this.FindResource("CollectionViewSourceLOG") as CollectionViewSource;
-            CollectionViewSourceStatusOP = this.FindResource("CollectionViewSourceStatusOP") as CollectionViewSource;
             CreateNotifiIcon();
         }
 
@@ -87,268 +70,60 @@ namespace ClientServiceWPF
 
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var win = new Setting(Active);
-                win.ShowDialog();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-   
-
-
-        public List<EntriesMy> Entries { get; set; } = new List<EntriesMy>();
-
-        class TEST_CLASS
-        {
-            public string PROP1 { get; set; } = "PROP1";
-            public string PROP2 { get; set; } = "PROP1";
-            public string PROP3 { get; set; } = "PROP1";
-            public string PROP4 { get; set; } = "PROP1";
-            public string PROP5 { get; set; } = "PROP1";
-
-        }
-        private void buttonRefreshLog_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                Entries.Clear();
-                Entries.AddRange(wcf.GetEventLogEntry(Convert.ToInt32(textBoxCountLog.Text)));
-                CollectionViewSourceLOG.View.Refresh();
-
-
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-  
-
-        private bool user_closed;
-        private void MenuItemConnect_Click(object sender, RoutedEventArgs e)
+        private void ConnectWCF(string DIALOG_MESSAGE = null)
         {
             var f = new LoginForm();
+            if (!string.IsNullOrEmpty(DIALOG_MESSAGE))
+                f.DIALOG_MESSAGE = DIALOG_MESSAGE;
             if (f.ShowDialog() == true)
             {
-                callback = f.callback;
                 var form = new Launcher.Launcher();
                 form.ShowDialog();
                 if (form.RESTART)
                 {
-                    user_closed = true;
-                    this.Close();
+                    CloseAPP();
                     return;
                 }
                 ((ICommunicationObject)wcf).Faulted += LoginForm_Faulted;
                 ((ICommunicationObject)wcf).Closed += LoginForm_Faulted;
             }
+            VM.SetWCF(wcf).SetCard(LoginForm.SecureCard);
 
-            SetControlForm(LoginForm.SecureCard);
-            RefreshStatusOperation();
+        }
+        private void CloseAPP(bool Shutdown = true)
+        {
+            user_closed = true;
+            ni.Visible = false;
+            ni.Dispose();
+            VM?.Dispose();
+            if (Shutdown)
+                Application.Current.Shutdown();
+        }
+
+        private bool user_closed;
+        private void MenuItemConnect_Click(object sender, RoutedEventArgs e)
+        {
+            ConnectWCF();
         }
 
         void LoginForm_Faulted(object sender, EventArgs e)
         {
             this.Dispatcher.Invoke(() =>
             {
-                var f = new LoginForm { DIALOG_MESSAGE = "Связь с сервером потеряна!" };
-
-                if (f.ShowDialog() == true)
-                {
-                    callback = f.callback;
-                    var form = new Launcher.Launcher();
-                    form.ShowDialog();
-                    if (form.RESTART)
-                    {
-                        user_closed = true;
-                        this.Close();
-                        return;
-                    }
-                    ((ICommunicationObject)wcf).Faulted += LoginForm_Faulted;
-                    ((ICommunicationObject)wcf).Closed += LoginForm_Faulted;
-                }
-
-                SetControlForm(LoginForm.SecureCard);
-                RefreshStatusOperation();
+                ConnectWCF("Связь с сервером потеряна!");
             });
         }
 
-        void SetControlForm(List<string> card)
-        {
-            
-            var t = nameof(IWcfInterface.GetSettingConnect);
-            buttonRefreshStatus.IsEnabled = GroupBoxStatus.IsEnabled = GroupBoxMonitorWork.IsEnabled = card.Contains(nameof(IWcfInterface.GetStatusInvite));
-            ButtonStartProcess.IsEnabled = card.Contains(nameof(IWcfInterface.StartProcess));
-            ButtonStopProcess.IsEnabled = card.Contains(nameof(IWcfInterface.StopProcess));
-            buttonRefreshLog.IsEnabled = card.Contains(nameof(IWcfInterface.GetEventLogEntry));
-            ButtonWork.IsEnabled = card.Contains(nameof(IWcfInterface.GetFileManagerList));
-            MenuItemMonitor.IsEnabled = card.ContainsOR(nameof(IWcfInterface.GetNotReestr));
-            MenuItemEditUser.IsEnabled = card.ContainsAND(nameof(IWcfInterface.Roles_GetRoles),nameof(IWcfInterface.Roles_GetUsers), nameof(IWcfInterface.Roles_EditMethod));
-        }
-
-
-       
-
-  
-
-        public List<StatusOper> ListOP { get; set; } = new List<StatusOper>();
-        private Task TaskCheckErr;
-        private CancellationTokenSource TaskCheckErrCTS;
-        private bool Active;
-        private void RefreshStatusOperation()
-        {
-            try
-            {
-                var StatusOperFileInvite = new StatusOper {NameOP = "Прием файлов"};
-                var StatusOperArcInvite = new StatusOper {NameOP = "Прием архивов"};
-                var StatusOperFLKInvite = new StatusOper {NameOP = "Обработка ФЛК"};
-                var StatusOperAutoInvite = new StatusOper {NameOP = "Захват файлов"};
-                ListOP.Clear();
-                ListOP.Add(StatusOperFileInvite);
-                ListOP.Add(StatusOperArcInvite);
-                ListOP.Add(StatusOperFLKInvite);
-                ListOP.Add(StatusOperAutoInvite);
-
-                if (buttonRefreshStatus.IsEnabled)
-                {
-                    var status = wcf.GetStatusInvite();
-                    StatusOperFileInvite.Status = status.FilesInviterStatus;
-                    StatusOperArcInvite.Status = status.THArchiveInviter;
-                    StatusOperFLKInvite.Status = status.FLKInviterStatus;
-                    StatusOperAutoInvite.Status = status.ActiveAutoPriem;
-                    buttonFileAdd.IsEnabled = !StatusOperAutoInvite.Status;
-
-                    if (ListOP.Count(x => x.Status) == 0)
-                    {
-                        RadioButtonMainTypePriem.IsEnabled = RadioButtonPREDTypePriem.IsEnabled = DatePickerPERIOD.IsEnabled = ButtonStartProcess.IsEnabled = true;
-                        buttonFileAdd.IsEnabled = false;
-                        ButtonStopProcess.IsEnabled = false;
-                        Active = false;
-                    }
-                    else
-                    {
-                        RadioButtonMainTypePriem.IsEnabled = RadioButtonPREDTypePriem.IsEnabled = DatePickerPERIOD.IsEnabled = ButtonStartProcess.IsEnabled = false;
-                        ButtonStopProcess.IsEnabled = true;
-                        Active = true;
-                    }
-
-
-                    if (status.TypePriem)
-                    {
-                        RadioButtonMainTypePriem.IsChecked = true;
-                    }
-                    else
-                    {
-                        RadioButtonPREDTypePriem.IsChecked = true;
-                    }
-
-                    if (status.AutoPriem)
-                    {
-                        RadioButtonFileAuto.IsChecked = true;
-                    }
-                    else
-                    {
-                        RadioButtonFileHand.IsChecked = true;
-                    }
-                    DatePickerPERIOD.SelectedDate = status.OtchetDate;
-                }
-
-                if (buttonRefreshLog.IsEnabled)
-                {
-                    if (TaskCheckErr == null)
-                    {
-                        TaskCheckErrCTS = new CancellationTokenSource();
-                        TaskCheckErr = new Task(()=>{checkErr(TaskCheckErrCTS.Token);});
-                        TaskCheckErr.Start();
-                    }
-                }
-
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-            finally
-            {
-                CollectionViewSourceStatusOP?.View.Refresh();
-            }
-
-        }
-
-
-        void checkErr(CancellationToken cancel)
-        {
-            while (!cancel.IsCancellationRequested)
-            {
-                try
-                {
-                    if (wcf != null)
-                    {
-                        if (((ICommunicationObject)wcf).State == CommunicationState.Opened)
-                        {
-                            this.Dispatcher.Invoke(() =>
-                            {
-                                buttonRefreshLog_Click(buttonRefreshLog, new RoutedEventArgs());
-                            });
-
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    this.Dispatcher.Invoke(() =>
-                    {
-                        System.Windows.Forms.MessageBox.Show($@"Ошибка в потоке проверки ошибок: {ex.Message}");
-                    });
-                }
-
-                var del = Task.Delay(600000,cancel);
-                del.Wait(cancel);
-            }
-        }
-
-        private void MenuItemActMEK_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var win = new ACT_MEK();
-                win.Show();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
+     
 
         private void MenuItemDisconnect_Click(object sender, RoutedEventArgs e)
         {
             ((ICommunicationObject)wcf)?.Abort();
         }
-
-        private void CloseAPP(bool Shutdown = true)
-        {
-            user_closed = true;
-            ni.Visible = false;
-            ni.Dispose();
-            TaskCheckErrCTS?.Cancel();
-            if(Shutdown)
-                Application.Current.Shutdown();
-        }
-
         private void MenuItemCloseApp_Click(object sender, RoutedEventArgs e)
         {
             CloseAPP();
         }
-
         private void this_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
             if (!user_closed)
@@ -361,7 +136,6 @@ namespace ClientServiceWPF
                 CloseAPP(false);
             }
         }
-
         private void this_StateChanged(object sender, EventArgs e)
         {
             if (WindowState == WindowState.Minimized)
@@ -371,33 +145,154 @@ namespace ClientServiceWPF
             }
         }
 
-        private void buttonRefreshStatus_Click(object sender, RoutedEventArgs e)
-        {
-            RefreshStatusOperation();
-        }
+    }
 
-        private void ButtonStartProcess_Click(object sender, RoutedEventArgs e)
+
+    public class MainWindowVM : INotifyPropertyChanged, IDisposable
+    {
+        private Dispatcher dispatcher;
+        public MainWindowVM(Dispatcher dispatcher)
+        {
+            this.dispatcher = dispatcher;
+            ListOP.AddRange(StatusOperFileInvite, StatusOperArcInvite, StatusOperFLKInvite, StatusOperAutoInvite);
+        }
+        #region Right
+        private IWcfInterface wcf { get; set; }
+        public MainWindowVM SetWCF(IWcfInterface wcf)
+        {
+            this.wcf = wcf;
+            if (wcf != null)
+                StartStatusRefreshTask();
+            return this;
+        }
+        private List<string> _card = new List<string>();
+        public List<string> card
+        {
+            get => _card;
+            set
+            {
+                _card = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(HasConnect));
+            }
+        }
+        public MainWindowVM SetCard(List<string> card)
+        {
+            this.wcf = wcf;
+            this.card = card;
+            return this;
+        }
+    
+        public bool HasConnect => card.Count != 0;
+
+        #endregion
+        #region Logs
+        public ObservableCollection<EntriesMy> Entries { get; set; } = new ObservableCollection<EntriesMy>();
+        private int _CountLog = 50;
+        public int CountLog
+        {
+            get => _CountLog;
+            set
+            {
+                _CountLog = value;
+                RaisePropertyChanged();
+            }
+        }
+        public ICommand GetLogCommand => new Command(obj =>
         {
             try
             {
-                if(!DatePickerPERIOD.SelectedDate.HasValue)
-                    throw new Exception("Не указан период");
-                var br = wcf.StartProcess(RadioButtonMainTypePriem.IsChecked==true, RadioButtonFileAuto.IsChecked == true, DatePickerPERIOD.SelectedDate.Value);
-                if (!br.Result)
-                {
-                    MessageBox.Show(br.Exception);
-                    return;
-                }
-
-                RefreshStatusOperation();
+                Entries.Clear();
+                Entries.AddRange(wcf.GetEventLogEntry(CountLog));
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+        }, obj => card.Contains(nameof(IWcfInterface.GetEventLogEntry)));
+        #endregion
+        #region StatusOperation
+        private StatusPriem _Status;
+        public StatusPriem Status
+        {
+            get => _Status;
+            set
+            {
+                _Status = value;
+                StatusOperFileInvite.Status = _Status.FilesInviterStatus;
+                StatusOperArcInvite.Status = _Status.THArchiveInviter;
+                StatusOperFLKInvite.Status = _Status.FLKInviterStatus;
+                StatusOperAutoInvite.Status = _Status.ActiveAutoPriem;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(Active));
+            }
         }
 
-        private void ButtonStopProcess_Click(object sender, RoutedEventArgs e)
+        public bool Active => StatusOperFileInvite.Status || StatusOperArcInvite.Status || StatusOperFLKInvite.Status || StatusOperAutoInvite.Status;
+        public StatusOper StatusOperFileInvite { get; set; }= new StatusOper { NameOP = "Прием файлов" };
+        public StatusOper StatusOperArcInvite { get; set; } = new StatusOper { NameOP = "Прием архивов" };
+        public StatusOper StatusOperFLKInvite { get; set; } = new StatusOper { NameOP = "Обработка ФЛК" };
+        public StatusOper StatusOperAutoInvite { get; set; } = new StatusOper { NameOP = "Захват файлов" };
+        public ObservableCollection<StatusOper> ListOP { get; set; } = new ObservableCollection<StatusOper>();
+        public ICommand RefreshStatusOperationCommand => new Command(obj =>
+        {
+            try
+            {
+                Status = wcf.GetStatusInvite();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }, o => card.Contains(nameof(IWcfInterface.GetStatusInvite)));
+        public ICommand ChangeFileInviteTypeCommand => new Command(o =>
+        {
+            try
+            {
+                if (MessageBox.Show($@"Вы уверены что хотите {(Status.AutoPriem ? "включить" : "отключить")} автоматический прием?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    wcf.SetAutoPriem(Status.AutoPriem);
+                    RefreshStatusOperationCommand.Execute(null);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }, o => card.Contains(nameof(IWcfInterface.SetAutoPriem)));
+        public ICommand AddFileCommand => new Command(o =>
+        {
+            try
+            {
+                var f = new RemoteFolderDialog(wcf.GetSettingsFolder().IncomingDir, false, true);
+                if (f.ShowDialog() == true)
+                {
+                    wcf.AddListFile(f.FileNames);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }, o => card.ContainsAND(nameof(IWcfInterface.StartProcess), nameof(IWcfInterface.AddListFile)));
+        public ICommand StartProcessCommand => new Command(o =>
+        {
+            try
+            {
+                var br = wcf.StartProcess(Status.TypePriem, Status.AutoPriem, Status.OtchetDate);
+                if (!br.Result)
+                {
+                    MessageBox.Show(br.Exception);
+                    return;
+                }
+                RefreshStatusOperationCommand.Execute(null);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }, o => card.Contains(nameof(IWcfInterface.StartProcess)));
+        public ICommand StopProcessCommand => new Command(o =>
         {
             try
             {
@@ -407,107 +302,137 @@ namespace ClientServiceWPF
                     MessageBox.Show(br.Exception);
                     return;
                 }
-
-                RefreshStatusOperation();
+                RefreshStatusOperationCommand.Execute(null);
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
+        }, o => card.Contains(nameof(IWcfInterface.StopProcess)));
+        #endregion
+        #region StatusRefreshTask
+
+        private void StartStatusRefreshTask()
+        {
+            StopStatusRefreshTask();
+            TaskCheckErrCTS = new CancellationTokenSource();
+            TaskCheckErr = Task.Run(() =>
+            {
+                StatusRefreshTask(TaskCheckErrCTS.Token);
+            });
         }
 
-        private void buttonFileChangeMode_Click(object sender, RoutedEventArgs e)
+        private void StopStatusRefreshTask()
         {
-            try
+            TaskCheckErrCTS?.Cancel();
+        }
+        private Task TaskCheckErr;
+        private CancellationTokenSource TaskCheckErrCTS;
+        void StatusRefreshTask(CancellationToken cancel)
+        {
+            while (!cancel.IsCancellationRequested)
             {
-                var str = (RadioButtonFileAuto.IsChecked==true ? "включить" : "отключить");
-                if (MessageBox.Show($@"Вы уверены что хотите {str} автоматический прием?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                try
                 {
-                    wcf.SetAutoPriem(RadioButtonFileAuto.IsChecked == true);
-                    RefreshStatusOperation();
+                    if (wcf != null)
+                    {
+                        if (((ICommunicationObject) wcf).State == CommunicationState.Opened)
+                        {
+                            dispatcher?.Invoke(() =>
+                            {
+                                RefreshStatusOperationCommand.Execute(null);
+                                GetLogCommand.Execute(null);
+                            });
+                        }
+                    }
+
+                    var del = Task.Delay(600000, cancel);
+                    del.Wait(cancel);
+                }
+                catch (OperationCanceledException)
+                {
+
+                }
+                catch (Exception ex)
+                {
+                    dispatcher?.Invoke(() =>
+                    {
+                        System.Windows.Forms.MessageBox.Show($@"Ошибка в потоке проверки ошибок: {ex.Message}");
+                    });
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
         }
 
-        private void buttonFileAdd_Click(object sender, RoutedEventArgs e)
-        {
-            var f = new RemoteFolderDialog(wcf.GetSettingsFolder().IncomingDir, false, true);
-            if (f.ShowDialog() == true)
-            {
-                wcf.AddListFile(f.FileNames);
-            }
-        }
 
-        private void ButtonWork_Click(object sender, RoutedEventArgs e)
-        {
-            var form = new FilesManagerView(Active);
-            form.Owner = this;
-            form.Show();
-        }
-
-        private void MenuItemSMOInvite_OnClick(object sender, RoutedEventArgs e)
+        #endregion
+        #region Navigate
+        public ICommand SettingNavigateCommand => new Command(o =>
         {
             try
             {
-               var win = new SANK_INVITER.SANK_INVITER();
-               win.Show();
+                var win = new Setting(!Active);
+                win.ShowDialog();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-        }
+        });
 
-        private void MenuItemMonitor_OnClick(object sender, RoutedEventArgs e)
+        public ICommand FilesManagerViewNavigateCommand => new Command(o =>
         {
             try
             {
-               var win = new MonitorReestr();
-               win.Show();
+                var form = new FilesManagerView(Active);
+                form.Show();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-        }
+        },  o => HasConnect);
 
-        private void MenuItemEditUser_Click(object sender, RoutedEventArgs e)
+        public ICommand MonitorReestrNavigateCommand => new Command(o =>
         {
             try
             {
-                var win = new USER_EDIT.USER_ROLE();
+                var win = new MonitorReestr();
                 win.Show();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-        }
+        }, o => HasConnect);
 
-        private void MenuItemXSDCreator_OnClick(object sender, RoutedEventArgs e)
+
+        public ICommand SANK_INVITERNavigateCommand => new Command(o =>
         {
             try
             {
-                var win = new SchemaEditor.XMLshema();
+                var win = new SANK_INVITER.SANK_INVITER();
                 win.Show();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-        }
+        });
 
-        private void MenuItemPrintXLSX_OnClick(object sender, RoutedEventArgs e)
+        public ICommand ACT_MEKNavigateCommand => new Command(o =>
         {
-             PRINT_FILE_XLSX win = new PRINT_FILE_XLSX();
-             win.Show();
-        }
+            try
+            {
+                var win = new ACT_MEK();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
 
-        private void MenuExportFileMEK_OnClick(object sender, RoutedEventArgs e)
+        public ICommand ExportFileNavigateCommand => new Command(o =>
         {
             try
             {
@@ -518,9 +443,8 @@ namespace ClientServiceWPF
             {
                 MessageBox.Show(ex.Message);
             }
-        }
-
-        private void MenuVolumeControl_OnClick(object sender, RoutedEventArgs e)
+        });
+        public ICommand VOLUM_CONTROLNavigateCommand => new Command(o =>
         {
             try
             {
@@ -531,6 +455,61 @@ namespace ClientServiceWPF
             {
                 MessageBox.Show(ex.Message);
             }
+        });
+
+        public ICommand XMLshemaNavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new SchemaEditor.XMLshema();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+
+        public ICommand PRINT_FILE_XLSXNavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new PRINT_FILE_XLSX();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+
+        public ICommand USER_EDITNavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new USER_EDIT.USER_ROLE();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }, o => HasConnect);
+
+        
+        #endregion
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+        public void Dispose()
+        {
+            StopStatusRefreshTask();
         }
     }
 
@@ -546,7 +525,8 @@ namespace ClientServiceWPF
 
         }
         public delegate void newFileManager();
-        public event newFileManager OnNewFileManager = null;
+
+        public event newFileManager OnNewFileManager;
 
         public void NewFileManager()
         {
@@ -558,17 +538,31 @@ namespace ClientServiceWPF
 
         }
     }
-
-
-    public class StatusOper
+    public class StatusOper:INotifyPropertyChanged
     {
         public string NameOP { get; set; }
-        public bool Status { get; set; }
+        private bool _Status;
+
+        public bool Status
+        {
+            get => _Status;
+            set
+            {
+                _Status = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(StatusText));
+            }
+        }
 
         public string StatusText => Status ? "Активно" : "Не активно";
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
-
-
     public static partial class Ext
     {
         public static bool ContainsAND(this List<string> val, params string[] par)
@@ -580,5 +574,25 @@ namespace ClientServiceWPF
             return par.Any(val.Contains);
         }
 
+
+        public static void AddRange<T>(this ObservableCollection<T> source, params T[] values)
+        {
+            foreach (var item in values)
+            {
+                source.Add(item);
+            }
+        }
+
+        public static void AddRange<T>(this ObservableCollection<T> source,List<T> values)
+        {
+            foreach (var item in values)
+            {
+                source.Add(item);
+            }
+        }
+
     }
+
+
+ 
 }

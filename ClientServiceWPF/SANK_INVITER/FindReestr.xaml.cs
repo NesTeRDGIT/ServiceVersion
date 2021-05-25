@@ -22,7 +22,6 @@ namespace ClientServiceWPF.SANK_INVITER
     /// </summary>
     public partial class FindReestr : Window
     {
-      
         public FindReestr(int code_mo, int CODE, int Year)
         {
             InitializeComponent();
@@ -51,9 +50,6 @@ namespace ClientServiceWPF.SANK_INVITER
                 MessageBox.Show(ex.Message);
             }
         }
-
-
-      
         public List<SCHET_ROW> ListSchet { get; set; } = new List<SCHET_ROW>();
         public void GetSchetBase(string CODE, string CODE_MO, int? YEAR)
         {

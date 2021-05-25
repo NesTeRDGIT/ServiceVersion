@@ -29,7 +29,7 @@ namespace ClientServiceWPF
         bool OneFolder = false;
 
         private CollectionViewSource CollectionViewSourceFiles;
-        public List<FileItem> FileItems { get; set; } = new List<FileItem>();
+        public List<RemoteFolderDialogFileItem> FileItems { get; set; } = new List<RemoteFolderDialogFileItem>();
         public RemoteFolderDialog(string _path, bool OnlyFolder = false, bool OneFolder = false)
         {
             InitializeComponent();
@@ -62,11 +62,11 @@ namespace ClientServiceWPF
         private void CreateList(List<string> Folders,List<string> Files)
         {
             FileItems.Clear();
-            FileItems.Add(new FileItem("...", FileItemType.Return));
+            FileItems.Add(new RemoteFolderDialogFileItem("...", FileItemType.Return));
 
             foreach (var fold in Folders)
             {
-                FileItems.Add(new FileItem(fold, FileItemType.Folder));
+                FileItems.Add(new RemoteFolderDialogFileItem(fold, FileItemType.Folder));
             }
 
             foreach (var file in Files)
@@ -80,7 +80,7 @@ namespace ClientServiceWPF
                     default: type = FileItemType.FILE; break;
                 }
 
-                FileItems.Add(new FileItem(file, type));
+                FileItems.Add(new RemoteFolderDialogFileItem(file, type));
             }
             CollectionViewSourceFiles.View.Refresh();
         }
@@ -120,7 +120,7 @@ namespace ClientServiceWPF
             }
             else
             {
-                foreach (FileItem lvi in listView.SelectedItems)
+                foreach (RemoteFolderDialogFileItem lvi in listView.SelectedItems)
                 {
                     if (IsFile(lvi.Type))
                         FileNames.Add(lvi.Path);
@@ -151,8 +151,7 @@ namespace ClientServiceWPF
 
             if (listView.SelectedItems.Count != 0 && !OneFolder)
             {
-                var item = (listView.SelectedItems[0] as FileItem);
-                if (item != null)
+                if (listView.SelectedItems[0] is RemoteFolderDialogFileItem item)
                 {
                     if (IsFile(item.Type)) return;
                     if (item.Type== FileItemType.Return)
@@ -218,9 +217,9 @@ namespace ClientServiceWPF
         Return,
         Folder
     }
-    public class FileItem
+    public class RemoteFolderDialogFileItem
     {
-        public FileItem(string Path, FileItemType Type)
+        public RemoteFolderDialogFileItem(string Path, FileItemType Type)
         {
             this.Path = Path;
             this.Type = Type;

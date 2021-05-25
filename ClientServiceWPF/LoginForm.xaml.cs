@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Security;
 using System.ServiceModel;
 using System.ServiceModel.Description;
 using System.Text;
@@ -15,9 +18,11 @@ using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using ClientServiceWPF.Class;
 using ClientServiceWPF.MEK_RESULT;
 using ServiceLoaderMedpomData;
+using ServiceLoaderMedpomData.Annotations;
 
 namespace ClientServiceWPF
 {
@@ -27,211 +32,16 @@ namespace ClientServiceWPF
     public partial class LoginForm : Window
     {
         public static IWcfInterface wcf { set; get; }
-        public MyServiceCallback callback;
-        public string DIALOG_MESSAGE = null;
-
+        public static IWcfInterfaceCallback callback;
         public static List<string> SecureCard { get; set; } = new List<string>();
-
-        public LoginForm()
+        public LoginFormVM VM { get; set; }
+        private  void OnConnect(IWcfInterface arg1, MyServiceCallback arg2, List<string> arg3)
         {
-            InitializeComponent();
-            passwordBoxPass.Password = ProtectStr.UnprotectString(Properties.Settings.Default.PASSWORD);
-            textBoxUserName.Text = ProtectStr.UnprotectString(Properties.Settings.Default.USER_NAME);
-            textBoxHOST.Text = Properties.Settings.Default.IP_CONNECT;
-        }
-
-        void StartAnimateButton1()
-        {
-            var s = (DoubleAnimation)this.FindResource("DA");
-            var rgb = (RadialGradientBrush)button1.Background;
-            s.RepeatBehavior = RepeatBehavior.Forever;
-            rgb.GradientStops[0].BeginAnimation(GradientStop.OffsetProperty, s);
-        }
-        void StopAnimateButton1()
-        {
-            var s = (DoubleAnimation)this.FindResource("DA");
-
-            var rgb = (RadialGradientBrush)button1.Background;
-            s.RepeatBehavior = new RepeatBehavior(0);
-
-            rgb.GradientStops[0].BeginAnimation(GradientStop.OffsetProperty, s);
-            //rgb.GradientStops[0].Offset = Convert.ToDouble( 0.0);
-
-        }
-
-        private bool ChekData()
-        {
-            try
-            {
-                var ca = ((ColorAnimation)(this.FindResource("CA")));
-                var result = true;
-                if (passwordBoxPass.Password.Trim() == "")
-                {
-                    result = false;
-                    passwordBoxPass.BorderBrush = new SolidColorBrush();
-                    passwordBoxPass.BorderBrush.BeginAnimation(SolidColorBrush.ColorProperty, ca);
-                }
-
-                if (textBoxUserName.Text.Trim() == "")
-                {
-                    result = false;
-                    textBoxUserName.BorderBrush = new SolidColorBrush();
-                    textBoxUserName.BorderBrush.BeginAnimation(SolidColorBrush.ColorProperty, ca);
-
-                }
-
-                if (textBoxHOST.Text.Trim() == "")
-                {
-                    result = false;
-                    textBoxHOST.BorderBrush = new SolidColorBrush();
-                    textBoxHOST.BorderBrush.BeginAnimation(SolidColorBrush.ColorProperty, ca);
-
-                }
-
-                return result;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-                return false;
-            }
-        }
-
-        private void button1_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (ChekData())
-                {
-
-                    if (!button1.IsHitTestVisible) return;
-                    button1.IsHitTestVisible = false;
-                    button1.Focusable = false;
-                    StartAnimateButton1();
-                    var th = new Thread(ThreadConnect) { IsBackground = true };
-                    th.Start();
-                }
-
-            }
-            catch (Exception ex)
-            {
-                button1.IsHitTestVisible = true;
-                button1.Focusable = true;
-                ;
-                MessageBox.Show(ex.Message);
-                StopAnimateButton1();
-            }
-        }
-
-     
-
-        private string Log { get; set; }
-
-        private string PASS { get; set; }
-
-        public void ThreadConnect()
-        {
-            try
-            {
-
-                Dispatcher?.Invoke(new Action(() =>
-                {
-                    if (checkBox1.IsChecked == true)
-                    {
-                        Properties.Settings.Default.PASSWORD = ProtectStr.ProtectString(passwordBoxPass.Password);
-                        Properties.Settings.Default.USER_NAME = ProtectStr.ProtectString(textBoxUserName.Text);
-                    }
-                    Log = textBoxUserName.Text;
-                    PASS = passwordBoxPass.Password;
-                    Properties.Settings.Default.IP_CONNECT = textBoxHOST.Text;
-                }));
-
-                Connect();
-                Dispatcher?.BeginInvoke(new Action(() => { this.Title = "Подключение: Запрос прав"; }));
-                SecureCard =  wcf.Connect();
-                Dispatcher?.BeginInvoke(new Action(() => { this.Title = "Подключение: Сохранение параметров"; }));
-                Properties.Settings.Default.Save();
-                Dispatcher?.Invoke(new Action(() =>
-                {
-                    this.Title = "Подключение";
-                    StopAnimateButton1();
-                    this.DialogResult = true;
-                }));
-            }
-
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.FullMessage());
-                Dispatcher?.Invoke(() =>
-                {
-                    button1.IsHitTestVisible = true;
-                    button1.Focusable = true;
-                    StopAnimateButton1();
-                });
-            }
-        }
-
-        private void Connect()
-        {
-            var addr = @"net.tcp://" + Properties.Settings.Default.IP_CONNECT + ":12344/TFOMSMEDPOM.svc"; // Адрес сервиса
-            var tcpUri = new Uri(addr);
-            var address = new EndpointAddress(tcpUri, EndpointIdentity.CreateDnsIdentity("MSERVICE"));
-
-            var t = address.Identity;
-
-
-            //  BasicHttpBinding basicHttpBinding = new BasicHttpBinding(BasicHttpSecurityMode.None); //HTTP!
-            var netTcpBinding = new NetTcpBinding(SecurityMode.None);
-
-
-            // Ниже строки для того, чтоб пролазили таблицы развером побольше
-            netTcpBinding.ReaderQuotas.MaxArrayLength = int.MaxValue;
-            netTcpBinding.ReaderQuotas.MaxBytesPerRead = int.MaxValue;
-            netTcpBinding.ReaderQuotas.MaxStringContentLength = int.MaxValue;
-            netTcpBinding.MaxBufferPoolSize = 105000000;
-            netTcpBinding.MaxReceivedMessageSize = 105000000;
-            netTcpBinding.SendTimeout = new TimeSpan(24, 0, 0);
-            netTcpBinding.ReceiveTimeout = new TimeSpan(24, 0, 0);
-
-            netTcpBinding.Security.Mode = SecurityMode.Message;
-            netTcpBinding.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
-            netTcpBinding.Security.Transport.ClientCredentialType = TcpClientCredentialType.None;
-
-
-
-
-
-            callback = new MyServiceCallback();
-            callback.OnNewFileManager += Callback_OnNewFileManager;
-            var instanceContext = new InstanceContext(callback);
-
-            var factory = new DuplexChannelFactory<IWcfInterface>(instanceContext, netTcpBinding, address);
-
-            factory.Credentials.UserName.UserName = Log;
-            factory.Credentials.UserName.Password = PASS;
-
-            factory.Credentials.ServiceCertificate.Authentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None;
-            //factory.Credentials.ClientCertificate.SetCertificate(StoreLocation.CurrentUser, StoreName.My, X509FindType.FindBySubjectName, "MSERVICE");
-            wcf = factory.CreateChannel(); // Создаём само подключение         
-        }
-
-
-
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-
-        }
-
-
-        protected override void OnContentRendered(EventArgs e)
-        {
-            base.OnContentRendered(e);
-
-            if (!string.IsNullOrEmpty(DIALOG_MESSAGE))
-            {
-                MessageBox.Show(DIALOG_MESSAGE);
-            }
-
+            wcf = arg1;
+            callback = arg2;
+            SecureCard = arg3;
+            DialogResult = true;
+            arg2.OnNewFileManager += Callback_OnNewFileManager;
         }
         private void Callback_OnNewFileManager()
         {
@@ -251,18 +61,198 @@ namespace ClientServiceWPF
             });
         }
 
-        private void checkBox1_Click(object sender, RoutedEventArgs e)
+        public LoginForm()
         {
-            Properties.Settings.Default.SAVE_LOG_AND_PASS = checkBox1.IsChecked.Value;
+            SecureCard = new List<string>();
+            wcf = null;
+            VM = new LoginFormVM(Dispatcher.CurrentDispatcher, OnConnect)
+            {
+                Password = ProtectStr.UnprotectString(Properties.Settings.Default.PASSWORD), 
+                Login = ProtectStr.UnprotectString(Properties.Settings.Default.USER_NAME), 
+                HOST = Properties.Settings.Default.IP_CONNECT, SaveLogAndPass = Properties.Settings.Default.SAVE_LOG_AND_PASS
+            };
+            InitializeComponent();
+             PasswordBox.Password = VM.Password;
         }
 
-        private void textBoxHOST_KeyUp(object sender, KeyEventArgs e)
+        public string DIALOG_MESSAGE { get; set; } = null;
+        protected override void OnContentRendered(EventArgs e)
         {
-            if (e.Key == Key.Enter)
+            base.OnContentRendered(e);
+            if (!string.IsNullOrEmpty(DIALOG_MESSAGE))
             {
-                button1_Click(null, null);
+                MessageBox.Show(DIALOG_MESSAGE);
             }
         }
+
+
+        private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
+        {
+            VM.Password = PasswordBox.Password;
+        }
+    }
+
+
+    public class LoginFormVM : INotifyPropertyChanged
+    {
+        private IWcfInterface wcf { set; get; }
+        private MyServiceCallback callback { set; get; }
+        private Dispatcher dispatcher { set; get; }
+
+        private Action<IWcfInterface, MyServiceCallback, List<string>> onConnect;
+
+        public LoginFormVM(Dispatcher dispatcher, Action<IWcfInterface, MyServiceCallback, List<string>> onConnect)
+        {
+            this.dispatcher = dispatcher;
+            this.onConnect = onConnect;
+        }
+
+        private string _HOST { get; set; }
+        public string HOST
+        {
+            get => _HOST;
+            set
+            {
+                _HOST = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _Login { get; set; }
+        public string Login
+        {
+            get => _Login;
+            set
+            {
+                _Login = value;
+                RaisePropertyChanged();
+            }
+        }
+      
+        private string _Password { get; set; }
+        public string Password
+        {
+            get => _Password;
+            set
+            {
+                _Password = value;
+                RaisePropertyChanged();
+            }
+        }
+
+      
+
+        private bool _SaveLogAndPass { get; set; }
+        public bool SaveLogAndPass
+        {
+            get => _SaveLogAndPass;
+            set
+            {
+                _SaveLogAndPass = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _Title { get; set; }
+        public string Title
+        {
+            get => _Title;
+            set
+            {
+                _Title = value;
+                dispatcher.Invoke(() =>{ RaisePropertyChanged();});
+            }
+        }
+
+
+        private bool _Connecting { get; set; }
+        public bool Connecting
+        {
+            get => _Connecting;
+            set
+            {
+                _Connecting = value;
+                dispatcher.Invoke(() => { RaisePropertyChanged(); });
+            }
+        }
+        public ICommand ConnectCommand=> new Command(obj=>
+        {
+            try
+            {
+                Connecting = true;
+                Title = "Сохранение параметров";
+                if (SaveLogAndPass)
+                {
+                    Properties.Settings.Default.PASSWORD = ProtectStr.ProtectString(Password);
+                    Properties.Settings.Default.USER_NAME = ProtectStr.ProtectString(Login);
+                    Properties.Settings.Default.IP_CONNECT = HOST;
+                }
+
+                Properties.Settings.Default.SAVE_LOG_AND_PASS = SaveLogAndPass;
+                Properties.Settings.Default.Save();
+                Task.Run(Connect);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.FullMessage());
+            }
+        });
+
+        public void Connect()
+        {
+            try
+            {
+                Title = "Создание канала";
+                CreateChannel();
+                Title = "Запрос прав";
+                var SecureCard = wcf.Connect();
+                dispatcher.Invoke(() => { onConnect.Invoke(wcf, callback, SecureCard); });
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.FullMessage());
+            }
+            finally
+            {
+                Connecting = false;
+            }
+        }
+
+        private void CreateChannel()
+        {
+            var addr = $@"net.tcp://{HOST}:12344/TFOMSMEDPOM.svc"; // Адрес сервиса
+            var tcpUri = new Uri(addr);
+            var address = new EndpointAddress(tcpUri, EndpointIdentity.CreateDnsIdentity("MSERVICE"));
+            var netTcpBinding = new NetTcpBinding(SecurityMode.None)
+            {
+                ReaderQuotas = {MaxArrayLength = int.MaxValue, MaxBytesPerRead = int.MaxValue, MaxStringContentLength = int.MaxValue},
+                MaxBufferPoolSize = 105000000,
+                MaxReceivedMessageSize = 105000000,
+                SendTimeout = new TimeSpan(24, 0, 0),
+                ReceiveTimeout = new TimeSpan(24, 0, 0),
+                Security = {Mode = SecurityMode.Message, Message = {ClientCredentialType = MessageCredentialType.UserName}, Transport = {ClientCredentialType = TcpClientCredentialType.None}}
+            };
+
+            callback = new MyServiceCallback();
+            var instanceContext = new InstanceContext(callback);
+            var factory = new DuplexChannelFactory<IWcfInterface>(instanceContext, netTcpBinding, address);
+
+            factory.Credentials.UserName.UserName = Login;
+            factory.Credentials.UserName.Password = Password;
+            factory.Credentials.ServiceCertificate.Authentication.CertificateValidationMode = System.ServiceModel.Security.X509CertificateValidationMode.None;
+            wcf = factory.CreateChannel(); // Создаём само подключение         
+        }
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
 
     }
 

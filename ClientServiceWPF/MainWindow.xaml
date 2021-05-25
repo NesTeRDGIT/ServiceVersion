@@ -10,9 +10,14 @@
         Name="this"
         Title="Управление службой MedpomService" Height="612" Width="974" Closing="this_Closing" StateChanged="this_StateChanged" Style="{DynamicResource StyleWindow}">
     <Window.Resources>
-        <CollectionViewSource x:Key="CollectionViewSourceLOG" Source="{Binding ElementName=this, Path=Entries}" d:DesignSource="{d:DesignInstance {x:Type serviceLoaderMedpomData:EntriesMy}, CreateList=True}" ></CollectionViewSource>
-        <CollectionViewSource x:Key="CollectionViewSourceStatusOP" Source="{Binding ElementName=this, Path=ListOP}" d:DesignSource="{d:DesignInstance {x:Type local:StatusOper}, CreateList=True}" ></CollectionViewSource>
+        <class:BoolInverterConverter x:Key="BoolInverterConverter"/>
+        <CollectionViewSource x:Key="CollectionViewSourceLOG" Source="{Binding Entries}" d:DesignSource="{d:DesignInstance {x:Type serviceLoaderMedpomData:EntriesMy}, CreateList=True}" />
+        <CollectionViewSource x:Key="CollectionViewSourceStatusOP" Source="{Binding ListOP}" d:DesignSource="{d:DesignInstance {x:Type local:StatusOper}, CreateList=True}" />
     </Window.Resources>
+    <Window.DataContext>
+        <Binding ElementName="this" Path="VM"></Binding>
+    </Window.DataContext>
+
     <Grid>
         <GroupBox x:Name="groupBoxLog" Header="Лог событий" Margin="0,27,398,0">
             <Grid>
@@ -48,8 +53,8 @@
                         </GridView>
                     </ListView.View>
                 </ListView>
-                <TextBox x:Name="textBoxCountLog" HorizontalAlignment="Right" Height="23" Margin="0,0,29,0" TextWrapping="Wrap" Text="50" VerticalAlignment="Bottom" Width="42" HorizontalContentAlignment="Right"/>
-                <Button x:Name="buttonRefreshLog"  HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="24" RenderTransformOrigin="0.267,0.1" Height="23" Click="buttonRefreshLog_Click" Style="{DynamicResource ButtonUpd}"/>
+                <TextBox x:Name="textBoxCountLog" HorizontalAlignment="Right" Height="23" Margin="0,0,29,0" TextWrapping="Wrap" Text="{Binding CountLog}" VerticalAlignment="Bottom" Width="42" HorizontalContentAlignment="Right"/>
+                <Button   HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="24" RenderTransformOrigin="0.267,0.1" Height="23"  Style="{DynamicResource ButtonUpd}" Command="{Binding GetLogCommand }"/>
             </Grid>
         </GroupBox>
         <Menu Height="Auto" VerticalAlignment="Top">
@@ -60,46 +65,46 @@
                 <MenuItem Header="Закрыть программу" x:Name="MenuItemCloseApp" Click="MenuItemCloseApp_Click" ></MenuItem>
             </MenuItem>
             <MenuItem Header="Дополнительно">
-                <MenuItem Header="Мониторинг реестров" x:Name="MenuItemMonitor" Click="MenuItemMonitor_OnClick"></MenuItem>
+                <MenuItem Header="Мониторинг реестров" x:Name="MenuItemMonitor" Command="{Binding MonitorReestrNavigateCommand}"></MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="Прием санкций от СМО" x:Name="MenuItemSMOInvite" Click="MenuItemSMOInvite_OnClick"></MenuItem>
+                <MenuItem Header="Прием санкций от СМО" x:Name="MenuItemSMOInvite" Command="{Binding SANK_INVITERNavigateCommand}"></MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="Выгрузка актов МЭК" x:Name="MenuItemActMEK" Click="MenuItemActMEK_Click" ></MenuItem>
-                <MenuItem Header="Выгрузка файлов МЭК" x:Name="MenuExportFileMEK" Click="MenuExportFileMEK_OnClick" ></MenuItem>
+                <MenuItem Header="Выгрузка актов МЭК" x:Name="MenuItemActMEK" Command="{Binding ACT_MEKNavigateCommand}" ></MenuItem>
+                <MenuItem Header="Выгрузка файлов МЭК" x:Name="MenuExportFileMEK" Command="{Binding ExportFileNavigateCommand}"></MenuItem>
                 <Separator></Separator>
-                <MenuItem Header="Контроль объемов" x:Name="MenuVolumeControl" Click="MenuVolumeControl_OnClick" ></MenuItem>
+                <MenuItem Header="Контроль объемов" x:Name="MenuVolumeControl" Command="{Binding VOLUM_CONTROLNavigateCommand}" ></MenuItem>
             </MenuItem>
             <MenuItem Header="Инструменты">
-                <MenuItem Header="Редактор XML схем" x:Name="MenuItemXSDCreator" Click="MenuItemXSDCreator_OnClick"></MenuItem>
-                <MenuItem Header="Печать XLSX" x:Name="MenuItemPrintXLSX" Click="MenuItemPrintXLSX_OnClick"></MenuItem>
+                <MenuItem Header="Редактор XML схем" x:Name="MenuItemXSDCreator" Command="{Binding XMLshemaNavigateCommand}"></MenuItem>
+                <MenuItem Header="Печать XLSX" x:Name="MenuItemPrintXLSX" Command="{Binding PRINT_FILE_XLSXNavigateCommand}"></MenuItem>
             </MenuItem>
             <MenuItem Header="Управление доступом">
-                <MenuItem Header="Управление пользователями" x:Name="MenuItemEditUser" Click="MenuItemEditUser_Click" ></MenuItem>
+                <MenuItem Header="Управление пользователями" x:Name="MenuItemEditUser" Command="{Binding USER_EDITNavigateCommand}" ></MenuItem>
                 
             </MenuItem>
         </Menu>
-        <GroupBox Header="Статус работы" Name="GroupBoxStatus" HorizontalAlignment="Right" Margin="0,23,0,125" Width="393">
+        <GroupBox Header="Статус работы"  HorizontalAlignment="Right" Margin="0,23,0,125" Width="393" IsEnabled="{Binding HasConnect}">
             <Grid>
                 <GroupBox Header="Параметры приема" Height="85" VerticalAlignment="Top">
                     <Grid>
-                        <RadioButton Margin="0,5,0,0" Name="RadioButtonMainTypePriem" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="84">Основной</RadioButton>
-                        <RadioButton Margin="89,5,0,0" Name="RadioButtonPREDTypePriem" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="127">Предварительный</RadioButton>
+                        <RadioButton Margin="0,5,0,0" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="84" IsChecked="{Binding Status.TypePriem}">Основной</RadioButton>
+                        <RadioButton Margin="89,5,0,0" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="127" IsChecked="{Binding Status.TypePriem, Converter={StaticResource BoolInverterConverter}}">Предварительный</RadioButton>
                         <Label  Content="Отчетный период" HorizontalAlignment="Left" Margin="0,27,0,0" VerticalAlignment="Top"/>
-                        <DatePicker HorizontalAlignment="Left" Margin="113,28,0,0" VerticalAlignment="Top" Name="DatePickerPERIOD" class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" />
+                        <DatePicker HorizontalAlignment="Left" Margin="113,28,0,0" VerticalAlignment="Top" class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" SelectedDate="{Binding Status.OtchetDate}" />
                     </Grid>
                 </GroupBox>
                 <GroupBox Header="Тип захвата файлов" Margin="0,85,0,0" Height="75" VerticalAlignment="Top">
                     <Grid>
-                        <RadioButton Margin="10,29,0,0" x:Name="RadioButtonFileAuto" Content="Автоматический" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
-                        <RadioButton Margin="10,4,0,0" x:Name="RadioButtonFileHand" Content="Ручной" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116"/>
-                        <Button x:Name="buttonFileAdd" Content="Добавить" HorizontalAlignment="Right" Margin="0,4,10,0" VerticalAlignment="Top" Width="114" Click="buttonFileAdd_Click" Style="{DynamicResource MainButton}" />
-                        <Button x:Name="buttonFileChangeMode" Content="Изменить" HorizontalAlignment="Right" Margin="0,28,10,0" VerticalAlignment="Top" Width="114" Click="buttonFileChangeMode_Click" Style="{DynamicResource MainButton}"/>
+                        <RadioButton Margin="10,29,0,0"  Content="Автоматический" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" IsChecked="{Binding Status.AutoPriem}"/>
+                        <RadioButton Margin="10,4,0,0"  Content="Ручной" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="116" IsChecked="{Binding Status.AutoPriem, Converter={StaticResource BoolInverterConverter}}"/>
+                        <Button  Content="Добавить" HorizontalAlignment="Right" Margin="0,4,10,0" VerticalAlignment="Top" Width="114" Command="{Binding AddFileCommand}" Style="{DynamicResource MainButton}" />
+                        <Button  Content="Изменить" HorizontalAlignment="Right" Margin="0,28,10,0" VerticalAlignment="Top" Width="114" Command="{Binding ChangeFileInviteTypeCommand}" Style="{DynamicResource MainButton}"/>
                     </Grid>
                 </GroupBox>
                 <GroupBox Header="Старт/Остановка" Margin="0,160,0,0" VerticalAlignment="Top" Height="57">
                     <Grid>
-                        <Button Name="ButtonStartProcess" Content="Запустить" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="114" Click="ButtonStartProcess_Click" Style="{DynamicResource MainButton}"/>
-                        <Button Name="ButtonStopProcess" Content="Остановить" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="114" Click="ButtonStopProcess_Click" Style="{DynamicResource MainButton}"/>
+                        <Button Content="Запустить" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="114" Command="{Binding StartProcessCommand}" Style="{DynamicResource MainButton}"/>
+                        <Button Content="Остановить" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="114" Command="{Binding StopProcessCommand}" Style="{DynamicResource MainButton}"/>
                     </Grid>
                 </GroupBox>
                 <GroupBox Header="Статус" HorizontalAlignment="Left" Margin="0,217,0,0" Width="381">
@@ -151,15 +156,15 @@
                                 </Style>
                             </ListView.Style>
                         </ListView>
-                        <Button x:Name="buttonRefreshStatus" Content="Обновить" Margin="0,0,-2,0" VerticalAlignment="Bottom" Height="21" Click="buttonRefreshStatus_Click" Style="{DynamicResource MainButton}"/>
+                        <Button x:Name="buttonRefreshStatus" Content="Обновить" Margin="0,0,-2,0" VerticalAlignment="Bottom" Height="21" Style="{DynamicResource MainButton}" Command="{Binding RefreshStatusOperationCommand}"/>
                     </Grid>
                 </GroupBox>
             </Grid>
         </GroupBox>
-        <GroupBox Header="Мониторинг работы" Name="GroupBoxMonitorWork" HorizontalAlignment="Right" Width="393" Height="120" VerticalAlignment="Bottom">
+        <GroupBox Header="Мониторинг работы" HorizontalAlignment="Right" Width="393" Height="120" VerticalAlignment="Bottom" >
             <Grid>
-                <Button Name="ButtonSetting" Content="Настройки" Margin="10,53,10,0" VerticalAlignment="Top" Click="Button_Click" Height="35" Style="{DynamicResource MainButton}"/>
-                <Button Name="ButtonWork" Content="Просмотр работы" Margin="10,10,10,0" VerticalAlignment="Top" Height="38" Style="{DynamicResource MainButton}" Click="ButtonWork_Click"/>
+                <Button Content="Просмотр работы" Margin="10,10,10,0" VerticalAlignment="Top" Height="38" Style="{DynamicResource MainButton}" Command="{Binding FilesManagerViewNavigateCommand}"/>
+                <Button Content="Настройки" Margin="10,53,10,0" VerticalAlignment="Top" Height="35" Style="{DynamicResource MainButton}" Command="{Binding SettingNavigateCommand}"/>
             </Grid>
         </GroupBox>
 

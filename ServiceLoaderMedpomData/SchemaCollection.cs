@@ -294,13 +294,15 @@ namespace ServiceLoaderMedpomData
 
     public class CheckXMLValidator
     {
-        public CheckXMLValidator(VersionMP v, bool IsMTRProtocol =false)
+        public CheckXMLValidator(VersionMP v, bool IsMTRProtocol =false, bool IsValidateRef = true)
         {
             this.IsMTRProtocol = IsMTRProtocol;
             Version = v;
+            this.IsValidateRef = IsValidateRef;
         }
         public VersionMP Version { get; set; }
         public bool IsMTRProtocol { get; set; }
+        public bool IsValidateRef { get; set; }
     }
  
 
@@ -411,7 +413,7 @@ namespace ServiceLoaderMedpomData
         /// <param name="isvalidate">Подключать валидатор</param>
         /// <returns>0-ошибка при проверке 1 проверка успешна</returns>
         /// 
-        public bool CheckSchema(FileItemBase _File, string PathXSD, bool isvalidate = true)
+        public bool CheckSchema(FileItemBase _File, string PathXSD, bool isValidateRef = true)
         {
             var prevnodes = "";
             var LineNumber = 0;
@@ -423,7 +425,7 @@ namespace ServiceLoaderMedpomData
                 fileL = false;
                 ShowErrText = true;
                 FileLog.WriteLn("Проверка файла на соответствие схеме:");
-                var validate = new CheckXMLValidator(_File.Version);
+                var validate = new CheckXMLValidator(_File.Version, false, isValidateRef);
                 var res = CheckXML(filepath, PathXSD, validate);
                 var resul = res.Count == 0;
                 _File.DOP_REESTR = DOP_REESTR;
@@ -488,10 +490,10 @@ namespace ServiceLoaderMedpomData
                                 validate = new MyValidatorV3(ErrorAction);
                                 break;
                             case VersionMP.V3_1:
-                                validate = new MyValidatorV31(ErrorAction);
+                                validate = new MyValidatorV31(ErrorAction, CXV.IsValidateRef);
                                 break;
                             default:
-                                validate = new MyValidatorV31(ErrorAction);
+                                validate = new MyValidatorV31(ErrorAction, CXV.IsValidateRef);
                                 break;
                         }
                     }
@@ -1217,7 +1219,7 @@ namespace ServiceLoaderMedpomData
 
     class MyValidatorV31 : IValidatorXML
     {
-
+        private bool IsValidateRef { get; set; }
         private readonly DateTime DT_04_2020 = new DateTime(2020, 04, 01);
         private readonly DateTime DT_03_2021 = new DateTime(2021, 03, 01);
 
@@ -1232,9 +1234,10 @@ namespace ServiceLoaderMedpomData
         
 
 
-        public MyValidatorV31(ErrorActionEvent err)
+        public MyValidatorV31(ErrorActionEvent err, bool IsValidateRef)
         {
             Error = err;
+            this.IsValidateRef = IsValidateRef;
         }
 
         public event ErrorActionEvent Error;
@@ -1437,15 +1440,15 @@ namespace ServiceLoaderMedpomData
                     Error(XmlSeverityType.Error, Z_SL.SUMV.POS.LINE, Z_SL.SUMV.POS.POS, $"Сумма законченного случая({Math.Round(Z_SL.SUMV.value, 2)}) не равна сумме услуг({Math.Round(Z_SL.SUMV_USL_SUM, 2)})", "SUMV");
 
                 var isRef = !string.IsNullOrEmpty(SCHET.REF.value);
-                if (Z_SL.PR_NOV.value == "1" && !isRef)
+                if (Z_SL.PR_NOV.value == "1" && !isRef && IsValidateRef)
                     Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Признак исправленной записи = 1 недопустим без указания тэга SCHET\\REF", "SUMV");
-                if (Z_SL.PR_NOV.value == "0" && isRef)
+                if (Z_SL.PR_NOV.value == "0" && isRef && IsValidateRef)
                     Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Признак исправленной записи = 0 недопустим при указании тэга SCHET\\REF", "SUMV");
 
                 var isFIRST_IDCASE = !string.IsNullOrEmpty(Z_SL.FIRST_IDCASE.value);
-                if (isFIRST_IDCASE && !isRef)
+                if (isFIRST_IDCASE && !isRef && IsValidateRef)
                     Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Поле FIRST_IDCASE не подлежит заполнению без указания тэга SCHET\\REF", "SUMV");
-                if (!isFIRST_IDCASE && isRef)
+                if (!isFIRST_IDCASE && isRef && IsValidateRef)
                     Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Поле FIRST_IDCASE обязательно к заполнению при указании тэга SCHET\\REF", "SUMV");
 
 

@@ -19,7 +19,6 @@ namespace MedpomService
                 var curr_dir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
                 if (File.Exists(Path.Combine(curr_dir, "CLIENT_UPDATE", "version.xml")))
                 {
-
                     ver.LoadFromFile(Path.Combine(curr_dir, "CLIENT_UPDATE", "version.xml"));
                     return ver;
                 }
@@ -42,24 +41,21 @@ namespace MedpomService
                 var FilePath = Path.Combine(curr_dir, "CLIENT_UPDATE", file.Name);
                 if (File.Exists(FilePath))
                 {
-                    Stream st = File.OpenRead(FilePath);
-
-
-                    var buffer = new byte[count];
-                    st.Position = offset;
-                    var readByte = st.Read(buffer, 0, count);
-
-                    if (readByte < count)
+                    using (Stream st = File.OpenRead(FilePath))
                     {
-                        return GetPartByte(buffer, 0, readByte);
+                        var buffer = new byte[count];
+                        st.Position = offset;
+                        var readByte = st.Read(buffer, 0, count);
+                        if (readByte < count)
+                        {
+                            return GetPartByte(buffer, 0, readByte);
+                        }
+                        st.Close();
+                        return buffer;
                     }
-                    st.Close();
-                    return buffer;
                 }
-                else
-                {
-                    throw new FaultException("Файл не найден на сервере!");
-                }
+
+                throw new FaultException("Файл не найден на сервере!");
 
             }
             catch (Exception ex)
@@ -143,10 +139,12 @@ namespace MedpomService
                         throw new ArgumentOutOfRangeException(nameof(type), type, null);
                 }
 
-                Stream st = File.Open(PATH, FileMode.Open);
-                var rsl = st.Length;
-                st.Close();
-                return rsl;
+                using (Stream st = File.Open(PATH, FileMode.Open))
+                {
+                    var rsl = st.Length;
+                    st.Close();
+                    return rsl;
+                }
             }
             catch (Exception ex)
             {

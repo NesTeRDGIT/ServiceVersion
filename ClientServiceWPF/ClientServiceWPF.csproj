@@ -87,10 +87,17 @@
     <Compile Include="Class\Converters.cs" />
     <Compile Include="Class\DuplexSettings.cs" />
     <Compile Include="Class\FindPredicate.cs" />
+    <Compile Include="Class\ProgressItem.cs" />
     <Compile Include="Class\ProtectStr.cs" />
     <Compile Include="Class\RusNumber.cs" />
     <Compile Include="Class\ServerRef.cs" />
     <Compile Include="Class\ShowSelectedInExplorer.cs" />
+    <Compile Include="MEK_RESULT\ActMEKCreator.cs" />
+    <Compile Include="MEK_RESULT\IMEKRepository.cs" />
+    <Compile Include="SANK_INVITER\CheckSchema.cs" />
+    <Compile Include="SANK_INVITER\ICheckFLK.cs" />
+    <Compile Include="SANK_INVITER\ISANK_INVITERRepository.cs" />
+    <Compile Include="SANK_INVITER\IToBaseFile.cs" />
     <Compile Include="Setting\EdditProc.xaml.cs">
       <DependentUpon>EdditProc.xaml</DependentUpon>
     </Compile>

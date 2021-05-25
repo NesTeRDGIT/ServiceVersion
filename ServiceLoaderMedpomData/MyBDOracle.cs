@@ -54,6 +54,7 @@ namespace ServiceLoaderMedpomData
         public int ZGLV_ID { get; set; }
 
 
+
     }
 
     public class V_ErrorViewRow
@@ -214,6 +215,110 @@ namespace ServiceLoaderMedpomData
         public decimal KOL_USL  { get; set; }
     }
 
+
+    public class F014Row
+    {
+        public static List<F014Row> Get(IEnumerable<DataRow> rows)
+        {
+            try
+            {
+                return rows.Select(Get).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получение F014Row:{ex.Message}", ex);
+            }
+        }
+
+        private static F014Row Get(DataRow row)
+        {
+            try
+            {
+                var item = new F014Row
+                {
+                    KOD = Convert.ToInt32(row["KOD"]),
+                    DATEBEG = Convert.ToDateTime(row["DATEBEG"])
+                };
+                if (row["DATEEND"] != DBNull.Value)
+                    item.DATEEND = Convert.ToDateTime(row["DATEEND"]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получение F014Row:{ex.Message}", ex);
+            }
+        }
+
+        public int KOD { get; set; }
+        public DateTime DATEBEG { get; set; }
+        public DateTime? DATEEND { get; set; }
+    }
+    public class F006Row
+    {
+        public static List<F006Row> Get(IEnumerable<DataRow> rows)
+        {
+            try
+            {
+                return rows.Select(row => Get(row)).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получение F006Row:{ex.Message}", ex);
+            }
+        }
+
+        public static F006Row Get(DataRow row)
+        {
+            try
+            {
+                var item = new F006Row();
+                item.IDVID = Convert.ToInt32(row["IDVID"]);
+                item.DATEBEG = Convert.ToDateTime(row["DATEBEG"]);
+                if (row["DATEEND"] != DBNull.Value)
+                    item.DATEEND = Convert.ToDateTime(row["DATEEND"]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получение F006Row:{ex.Message}", ex);
+            }
+        }
+
+        public int IDVID { get; set; }
+        public DateTime DATEBEG { get; set; }
+        public DateTime? DATEEND { get; set; }
+    }
+    public class ExpertRow
+    {
+        public static List<ExpertRow> Get(IEnumerable<DataRow> rows)
+        {
+            try
+            {
+                return rows.Select(row => Get(row)).ToList();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получение F006Row:{ex.Message}", ex);
+            }
+        }
+
+        public static ExpertRow Get(DataRow row)
+        {
+            try
+            {
+                var item = new ExpertRow();
+                item.N_EXPERT = Convert.ToString(row["N_EXPERT"]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получение ExpertRow:{ex.Message}", ex);
+            }
+        }
+
+        public string N_EXPERT { get; set; }
+    }
+
     public interface IRepository: IDisposable
     {
         void InsertFile(ZL_LIST zl, PERS_LIST pe);
@@ -223,14 +328,25 @@ namespace ServiceLoaderMedpomData
         void BeginTransaction();
         void Commit();
         void Rollback();
-        List<V_ErrorViewRow> GetErrorView();
-        List<SVOD_FILE_Row> SVOD_FILE_TEMP99();
+        List<V_ErrorViewRow> GetErrorView(); 
+         List<SVOD_FILE_Row> SVOD_FILE_TEMP99();
         List<STAT_VIDMP_Row> STAT_VIDMP_TEMP99();
         List<STAT_FULL_Row> STAT_FULL_TEMP99();
         void Checking(TableName nameTBL, CheckingList list, CancellationToken cancel, ref string STAT);
         string GetNameLPU(string R_COD);
         List<V_XML_CHECK_FILENAMErow> GetZGLV_BYFileName(string FileName);
         List<V_XML_CHECK_FILENAMErow> GetZGLV_BYCODE_CODE_MO(int code, string MO, int YEAR);
+        List<FindSluchItem> Get_IdentInfo(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher);
+        List<F006Row> GetF006();
+        List<F014Row> GetF014();
+        List<ExpertRow> GetEXPERTS();
+        Dictionary<int, List<FindSANKItem>> GetSank(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher = null);
+        List<FindSANKItem> FindACT(string NUM_ACT, DateTime D_ACT, string SMO);
+
+         int AddSankZGLV(string FILENAME, int CODE, int CODE_MO, int FLAG_MEE, int YEAR, int MONTH, int YEAR_SANK, int MONTH_SANK, int ZGLV_ID_BASE, string SMO, bool DOP_FLAG, bool isNotFinish);
+         int UpdateSLUCH_Z_SANK_ZGLV_ID(IEnumerable<Z_SL> Items, decimal SANK_ZGLV_ID, bool isRewrite = false);
+         void UpdateSankZGLV(int ZGLV_ID, int ZGLV_ID_BASE);
+         bool LoadSANK(FileItem fi, ZL_LIST ZL, decimal? S_ZGLV_ID, bool setSUMP, bool isRewrite, Dispatcher dispatcher = null, List<FindSluchItem> IdentInfo = null);
     }
 
     public class MYBDOracleNEW : IRepository
@@ -1442,12 +1558,12 @@ values
             }
         }
 
-        public bool IdentySluch(ZL_LIST ZL, FileItem fi, DispatcherObject control = null, List<FindSluchItem> IdentInfo = null)
+        public bool IdentySluch(ZL_LIST ZL, FileItem fi, DispatcherObject dispatcher = null, List<FindSluchItem> IdentInfo = null)
         {
             try
             {
                 if (IdentInfo == null)
-                    IdentInfo = Get_IdentInfo(ZL, fi, control);
+                    IdentInfo = Get_IdentInfo(ZL, fi, dispatcher.Dispatcher);
                 SetID(IdentInfo, ZL.GetHashTable());
                 var t = ZL.ZAP.SelectMany(x => x.Z_SL_list).Where(x => x.SL.Count(y => !y.SLUCH_ID.HasValue) != 0).ToList();
                 foreach (var row in t)
@@ -1461,13 +1577,38 @@ values
             }
             catch (Exception ex)
             {
-                fi.FileLog.WriteLn($"Ошибка при идентификации случаев: {ex.StackTrace}{ex.Message}");
-                fi.InvokeComm($"Ошибка при идентификации случаев: {ex.Message}", control);
+                fi.FileLog.WriteLn("Ошибка при идентификации случаев: " + ex.StackTrace + ex.Message);
+                fi.InvokeComm("Ошибка при идентификации случаев: " + ex.Message, dispatcher.Dispatcher);
                 return false;
             }
         }
 
-   
+        public bool IdentySluch(ZL_LIST ZL, FileItem fi,Dispatcher dispatcher = null, List<FindSluchItem> IdentInfo = null)
+        {
+            try
+            {
+                if (IdentInfo == null)
+                    IdentInfo = Get_IdentInfo(ZL, fi, dispatcher);
+                SetID(IdentInfo, ZL.GetHashTable());
+                var t = ZL.ZAP.SelectMany(x => x.Z_SL_list).Where(x => x.SL.Count(y => !y.SLUCH_ID.HasValue) != 0).ToList();
+                foreach (var row in t)
+                {
+                    foreach (var sl in row.SL)
+                    {
+                        fi.FileLog.WriteLn($"Не удалось найти случай IDCASE={row.IDCASE} SL_ID {sl.SL_ID}: {row.TagComment}{sl.TagComment}");
+                    }
+                }
+                return !t.Any();
+            }
+            catch (Exception ex)
+            {
+                fi.FileLog.WriteLn("Ошибка при идентификации случаев: " + ex.StackTrace + ex.Message);
+                fi.InvokeComm("Ошибка при идентификации случаев: " + ex.Message, dispatcher);
+                return false;
+            }
+        }
+
+
 
         public Dictionary<int, List<FindSANKItem>> GetSank(ZL_LIST ZL, FileItem fi, System.Windows.Forms.Control control = null)
         {
@@ -1504,6 +1645,32 @@ values
                 var z_sl = zslarray[i];
 
                 fi.InvokeComm($"Сбор санкций {i + 1}/{zslarray.Count}", control);
+                sank.Add(z_sl, new List<FindSANKItem>());
+                listSLUCH_Z_ID.Add(z_sl);
+                if (listSLUCH_Z_ID.Count == 500 || i + 1 == zslarray.Count)
+                {
+                    var sanks = GetSANK(listSLUCH_Z_ID);
+                    foreach (var san in sanks)
+                    {
+                        sank[san.SLUCH_Z_ID].Add(san);
+                    }
+                    listSLUCH_Z_ID.Clear();
+                }
+            }
+
+            return sank;
+        }
+
+        public Dictionary<int, List<FindSANKItem>> GetSank(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher = null)
+        {
+            var sank = new Dictionary<int, List<FindSANKItem>>();
+            var zslarray = ZL.ZAP.SelectMany(x => x.Z_SL_list).Select(x => Convert.ToInt32(x.SLUCH_Z_ID)).ToList();
+            var listSLUCH_Z_ID = new List<int>();
+            for (var i = 0; i < zslarray.Count; i++)
+            {
+                var z_sl = zslarray[i];
+
+                fi.InvokeComm($"Сбор санкций {i + 1}/{zslarray.Count}", dispatcher);
                 sank.Add(z_sl, new List<FindSANKItem>());
                 listSLUCH_Z_ID.Add(z_sl);
                 if (listSLUCH_Z_ID.Count == 500 || i + 1 == zslarray.Count)
@@ -1649,7 +1816,7 @@ where san.date_act = :date_act and san.num_act = :num_act and sz.SMO = :smo", co
             return result;
         }
 
-        public List<FindSluchItem> Get_IdentInfo(ZL_LIST ZL, FileItem fi, DispatcherObject control = null)
+        public List<FindSluchItem> Get_IdentInfo(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher)
         {
             var result = new List<FindSluchItem>();
             fi.FileLog.WriteLn("Идентификация случаев");
@@ -1663,7 +1830,7 @@ where san.date_act = :date_act and san.num_act = :num_act and sz.SMO = :smo", co
             {
                 var z_sl = zslarray[i];
 
-                fi.InvokeComm($"Идентификация {i + 1}/{zslarray.Count}", control);
+                fi.InvokeComm($"Идентификация {i + 1}/{zslarray.Count}", dispatcher);
                 idcases.Add(z_sl.IDCASE);
                 if (idcases.Count == 500 || i == zslarray.Count - 1)
                 {
@@ -1672,9 +1839,10 @@ where san.date_act = :date_act and san.num_act = :num_act and sz.SMO = :smo", co
                 }
             }
             fi.FileLog.WriteLn("Идентификация завершена");
-            fi.InvokeComm("Идентификация завершена", control);
+            fi.InvokeComm("Идентификация завершена", dispatcher);
             return result;
         }
+
         private List<FindSluchItem> GetID_CASE(IEnumerable<decimal> idcase, int ZGLV_ID)
         {
             var sluch_z = H_Z_SLUCH.FullTableName;
@@ -1951,6 +2119,112 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
             fi.FileLog.WriteLn("Загрузка завершена");
             return true;
         }
+
+        public bool LoadSANK(FileItem fi, ZL_LIST ZL, decimal? S_ZGLV_ID, bool setSUMP, bool isRewrite, Dispatcher dispatcher = null, List<FindSluchItem> IdentInfo = null)
+        {
+            fi.FileLog.WriteLn("Чтение файла " + fi.FileName);
+            fi.FileLog.WriteLn("Подготовка к переносу в БД " + fi.FileName);
+            fi.InvokeComm("Обработка пакета: Подготовка к переносу в БД " + fi.FileName, dispatcher);
+
+
+            var rez_ind = IdentySluch(ZL, fi, dispatcher, IdentInfo);
+            if (rez_ind == false)
+            {
+                fi.InvokeComm("Не полная идентификация в загрузке отказано", dispatcher);
+                fi.FileLog.WriteLn("Не полная идентификация в загрузке отказано");
+                return false;
+            }
+            fi.InvokeComm("Подготовка к загрузке санкции", dispatcher);
+
+            fi.FileLog.WriteLn("Подготовка к загрузке санкции");
+            if (!S_ZGLV_ID.HasValue)
+                throw new Exception("S_ZGLV_ID не указан");
+
+            var Z_SL = ZL.ZAP.SelectMany(x => x.Z_SL_list).ToList();
+            var SL = Z_SL.SelectMany(x => x.SL).ToList();
+            var SANK = Z_SL.SelectMany(x => x.SANK).ToList();
+            var USL = SL.SelectMany(x => x.USL).ToList();
+            var EXP = SANK.SelectMany(x => x.CODE_EXP).Where(x => !string.IsNullOrEmpty(x.VALUE)).ToList();
+
+
+            //Если до версии 3.1 то ставим на санкции случай
+
+            if (ZL.ZGLV.Vers < 3.1m)
+            {
+                fi.FileLog.WriteLn("Подготовка к загрузке санкции: идентификация случая для старых файлов");
+                var er = IDENTY_SANK_SLUCH_ID(Z_SL);
+                if (er.Count != 0)
+                {
+                    foreach (var e in er)
+                    {
+                        fi.FileLog.WriteLn(e);
+                    }
+                    return false;
+                }
+            }
+
+
+
+            var SANK_ID = GetSec(H_SANK.SeqName, SANK.Count());
+            foreach (var san in SANK)
+            {
+                san.S_ZGLV_ID = S_ZGLV_ID;
+                san.SANK_ID = SANK_ID;
+                foreach (var c in san.CODE_EXP)
+                {
+                    c.SANK_ID = san.SANK_ID;
+                }
+                SANK_ID++;
+
+            }
+            fi.FileLog.WriteLn("Загрузка санкций");
+            InsertSANK(SANK);
+            InsertCODE_EXP(EXP);
+            //СуммП ставим
+            fi.InvokeComm("Внесение суммы принятой", dispatcher);
+            fi.FileLog.WriteLn("Внесение суммы принятой");
+            if (setSUMP)
+            {
+                var sl_count = UpdateSLUCH_SUM_P(SL, isRewrite);
+                var zsl_count = UpdateSLUCH_Z_SUM_P(Z_SL, isRewrite);
+                var zsl_ZGLV_count = UpdateSLUCH_Z_SANK_ZGLV_ID(Z_SL, S_ZGLV_ID.Value, isRewrite);
+                var usl_count = UpdateUSL_SUM_P(USL, isRewrite);
+                var err = true;
+                if (SL.Count != sl_count)
+                {
+                    fi.InvokeComm("Не полное внесение суммы принятой для случаев", dispatcher);
+                    fi.FileLog.WriteLn($"Не полное внесение суммы принятой для случаев: внесено {sl_count} из {SL.Count}");
+                    err = false;
+                }
+
+                if (Z_SL.Count != zsl_count)
+                {
+                    fi.InvokeComm("Не полное внесение суммы принятой для законченных случаев", dispatcher);
+                    fi.FileLog.WriteLn($"Не полное внесение суммы принятой для законченных случаев: внесено {zsl_count} из {Z_SL.Count}");
+                    err = false;
+                }
+
+                if (USL.Count != usl_count)
+                {
+                    fi.InvokeComm("Не полное внесение суммы принятой для услуг", dispatcher);
+                    fi.FileLog.WriteLn($"Не полное внесение суммы принятой для услуг: внесено {usl_count} из {USL.Count}");
+                    err = false;
+                }
+                if (Z_SL.Count != zsl_ZGLV_count)
+                {
+                    fi.InvokeComm("Не полное внесение заголовка на случай", dispatcher);
+                    fi.FileLog.WriteLn(
+                        $"Не полное внесение заголовка на случай: внесено {zsl_ZGLV_count} из {Z_SL.Count}");
+                    err = false;
+                }
+
+                if (!err)
+                    return false;
+            }
+            fi.InvokeComm("Загрузка завершена", dispatcher);
+            fi.FileLog.WriteLn("Загрузка завершена");
+            return true;
+        }
         public List<string> IDENTY_SANK_SLUCH_ID(IEnumerable<Z_SL> Z_SL)
         {
             try
@@ -2190,27 +2464,32 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
 
         public List<V_XML_CHECK_FILENAMErow> GetZGLV_BYFileName(string FileName)
         {
-            var tblRes = new DataTable();
-            using (var oda = new OracleDataAdapter($@"select * from V_XML_CHECK_FILENAME t where upper(t.filename) = :FILENAME", con))
+            using (var CONN = new OracleConnection(ConnStr))
             {
-                oda.SelectCommand.Parameters.Add("FILENAME", FileName.ToUpper());
-                oda.Fill(tblRes);
+                using (var oda = new OracleDataAdapter($@"select * from V_XML_CHECK_FILENAME t where upper(t.filename) = :FILENAME", CONN))
+                {
+                    var tblRes = new DataTable();
+                    oda.SelectCommand.Parameters.Add("FILENAME", FileName.ToUpper());
+                    oda.Fill(tblRes);
+                    return tblRes.Select().Select(V_XML_CHECK_FILENAMErow.Get).ToList();
+                }
             }
-            return tblRes.Select().Select(V_XML_CHECK_FILENAMErow.Get).ToList();
         }
         public List<V_XML_CHECK_FILENAMErow> GetZGLV_BYCODE_CODE_MO(int code, string MO, int YEAR)
         {
-            var tblRes = new DataTable();
-
-            using (
-            var oda = new OracleDataAdapter(@"select t.* from V_XML_CHECK_FILENAME t where t.code = :code and t.code_mo = :code_mo and t.YEAR = :YEAR", con))
+           
+            using (var CONN = new OracleConnection(ConnStr))
             {
-                oda.SelectCommand.Parameters.Add("code", code);
-                oda.SelectCommand.Parameters.Add("code_mo", MO);
-                oda.SelectCommand.Parameters.Add("YEAR", YEAR);
-                oda.Fill(tblRes);
+                using (var oda = new OracleDataAdapter(@"select t.* from V_XML_CHECK_FILENAME t where t.code = :code and t.code_mo = :code_mo and t.YEAR = :YEAR", CONN))
+                {
+                    var tblRes = new DataTable();
+                    oda.SelectCommand.Parameters.Add("code", code);
+                    oda.SelectCommand.Parameters.Add("code_mo", MO);
+                    oda.SelectCommand.Parameters.Add("YEAR", YEAR);
+                    oda.Fill(tblRes);
+                    return tblRes.Select().Select(V_XML_CHECK_FILENAMErow.Get).ToList();
+                }
             }
-            return tblRes.Select().Select(V_XML_CHECK_FILENAMErow.Get).ToList();
         }
 
        
@@ -2487,7 +2766,30 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
             con.Close();
             Transaction = false;
         }
-   
+
+
+        public List<F006Row> GetF006()
+        {
+            var tbl = new DataTable();
+            var oda = new OracleDataAdapter(@"select f6.idvid,dateend, datebeg from nsi.f006 f6", ConnStr);
+            oda.Fill(tbl);
+            return F006Row.Get(tbl.Select());
+        }
+        public List<F014Row> GetF014()
+        {
+            var tbl = new DataTable();
+            var oda = new OracleDataAdapter(@"select KOD, dateend, datebeg from nsi.f014 f14", ConnStr);
+            oda.Fill(tbl);
+            return F014Row.Get(tbl.Select());
+        }
+        public List<ExpertRow> GetEXPERTS()
+        {
+            var tbl = new DataTable();
+            var oda = new OracleDataAdapter(@"select N_EXPERT from nsi.EXPERTS f14", ConnStr);
+            oda.Fill(tbl);
+            return ExpertRow.Get(tbl.Select());
+        }
+
         public  void Dispose()
         {
             IsDispose = true;

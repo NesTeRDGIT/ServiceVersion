@@ -382,7 +382,7 @@ namespace ClientServiceWPF
                 dispatcher.Invoke(() =>
                 {
                     DownloadProgress.Value = 0;
-                    DownloadProgress.Max = 3;
+                    DownloadProgress.Maximum = 3;
                     DownloadProgress.Text = @"Загрузка FILE_STAT и FLK_ERROR";
 
                 });
@@ -443,7 +443,7 @@ namespace ClientServiceWPF
             dispatcher.Invoke(() =>
             {
                 DownloadFileProgress.Value = 0;
-                DownloadFileProgress.Max = Convert.ToInt32(length);
+                DownloadFileProgress.Maximum = Convert.ToInt32(length);
                 DownloadFileProgress.Text = $@"Загрузка: {System.IO.Path.GetFileName(FileName)}";
             });
 
@@ -483,38 +483,4 @@ namespace ClientServiceWPF
 
     }
 
-    public class ProgressItem:INotifyPropertyChanged
-    {
-        private int _Max = 1;
-
-        public int Max
-        {
-            get { return _Max; }
-            set { _Max = value; OnPropertyChanged(); }
-        }
-
-        private int _Value;
-        public int Value
-        {
-            get { return _Value; }
-            set { _Value = value; OnPropertyChanged(); }
-        }
-
-        private string _Text;
-        public string Text
-        {
-            get { return _Text; }
-            set { _Text = value; OnPropertyChanged(); }
-        }
-
-        #region  INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        #endregion
-    }
 }

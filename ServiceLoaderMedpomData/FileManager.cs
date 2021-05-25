@@ -1404,6 +1404,10 @@ $@"Наименование файла должно быть
         {
             win.Dispatcher.Invoke(() => { item.Comment = COMM; });
         }
+        public static void InvokeComm(this FileItem item, string COMM, Dispatcher dispatcher)
+        {
+            dispatcher.Invoke(() => { item.Comment = COMM; });
+        }
     }
 
 
