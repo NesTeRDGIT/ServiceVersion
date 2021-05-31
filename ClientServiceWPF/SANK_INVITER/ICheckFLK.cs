@@ -509,36 +509,47 @@ namespace ClientServiceWPF.SANK_INVITER
                 {
                     fi.InvokeComm("Обработка пакета: Запрос санкций", dispatcher);
                     var SANK = repository.GetSank(zl, fi, dispatcher);
+
+
                     foreach (var zs_sl in zl.ZAP.SelectMany(x => x.Z_SL_list))
                     {
-                        var sank_BD = SANK[Convert.ToInt32(zs_sl.SLUCH_Z_ID)];
-                        var isMEK = sank_BD.Count(x => x.S_TIP.ToString().StartsWith("1")) != 0;
+                        if (!zs_sl.SLUCH_Z_ID.HasValue)
+                            throw new Exception($"Случай IDCASE={zs_sl.IDCASE} не найден в БД");
+
+                        //var sank_sluch = SANK[zs_sl.SLUCH_Z_ID.Value].Where(x=>!(x.YEAR_SANK==2021 && x.MONTH_SANK ==4)).ToList();
+                        var sank_sluch = SANK[zs_sl.SLUCH_Z_ID.Value];
+                        var sank_main = sank_sluch.Where(x=>x.Type == TFindSANKItem.Main).ToList();
+                        var sank_parent = sank_sluch.Where(x => x.Type == TFindSANKItem.Parent).ToList();
+                        var sank_child = sank_sluch.Where(x => x.Type == TFindSANKItem.Child).ToList();
+                        var sank_brother = sank_sluch.Where(x => x.Type == TFindSANKItem.Brother).ToList();
+
+                        var isMEK = sank_main.Count(x => x.S_TIP.ToString().StartsWith("1")) != 0;
+
                         foreach (var sank in zs_sl.SANK)
                         {
-                            var doubleSANK = sank_BD.Where(x => x.S_SUM == sank.S_SUM && x.DATE_ACT == sank.DATE_ACT && x.NUM_ACT == sank.NUM_ACT && x.S_TIP == sank.S_TIP).ToList();
+                            var doubleSANK = sank_sluch.Where(x => x.S_SUM == sank.S_SUM && x.DATE_ACT == sank.DATE_ACT && x.NUM_ACT == sank.NUM_ACT && x.S_TIP == sank.S_TIP).ToList();
                             if (doubleSANK.Count != 0)
                             {
-                                var error = $"Санкция была загружена ранее: {Environment.NewLine} {string.Join(Environment.NewLine, doubleSANK.Select(x => $"S_TIP={x.S_TIP}, S_SUM={x.S_SUM}, DATE_ACT={x.DATE_ACT:dd-MM-yyyy}, NUM_ACT={x.NUM_ACT} загружен {x.DATE_INVITE:dd-MM-yyyy} отчетный период {x.MONTH_SANK} {x.YEAR_SANK}"))}";
+                                var error = $"Санкция была загружена ранее: {string.Join(Environment.NewLine, doubleSANK.Select(x => $"TYPE={x.Type},S_TIP={x.S_TIP}, S_SUM={x.S_SUM}, DATE_ACT={x.DATE_ACT:dd-MM-yyyy}, NUM_ACT={x.NUM_ACT} загружен {x.DATE_INVITE:dd-MM-yyyy} отчетный период {x.MONTH_SANK} {x.YEAR_SANK}"))}";
                                 ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
                             }
-                            if (sank.S_TIP == 42)
+
+                            if (sank.S_TIP == 42 && zl.SCHET.YEAR >= 2021)
                             {
-                                /*
-                                if (sank_BD.Count(x => x.S_TIP >= 20 && x.S_TIP < 30 && x.S_OSN != 0) == 0 && zs_sl.SANK.Count(x => x.S_TIP >= 20 && x.S_TIP < 30 && x.S_OSN != 0) == 0)
+                                if (sank_sluch.Count(x => x.S_TIP >= 20 && x.S_TIP < 30 && x.S_OSN != 0) == 0 && zs_sl.SANK.Count(x => x.S_TIP >= 20 && x.S_TIP < 30 && x.S_OSN != 0) == 0)
                                 {
-                                    //var error = "Случай c экспертизой S_TIP=43 не содержит МЭЭ с дефектами";
-                                    //ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
-                                }*/
+                                    var error = "Случай c экспертизой S_TIP=42 не содержит МЭЭ с дефектами";
+                                    ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
+                                }
                             }
 
-                            if (sank.S_TIP == 37)
+                            if (sank.S_TIP == 37 && zl.SCHET.YEAR >=2021)
                             {
-                                /*
-                                if (sank_BD.Count(x => x.S_TIP >= 20 && x.S_TIP < 30) == 0 && zs_sl.SANK.Count(x => x.S_TIP >= 20 && x.S_TIP < 30) == 0)
+                                if (sank_sluch.Count(x => x.S_TIP >= 20 && x.S_TIP < 30) == 0 && zs_sl.SANK.Count(x => x.S_TIP >= 20 && x.S_TIP < 30) == 0)
                                 {
-                                    // var error = "Случай c экспертизой S_TIP=37 не содержит МЭЭ";
-                                    //ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
-                                }*/
+                                    var error = "Случай c экспертизой S_TIP=37 не содержит МЭЭ";
+                                    ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
+                                }
                             }
                             if (sank.S_TIP.In(20, 21, 30, 31, 43, 44, 45, 46) && isMEK)
                             {
@@ -548,7 +559,7 @@ namespace ClientServiceWPF.SANK_INVITER
 
                             if (sank.S_SUM != 0)
                             {
-                                var DBerr = sank_BD.Where(x => x.S_TIP == sank.S_TIP && x.NUM_ACT == sank.NUM_ACT && x.DATE_ACT == sank.DATE_ACT && x.S_SUM != 0).ToList();
+                                var DBerr = sank_sluch.Where(x => x.S_TIP == sank.S_TIP && x.NUM_ACT == sank.NUM_ACT && x.DATE_ACT == sank.DATE_ACT && x.S_SUM != 0).ToList();
                                 var FileErr = zs_sl.SANK.Where(x => x.S_TIP == sank.S_TIP && x.NUM_ACT == sank.NUM_ACT && x.DATE_ACT == sank.DATE_ACT && x.S_SUM != 0 && x.S_CODE != sank.S_CODE).ToList();
                                 if (DBerr.Count != 0 || FileErr.Count != 0)
                                 {
@@ -557,7 +568,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                 }
                             }
 
-
+                            /*
                             if (sank.S_TIP.Like("2", "3", "4") && sank.S_OSN != 0 && sank.DATE_ACT.HasValue)
                             {
                                 var act = repository.FindACT(sank.NUM_ACT, sank.DATE_ACT.Value, SMO);
@@ -566,7 +577,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                     var error = $"Данный акт уже присутствует в БД: {string.Join(Environment.NewLine, act.Select(x => $"NUM_ACT = {x.NUM_ACT}, DATE_ACT = {x.DATE_ACT:dd-MM-yyyy}, дата загрузки {x.DATE_INVITE:dd-MM-yyyy}, имя файла = {x.FILENAME}"))}";
                                     //ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
                                 }
-                            }
+                            }*/
                         }
 
 
@@ -639,6 +650,7 @@ namespace ClientServiceWPF.SANK_INVITER
                 }
 
                 dr_ZSL.SLUCH_Z_ID = IDCASE.SLUCH_Z_ID;
+                dr_ZSL.SLUCH_Z_ID_MAIN = IDCASE.SLUCH_Z_ID_MAIN;
                 var dr_sl = dr[0];
                 if (dr_sl.DATE_1 != IDCASE.DATE_1)
                 {

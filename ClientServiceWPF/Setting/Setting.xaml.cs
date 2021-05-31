@@ -17,6 +17,7 @@ using System.Windows.Media.Imaging;
 
 using ClientServiceWPF.Class;
 using ClientServiceWPF.MEK_RESULT;
+using ClientServiceWPF.MEK_RESULT.ACTMEK;
 using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData;
 using Application = System.Windows.Application;

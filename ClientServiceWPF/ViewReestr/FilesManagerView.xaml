@@ -81,10 +81,10 @@
                 </MultiBinding>
             </Button.CommandParameter>
         </Button>
-        <Label x:Name="labelUPDATE" Content="{Binding StatusOperation}" Margin="299,0,318,5" VerticalAlignment="Bottom" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="Bold"/>
-        <Button x:Name="buttonDeletePack" Content="Удалить пакет" HorizontalAlignment="Right" Margin="0,0,80,7" VerticalAlignment="Bottom" Width="104" Height="23" Style="{DynamicResource MainButton}" Command="{Binding DeletePackCommand}" CommandParameter="{Binding ElementName=this, Path=SelectedFilePacket}"/>
-        <Button x:Name="buttonSaveToArc" Content="Сохранить в архив" HorizontalAlignment="Right" Margin="0,0,189,7" VerticalAlignment="Bottom" Width="124" Height="23" Style="{DynamicResource MainButton}" Command="{Binding ToArchiveCommand}"/>
-        <Button x:Name="buttonClear" Content="Очистка" HorizontalAlignment="Right" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="75" Height="23" Style="{DynamicResource MainButton}"  Command="{Binding ClearCommand}"/>
-        <Button x:Name="buttonUpdate" ToolTip="Обновить" HorizontalAlignment="Right" VerticalAlignment="Top" Width="28" Height="23" Style="{DynamicResource ButtonUpd}" Command="{Binding UpdateListCommand}"   />
+        <Label Content="{Binding StatusOperation.Text}" Margin="299,0,318,5" VerticalAlignment="Bottom" VerticalContentAlignment="Center" HorizontalContentAlignment="Center" FontWeight="Bold"/>
+        <Button Content="Удалить пакет" HorizontalAlignment="Right" Margin="0,0,80,7" VerticalAlignment="Bottom" Width="104" Height="23" Style="{DynamicResource MainButton}" Command="{Binding DeletePackCommand}" CommandParameter="{Binding ElementName=this, Path=SelectedFilePacket}"/>
+        <Button Content="Сохранить в архив" HorizontalAlignment="Right" Margin="0,0,189,7" VerticalAlignment="Bottom" Width="124" Height="23" Style="{DynamicResource MainButton}" Command="{Binding ToArchiveCommand}"/>
+        <Button Content="Очистка" HorizontalAlignment="Right" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="75" Height="23" Style="{DynamicResource MainButton}"  Command="{Binding ClearCommand}"/>
+        <Button ToolTip="Обновить" HorizontalAlignment="Right" VerticalAlignment="Top" Width="28" Height="23" Style="{DynamicResource ButtonUpd}" Command="{Binding UpdateListCommand}"   />
     </Grid>
 </Window>

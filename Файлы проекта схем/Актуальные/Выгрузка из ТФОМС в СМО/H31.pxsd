@@ -1700,6 +1700,17 @@
                   <Enum />
                 </format>
               </SchemaElement>
+              <SchemaElement>
+                <name>SLUCH_Z_ID_MAIN</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>15</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
             </Elements>
           </SchemaElement>
         </Elements>

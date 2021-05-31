@@ -218,6 +218,7 @@ namespace ServiceLoaderMedpomDataTests
         [TestMethod(), Description("Признак исправленной записи = 0 недопустим при указании тэга SCHET\\REF")]
         public void CheckXML_H_31_ERR_PR_NOV_REF()
         {
+            
             var file = ZL_LIST.ReadFromFile(H_VALID);
             file.SCHET.REF = new REF();
             using (var ms = new MemoryStream())

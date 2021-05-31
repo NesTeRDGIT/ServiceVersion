@@ -16,6 +16,7 @@ using System.IdentityModel.Selectors;
 using System.IdentityModel.Policy;
 using System.IdentityModel.Claims;
 using System.Security.Principal;
+using System.Threading.Tasks;
 
 namespace MedpomService
 {
@@ -88,6 +89,8 @@ namespace MedpomService
         {
             Logger.AddLog(log, type);
         }
+
+
     }
 
 

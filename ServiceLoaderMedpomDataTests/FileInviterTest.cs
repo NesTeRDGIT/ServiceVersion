@@ -15,8 +15,6 @@ namespace ServiceLoaderMedpomDataTests
     [TestClass()]
     public class FileInviterTest
     {
-       
-
         [TestMethod(), Description("Проверка файлов H на схему - правильное выполнение")]
         public void CheckErrorArchiveName()
         {

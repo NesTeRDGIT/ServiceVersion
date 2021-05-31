@@ -533,25 +533,22 @@ namespace MedpomService
             BDinviteCancellationTokenSource.Cancel();
         }
 
-        public async void Break(FilePacket FP)
+        public void Break(FilePacket FP)
         {
-            await Task.Run(() =>
+            if (DBinvitePac == null) return;
+            if (DBinvitePac != FP) return;
+            Logger.AddLog($"Прерывание потока переноса в БД для {FP.CodeMO}", LogType.Error);
+            BDinviteCancellationTokenSource?.Cancel();
+            mybd?.Dispose();
+            Logger.AddLog($"Ожидание прерывания потока переноса в БД для {FP.CodeMO}", LogType.Error);
+            while (thWorkProcess.Status == TaskStatus.Running)
             {
-                if (DBinvitePac == null) return;
-                if (DBinvitePac != FP) return;
-                Logger.AddLog($"Прерывание потока переноса в БД для {FP.CodeMO}", LogType.Error);
-                BDinviteCancellationTokenSource?.Cancel();
-                mybd?.Dispose();
-                Logger.AddLog($"Ожидание прерывания потока переноса в БД для {FP.CodeMO}", LogType.Error);
-                while (thWorkProcess.Status == TaskStatus.Running)
-                {
-                    var del =  Task.Delay(1000);
-                    del.Wait();
-                }
-                DBinvitePac = null;
-                StartBDInvite();
-                Logger.AddLog("Прерывание успешно", LogType.Error);
-            });
+                Task.Delay(1000).Wait();
+            }
+
+            DBinvitePac = null;
+            StartBDInvite();
+            Logger.AddLog("Прерывание успешно", LogType.Error);
         }
     }
 

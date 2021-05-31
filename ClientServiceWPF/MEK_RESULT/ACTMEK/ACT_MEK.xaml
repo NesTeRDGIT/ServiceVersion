@@ -1,4 +1,4 @@
-﻿<Window x:Class="ClientServiceWPF.MEK_RESULT.ACT_MEK"
+﻿<Window x:Class="ClientServiceWPF.MEK_RESULT.ACTMEK.ACT_MEK"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,11 +6,13 @@
         xmlns:local="clr-namespace:ClientServiceWPF"
         xmlns:class="clr-namespace:ClientServiceWPF.Class"
         xmlns:mekResult="clr-namespace:ClientServiceWPF.MEK_RESULT"
+        xmlns:actmek="clr-namespace:ClientServiceWPF.MEK_RESULT.ACTMEK"
         mc:Ignorable="d"
         x:Name="this"
         Title="Выгрузка актов МЭК" Height="530" Width="938" Loaded="this_Loaded" Style="{DynamicResource StyleWindow}">
     <Window.Resources>
-        <CollectionViewSource x:Key="CollectionViewSourceACT_LIST" Source="{Binding MO_LIST}" d:DesignSource="{d:DesignInstance {x:Type mekResult:MO_ITEM}, CreateList=True}" ></CollectionViewSource>
+        <class:BoolInverterConverter x:Key="BoolInverterConverter"/>
+        <CollectionViewSource x:Key="CollectionViewSourceACT_LIST" Source="{Binding MO_LIST}" d:DesignSource="{d:DesignInstance {x:Type actmek:MO_ITEM}, CreateList=True}" />
     </Window.Resources>
     <Window.DataContext>
         <Binding ElementName="this" Path="VM"></Binding>
@@ -18,7 +20,7 @@
     <Grid>
         <GroupBox  Header="Период" HorizontalAlignment="Left" Height="96" VerticalAlignment="Top" Width="324">
             <Grid>
-                <DatePicker class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="122" SelectedDate="{Binding PERIOD}"/>
+                <DatePicker class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="122" SelectedDate="{Binding PERIOD}" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}"/>
                 <Button Margin="0,10,10,0" HorizontalAlignment="Right" Width="111" Height="25" VerticalAlignment="Top" Command="{Binding RefreshMO_LISTCommand}" Style="{DynamicResource MainButton}">Обновить</Button>
                 <Button Content="Выбор" HorizontalAlignment="Left" Margin="10,48,0,0" VerticalAlignment="Top" Width="75" Command="{Binding CheckAllMO_LISTCommand}" Style="{DynamicResource MainButton}" />
             </Grid>
@@ -68,7 +70,7 @@
                 <Label  Content="{Binding Count, Mode=OneWay, Source={StaticResource CollectionViewSourceACT_LIST}}" HorizontalAlignment="Right" Margin="0,0,0,1" VerticalAlignment="Bottom" Width="126" HorizontalContentAlignment="Right"/>
             </Grid>
         </GroupBox>
-        <GroupBox  Header="Параметры выгрузки" Margin="329,0,10,0" VerticalAlignment="Top" Height="247">
+        <GroupBox  Header="Параметры выгрузки" Margin="329,0,10,0" VerticalAlignment="Top" Height="189" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="290*"/>
@@ -106,6 +108,7 @@
                 <TextBlock Text="{Binding Progress3.Text}" Margin="5,0,5,0"></TextBlock>
             </StackPanel>
         </StatusBar>
+        <Button  Content="Прервать" HorizontalAlignment="Right" Margin="0,0,207,43" VerticalAlignment="Bottom" Width="192" Height="26" Command="{Binding BreakCommand}" Style="{DynamicResource MainButton}"/>
 
     </Grid>
 </Window>

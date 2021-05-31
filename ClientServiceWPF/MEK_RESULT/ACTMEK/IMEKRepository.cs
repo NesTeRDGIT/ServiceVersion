@@ -1,15 +1,13 @@
-﻿using Oracle.ManagedDataAccess.Client;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData.Annotations;
 
-namespace ClientServiceWPF.MEK_RESULT
+namespace ClientServiceWPF.MEK_RESULT.ACTMEK
 {
 
     public class MO_ITEM:INotifyPropertyChanged

@@ -119,13 +119,10 @@ namespace MedpomService
             }
         }
 
-        public async void  Break(FilePacket fp)
+        public void  Break(FilePacket fp)
         {
-            await Task.Run(() =>
-            {
-                var item = taskList.Get().FirstOrDefault(x => x.Param.pack == fp);
-                item?.CTS?.Cancel();
-            });
+            var item = taskList.Get().FirstOrDefault(x => x.Param.pack == fp);
+            item?.CTS?.Cancel();
         }
 
         public void SetSchemaCollection(SchemaCollection sc)

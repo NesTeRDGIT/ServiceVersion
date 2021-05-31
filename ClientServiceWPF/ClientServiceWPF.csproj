@@ -92,8 +92,28 @@
     <Compile Include="Class\RusNumber.cs" />
     <Compile Include="Class\ServerRef.cs" />
     <Compile Include="Class\ShowSelectedInExplorer.cs" />
-    <Compile Include="MEK_RESULT\ActMEKCreator.cs" />
-    <Compile Include="MEK_RESULT\IMEKRepository.cs" />
+    <Compile Include="MEK_RESULT\ACTMEK\ActMEKCreator.cs" />
+    <Compile Include="MEK_RESULT\ACTMEK\IMEKRepository.cs" />
+    <Compile Include="MEK_RESULT\FileCreator\IExportFileRepository.cs" />
+    <Compile Include="MEK_RESULT\FileCreator\IFileCreator.cs" />
+    <Compile Include="Class\LogItem.cs" />
+    <Compile Include="MEK_RESULT\FileCreator\TaskManager.cs" />
+    <Compile Include="ORDERS\ORD104\MR_OB.cs" />
+    <Compile Include="ORDERS\ORD104\ORD104.xaml.cs">
+      <DependentUpon>ORD104.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ORDERS\ORD15\ISP_OB.cs" />
+    <Compile Include="ORDERS\ORD15\ORD15.xaml.cs">
+      <DependentUpon>ORD15.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ORDERS\ORD23\ISP_OB.cs" />
+    <Compile Include="ORDERS\ORD23\ORD23.xaml.cs">
+      <DependentUpon>ORD23.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ORDERS\ORD260\ORD260.xaml.cs">
+      <DependentUpon>ORD260.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ORDERS\ORD260\ZL_LIST.cs" />
     <Compile Include="SANK_INVITER\CheckSchema.cs" />
     <Compile Include="SANK_INVITER\ICheckFLK.cs" />
     <Compile Include="SANK_INVITER\ISANK_INVITERRepository.cs" />
@@ -113,7 +133,7 @@
     <Compile Include="MEK_RESULT\CustomMessageBox.xaml.cs">
       <DependentUpon>CustomMessageBox.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MEK_RESULT\ExportFile.xaml.cs">
+    <Compile Include="MEK_RESULT\FileCreator\ExportFile.xaml.cs">
       <DependentUpon>ExportFile.xaml</DependentUpon>
     </Compile>
     <Compile Include="ViewReestr\MonitorReestr.xaml.cs">
@@ -165,7 +185,23 @@
     <Compile Include="MEK_RESULT\VOLUM_CONTROL.xaml.cs">
       <DependentUpon>VOLUM_CONTROL.xaml</DependentUpon>
     </Compile>
-    <Page Include="MEK_RESULT\ACT_MEK.xaml">
+    <Page Include="MEK_RESULT\ACTMEK\ACT_MEK.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ORDERS\ORD104\ORD104.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ORDERS\ORD15\ORD15.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ORDERS\ORD23\ORD23.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ORDERS\ORD260\ORD260.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -189,7 +225,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="MEK_RESULT\ACT_MEK.xaml.cs">
+    <Compile Include="MEK_RESULT\ACTMEK\ACT_MEK.xaml.cs">
       <DependentUpon>ACT_MEK.xaml</DependentUpon>
     </Compile>
     <Compile Include="App.xaml.cs">
@@ -207,7 +243,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MEK_RESULT\ExportFile.xaml">
+    <Page Include="MEK_RESULT\FileCreator\ExportFile.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -386,6 +422,7 @@
   <ItemGroup>
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

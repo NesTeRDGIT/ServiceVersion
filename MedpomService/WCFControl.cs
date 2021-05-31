@@ -227,7 +227,10 @@ namespace MedpomService
                 var item = PacketQuery.FindPack(guid);
                 if (item != null)
                 {
-                    PacketQuery.DeletePack(item);
+                    Task.Run(() =>
+                    {
+                        PacketQuery.DeletePack(item);
+                    });
                 }
                 return true;
             }
@@ -244,7 +247,6 @@ namespace MedpomService
         {
             if (progress != null)
             {
-                
                 if (progress.Active)
                 {
                     throw new FaultException("Операция уже выполняется!!!");

@@ -71,6 +71,7 @@ namespace ClientServiceWPF.SANK_INVITER
         {
             VM.Param.LogFolder = Properties.Settings.Default.FOLDER_LOG_SANK;
             VM.Param.PERIOD = DateTime.Now.AddMonths(-1);
+            VM.Param.SMO = SMO_LIST.FirstOrDefault();
         }
 
         IRepository CreateMyBD()
@@ -283,13 +284,24 @@ namespace ClientServiceWPF.SANK_INVITER
 
                 if (openFileDialog1.ShowDialog() == true)
                 {
-
-                    foreach (var path in openFileDialog1.FileNames)
+                    var Files = new List<string>();
+                    Files.AddRange(openFileDialog1.FileNames);
+                    var DelList = Files.Where(path => FileItems.Count(x => x.Item.FilePach == path.ToUpper() || x.Item.filel?.FilePach == path.ToUpper()) != 0).ToList();
+                    if (DelList.Count != 0)
                     {
-                        var name = System.IO.Path.GetFileName(path).ToUpper();
+                        MessageBox.Show($"Следующие файлы уже присутствую в выборке и были удалены из списка добавления:{Environment.NewLine}{string.Join(Environment.NewLine, DelList)}");
+                        foreach (var del in DelList)
+                        {
+                            Files.Remove(del);
+                        }
+                    }
+
+                foreach (var path in Files)
+                    {
+                        var name = Path.GetFileName(path).ToUpper();
                         var file = ParseFileName.Parse(name);
 
-                        var item = new FileItemVM(new FileItem()
+                        var item = new FileItemVM(new FileItem
                         {
                             DateCreate = DateTime.Now,
                             FileName = name,
@@ -361,6 +373,8 @@ namespace ClientServiceWPF.SANK_INVITER
             {
                 var fiVM = FileItems[i];
                 var fi = fiVM.Item;
+                if(fi.filel!=null) continue;
+                
                 var findfile = fi.FileName;
                 switch (fi.Type)
                 {
@@ -373,7 +387,6 @@ namespace ClientServiceWPF.SANK_INVITER
                     case FileType.DU:
                     case FileType.DV:
                     case FileType.H:
-
                         findfile = $"L{findfile.Remove(0, 1)}";
                         break;
                     case FileType.T:
@@ -385,6 +398,7 @@ namespace ClientServiceWPF.SANK_INVITER
                 }
 
                 var LFile = FileItems.FirstOrDefault(F => F.Item.FileName == findfile);
+
                 if (LFile != null)
                 {
                     fi.FileLog.WriteLn("Контроль: Файл персональных данных присутствует");
@@ -403,6 +417,7 @@ namespace ClientServiceWPF.SANK_INVITER
                     if (FileItems.IndexOf(LFile) < i)
                         i--;
                     FileItems.Remove(LFile);
+                    fiVM.Flag.Invite = true;
                 }
                 else
                 {
@@ -428,7 +443,7 @@ namespace ClientServiceWPF.SANK_INVITER
                     case FileType.LH:
                     case FileType.LT:
                         item.Flag.Invite = false;
-                        F.CommentAndLog = ("Ошибка: Файл владелец данных отсутствует");
+                        F.CommentAndLog = "Ошибка: Файл владелец данных отсутствует";
                         CreateErrorByComment(F);
                         break;
                     default: break;
@@ -494,7 +509,6 @@ namespace ClientServiceWPF.SANK_INVITER
                 {
                     for (var i = 0; i < items.Count; i++)
                     {
-                        TestDelay();
                         cancel.ThrowIfCancellationRequested();
                         var itemVM = items[i];
                         var item = itemVM.Item;
@@ -536,7 +550,6 @@ namespace ClientServiceWPF.SANK_INVITER
                 {
                     try
                     {
-                        TestDelay();
                         sankInviterRepository.OpenConnection();
                         for (var i = 0; i < FileItems.Count; i++)
                         {
@@ -609,16 +622,12 @@ namespace ClientServiceWPF.SANK_INVITER
 
         }, o => STAT.IsFLKCheck && !Processing.Active);
 
-        private void TestDelay()
-        {
-            Task.Delay(1000).Wait();
-        }
+      
 
         private void CheckFLKFileItems(List<FileItemVM> items,List<F006Row> F006, List<F014Row> F014, List<ExpertRow> Experts,CancellationToken cancel)
         {
             for (var i = 0; i < items.Count; i++)
             {
-                TestDelay();
                 cancel.ThrowIfCancellationRequested();
                 var itemVM = items[i];
                 var item = itemVM.Item;
@@ -799,7 +808,7 @@ namespace ClientServiceWPF.SANK_INVITER
                 {
                     try
                     {
-                        ShowSelectedInExplorer.FilesOrFolders(selected.Select(x => x.Item.filel.FileLog.FilePath));
+                        ShowSelectedInExplorer.FilesOrFolders(selected.Select(x => x.Item.filel.FilePach));
                     }
                     catch (Exception ex)
                     {
@@ -821,7 +830,7 @@ namespace ClientServiceWPF.SANK_INVITER
                 {
                     try
                     {
-                        ShowSelectedInExplorer.FilesOrFolders(selected.Select(x => x.Item.FileLog.FilePath));
+                        ShowSelectedInExplorer.FilesOrFolders(selected.Select(x => x.Item.filel.FileLog.FilePath));
                     }
                     catch (Exception ex)
                     {

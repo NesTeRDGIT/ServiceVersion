@@ -14,6 +14,7 @@
         <CollectionViewSource x:Key="CollectionViewSourceLOG" Source="{Binding Entries}" d:DesignSource="{d:DesignInstance {x:Type serviceLoaderMedpomData:EntriesMy}, CreateList=True}" />
         <CollectionViewSource x:Key="CollectionViewSourceStatusOP" Source="{Binding ListOP}" d:DesignSource="{d:DesignInstance {x:Type local:StatusOper}, CreateList=True}" />
     </Window.Resources>
+    
     <Window.DataContext>
         <Binding ElementName="this" Path="VM"></Binding>
     </Window.DataContext>
@@ -59,27 +60,33 @@
         </GroupBox>
         <Menu Height="Auto" VerticalAlignment="Top">
             <MenuItem Header="Действия">
-                <MenuItem Header="Подключить" x:Name="MenuItemConnect" Click="MenuItemConnect_Click"></MenuItem>
-                <MenuItem Header="Отключить" x:Name="MenuItemDisconnect" Click="MenuItemDisconnect_Click" ></MenuItem>
+                <MenuItem Header="Подключить" x:Name="MenuItemConnect" Click="MenuItemConnect_Click"/>
+                <MenuItem Header="Отключить" x:Name="MenuItemDisconnect" Click="MenuItemDisconnect_Click" />
                 <Separator></Separator>
-                <MenuItem Header="Закрыть программу" x:Name="MenuItemCloseApp" Click="MenuItemCloseApp_Click" ></MenuItem>
+                <MenuItem Header="Закрыть программу" x:Name="MenuItemCloseApp" Click="MenuItemCloseApp_Click" />
             </MenuItem>
             <MenuItem Header="Дополнительно">
-                <MenuItem Header="Мониторинг реестров" x:Name="MenuItemMonitor" Command="{Binding MonitorReestrNavigateCommand}"></MenuItem>
+                <MenuItem Header="Мониторинг реестров" x:Name="MenuItemMonitor" Command="{Binding MonitorReestrNavigateCommand}"/>
                 <Separator></Separator>
-                <MenuItem Header="Прием санкций от СМО" x:Name="MenuItemSMOInvite" Command="{Binding SANK_INVITERNavigateCommand}"></MenuItem>
+                <MenuItem Header="Прием санкций от СМО" x:Name="MenuItemSMOInvite" Command="{Binding SANK_INVITERNavigateCommand}"/>
                 <Separator></Separator>
-                <MenuItem Header="Выгрузка актов МЭК" x:Name="MenuItemActMEK" Command="{Binding ACT_MEKNavigateCommand}" ></MenuItem>
-                <MenuItem Header="Выгрузка файлов МЭК" x:Name="MenuExportFileMEK" Command="{Binding ExportFileNavigateCommand}"></MenuItem>
+                <MenuItem Header="Выгрузка актов МЭК" x:Name="MenuItemActMEK" Command="{Binding ACT_MEKNavigateCommand}" />
+                <MenuItem Header="Выгрузка файлов МЭК" x:Name="MenuExportFileMEK" Command="{Binding ExportFileNavigateCommand}"/>
                 <Separator></Separator>
-                <MenuItem Header="Контроль объемов" x:Name="MenuVolumeControl" Command="{Binding VOLUM_CONTROLNavigateCommand}" ></MenuItem>
+                <MenuItem Header="Контроль объемов" x:Name="MenuVolumeControl" Command="{Binding VOLUM_CONTROLNavigateCommand}" />
+            </MenuItem>
+            <MenuItem Header="Приказы">
+                <MenuItem Header="Приказ №15 - Федеральные МО" Command="{Binding ORD15NavigateCommand}"/>
+                <MenuItem Header="Приказ №23 -  МП, оплаченная по КСГ" Command="{Binding ORD23NavigateCommand}"/>
+                <MenuItem Header="Приказ №104 - Заболеваемость\смертность и ЭКМП - летальность" Command="{Binding ORD104NavigateCommand}"/>
+                <MenuItem Header="Приказ №260 - Онкология" Command="{Binding ORD260NavigateCommand}"/>
             </MenuItem>
             <MenuItem Header="Инструменты">
-                <MenuItem Header="Редактор XML схем" x:Name="MenuItemXSDCreator" Command="{Binding XMLshemaNavigateCommand}"></MenuItem>
-                <MenuItem Header="Печать XLSX" x:Name="MenuItemPrintXLSX" Command="{Binding PRINT_FILE_XLSXNavigateCommand}"></MenuItem>
+                <MenuItem Header="Редактор XML схем" x:Name="MenuItemXSDCreator" Command="{Binding XMLshemaNavigateCommand}"/>
+                <MenuItem Header="Печать XLSX" x:Name="MenuItemPrintXLSX" Command="{Binding PRINT_FILE_XLSXNavigateCommand}"/>
             </MenuItem>
             <MenuItem Header="Управление доступом">
-                <MenuItem Header="Управление пользователями" x:Name="MenuItemEditUser" Command="{Binding USER_EDITNavigateCommand}" ></MenuItem>
+                <MenuItem Header="Управление пользователями" x:Name="MenuItemEditUser" Command="{Binding USER_EDITNavigateCommand}" />
                 
             </MenuItem>
         </Menu>

@@ -43,11 +43,22 @@ namespace MedpomService
         FilePacket IPacketQuery.this[int index] => FM[index];
         public void Clear()
         {
-            foreach (var item in FM.Get())
+            Task.Run(() =>
             {
-                RemovePropertyChanged(item);
-            }
-            FM.Clear();
+                foreach (var pack in FM.Get())
+                {
+                    if (Directory.Exists(Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO)))
+                        Directory.Delete(Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO), true);
+                }
+
+                foreach (var item in FM.Get())
+                {
+                    RemovePropertyChanged(item);
+                }
+
+                FM.Clear();
+                PropertyChanged?.Invoke(FM, new PropertyChangedEventArgs("FM"));
+            });
         }
         public int Order(FilePacket filePacket)
         {

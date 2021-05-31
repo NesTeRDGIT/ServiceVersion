@@ -7,7 +7,7 @@
         xmlns:class="clr-namespace:ClientServiceWPF.Class" x:Class="ClientServiceWPF.SANK_INVITER.SANK_INVITER"
         mc:Ignorable="d"
         x:Name="this"
-        Title="Прием санкций" Height="664.667" Width="935.363" Style="{DynamicResource StyleWindow}" Loaded="this_Loaded">
+        Title="Прием санкций" Height="664.667" Width="935.363" Style="{DynamicResource StyleWindow}" Loaded="this_Loaded" WindowState="Maximized">
     <Window.Resources>
         <class:BoolInverterConverter x:Key="BoolInverterConverter"/>
         <class:ConverterBoolToYesNO x:Key="ConverterBoolToYesNO"/>
@@ -44,24 +44,22 @@
                         <SolidColorBrush x:Key="{x:Static Member=SystemColors.InactiveSelectionHighlightBrushKey }" Color="{Binding Source={StaticResource BrushSelect}}" />
                     </DataGrid.Resources>
                     <DataGrid.Columns>
-                        <DataGridTextColumn Header="XSD" Binding="{Binding Flag.XSD}" Width="Auto"/>
-                        <DataGridTextColumn Header="IDErr" Binding="{Binding Flag.IDErr}" Width="Auto"/>
-                        <DataGridTextColumn Header="ErrDOP" Binding="{Binding Flag.ErrDOP}" Width="Auto"/>
-                        <DataGridTextColumn Header="FLK_OK" Binding="{Binding Flag.FLK_OK}" Width="Auto"/>
-                        <DataGridTextColumn Header="Inserted" Binding="{Binding Flag.Inserted}" Width="Auto"/>
-
-
-                        <DataGridTextColumn Header="Имя" Binding="{Binding Item.FileName}" Width="Auto"/>
-                        <DataGridTextColumn Header="Тип" Binding="{Binding Item.Type}" Width="Auto"/>
-                        <DataGridTextColumn Header="Этап" Binding="{Binding Item.Process}" Width="Auto"/>
-                        <DataGridTextColumn Header="Комментарий" Binding="{Binding Item.Comment}" Width="Auto"/>
+                        <DataGridTextColumn Header="Схема правильная" Binding="{Binding Flag.XSD, Converter={StaticResource ConverterBoolToYesNO}}" Width="Auto"/>
+                        <DataGridTextColumn Header="Нет ID" Binding="{Binding Flag.IDErr, Converter={StaticResource ConverterBoolToYesNO}}" Width="Auto"/>
+                        <DataGridTextColumn Header="Ошибка определения допа" Binding="{Binding Flag.ErrDOP, Converter={StaticResource ConverterBoolToYesNO}}" Width="Auto"/>
+                        <DataGridTextColumn Header="ФЛК(пройден)" Binding="{Binding Flag.FLK_OK, Converter={StaticResource ConverterBoolToYesNO}}" Width="Auto"/>
+                        <DataGridTextColumn Header="Загружено в БД" Binding="{Binding Flag.Inserted, Converter={StaticResource ConverterBoolToYesNO}}" Width="Auto"/>
                         <DataGridTextColumn Header="Доп реестр" Binding="{Binding Item.DOP_REESTR, Converter={StaticResource ConverterBoolToYesNO}}" Width="Auto"/>
                         <DataGridTextColumn Header="ZGLV__ID" Binding="{Binding Item.ZGLV_ID}" Width="Auto"/>
                         <DataGridTextColumn Header="Версия" Binding="{Binding Item.Version}" Width="Auto"/>
 
+                        <DataGridTextColumn Header="Имя" Binding="{Binding Item.FileName}" Width="Auto"/>
+                        <DataGridTextColumn Header="Тип" Binding="{Binding Item.Type}" Width="Auto"/>
+                        <DataGridTextColumn Header="Комментарий" Binding="{Binding Item.Comment}" Width="Auto"/>
+                       
+
                         <DataGridTextColumn Header="Имя(перс)" Binding="{Binding Item.filel.FileName}" Width="Auto"/>
                         <DataGridTextColumn Header="Тип(перс)" Binding="{Binding Item.filel.Type}" Width="Auto"/>
-                        <DataGridTextColumn Header="Этап(перс)" Binding="{Binding Item.filel.Process}" Width="Auto"/>
                         <DataGridTextColumn Header="Комментарий(перс)" Binding="{Binding Item.filel.Comment}" Width="Auto"/>
                         <DataGridTextColumn Header="Версия(перс)" Binding="{Binding Item.filel.Version}" Width="Auto"/>
                         <DataGridTextColumn Header="Путь" Binding="{Binding Item.FilePach}" Width="100"/>

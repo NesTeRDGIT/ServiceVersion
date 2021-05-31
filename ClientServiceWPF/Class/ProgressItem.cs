@@ -69,6 +69,7 @@ namespace ClientServiceWPF.Class
             this.Maximum = 1;
             this.Value = 0;
             this.Text = TextP;
+            this.IsIndeterminate = false;
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

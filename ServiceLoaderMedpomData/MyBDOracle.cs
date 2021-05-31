@@ -1,8 +1,11 @@
 ﻿using Oracle.ManagedDataAccess.Client;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Diagnostics;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
@@ -340,7 +343,7 @@ namespace ServiceLoaderMedpomData
         List<F006Row> GetF006();
         List<F014Row> GetF014();
         List<ExpertRow> GetEXPERTS();
-        Dictionary<int, List<FindSANKItem>> GetSank(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher = null);
+        Dictionary<long, List<FindSANKItem>> GetSank(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher = null);
         List<FindSANKItem> FindACT(string NUM_ACT, DateTime D_ACT, string SMO);
 
          int AddSankZGLV(string FILENAME, int CODE, int CODE_MO, int FLAG_MEE, int YEAR, int MONTH, int YEAR_SANK, int MONTH_SANK, int ZGLV_ID_BASE, string SMO, bool DOP_FLAG, bool isNotFinish);
@@ -1609,7 +1612,7 @@ values
         }
 
 
-
+        /*
         public Dictionary<int, List<FindSANKItem>> GetSank(ZL_LIST ZL, FileItem fi, System.Windows.Forms.Control control = null)
         {
             var sank = new Dictionary<int, List<FindSANKItem>>();
@@ -1660,37 +1663,152 @@ values
 
             return sank;
         }
-
-        public Dictionary<int, List<FindSANKItem>> GetSank(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher = null)
+        */
+        public Dictionary<long, List<FindSANKItem>> GetSank(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher = null)
         {
-            var sank = new Dictionary<int, List<FindSANKItem>>();
-            var zslarray = ZL.ZAP.SelectMany(x => x.Z_SL_list).Select(x => Convert.ToInt32(x.SLUCH_Z_ID)).ToList();
-            var listSLUCH_Z_ID = new List<int>();
-            for (var i = 0; i < zslarray.Count; i++)
-            {
-                var z_sl = zslarray[i];
 
-                fi.InvokeComm($"Сбор санкций {i + 1}/{zslarray.Count}", dispatcher);
-                sank.Add(z_sl, new List<FindSANKItem>());
-                listSLUCH_Z_ID.Add(z_sl);
-                if (listSLUCH_Z_ID.Count == 500 || i + 1 == zslarray.Count)
+            var SLUCH_Z_ID = ZL.ZAP.SelectMany(x => x.Z_SL_list).Where(x => x.SLUCH_Z_ID.HasValue).Select(x => x.SLUCH_Z_ID.Value).Distinct().ToList();
+            var SLUCH_Z_ID_MAIN = ZL.ZAP.SelectMany(x => x.Z_SL_list).Where(x => x.SLUCH_Z_ID_MAIN.HasValue).Select(x => x.SLUCH_Z_ID_MAIN.Value).Distinct().ToList();
+
+
+            var translatorSLUCH_Z_ID_MAIN = new Dictionary<long, List<long>>();
+            foreach (var item in ZL.ZAP.SelectMany(x => x.Z_SL_list).Where(x => x.SLUCH_Z_ID_MAIN.HasValue && x.SLUCH_Z_ID.HasValue))
+            {
+                if (!translatorSLUCH_Z_ID_MAIN.ContainsKey(item.SLUCH_Z_ID_MAIN.Value))
                 {
-                    var sanks = GetSANK(listSLUCH_Z_ID);
-                    foreach (var san in sanks)
+                    translatorSLUCH_Z_ID_MAIN.Add(item.SLUCH_Z_ID_MAIN.Value, new List<long> {item.SLUCH_Z_ID.Value});
+                }
+                else
+                {
+                    translatorSLUCH_Z_ID_MAIN[item.SLUCH_Z_ID_MAIN.Value].Add(item.SLUCH_Z_ID.Value);
+                }
+            }
+
+
+
+
+            var sank = SLUCH_Z_ID.ToDictionary(item => item, item => new List<FindSANKItem>());
+
+            var PartitionCount = 500;
+
+            //Сбор основных санкций
+            //Собираем все санкции по SLUCH_Z_ID случая
+            var index = 1;
+            var parts = SLUCH_Z_ID.ToPartition(PartitionCount);
+            fi.FileLog.WriteLn("Сбор основных санкций");
+            foreach (var item in parts)
+            {
+                fi.InvokeComm($"Сбор основных санкций {index * PartitionCount}/{parts.Count}", dispatcher);
+                index++;
+
+                var items = GetSANKBySLUCH_Z_ID(item);
+                foreach (var san in items)
+                {
+                    san.Type = TFindSANKItem.Main;
+                    sank[san.SLUCH_Z_ID].Add(san);
+                }
+            }
+
+            //Сбор санкций исправленных
+            //Собираем все санкции по SLUCH_Z_ID случая в базе SLUCH_Z_ID_MAIN(указатель на родителя)
+            index = 1;
+            fi.FileLog.WriteLn("Сбор исправленных санкций");
+            foreach (var item in parts)
+            {
+                fi.InvokeComm($"Сбор исправленных санкций {index * PartitionCount}/{parts.Count}", dispatcher);
+                index++;
+
+                var items = GetSANKBySLUCH_Z_ID_MAIN(item);
+                foreach (var san in items)
+                {
+                    san.Type = TFindSANKItem.Child;
+                    sank[san.SLUCH_Z_ID_MAIN.Value].Add(san);
+                }
+            }
+
+            //Сбор родительских санкций
+            //Собираем все санкции по SLUCH_Z_ID_MAIN случая в базе SLUCH_Z_ID(Санкции родителя)
+            fi.FileLog.WriteLn("Сбор родительских санкций");
+            index = 1;
+            parts = SLUCH_Z_ID_MAIN.ToPartition(PartitionCount);
+            foreach (var item in parts)
+            {
+                fi.InvokeComm($"Сбор родительских санкций {index * PartitionCount}/{parts.Count}", dispatcher);
+                index++;
+
+                var items = GetSANKBySLUCH_Z_ID(item);
+                foreach (var san in items)
+                {
+                    foreach (var key in translatorSLUCH_Z_ID_MAIN[san.SLUCH_Z_ID])
                     {
-                        sank[san.SLUCH_Z_ID].Add(san);
+                        san.Type = TFindSANKItem.Parent;
+                        sank[key].Add(san);
                     }
-                    listSLUCH_Z_ID.Clear();
+                }
+            }
+
+            //Сбор братских
+            //Собираем все санкции по SLUCH_Z_ID_MAIN случая в базе SLUCH_Z_ID_MAIN(Т.е. случаи с единым родителем)
+            fi.FileLog.WriteLn("Сбор братских санкций");
+            index = 1;
+            foreach (var item in parts)
+            {
+                fi.InvokeComm($"Сбор братских санкций {index * PartitionCount}/{parts.Count}", dispatcher);
+                index++;
+
+                var items = GetSANKBySLUCH_Z_ID_MAIN(item);
+                foreach (var san in items)
+                {
+                    foreach (var key in translatorSLUCH_Z_ID_MAIN[san.SLUCH_Z_ID_MAIN.Value].Where(key => san.SLUCH_Z_ID != key))
+                    {
+                        san.Type = TFindSANKItem.Brother;
+                        sank[key].Add(san);
+                    }
                 }
             }
 
             return sank;
         }
 
+        private List<FindSANKItem> GetSANKBySLUCH_Z_ID(IEnumerable<long> SLUCH_Z_ID)
+        {
+            var sank_tbl = H_SANK.FullTableName;
+            var oda = new OracleDataAdapter($@"select san.SANK_ID, san.SLUCH_Z_ID, null SLUCH_Z_ID_MAIN, san.S_SUM, san.S_TIP, san.S_OSN, san.DATE_ACT, san.NUM_ACT, sz.YEAR_SANK, sz.MONTH_SANK, sz.FILENAME, sz.DATE_INVITE from {sank_tbl} san
+inner join xml_h_sank_zglv_v3 sz on (sz.zglv_id = san.s_zglv_id)
+where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", con);
+
+            if (!Transaction)
+                oda.SelectCommand.Connection.Open();
+            var tbl = new DataTable();
+            oda.Fill(tbl);
+            if (!Transaction)
+                oda.SelectCommand.Connection.Close();
+
+            return tbl.Select().Select(x=>FindSANKItem.Get(x)).ToList();
+        }
+        private List<FindSANKItem> GetSANKBySLUCH_Z_ID_MAIN(IEnumerable<long> SLUCH_Z_ID_MAIN)
+        {
+            var sank_tbl = H_SANK.FullTableName;
+            var sluch_z_tbl = H_Z_SLUCH.FullTableName;
+            var oda = new OracleDataAdapter($@"select SAN.SANK_ID, san.SLUCH_Z_ID, zs.SLUCH_Z_ID_MAIN, san.S_SUM, san.S_TIP, san.S_OSN, san.DATE_ACT, san.NUM_ACT, sz.YEAR_SANK, sz.MONTH_SANK, sz.FILENAME, sz.DATE_INVITE from {sank_tbl} san
+inner join xml_h_sank_zglv_v3 sz on (sz.zglv_id = san.s_zglv_id)
+inner join {sluch_z_tbl} zs on zs.sluch_z_id = san.sluch_z_id
+where zs.SLUCH_Z_ID_MAIN  in ({string.Join(",", SLUCH_Z_ID_MAIN)}) and IsNOTFINISH=0", con);
+
+            if (!Transaction)
+                oda.SelectCommand.Connection.Open();
+            var tbl = new DataTable();
+            oda.Fill(tbl);
+            if (!Transaction)
+                oda.SelectCommand.Connection.Close();
+
+            return tbl.Select().Select(FindSANKItem.Get).ToList();
+        }
+
         public List<FindSANKItem> FindACT(string NUM_ACT, DateTime D_ACT,string SMO)
         {
             var sank_tbl = H_SANK.FullTableName;
-            var oda = new OracleDataAdapter($@"select san.SLUCH_Z_ID, san.S_SUM, san.S_TIP, san.S_OSN, san.DATE_ACT, san.NUM_ACT, sz.YEAR_SANK, sz.MONTH_SANK, sz.FILENAME, sz.DATE_INVITE from {sank_tbl} san
+            var oda = new OracleDataAdapter($@"select SAN.SANK_ID, san.SLUCH_Z_ID, null SLUCH_Z_ID_MAIN, san.S_SUM, san.S_TIP, san.S_OSN, san.DATE_ACT, san.NUM_ACT, sz.YEAR_SANK, sz.MONTH_SANK, sz.FILENAME, sz.DATE_INVITE from {sank_tbl} san
 inner join xml_h_sank_zglv_v3 sz on (sz.zglv_id = san.s_zglv_id)
 where san.date_act = :date_act and san.num_act = :num_act and sz.SMO = :smo", con);
             oda.SelectCommand.Parameters.Add(new OracleParameter("date_act", D_ACT));
@@ -1705,17 +1823,7 @@ where san.date_act = :date_act and san.num_act = :num_act and sz.SMO = :smo", co
             if (!Transaction)
                 oda.SelectCommand.Connection.Close();
 
-            return tbl.Select().Select(x => new FindSANKItem(
-                Convert.ToInt32(x["SLUCH_Z_ID"]),
-                Convert.ToDecimal(x["S_SUM"]),
-                Convert.ToInt32(x["S_TIP"]),
-                Convert.ToInt32(x["S_OSN"]),
-                (DateTime)x["DATE_ACT"],
-                x["NUM_ACT"].ToString(),
-                Convert.ToInt32(x["YEAR_SANK"]),
-                Convert.ToInt32(x["MONTH_SANK"]),
-                x["FILENAME"].ToString(),
-                (DateTime)x["DATE_INVITE"])).ToList();
+            return tbl.Select().Select(FindSANKItem.Get).ToList();
         }
 
         private void SetID(List<FindSluchItem> IDCASEs, Dictionary<decimal, Z_SL> tab)
@@ -1815,7 +1923,6 @@ where san.date_act = :date_act and san.num_act = :num_act and sz.SMO = :smo", co
             fi.InvokeComment("Идентификация завершена", control);
             return result;
         }
-
         public List<FindSluchItem> Get_IdentInfo(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher)
         {
             var result = new List<FindSluchItem>();
@@ -1842,15 +1949,13 @@ where san.date_act = :date_act and san.num_act = :num_act and sz.SMO = :smo", co
             fi.InvokeComm("Идентификация завершена", dispatcher);
             return result;
         }
-
         private List<FindSluchItem> GetID_CASE(IEnumerable<decimal> idcase, int ZGLV_ID)
         {
             var sluch_z = H_Z_SLUCH.FullTableName;
             var sluch = H_SLUCH.FullTableName;
             var zap = H_ZAP.FullTableName;
             var schet = H_SCHET.FullTableName;
-
-            var oda = new OracleDataAdapter($@"select t.sluch_id,zs.sluch_z_id, to_char(nvl(t.sl_id,'0')) sl_id,zs.idcase,t.date_1,t.date_2,zs.usl_ok,t.nhistory,nvl(nvl(t.sum_m_tfoms,t.sum_m),nvl(zs.sumv_tfoms,zs.sumv))  sum_m, t.ds1, zs.rslt from {sluch} t
+            var oda = new OracleDataAdapter($@"select t.sluch_id,zs.sluch_z_id, zs.sluch_z_id_main, to_char(nvl(t.sl_id,'0')) sl_id,zs.idcase,t.date_1,t.date_2,zs.usl_ok,t.nhistory,nvl(nvl(t.sum_m_tfoms,t.sum_m),nvl(zs.sumv_tfoms,zs.sumv))  sum_m, t.ds1, zs.rslt from {sluch} t
 inner join {sluch_z} zs on (zs.sluch_z_id = t.sluch_z_id)
 inner join {zap} z on (z.zap_id = zs.zap_id)
 inner join {schet} s on (s.schet_id = z.schet_id)
@@ -1863,48 +1968,11 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
             if (!Transaction)
                 oda.SelectCommand.Connection.Close();
 
-            return  tbl.Select().Select(x => new FindSluchItem(
-                Convert.ToInt64(x["SLUCH_Z_ID"]),
-                Convert.ToInt64(x["sluch_id"]), 
-                Convert.ToString(x["SL_ID"]), 
-                Convert.ToInt64(x["idcase"]),
-                (DateTime) x["date_1"], 
-                (DateTime) x["date_2"],
-                x["USL_OK"]==DBNull.Value? (int?)null : Convert.ToInt32(x["USL_OK"]), 
-                x["nhistory"].ToString(),
-                Convert.ToDecimal(x["sum_m"]),
-                Convert.ToString(x["DS1"]),
-                x["RSLT"] == DBNull.Value ? (int?)null : Convert.ToInt32(x["RSLT"]))).ToList();
+            return  tbl.Select().Select(FindSluchItem.Get).ToList();
         }
+   
 
-        private List<FindSANKItem> GetSANK(IEnumerable<int> SLUCH_Z_ID)
-        {
-            var sank_tbl = H_SANK.FullTableName;
-            var oda = new OracleDataAdapter($@"select san.SLUCH_Z_ID, san.S_SUM, san.S_TIP, san.S_OSN, san.DATE_ACT, san.NUM_ACT, sz.YEAR_SANK, sz.MONTH_SANK, sz.FILENAME, sz.DATE_INVITE from {sank_tbl} san
-inner join xml_h_sank_zglv_v3 sz on (sz.zglv_id = san.s_zglv_id)
-where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", con);
-          
-            if (!Transaction)
-                oda.SelectCommand.Connection.Open();
-            var tbl = new DataTable();
-            oda.Fill(tbl);
-            if (!Transaction)
-                oda.SelectCommand.Connection.Close();
-
-            return tbl.Select().Select(x => new FindSANKItem(
-               Convert.ToInt32(x["SLUCH_Z_ID"]),
-               Convert.ToDecimal(x["S_SUM"]),
-               Convert.ToInt32(x["S_TIP"]),
-               Convert.ToInt32(x["S_OSN"]),
-               (DateTime)x["DATE_ACT"],
-               x["NUM_ACT"].ToString(),
-               Convert.ToInt32(x["YEAR_SANK"]),
-               Convert.ToInt32(x["MONTH_SANK"]),
-               x["FILENAME"].ToString(),
-               (DateTime)x["DATE_INVITE"])).ToList();
-        }
-
-
+        /*
         public bool LoadSANK(FileItem fi, ZL_LIST ZL, decimal? S_ZGLV_ID, bool setSUMP, bool isRewrite, System.Windows.Forms.Control control = null, List<FindSluchItem> IdentInfo=null)
         {
             fi.FileLog.WriteLn("Чтение файла " + fi.FileName);
@@ -2119,7 +2187,7 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
             fi.FileLog.WriteLn("Загрузка завершена");
             return true;
         }
-
+        */
         public bool LoadSANK(FileItem fi, ZL_LIST ZL, decimal? S_ZGLV_ID, bool setSUMP, bool isRewrite, Dispatcher dispatcher = null, List<FindSluchItem> IdentInfo = null)
         {
             fi.FileLog.WriteLn("Чтение файла " + fi.FileName);
@@ -2883,24 +2951,45 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
     }
     public class FindSluchItem
     {
-        public FindSluchItem(Int64 SLUCH_Z_ID, Int64 SLUCH_ID, string SL_ID, Int64 IDCASE, DateTime DATE_1, DateTime DATE_2, int? USL_OK, string NHISTORY, decimal SUM_M, string DS1, int? RSLT)
+        public static FindSluchItem Get(DataRow row)
         {
-            this.SLUCH_Z_ID = SLUCH_Z_ID;
-            this.SLUCH_ID = SLUCH_ID;
-            this.SL_ID = SL_ID;
-            this.IDCASE = IDCASE;
-            this.DATE_1 = DATE_1;
-            this.DATE_2 = DATE_2;
-            this.USL_OK = USL_OK;
-            this.NHISTORY = NHISTORY;
-            this.SUM_M = SUM_M;
-            this.DS1 = DS1;
-            this.RSLT = RSLT;
+            try
+            {
+                var item = new FindSluchItem
+                {
+                    SLUCH_Z_ID = Convert.ToInt64(row["SLUCH_Z_ID"]),
+                    SLUCH_ID = Convert.ToInt64(row["SLUCH_ID"]),
+                    SL_ID = Convert.ToString(row["SL_ID"]),
+                    IDCASE = Convert.ToInt64(row["IDCASE"]),
+                    DATE_1 = Convert.ToDateTime(row["DATE_1"]),
+                    DATE_2 = Convert.ToDateTime(row["DATE_2"]),
+                    NHISTORY = Convert.ToString(row["NHISTORY"]),
+                    SUM_M = Convert.ToDecimal(row["SUM_M"]),
+                    DS1 = Convert.ToString(row["DS1"])
+                };
+                if (row["USL_OK"] != DBNull.Value)
+                    item.USL_OK = Convert.ToInt32(row["USL_OK"]);
+                if (row["RSLT"] != DBNull.Value)
+                    item.RSLT = Convert.ToInt32(row["RSLT"]);
+                if (row["SLUCH_Z_ID_MAIN"] != DBNull.Value)
+                    item.SLUCH_Z_ID_MAIN = Convert.ToInt64(row["SLUCH_Z_ID_MAIN"]);
+                return item;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Ошибка получения FindSluchItem:{e.Message}", e);
+            }
         }
-        public Int64 SLUCH_ID { get; set; }
-        public Int64 SLUCH_Z_ID { get; set; }
+
+        public FindSluchItem()
+        {
+
+        }
+        public long SLUCH_ID { get; set; }
+        public long SLUCH_Z_ID { get; set; }
+        public long? SLUCH_Z_ID_MAIN { get; set; }
         public string SL_ID { get; set; }
-        public Int64 IDCASE { get; set; }
+        public long IDCASE { get; set; }
         public DateTime DATE_1 { get; set; }
         public DateTime DATE_2 { get; set; }
         public int? USL_OK { get; set; }
@@ -2910,22 +2999,62 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
         public int? RSLT { get; set; }
 
     }
+
+    public enum TFindSANKItem
+    {
+        /// <summary>
+        /// Санкции на текущий случай
+        /// </summary>
+        Main,
+        /// <summary>
+        /// Санкция родителя
+        /// </summary>
+        Parent,
+        /// <summary>
+        /// Санкция исправленных случаев
+        /// </summary>
+        Child,
+        /// <summary>
+        /// Братские санкции(случай исправленный, санкции других исправленных)
+        /// </summary>
+        Brother
+    }
+
     public class FindSANKItem
     {
-        public FindSANKItem(int SLUCH_Z_ID, decimal S_SUM, int S_TIP, int S_OSN, DateTime DATE_ACT, string NUM_ACT, int YEAR_SANK, int MONTH_SANK, string FILENAME, DateTime DATE_INVITE)
+        public static FindSANKItem Get(DataRow row)
         {
-            this.SLUCH_Z_ID = SLUCH_Z_ID;
-            this.S_SUM = S_SUM;
-            this.S_TIP = S_TIP;
-            this.S_OSN = S_OSN;
-            this.DATE_ACT = DATE_ACT;
-            this.NUM_ACT = NUM_ACT;
-            this.YEAR_SANK = YEAR_SANK;
-            this.MONTH_SANK = MONTH_SANK;
-            this.FILENAME = FILENAME;
-            this.DATE_INVITE = DATE_INVITE;
+            try
+            {
+                var item = new FindSANKItem
+                {
+                    SANK_ID = Convert.ToInt64(row["SANK_ID"]),
+                    SLUCH_Z_ID = Convert.ToInt64(row["SLUCH_Z_ID"]),
+                    S_SUM = Convert.ToDecimal(row["S_SUM"]),
+                    S_TIP = Convert.ToInt32(row["S_TIP"]),
+                    S_OSN = Convert.ToInt32(row["S_OSN"]),
+                    DATE_ACT = Convert.ToDateTime(row["DATE_ACT"]),
+                    NUM_ACT = Convert.ToString(row["NUM_ACT"]),
+                    YEAR_SANK = Convert.ToInt32(row["YEAR_SANK"]),
+                    MONTH_SANK = Convert.ToInt32(row["MONTH_SANK"]),
+                    FILENAME = Convert.ToString(row["FILENAME"]),
+                    DATE_INVITE = Convert.ToDateTime(row["DATE_INVITE"])
+                };
+                if (row["SLUCH_Z_ID_MAIN"] != DBNull.Value)
+                    item.SLUCH_Z_ID_MAIN = Convert.ToInt64(row["SLUCH_Z_ID_MAIN"]);
+               
+                return item;
+            }
+            catch (Exception e)
+            {
+                throw new Exception($"Ошибка получения FindSANKItem:{e.Message}",e);
+            }
         }
-        public int SLUCH_Z_ID { get; set; }
+
+        public TFindSANKItem Type { get; set; }
+        public long SANK_ID { get; set; }
+        public long SLUCH_Z_ID { get; set; }
+        public long? SLUCH_Z_ID_MAIN { get; set; }
         public decimal S_SUM { get; set; }
         public int S_TIP { get; set; }
         public int S_OSN { get; set; }
@@ -2939,4 +3068,25 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
 
     }
 
+
+    public static partial class Ext
+    {
+        public static List<List<long>> ToPartition(this List<long> items, int Count)
+        {
+            var result = new List<List<long>>();
+            var tempList = new List<long>();
+            foreach (var item in items)
+            {
+                tempList.Add(item);
+                if (tempList.Count == Count)
+                {
+                    result.Add(tempList);
+                    tempList = new List<long>();
+                }
+            }
+            if(tempList.Count!=0)
+                result.Add(tempList);
+            return result;
+        }
+    }
 }

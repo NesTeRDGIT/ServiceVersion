@@ -1,0 +1,429 @@
+<?xml version="1.0"?>
+<ArrayOfSchemaElement xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <SchemaElement>
+    <name>ISP_OB</name>
+    <Type>O</Type>
+    <Unique>false</Unique>
+    <UniqueGlobal>false</UniqueGlobal>
+    <format xsi:type="TypeSComplex" />
+    <Elements>
+      <SchemaElement>
+        <name>ZGLV</name>
+        <Type>O</Type>
+        <Unique>false</Unique>
+        <UniqueGlobal>false</UniqueGlobal>
+        <format xsi:type="TypeSComplex" />
+        <Elements>
+          <SchemaElement>
+            <name>VERSION</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSString">
+              <ZnakMest>5</ZnakMest>
+              <Enum />
+            </format>
+            <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>DATA</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSDate" />
+            <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>FILENAME</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSString">
+              <ZnakMest>26</ZnakMest>
+              <Enum />
+            </format>
+            <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>FIRSTNAME</name>
+            <Type>Y</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSString">
+              <ZnakMest>26</ZnakMest>
+              <Enum />
+            </format>
+            <Elements />
+          </SchemaElement>
+        </Elements>
+      </SchemaElement>
+      <SchemaElement>
+        <name>SVD</name>
+        <Type>O</Type>
+        <Unique>false</Unique>
+        <UniqueGlobal>false</UniqueGlobal>
+        <format xsi:type="TypeSComplex" />
+        <Elements>
+          <SchemaElement>
+            <name>CODE</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSString">
+              <ZnakMest>8</ZnakMest>
+              <Enum />
+            </format>
+            <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>YEAR</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSDigit">
+              <ZnakMest>4</ZnakMest>
+              <ZnakMestPosDot>0</ZnakMestPosDot>
+              <Enum />
+            </format>
+            <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>MONTH</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSDigit">
+              <ZnakMest>2</ZnakMest>
+              <ZnakMestPosDot>0</ZnakMestPosDot>
+              <Enum />
+            </format>
+            <Elements />
+          </SchemaElement>
+        </Elements>
+      </SchemaElement>
+      <SchemaElement>
+        <name>OB_SV</name>
+        <Type>OM</Type>
+        <Unique>false</Unique>
+        <UniqueGlobal>false</UniqueGlobal>
+        <format xsi:type="TypeSComplex" />
+        <Elements>
+          <SchemaElement>
+            <name>N_SV</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSDigit">
+              <ZnakMest>4</ZnakMest>
+              <ZnakMestPosDot>0</ZnakMestPosDot>
+              <Enum />
+            </format>
+            <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>MO_SV</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSString">
+              <ZnakMest>6</ZnakMest>
+              <Enum />
+            </format>
+            <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>IT_SV</name>
+            <Type>OM</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>OT_NAIM</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>2</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>PR_SV</name>
+                <Type>OM</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSComplex" />
+                <Elements>
+                  <SchemaElement>
+                    <name>PROFIL_MP</name>
+                    <Type>O</Type>
+                    <Unique>false</Unique>
+                    <UniqueGlobal>false</UniqueGlobal>
+                    <format xsi:type="TypeSDigit">
+                      <ZnakMest>3</ZnakMest>
+                      <ZnakMestPosDot>0</ZnakMestPosDot>
+                      <Enum />
+                    </format>
+                    <Elements />
+                  </SchemaElement>
+                  <SchemaElement>
+                    <name>R_KOL</name>
+                    <Type>O</Type>
+                    <Unique>false</Unique>
+                    <UniqueGlobal>false</UniqueGlobal>
+                    <format xsi:type="TypeSDigit">
+                      <ZnakMest>8</ZnakMest>
+                      <ZnakMestPosDot>0</ZnakMestPosDot>
+                      <Enum />
+                    </format>
+                    <Elements />
+                  </SchemaElement>
+                  <SchemaElement>
+                    <name>R_S_KOL</name>
+                    <Type>O</Type>
+                    <Unique>false</Unique>
+                    <UniqueGlobal>false</UniqueGlobal>
+                    <format xsi:type="TypeSDigit">
+                      <ZnakMest>15</ZnakMest>
+                      <ZnakMestPosDot>2</ZnakMestPosDot>
+                      <Enum />
+                    </format>
+                    <Elements />
+                  </SchemaElement>
+                  <SchemaElement>
+                    <name>R_KOL_M</name>
+                    <Type>O</Type>
+                    <Unique>false</Unique>
+                    <UniqueGlobal>false</UniqueGlobal>
+                    <format xsi:type="TypeSDigit">
+                      <ZnakMest>8</ZnakMest>
+                      <ZnakMestPosDot>0</ZnakMestPosDot>
+                      <Enum />
+                    </format>
+                    <Elements />
+                  </SchemaElement>
+                  <SchemaElement>
+                    <name>R_S_KOL_M</name>
+                    <Type>O</Type>
+                    <Unique>false</Unique>
+                    <UniqueGlobal>false</UniqueGlobal>
+                    <format xsi:type="TypeSDigit">
+                      <ZnakMest>15</ZnakMest>
+                      <ZnakMestPosDot>2</ZnakMestPosDot>
+                      <Enum />
+                    </format>
+                    <Elements />
+                  </SchemaElement>
+                </Elements>
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+        </Elements>
+      </SchemaElement>
+      <SchemaElement>
+        <name>ZAP</name>
+        <Type>OM</Type>
+        <Unique>false</Unique>
+        <UniqueGlobal>false</UniqueGlobal>
+        <format xsi:type="TypeSComplex" />
+        <Elements>
+          <SchemaElement>
+            <name>N_ZAP</name>
+            <Type>O</Type>
+            <Unique>true</Unique>
+            <UniqueGlobal>true</UniqueGlobal>
+            <format xsi:type="TypeSDigit">
+              <ZnakMest>8</ZnakMest>
+              <ZnakMestPosDot>0</ZnakMestPosDot>
+              <Enum />
+            </format>
+          </SchemaElement>
+          <SchemaElement>
+            <name>PACIENT</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>SMO_OK</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>5</ZnakMest>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>W</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>VZST</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>3</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+          <SchemaElement>
+            <name>SLUCH</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>IDCASE</name>
+                <Type>O</Type>
+                <Unique>true</Unique>
+                <UniqueGlobal>true</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>11</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>USL_OK</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>2</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>VIDPOM</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>4</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>FOR_POM</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>PCEL</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>VID_HMP</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>12</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>METOD_HMP</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>3</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>LPU</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>6</ZnakMest>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>PROFIL</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>3</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>DATE_I</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>3</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+              <SchemaElement>
+                <name>SUM</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>15</ZnakMest>
+                  <ZnakMestPosDot>2</ZnakMestPosDot>
+                  <Enum />
+                </format>
+                <Elements />
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+        </Elements>
+      </SchemaElement>
+    </Elements>
+  </SchemaElement>
+</ArrayOfSchemaElement>

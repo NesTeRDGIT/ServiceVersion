@@ -39,7 +39,11 @@ namespace ClientServiceWPF
         /// </summary>
         public void UpdateList()
         {
-            VM.UpdateListCommand.Execute(null);
+            if (VM.UpdateListCommand.CanExecute(null))
+            {
+                Dispatcher.Invoke(() => VM.UpdateListCommand.Execute(null));
+            }
+                
         }
        
         private void FilesManagerView_OnClosing(object sender, CancelEventArgs e)
@@ -118,29 +122,23 @@ namespace ClientServiceWPF
         private FilePacket _SelectItem;
         public FilePacket SelectItem
         {
-            get { return _SelectItem; }
+            get => _SelectItem;
             set { _SelectItem = value; OnPropertyChanged(); }
         }
 
-
-        private string _StatusOperation;
-        public string StatusOperation
-        {
-            get { return _StatusOperation; }
-            set { _StatusOperation = value; OnPropertyChanged(); }
-        }
+        public StatusOperation StatusOperation { get; } = new StatusOperation();
 
         public ObservableCollection<FilePacket> List { get; set; } = new ObservableCollection<FilePacket>();
         private List<string> _WcfRight = new List<string>();
         private List<string> WcfRight
         {
-            get { return _WcfRight;}
+            get => _WcfRight;
             set { _WcfRight = value; OnPropertyChanged(); }
         }
         private bool _isActive;
         private bool isActive
         {
-            get { return _isActive; }
+            get => _isActive;
             set { _isActive = value; OnPropertyChanged(); }
         }
         public FilesManagerViewVM(IWcfInterface wcf, IExcelFilePacket xlsFilePacket)
@@ -159,7 +157,8 @@ namespace ClientServiceWPF
         public void OnLoad()
         {
             wcf.RegisterNewFileManager();
-            UpdateList();
+            if(UpdateListCommand.CanExecute(null))
+                UpdateListCommand.Execute(null);
         }
 
 
@@ -183,40 +182,50 @@ namespace ClientServiceWPF
         }
 
 
-        public ICommand UpdateListCommand=> new Command(o => { UpdateList(); });
+        public ICommand UpdateListCommand=> new Command(async o =>
+        {
+            try
+            {
+                StatusOperation.Start("Запрос данных...");
+                await UpdateList();
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                StatusOperation.Stop("");
+            }
+        }, o=>!StatusOperation.IsRun);
 
 
 
         private bool CancelUpdateList;
-
-        public void UpdateList()
+        private object ProgressThread { get; } = new object();
+        public Task UpdateList()
         {
-            if (!CancelUpdateList)
+            return Task.Run(()=>
             {
-                Task.Run(() => { UpdateListThread(); });
-            }
-        }
-        private readonly object ProgressThread = new object();
-        private void UpdateListThread()
-        {
-            lock (ProgressThread)
-            {
-                try
+                var FM = new List<FilePacket>();
+                lock (ProgressThread)
                 {
-                    dispatcher.Invoke(() =>{StatusOperation = @"Запрос данных...";});
-                    var listtmp = wcf.GetFileManagerList();
-                    dispatcher.Invoke(() =>
+                    if (CancelUpdateList) return;
+                    try
                     {
-                        StatusOperation = @"Обновление списка...";
-                        RefreshDate(listtmp);
-                        StatusOperation = "";
-                    });
+                        FM.AddRange(wcf.GetFileManagerList());
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show(ex.Message);
+                    }
                 }
-                catch (Exception ex)
+                dispatcher.Invoke(() =>
                 {
-                    MessageBox.Show(ex.Message);
-                }
-            }
+                    StatusOperation.Text = @"Обновление списка...";
+                    RefreshDate(FM);
+                });
+            });
         }
         private void RefreshDate(List<FilePacket> list)
         {
@@ -461,6 +470,54 @@ namespace ClientServiceWPF
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        #endregion
+    }
+
+    public class StatusOperation: INotifyPropertyChanged
+    {
+        private string _Text;
+        public string Text
+        {
+            get => _Text;
+            set
+            {
+                _Text = value;
+                RaisePropertyChanged();
+            }
+        }
+        private bool _IsRun;
+        public bool IsRun
+        {
+            get => _IsRun;
+            set
+            {
+                _IsRun = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public void Start(string Text)
+        {
+            this.IsRun = true;
+            this.Text = Text;
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        public void Stop(string Text)
+        {
+            this.IsRun = false;
+            this.Text = Text;
+            CommandManager.InvalidateRequerySuggested();
+        }
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
         #endregion
     }
 

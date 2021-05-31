@@ -21,6 +21,7 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using ClientServiceWPF.Class;
 using ClientServiceWPF.MEK_RESULT;
+using ClientServiceWPF.MEK_RESULT.ACTMEK;
 using ServiceLoaderMedpomData;
 using ServiceLoaderMedpomData.Annotations;
 
@@ -45,20 +46,34 @@ namespace ClientServiceWPF
         }
         private void Callback_OnNewFileManager()
         {
-            Dispatcher.Invoke(() =>
+            try
             {
-                try
+                foreach (var win in GetWindow())
                 {
-                    foreach (var win in Application.Current.Windows)
+                    win.UpdateList();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+
+        private List<FilesManagerView> GetWindow()
+        {
+            var result = new List<FilesManagerView>();
+            Dispatcher.Invoke(()=>
+            {
+                foreach (var win in Application.Current.Windows)
+                {
+                    if (win is FilesManagerView item)
                     {
-                        (win as FilesManagerView)?.UpdateList();
+                        result.Add(item);
                     }
                 }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
             });
+            return result;
         }
 
         public LoginForm()
@@ -84,8 +99,6 @@ namespace ClientServiceWPF
                 MessageBox.Show(DIALOG_MESSAGE);
             }
         }
-
-
         private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
             VM.Password = PasswordBox.Password;

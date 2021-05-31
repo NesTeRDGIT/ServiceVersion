@@ -2,25 +2,20 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
 using System.Windows.Forms;
 using System.Windows.Input;
 using System.Windows.Threading;
 using ClientServiceWPF.Class;
-using DocumentFormat.OpenXml.Math;
-using ExcelManager;
-using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData.Annotations;
 using MessageBox = System.Windows.MessageBox;
 
-namespace ClientServiceWPF.MEK_RESULT
+namespace ClientServiceWPF.MEK_RESULT.ACTMEK
 {
     /// <summary>
     /// Логика взаимодействия для ACT_MEK.xaml
@@ -230,10 +225,8 @@ namespace ClientServiceWPF.MEK_RESULT
         }
         private FolderBrowserDialog fbd = new FolderBrowserDialog();
 
-
-        private Task ExportFileMEKTask;
-        private Task ExportDopTask;
-        public ICommand SaveCommand => new Command(o =>
+        private  CancellationTokenSource cts { get; set; }
+        public ICommand SaveCommand => new Command(async  o =>
         {
             try
             {
@@ -242,41 +235,49 @@ namespace ClientServiceWPF.MEK_RESULT
                     if (fbd.ShowDialog() == DialogResult.OK)
                     {
                         IsOperationRun = true;
+                        cts = new CancellationTokenSource();
+                        var tasks = new List<Task>();
+                        SaveParam();
                         if (IsMEK)
                         {
-                            ExportFileMEKTask = new Task(() => { ExportFileMEK(fbd.SelectedPath); });
-                            ExportFileMEKTask.ContinueWith(task => { ShowFolder(fbd.SelectedPath); });
-                            SaveParam();
+                            tasks.Add(Task.Run(() => { ExportFileMEK(fbd.SelectedPath, cts.Token); }));
                         }
                         if (isDopMEK)
                         {
-                            ExportDopTask = new Task(() => { ExportDop(fbd.SelectedPath); });
-                            ExportDopTask.ContinueWith(task => { ShowFolder(fbd.SelectedPath); });
+                            tasks.Add(Task.Run(() => { ExportDop(fbd.SelectedPath, cts.Token); }));
                         }
-                        ExportFileMEKTask?.Start();
-                        ExportDopTask?.Start();
+
+                        await Task.WhenAll(tasks);
+                        if (MessageBox.Show("Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                        {
+                            ShowSelectedInExplorer.FileOrFolder(fbd.SelectedPath);
+                        }
                     }
                 }
-
             }
             catch (Exception ex)
             {
                 MessageBox.Show(ex.Message);
             }
-        }, o => !IsOperationRun);
-
-        private void ShowFolder(string SelectFolder)
-        {
-            if (ExportFileMEKTask?.Status == TaskStatus.Running || ExportDopTask?.Status == TaskStatus.Running) return;
-            if (MessageBox.Show("Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+            finally
             {
-                ShowSelectedInExplorer.FileOrFolder(SelectFolder);
                 IsOperationRun = false;
             }
+        }, o => !IsOperationRun);
+        public ICommand BreakCommand => new Command(o =>
+        {
+            try
+            {
+                cts?.Cancel();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }, o => IsOperationRun);
 
-        }
       
-        private void ExportFileMEK(string folder)
+        private void ExportFileMEK(string folder, CancellationToken cancel)
         {
             try
             {
@@ -294,6 +295,7 @@ namespace ClientServiceWPF.MEK_RESULT
                 dispatcher.Invoke(() => { Progress1.IsIndeterminate = false; Progress1.Text = ""; Progress1.Maximum = selectItem.Count; Progress1.Value = 0; });
                 foreach (var item in selectItem)
                 {
+                    cancel.ThrowIfCancellationRequested();
                     dispatcher.Invoke(() =>
                     {
                         Progress1.Value = i;
@@ -379,7 +381,7 @@ namespace ClientServiceWPF.MEK_RESULT
         }
 
 
-        private void ExportDop(string folder)
+        private void ExportDop(string folder, CancellationToken cancel)
         {
             try
             {
@@ -396,6 +398,7 @@ namespace ClientServiceWPF.MEK_RESULT
                 var i = 1;
                 foreach (var item in dic)
                 {
+                    cancel.ThrowIfCancellationRequested();
                     dispatcher.Invoke(() =>
                     {
                         Progress3.Value = i;

@@ -23,6 +23,12 @@ using System.Windows.Shapes;
 using System.Windows.Threading;
 using ClientServiceWPF.Class;
 using ClientServiceWPF.MEK_RESULT;
+using ClientServiceWPF.MEK_RESULT.ACTMEK;
+using ClientServiceWPF.MEK_RESULT.FileCreator;
+using ClientServiceWPF.ORDERS.ORD104;
+using ClientServiceWPF.ORDERS.ORD15;
+using ClientServiceWPF.ORDERS.ORD23;
+using ClientServiceWPF.ORDERS.ORD260;
 using ServiceLoaderMedpomData.Annotations;
 
 namespace ClientServiceWPF
@@ -145,6 +151,7 @@ namespace ClientServiceWPF
             }
         }
 
+       
     }
 
 
@@ -475,6 +482,55 @@ namespace ClientServiceWPF
             try
             {
                 var win = new PRINT_FILE_XLSX();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+
+        public ICommand ORD15NavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new ORD15();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand ORD104NavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new ORD104();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand ORD260NavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new ORD260();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand ORD23NavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new ORD23();
                 win.Show();
             }
             catch (Exception ex)

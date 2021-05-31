@@ -664,7 +664,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V3
                 if (row["SANK_IT"] != DBNull.Value)
                     item.SANK_IT = Convert.ToDecimal(row["SANK_IT"]);
                 if (row["SLUCH_Z_ID"] != DBNull.Value)
-                    item.SLUCH_Z_ID = Convert.ToDecimal(row["SLUCH_Z_ID"]);
+                    item.SLUCH_Z_ID = Convert.ToInt64(row["SLUCH_Z_ID"]);
                 if (row["SUMP"] != DBNull.Value)
                     item.SUMP = Convert.ToDecimal(row["SUMP"]);
                 if (row["SUMV"] != DBNull.Value)
@@ -689,7 +689,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V3
             }
         }
         [XmlIgnore]
-        public decimal? SLUCH_Z_ID { get; set; }
+        public long? SLUCH_Z_ID { get; set; }
         [XmlIgnore]
         public decimal? ZAP_ID { get; set; }
       

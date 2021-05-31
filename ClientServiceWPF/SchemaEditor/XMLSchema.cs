@@ -680,7 +680,7 @@ namespace ClientServiceWPF.SchemaEditor
                     "((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))"
             };
             var max = new XmlSchemaMaxExclusiveFacet { Value = "2030-12-31" };
-            var min = new XmlSchemaMinExclusiveFacet { Value = "1900-01-01" };
+            var min = new XmlSchemaMinExclusiveFacet { Value = "1899-12-31" };
 
             Restriction.Facets.Add(pat);
             Restriction.Facets.Add(max);

@@ -14,7 +14,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [XmlRoot(Namespace = "", IsNullable = false)]
     public  class ZL_LIST
     {
-
         public void SetSUMP()
         {
             foreach(var zs in ZAP.SelectMany(x=>x.Z_SL_list))
@@ -49,7 +48,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
 
-        public void ClearSMO_DATE()
+        public void ClearSMO_DATA()
         {
             foreach (var z in ZAP)
             {
@@ -58,6 +57,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 foreach (var z_sl in z.Z_SL_list)
                 {
                     z_sl.SLUCH_Z_ID = null;
+                    z_sl.SLUCH_Z_ID_MAIN = null;
                     foreach (var san in z_sl.SANK)
                     {
                         san.S_OSN_TFOMS = null;
@@ -65,12 +65,14 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     foreach (var sl in z_sl.SL)
                     {
                         sl.SUM_MP = null;
+                        sl.SLUCH_ID = null;
                         foreach (var us in sl.USL)
                         {
                             us.PS_VOLUME = null;
                             us.BSP = null;
                             us.NOT_VR = null;
                             us.SUMP_USL = null;
+                            us.USL_ID = null;
                         }
                     }
                 }
@@ -99,7 +101,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 ser = new XmlSerializer(typeof(ZL_LIST));
                 st = System.IO.File.OpenRead(Path);
                 var zl = (ZL_LIST)ser.Deserialize(st);
-               
                 return zl;
             }
             catch (Exception ex)
@@ -382,13 +383,13 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement("ZAP", Form = XmlSchemaForm.Unqualified)]
         public List<ZAP> ZAP { get; set; }
-        public void SetID(decimal ZGLV_ID, decimal SCHET_ID, decimal ZAP_ID, decimal PACIENT_ID, decimal SLUCH_Z_ID, decimal SLUCH_ID, decimal USL_ID, decimal SANK_ID, decimal ONK_USL_ID, decimal LEK_PR_ID)
+        public void SetID(decimal ZGLV_ID, decimal SCHET_ID, decimal ZAP_ID, decimal PACIENT_ID, long SLUCH_Z_ID,  decimal SLUCH_ID, decimal USL_ID, decimal SANK_ID, decimal ONK_USL_ID, decimal LEK_PR_ID)
         {
             ZGLV.ZGLV_ID = ZGLV_ID;
             SCHET.SCHET_ID = SCHET_ID;
             SCHET.ZGLV_ID = ZGLV_ID;
 
-            foreach (ZAP z in ZAP)
+            foreach (var z in ZAP)
             {
                 z.SCHET_ID = SCHET_ID;
                 z.ZAP_ID = ZAP_ID;
@@ -403,7 +404,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     z_sl.ZAP_ID = ZAP_ID;
                     z_sl.SLUCH_Z_ID = SLUCH_Z_ID;
                     z_sl.PACIENT_ID = PACIENT_ID;
-
 
 
                     foreach (SANK san in z_sl.SANK)
@@ -954,7 +954,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row["SANK_IT"] != DBNull.Value)
                     item.SANK_IT = Convert.ToDecimal(row["SANK_IT"]);
                 if (row["SLUCH_Z_ID"] != DBNull.Value)
-                    item.SLUCH_Z_ID = Convert.ToDecimal(row["SLUCH_Z_ID"]);
+                    item.SLUCH_Z_ID = Convert.ToInt64(row["SLUCH_Z_ID"]);
+                if (row["SLUCH_Z_ID_MAIN"] != DBNull.Value)
+                    item.SLUCH_Z_ID_MAIN = Convert.ToInt64(row["SLUCH_Z_ID_MAIN"]);
                 if (row["SUMP"] != DBNull.Value)
                     item.SUMP = Convert.ToDecimal(row["SUMP"]);
                 if (row["SUMV"] != DBNull.Value)
@@ -1147,12 +1149,18 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
-        public decimal? SLUCH_Z_ID { get; set; }
+        public long? SLUCH_Z_ID { get; set; }
         public bool ShouldSerializeSLUCH_Z_ID()
         {
             return SLUCH_Z_ID.HasValue;
         }
 
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
+        public long? SLUCH_Z_ID_MAIN { get; set; }
+        public bool ShouldSerializeSLUCH_Z_ID_MAIN()
+        {
+            return SLUCH_Z_ID_MAIN.HasValue;
+        }
     }
     public class DS_SLUCH_ID
     {
