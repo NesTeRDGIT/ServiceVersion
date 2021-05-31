@@ -23,7 +23,8 @@ bld/
 [Oo]bj/
 
 #Hide DATA
-/DEL
+DEL/
+CERT/
 *.pfx
 
 # Visual Studio 2015 cache/options directory
