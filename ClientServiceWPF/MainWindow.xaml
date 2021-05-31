@@ -14,7 +14,6 @@
         <CollectionViewSource x:Key="CollectionViewSourceLOG" Source="{Binding Entries}" d:DesignSource="{d:DesignInstance {x:Type serviceLoaderMedpomData:EntriesMy}, CreateList=True}" />
         <CollectionViewSource x:Key="CollectionViewSourceStatusOP" Source="{Binding ListOP}" d:DesignSource="{d:DesignInstance {x:Type local:StatusOper}, CreateList=True}" />
     </Window.Resources>
-    
     <Window.DataContext>
         <Binding ElementName="this" Path="VM"></Binding>
     </Window.DataContext>
