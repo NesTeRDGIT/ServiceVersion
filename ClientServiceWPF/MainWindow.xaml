@@ -80,6 +80,8 @@
                 <MenuItem Header="Приказ №23 -  МП, оплаченная по КСГ" Command="{Binding ORD23NavigateCommand}"/>
                 <MenuItem Header="Приказ №104 - Заболеваемость\смертность и ЭКМП - летальность" Command="{Binding ORD104NavigateCommand}"/>
                 <MenuItem Header="Приказ №260 - Онкология" Command="{Binding ORD260NavigateCommand}"/>
+                <Separator></Separator>
+                <MenuItem Header="Выгрузка персональных данных" Command="{Binding FSBNavigateCommand}"/>
             </MenuItem>
             <MenuItem Header="Инструменты">
                 <MenuItem Header="Редактор XML схем" x:Name="MenuItemXSDCreator" Command="{Binding XMLshemaNavigateCommand}"/>

@@ -113,7 +113,7 @@ namespace ClientServiceWPF.ORDERS.ORD15
             }
             finally
             {
-                Progress1.IsIndeterminate = false;
+                Progress1.Clear("");
                 IsOperationRun = false;
             }
         });

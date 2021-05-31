@@ -12,6 +12,7 @@
     <Window.Resources>
         <wpfclass:BoolInverterConverter x:Key="BoolInverterConverter"/>
         <CollectionViewSource x:Key="CollectionViewSourceFilesLOG" Source="{Binding Logs}" d:DesignSource="{d:DesignInstance {x:Type wpfclass:LogItem}, CreateList=True}" />
+     
     </Window.Resources>
     <Window.DataContext>
         <Binding ElementName="this" Path="VM" ></Binding>

@@ -38,6 +38,7 @@ namespace ClientServiceWPF.ORDERS.ORD260
         {
             VM.PARAM.PERIOD = DateTime.Now.AddMonths(-1);
             VM.PARAM.DATE = DateTime.Now;
+            VM.PARAM.С_FILE = true;
             InitializeComponent();
         }
     }
@@ -96,8 +97,6 @@ namespace ClientServiceWPF.ORDERS.ORD260
                 {
                     IsOperationRun = true;
                     Logs.Clear();
-                    Progress1.IsIndeterminate = true;
-                   
                     await Task.Run(() => { GetFile(fbd.SelectedPath, PARAM.FILENAME, PARAM.YEAR, PARAM.MONTH, PARAM.С_FILE);});
 
                     if (MessageBox.Show(@"Завершено. Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
@@ -123,7 +122,7 @@ namespace ClientServiceWPF.ORDERS.ORD260
             {
                 var FilenameH = FILENAME;
                 var FilenameL = $"L{FILENAME}";
-               
+                dispatcher.Invoke(() => { Progress1.IsIndeterminate = true; });
                 AddLogs(LogType.Info, "Запрос счетов");
                 var SCHETtbl = new DataTable();
                 using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
@@ -138,10 +137,15 @@ namespace ClientServiceWPF.ORDERS.ORD260
                 AddLogs(LogType.Info, "Запрос данных");
                 var i = 0;
                 var dictPERS = new Dictionary<decimal, PERS>();
+                dispatcher.Invoke(() =>
+                {
+                    Progress1.IsIndeterminate = false;
+                    Progress1.Maximum = SCHETtbl.Rows.Count;
+                });
                 foreach (DataRow row in SCHETtbl.Rows)
                 {
                     i++;
-                    dispatcher.Invoke(() => { Progress1.SetValues(SCHETtbl.Rows.Count, i, "Запрос данных"); });
+                    dispatcher.Invoke(() => { Progress1.SetTextValue( i, "Запрос данных"); });
 
                     SCHET_AND_PERS val;
                     if (Convert.ToInt32(row["IsMTR"]) == 0)

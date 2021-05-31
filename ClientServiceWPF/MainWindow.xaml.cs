@@ -25,6 +25,7 @@ using ClientServiceWPF.Class;
 using ClientServiceWPF.MEK_RESULT;
 using ClientServiceWPF.MEK_RESULT.ACTMEK;
 using ClientServiceWPF.MEK_RESULT.FileCreator;
+using ClientServiceWPF.ORDERS.FSB;
 using ClientServiceWPF.ORDERS.ORD104;
 using ClientServiceWPF.ORDERS.ORD15;
 using ClientServiceWPF.ORDERS.ORD23;
@@ -519,6 +520,19 @@ namespace ClientServiceWPF
             try
             {
                 var win = new ORD260();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+
+        public ICommand FSBNavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new FSB();
                 win.Show();
             }
             catch (Exception ex)

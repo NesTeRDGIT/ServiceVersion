@@ -101,7 +101,7 @@ namespace ClientServiceWPF.ORDERS.ORD23
                 {
                     IsOperationRun = true;
                     Logs.Clear();
-                    Progress1.IsIndeterminate = true;
+                  
                     await Task.Run(() => { GetFileTRK(sfd.FileName, PARAM.FILENAME, PARAM.DATE, PARAM.ISP ? PARAM.ISP_NAME : null, PARAM.YEAR, PARAM.MONTH, PARAM.NN); });
                     if (MessageBox.Show(@"Завершено. Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
@@ -115,7 +115,7 @@ namespace ClientServiceWPF.ORDERS.ORD23
             }
             finally
             {
-                Progress1.IsIndeterminate = false;
+                Progress1.Clear("");
                 IsOperationRun = false;
             }
         });
@@ -211,7 +211,11 @@ namespace ClientServiceWPF.ORDERS.ORD23
                         oda.Fill(usltbl);
                     }
 
-                    dispatcher.Invoke(() => { Progress1.SetValues(tbl.Rows.Count, 0, $"Обработка данных: 0 из {tbl.Rows.Count}"); });
+                    dispatcher.Invoke(() =>
+                    {
+                        Progress1.IsIndeterminate = false; 
+                        Progress1.SetValues(tbl.Rows.Count, 0, $"Обработка данных: 0 из {tbl.Rows.Count}");
+                    });
                     var j = 0;
                     foreach (DataRow row in tbl.Rows)
                     {
@@ -362,7 +366,7 @@ namespace ClientServiceWPF.ORDERS.ORD23
                 RaisePropertyChanged();
             }
         }
-        public string FILENAME => $"{(ISP ? "TKR" : "TKRS")}75{YEAR.ToString().Substring(2)}{NN:D4}";
+        public string FILENAME => $"{(ISP ? "TKRS" : "TKR")}75{YEAR.ToString().Substring(2)}{NN:D4}";
 
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;

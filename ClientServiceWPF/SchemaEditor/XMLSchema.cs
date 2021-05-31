@@ -239,11 +239,19 @@ namespace ClientServiceWPF.SchemaEditor
         /// </summary>
         public TypeS format
         {
-            get { return _format;}
+            get => _format;
             set
             {
                 _format = value;
-                Elements = !(_format is TypeSComplex) ? null : new List<SchemaElement>();
+                if (!(_format is TypeSComplex))
+                {
+                    Elements = null;
+                }
+                else
+                {
+                    if (Elements == null)
+                        Elements = new List<SchemaElement>();
+                }
             }
         }
         /// <summary>

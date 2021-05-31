@@ -38,6 +38,7 @@ namespace ClientServiceWPF.ORDERS.ORD104
         {
             VM.PARAM.PERIOD = DateTime.Now.AddMonths(-1);
             VM.PARAM.DATE = DateTime.Now;
+            VM.PARAM.MR_FILE = true;
             InitializeComponent();
         }
     }
@@ -111,7 +112,7 @@ namespace ClientServiceWPF.ORDERS.ORD104
             }
             finally
             {
-                Progress1.IsIndeterminate = false;
+                Progress1.Clear("");
                 IsOperationRun = false;
             }
         });
@@ -391,6 +392,7 @@ namespace ClientServiceWPF.ORDERS.ORD104
             {
                 _MR_FILE = value;
                 RaisePropertyChanged();
+                RaisePropertyChanged(nameof(FILENAME));
             }
         }
 

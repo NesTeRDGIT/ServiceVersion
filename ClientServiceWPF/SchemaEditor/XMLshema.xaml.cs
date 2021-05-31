@@ -386,8 +386,8 @@ namespace ClientServiceWPF.SchemaEditor
             try
             {
                 var curr = CurrentElement;
-                var newElement = new SchemaElement() { name = "Новый узел" };
-                if (curr != null && curr.format is TypeSComplex)
+                var newElement = new SchemaElement() { name = "Новый узел", Type = CurrentElement.Type, format = CurrentElement.format};
+                if (curr?.format is TypeSComplex)
                     curr.baseElement.Elements.Add(newElement);
                 RefreshElements();
             }
@@ -654,7 +654,7 @@ namespace ClientServiceWPF.SchemaEditor
         public TypeS format => baseElement.format;
         public bool Unique => baseElement.Unique;
         public bool UniqueGlobal => baseElement.UniqueGlobal;
-        public string formatStr => baseElement.format.toSTRRUS();
+        public string formatStr => baseElement.format?.toSTRRUS();
 
 
         public bool HasChild => baseElement.format is TypeSComplex;
