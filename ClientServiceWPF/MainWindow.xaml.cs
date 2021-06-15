@@ -25,6 +25,7 @@ using ClientServiceWPF.Class;
 using ClientServiceWPF.MEK_RESULT;
 using ClientServiceWPF.MEK_RESULT.ACTMEK;
 using ClientServiceWPF.MEK_RESULT.FileCreator;
+using ClientServiceWPF.ORDERS.DISP;
 using ClientServiceWPF.ORDERS.FSB;
 using ClientServiceWPF.ORDERS.ORD104;
 using ClientServiceWPF.ORDERS.ORD15;
@@ -378,7 +379,7 @@ namespace ClientServiceWPF
         {
             try
             {
-                var win = new Setting(!Active);
+                var win = new Setting(Active);
                 win.ShowDialog();
             }
             catch (Exception ex)
@@ -540,6 +541,19 @@ namespace ClientServiceWPF
                 MessageBox.Show(ex.Message);
             }
         });
+
+        public ICommand DISPNavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new DISPWin();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
         public ICommand ORD23NavigateCommand => new Command(o =>
         {
             try
@@ -653,13 +667,15 @@ namespace ClientServiceWPF
             }
         }
 
-        public static void AddRange<T>(this ObservableCollection<T> source,List<T> values)
+        public static void AddRange<T>(this ObservableCollection<T> source,IEnumerable<T> values)
         {
             foreach (var item in values)
             {
                 source.Add(item);
             }
         }
+
+
 
     }
 

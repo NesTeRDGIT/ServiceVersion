@@ -137,7 +137,7 @@
             <Grid>
                 <DatePicker VerticalAlignment="Top" Margin="0,2,0,0" class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" SelectedDate="{Binding Param.PERIOD}"/>
                 <TextBox VerticalAlignment="Top" Margin="0,29,0,0" Height="22" HorizontalAlignment="Left" Width="71" IsReadOnly="True" Text="{Binding Param.SMO}"/>
-                <ComboBox   VerticalAlignment="Top" Margin="76,29,0,0" Text="{Binding Param.SMO}" ItemsSource="{Binding ElementName=this, Path=SMO_LIST}"/>
+                <ComboBox   VerticalAlignment="Top" Margin="76,29,0,0" SelectedValue="{Binding Param.SMO}" ItemsSource="{Binding ElementName=this, Path=SMO_LIST}" DisplayMemberPath="NAME" SelectedValuePath="SMO_COD"/>
             </Grid>
         </GroupBox>
         <GroupBox Header="Статистика" Margin="3,347,-5,20" Grid.Column="1">

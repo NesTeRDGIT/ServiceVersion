@@ -9,7 +9,7 @@ using System.Runtime.Serialization;
 using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
+
 using System.Windows.Threading;
 using System.Xml.Serialization;
 using Ionic.Zip;
@@ -508,16 +508,7 @@ $@"Наименование файла должно быть
             set { Comment = value;FileLog?.WriteLn(value); }
         }
 
-        public void InvokeComment(string text, System.Windows.Forms.Control Control)
-        {
-            if (Control != null)
-                Control.Invoke(new Action(() =>
-                {
-                    Comment = text;
-                }));
-            else
-                Comment = text;
-        }
+      
        
         [DataMember]
         private DateTime _DateCreate;
@@ -1396,10 +1387,7 @@ $@"Наименование файла должно быть
 
     public static partial class  Ext
     {
-        public static void InvokeComm(this FileItem item, string COMM, Form win)
-        {
-            win.Invoke(new Action(() => { item.Comment = COMM; }));
-        }
+      
         public static void InvokeComm(this FileItem item, string COMM, DispatcherObject win)
         {
             win.Dispatcher.Invoke(() => { item.Comment = COMM; });

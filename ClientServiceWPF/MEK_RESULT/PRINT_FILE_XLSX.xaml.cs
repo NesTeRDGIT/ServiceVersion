@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Printing;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
@@ -18,6 +20,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using ClientServiceWPF.Class;
 using ExcelManager;
+using ServiceLoaderMedpomData.Annotations;
 using Worksheet = Microsoft.Office.Interop.Excel.Worksheet;
 using Application = Microsoft.Office.Interop.Excel.Application;
 using Clipboard = System.Windows.Clipboard;
@@ -271,7 +274,12 @@ namespace ClientServiceWPF
                         {
                             throw  new Exception("Прервано!!!");
                         }
-                     
+
+                        while (pause)
+                        {
+                            Dispatcher.Invoke(() => { LabelProgress.Content = "Пауза"; });
+                            Thread.Sleep(1000);
+                        }
                         wApplication.Workbooks.Open(file.FilePath, null, true);
                         wb = wApplication.Workbooks[1];
                         for (var j = 0; j < (CopyCount??1); j++)
@@ -280,6 +288,11 @@ namespace ClientServiceWPF
                             {
                                 try
                                 {
+                                    while (pause)
+                                    {
+                                        Dispatcher.Invoke(() => { LabelProgress.Content = "Пауза"; });
+                                        Thread.Sleep(1000);
+                                    }
                                     Worksheet work = wb.Worksheets[wi];
                                     Dispatcher.Invoke(() => { LabelProgress.Content = $"Печать {Path.GetFileName(file.FilePath)}{((CopyCount ?? 1) != 1 ? $": копия {j + 1}" : "")}"; });
                                     work.PrintOut(Type.Missing, Type.Missing, Type.Missing, Type.Missing, print_name, Type.Missing, Type.Missing, Type.Missing);
@@ -396,8 +409,48 @@ namespace ClientServiceWPF
                 MessageBox.Show("Идет печать, закрытие окна не возможно");
             }
         }
+
+        private bool pause;
+        private void ButtonPause_OnClick(object sender, RoutedEventArgs e)
+        {
+            pause = !pause;
+            ButtonPause.Content = pause ? "Снять паузу" : "Пауза";
+
+        }
     }
 
+
+    public class PRINT_FILE_XLSXVM : INotifyPropertyChanged
+    {
+        public ObservableCollection<FilePrintXLS> FilePrintXLS { get; set; } = new ObservableCollection<FilePrintXLS>();
+
+
+
+        public ICommand RemoveItemsCommand => new Command(o =>
+        {
+            var sel = (List<FilePrintXLS>)o;
+            if (sel.Count != 0)
+            {
+                if (MessageBox.Show($"Вы уверены что хотите удалить {sel.Count} элементов?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                {
+                    foreach (var item in sel)
+                    {
+                        this.FilePrintXLS.Remove(item);
+                    }
+                }
+            }
+        });
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
+    }
 
     public class FilePrintXLS: INotifyPropertyChanged
     {

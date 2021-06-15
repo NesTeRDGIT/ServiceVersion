@@ -212,10 +212,15 @@ namespace MedpomService
                     pack.Comment = $"Обработка пакета: Проверка схемы файла {item.filel.FileName}";
                     CheckXSD(item.filel, LFileXSD);
 
-                    if (item.Process == StepsProcess.ErrorXMLxsd && item.filel.Process == StepsProcess.XMLxsd)
+                    if (item.Process == StepsProcess.ErrorXMLxsd)
                     {
                         item.filel.Process = StepsProcess.ErrorXMLxsd;
                         item.filel.CommentAndLog = $"Ошибка: Файл владелец({item.FileName}) содержит ошибки в дальнейшей обработке отказано";
+                    }
+                    if (item.filel.Process == StepsProcess.ErrorXMLxsd)
+                    {
+                        item.Process = StepsProcess.ErrorXMLxsd;
+                        item.CommentAndLog = $"Ошибка: Файл персональных данных({item.filel.FileName}) содержит ошибки в дальнейшей обработке отказано";
                     }
                 }
 
@@ -266,7 +271,7 @@ namespace MedpomService
                     pack.CommentSite = "Завершено";
                 }
             }
-            catch (OperationCanceledException ex)
+            catch (OperationCanceledException)
             {
                 pack.Status = StatusFilePack.FLKERR;
                 pack.CommentSite = "Отмена обработки пользователем";

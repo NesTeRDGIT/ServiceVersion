@@ -31,10 +31,13 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         DataTable V_EXPORT_CONS(IEnumerable<long> sl, bool IsTemp1, OracleConnection conn = null);
         DataTable V_EXPORT_L_ZGLV(string FILENAME, bool IsTemp1, OracleConnection conn = null);
         DataTable V_EXPORT_L_PERS(int zglvid, string SMO, bool IsTemp1, OracleConnection conn = null);
+        DataTable V_EXPORT_H_EXPERTIZE(IEnumerable<long> sl, bool IsTemp1, OracleConnection conn = null);
+
         OracleConnection CreateConnection();
         List<F002> GetF002();
         string GetF003Name(string CODE_MO);
         List<XLS_TABLE> V_EXPORT_EXCEL_FROM(IEnumerable<int> ZGLV_ID, string SMO);
+      
     }
 
     public class ExportFileRepository : IExportFileRepository
@@ -138,6 +141,25 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             try
             {
                 using (var oda = new OracleDataAdapter($"select * from V_EXPORT_H_SANK{(IsTemp1 ? "_TEMP1" : "")}  t where SLUCH_Z_ID in ({string.Join(",", sl)})", conn))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+            catch (Exception)
+            {
+                if (conn == null)
+                    con.Dispose();
+                throw;
+            }
+        }
+        public DataTable V_EXPORT_H_EXPERTIZE(IEnumerable<long> sl, bool IsTemp1, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            try
+            {
+                using (var oda = new OracleDataAdapter($"select * from V_EXPORT_H_EXPERTIZE{(IsTemp1 ? "_TEMP1" : "")}  t where SLUCH_Z_ID in ({string.Join(",", sl)})", conn))
                 {
                     var tbl = new DataTable();
                     oda.Fill(tbl);
@@ -438,6 +460,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw;
             }
         }
+
+     
 
         public OracleConnection CreateConnection()
         {

@@ -11,6 +11,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using MYBDOracle;
 using ServiceLoaderMedpomData;
 
 namespace ClientServiceWPF
@@ -80,7 +81,7 @@ namespace ClientServiceWPF
         }
         private void buttonAdd_Click(object sender, RoutedEventArgs e)
         {
-            curr.listParam.Add(new OrclParam(textBoxPAR_NAME.Text, OrclProcedure.GetDataType(ComboBoxPAR_DATATYPE.Text), OrclParam.TypeParamValueFromStr(ComboBoxPAR_VALTYPE.Text), textBoxPAR_VALUE.Text, textBoxPAR_COMMENT.Text));
+            curr.listParam.Add(new OrclParam(textBoxPAR_NAME.Text, OracleCheckingList.GetDbType(ComboBoxPAR_DATATYPE.Text), OrclParam.TypeParamValueFromStr(ComboBoxPAR_VALTYPE.Text), textBoxPAR_VALUE.Text, textBoxPAR_COMMENT.Text));
             refreshLV();
         }
         public List<OrclParam> SelectedParams => dataGridParam.SelectedCells.Select(x =>  x.Item as OrclParam).Where(x=>x!=null).Distinct().ToList();
@@ -92,7 +93,7 @@ namespace ClientServiceWPF
                 var item = select.First();
                 item.Comment = textBoxPAR_COMMENT.Text;
                 item.Name = textBoxPAR_NAME.Text;
-                item.Type = OrclProcedure.GetDataType(ComboBoxPAR_DATATYPE.Text);
+                item.Type = OracleCheckingList.GetDbType(ComboBoxPAR_DATATYPE.Text);
                 item.value = textBoxPAR_VALUE.Text;
                 item.ValueType = OrclParam.TypeParamValueFromStr(ComboBoxPAR_VALTYPE.Text);
                 refreshLV();

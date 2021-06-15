@@ -34,6 +34,7 @@ namespace MedpomService
         private IPacketQuery PacketQuery;
         private ILogger Logger;
         private MyOracleProvider MyOracleProvider;
+        private IRepositoryCheckingList repositoryCheckingList { get; }
         public WcfInterface(IProcessReestr processReestr, ISchemaCheck SchemaCheck, IFileInviter FileInviter, IPacketQuery PacketQuery, ILogger Logger)
         {
             this.processReestr = processReestr;

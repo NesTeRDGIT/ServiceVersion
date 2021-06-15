@@ -324,6 +324,25 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 efm?.Dispose();
             }
         }
+
+        public void CreateActMEK_SHORT(MO_ITEM item, string ACT_MEK_PATH, MO_FOND_INFO FOND_INFO, List<MP_DEFECT_ITEM> DEFECT, MEK_PARAM par, PODPISANT ISP, PODPISANT RUK)
+        {
+            ExcelOpenXML efm = null;
+            try
+            {
+                File.Copy(ACT_MEK_TEMPLATE, ACT_MEK_PATH, true);
+                efm = new ExcelOpenXML();
+                efm.OpenFile(ACT_MEK_PATH, 0);
+                dispatcher.Invoke(() => { progress.Text = "Создание файла:(Акт МЭК)"; });
+                CreateAct(efm, item, FOND_INFO, par, DEFECT, ISP, RUK);
+                efm.MarkAsFinal(true);
+                efm.Save();
+            }
+            finally
+            {
+                efm?.Dispose();
+            }
+        }
         private void CreateAct(ExcelOpenXML efm, MO_ITEM item, MO_FOND_INFO FOND_INFO, MEK_PARAM par, List<MP_DEFECT_ITEM> DEFECT, PODPISANT ISP, PODPISANT RUK)
         {
             efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);

@@ -147,13 +147,15 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 //-------------------------------------------------------------------------  
                 var SLUCH = new DataTable();
                 var SANK = new DataTable();
-
+                var EXPERTIZE = new DataTable();
                 AddLogInvoke(progress, LogType.Info, "Запрос случаев");
                 foreach (var sl in GetIDFromDataTable(ZAP, "SLUCH_Z_ID"))
                 {
                     var items = sl.ToList();
                     SLUCH.Merge(exportFileRepository.V_EXPORT_H_SLUCH(items, isTEMP1, conn));
                     SANK.Merge(exportFileRepository.V_EXPORT_H_SANK(items, isTEMP1, conn));
+                    if(isSMO)
+                        EXPERTIZE.Merge(exportFileRepository.V_EXPORT_H_EXPERTIZE(items, isTEMP1, conn));
                 }
 
                 var NAZR = new DataTable();
@@ -203,7 +205,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 AddLogInvoke(progress, LogType.Info, "Создание файла L");
                 var fileL = CreateFileL(L_ZGLV, PERS);
                 AddLogInvoke(progress, LogType.Info, "Создание файла H");
-                var file = CreateFile(ZGLV, SCHET, ZAP, SLUCH, USL, NAZR, SANK, SL_KOEF, DS2_N, NAPR, B_PROT, B_DIAG, H_CONS, ONK_USLtbl, LEK_PR, DS2, DS3, CRIT);
+                var file = CreateFile(ZGLV, SCHET, ZAP, SLUCH, USL, NAZR, SANK,EXPERTIZE, SL_KOEF, DS2_N, NAPR, B_PROT, B_DIAG, H_CONS, ONK_USLtbl, LEK_PR, DS2, DS3, CRIT);
 
                 var month = fp.MM.PadLeft(2, '0');
                 var Year = fp.YY;
@@ -332,7 +334,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
             return item;
         }
-        ZL_LIST CreateFile(DataTable ZGLVtbl, DataTable SCHETtbl, DataTable ZAPtbl, DataTable SLUCHtbl, DataTable USLtbl, DataTable NAZRtbl, DataTable SANKtbl,
+        ZL_LIST CreateFile(DataTable ZGLVtbl, DataTable SCHETtbl, DataTable ZAPtbl, DataTable SLUCHtbl, DataTable USLtbl, DataTable NAZRtbl, DataTable SANKtbl,DataTable Expertizetbl, 
             DataTable KOEFtbl, DataTable DS2_Ntbl, DataTable NAPRtbl, DataTable B_PROTtbl, DataTable B_DIAGtbl, DataTable H_CONStbl, DataTable ONK_USLtbl, DataTable LEK_PRtbl,
             DataTable DS2, DataTable DS3, DataTable CRIT)
         {
@@ -358,7 +360,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         var san = SANK.Get(sank_row);
                         z.Z_SL.SANK.Add(san);
                     }
-
+                    foreach (var exp_row in Expertizetbl.Select($"SLUCH_Z_ID = {z.Z_SL.SLUCH_Z_ID}"))
+                    {
+                        var exp = EXPERTISE.Get(exp_row);
+                        z.Z_SL.EXPERTISE.Add(exp);
+                    }
                     step = 2;
                     foreach (var sl_row in SLUCHtbl.Select($"SLUCH_Z_ID = {z.Z_SL.SLUCH_Z_ID}"))
                     {

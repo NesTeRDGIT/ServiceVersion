@@ -69,10 +69,15 @@
   </Choose>
   <ItemGroup>
     <Compile Include="FileInviterTest.cs" />
+    <Compile Include="ORDERS\DISP\ExTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SchemaCheckingTests.cs" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\ClientServiceWPF\ClientServiceWPF.csproj">
+      <Project>{7802ED26-3080-4F93-99A4-120E65BB5AB6}</Project>
+      <Name>ClientServiceWPF</Name>
+    </ProjectReference>
     <ProjectReference Include="..\MedpomService\MedpomService.csproj">
       <Project>{8FA37AC4-DFDB-416D-9AD7-9A04D0800F24}</Project>
       <Name>MedpomService</Name>

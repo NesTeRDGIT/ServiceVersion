@@ -99,6 +99,9 @@
                                         </Style>
                                     </TextBlock.Style>
                                 </TextBlock>
+                                <TextBlock  Margin="0,0,5,0" Text="{Binding formatStr}" Foreground="Gray" FontSize="14" VerticalAlignment="Center">
+                                    
+                                </TextBlock>
 
                             </StackPanel>
 
@@ -164,9 +167,9 @@
                                     <TabItem Header="number" >
                                         <Grid>
                                             <Label HorizontalAlignment="Left" Width="87" Height="26" VerticalAlignment="Top">Всего знаков</Label>
-                                            <TextBox Margin="136,0,0,0"  Height="26" VerticalAlignment="Top"  Text="{Binding CurrentElement.TypeSDigit.ZnakMest, Mode=TwoWay}" ></TextBox>
+                                            <TextBox Margin="136,0,0,0"  Height="26" VerticalAlignment="Top"  Text="{Binding CurrentElement.TypeSDigit.ZnakMest, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" ></TextBox>
                                             <Label HorizontalAlignment="Left" Width="136" Height="26" VerticalAlignment="Top" Content="Знаков после запятой" Margin="0,31,0,0"/>
-                                            <TextBox Margin="136,31,0,0" Height="26" VerticalAlignment="Top"  Text="{Binding CurrentElement.TypeSDigit.ZnakMestPosDot, Mode=TwoWay}"/>
+                                            <TextBox Margin="136,31,0,0" Height="26" VerticalAlignment="Top"  Text="{Binding CurrentElement.TypeSDigit.ZnakMestPosDot, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
                                             <ListBox Margin="136,62,0,0" Name="ListBoxEnumDigit"  SelectionMode="Extended" ItemsSource="{Binding CurrentElement.EnumDigit, NotifyOnSourceUpdated=True}" ItemTemplate="{StaticResource DataTemplateTextBlock}" SelectionChanged="ListBoxEnumDigit_OnSelectionChanged">
                                                 <ListBox.ContextMenu>
                                                     <ContextMenu>
@@ -191,7 +194,7 @@
                                     <TabItem Header="string" >
                                         <Grid>
                                             <Label HorizontalAlignment="Left" Width="87" Height="26" VerticalAlignment="Top">Всего знаков</Label>
-                                            <TextBox Margin="136,0,0,0" Height="26" VerticalAlignment="Top"  Text="{Binding CurrentElement.TypeSString.ZnakMest}"></TextBox>
+                                            <TextBox Margin="136,0,0,0" Height="26" VerticalAlignment="Top"  Text="{Binding CurrentElement.TypeSString.ZnakMest, UpdateSourceTrigger=PropertyChanged}"></TextBox>
                                             <ListBox Name="ListBoxStringEnum" Margin="136,62,0,0"  SelectionMode="Extended" ItemsSource="{Binding CurrentElement.EnumString}" ItemTemplate="{StaticResource DataTemplateTextBlock}" SelectionChanged="ListBoxStringEnum_OnSelectionChanged">
                                                 <ListBox.ContextMenu>
                                                     <ContextMenu>

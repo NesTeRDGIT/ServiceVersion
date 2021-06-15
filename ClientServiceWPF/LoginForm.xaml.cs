@@ -244,7 +244,7 @@ namespace ClientServiceWPF
                 MaxReceivedMessageSize = 105000000,
                 SendTimeout = new TimeSpan(24, 0, 0),
                 ReceiveTimeout = new TimeSpan(24, 0, 0),
-                Security = {Mode = SecurityMode.Message, Message = {ClientCredentialType = MessageCredentialType.UserName}, Transport = {ClientCredentialType = TcpClientCredentialType.None}}
+                Security = {Mode = SecurityMode.TransportWithMessageCredential,Message ={ ClientCredentialType = MessageCredentialType.UserName}, Transport = {ClientCredentialType = TcpClientCredentialType.None}}
             };
 
             callback = new MyServiceCallback();

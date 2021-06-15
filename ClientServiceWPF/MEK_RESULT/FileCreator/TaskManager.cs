@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Presentation;
 
 namespace ClientServiceWPF.MEK_RESULT.FileCreator
 {
@@ -79,6 +80,18 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             {
                 Task.Delay(500, cancel).Wait(cancel);
             }
+        }
+
+
+        public void ThrowIfException()
+        {
+            var ex_task = tasks.Where(x => x.TSK?.Exception != null).SelectMany(x => x.TSK.Exception.InnerExceptions).ToList();
+           
+            if (ex_task.Count != 0)
+            {
+                throw new AggregateException(ex_task);
+            }
+                
         }
     }
 

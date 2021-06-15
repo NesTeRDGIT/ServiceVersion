@@ -972,6 +972,7 @@ namespace ClientServiceWPF
                     wcf.SettingConnect(set);
                     wcf.SetCheckingList(checList);
                     wcf.SetSettingTransfer(ReadTableItemsTRANS());
+                    wcf.SaveProperty();
                 }
                 GetStaticParam();
                 ReadTableItemsLOCAL();
@@ -998,6 +999,8 @@ namespace ClientServiceWPF
         {
             AppConfig.Load();
             Properties.Settings.Default.Reload();
+            if (!OnlyLocal)
+                wcf.LoadProperty();
         }
         private List<FileType> selectedTypeSchemaLocal => listBoxTypeSchemaLOCAL.SelectedItems.Cast<FileType>().ToList();
         private void MenuItemAddSchemaLocal_OnClick(object sender, RoutedEventArgs e)

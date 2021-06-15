@@ -450,6 +450,7 @@ namespace ClientServiceWPF
                 if (selected.Count != 0)
                 {
                     var form = new ShowFileItem(selected[0]);
+                    
                     form.ShowDialog();
                 }
             }

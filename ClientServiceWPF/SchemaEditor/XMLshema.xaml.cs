@@ -662,10 +662,7 @@ namespace ClientServiceWPF.SchemaEditor
 
         public TypeSString TypeSString => format as TypeSString;
         public TypeSDigit TypeSDigit => format as TypeSDigit;
-
-
         public ObservableCollection<int> EnumDigit { get; set; } = new ObservableCollection<int>();
-
         public ObservableCollection<string> EnumString{ get; set; } = new ObservableCollection<string>();
 
 
@@ -765,7 +762,7 @@ namespace ClientServiceWPF.SchemaEditor
                         formatEdit = new TypeSString();
                         break;
                     case formatEnum.TypeSComplex:
-                        formatEdit = new TypeSString();
+                        formatEdit = new TypeSComplex();
                         break;
                     case formatEnum.TypeSDigit:
                         formatEdit = new TypeSDigit();
@@ -817,10 +814,13 @@ namespace ClientServiceWPF.SchemaEditor
             OnPropertyChanged(nameof(format));
             OnPropertyChanged(nameof(Unique));
             OnPropertyChanged(nameof(UniqueGlobal));
+            OnPropertyChanged(nameof(formatStr));
+            OnPropertyChanged(nameof(TypeSString));
+            OnPropertyChanged(nameof(TypeSDigit));
 
 
 
-        }
+    }
         public void Rollback()
         {
             TypeEdit = baseElement.Type;

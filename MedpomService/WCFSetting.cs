@@ -9,6 +9,7 @@ using System.Linq;
 using System.ServiceModel;
 using System.Text;
 using System.Threading.Tasks;
+using MYBDOracle;
 
 namespace MedpomService
 {
@@ -232,13 +233,13 @@ namespace MedpomService
 
         public List<OrclProcedure> GetProcedureFromPack(string name)
         {
-            return OrclProcedure.GetProcedureFromPack(name, AppConfig.Property.ConnectionString);
+            return repositoryCheckingList.GetProcedureFromPack(name);
         }
 
 
         public List<OrclParam> GetParam(string name)
         {
-            return OrclProcedure.GetParam(name, AppConfig.Property.ConnectionString);
+            return repositoryCheckingList.GetParam(name);
         }
         public CheckingList ExecuteCheckAv(CheckingList check)
         {
@@ -261,10 +262,10 @@ namespace MedpomService
                             cmd.CommandText += ":" + par.Name + ",";
                             if (par.ValueType == TypeParamValue.value)
                             {
-                                if (par.Type == OracleDbType.Int32)
-                                    cmd.Parameters.Add(par.Name, par.Type, Convert.ToInt32(par.value), ParameterDirection.Input);
+                                if (par.Type == CustomDbType.Int32)
+                                    cmd.Parameters.Add(par.Name, par.Type.ToOracleDbType(), Convert.ToInt32(par.value), ParameterDirection.Input);
                                 else
-                                    cmd.Parameters.Add(par.Name, par.Type, par.value, ParameterDirection.Input);
+                                    cmd.Parameters.Add(par.Name, par.Type.ToOracleDbType(), par.value, ParameterDirection.Input);
                             }
                             else
                             {
@@ -285,10 +286,10 @@ namespace MedpomService
                                 }
 
 
-                                if (par.Type == OracleDbType.Int32)
-                                    cmd.Parameters.Add(par.Name, par.Type, Convert.ToInt32(name), ParameterDirection.Input);
+                                if (par.Type == CustomDbType.Int32)
+                                    cmd.Parameters.Add(par.Name, par.Type.ToOracleDbType(), Convert.ToInt32(name), ParameterDirection.Input);
                                 else
-                                    cmd.Parameters.Add(par.Name, par.Type, name, ParameterDirection.Input);
+                                    cmd.Parameters.Add(par.Name, par.Type.ToOracleDbType(), name, ParameterDirection.Input);
 
 
                             }

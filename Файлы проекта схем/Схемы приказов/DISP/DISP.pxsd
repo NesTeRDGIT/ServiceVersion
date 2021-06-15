@@ -1,0 +1,403 @@
+<?xml version="1.0"?>
+<ArrayOfSchemaElement xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <SchemaElement>
+    <name>ZL_LIST</name>
+    <Type>O</Type>
+    <Unique>false</Unique>
+    <UniqueGlobal>false</UniqueGlobal>
+    <format xsi:type="TypeSComplex" />
+    <Elements>
+      <SchemaElement>
+        <name>ZGLV</name>
+        <Type>O</Type>
+        <Unique>false</Unique>
+        <UniqueGlobal>false</UniqueGlobal>
+        <format xsi:type="TypeSComplex" />
+        <Elements>
+          <SchemaElement>
+            <name>DATA</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSDate" />
+            <Elements />
+          </SchemaElement>
+          <SchemaElement>
+            <name>FILENAME</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSString">
+              <ZnakMest>26</ZnakMest>
+              <Enum />
+            </format>
+            <Elements />
+          </SchemaElement>
+        </Elements>
+      </SchemaElement>
+      <SchemaElement>
+        <name>ZAP</name>
+        <Type>OM</Type>
+        <Unique>false</Unique>
+        <UniqueGlobal>false</UniqueGlobal>
+        <format xsi:type="TypeSComplex" />
+        <Elements>
+          <SchemaElement>
+            <name>N_ZAP</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSDigit">
+              <ZnakMest>8</ZnakMest>
+              <ZnakMestPosDot>0</ZnakMestPosDot>
+              <Enum />
+            </format>
+          </SchemaElement>
+          <SchemaElement>
+            <name>PERS</name>
+            <Type>O</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>FAM</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>40</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>IM</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>40</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>OT</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>40</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>DOCTYPE</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>2</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>DOCSER</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>10</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>DOCNUM</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>20</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>SNILS</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>14</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>VPOLIS</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>ENP</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>16</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>NPOLIS</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>20</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>SPOLIS</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>10</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>PACTUAL</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>REASON</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>DSTOP</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDate" />
+              </SchemaElement>
+              <SchemaElement>
+                <name>DDEATH</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDate" />
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+          <SchemaElement>
+            <name>COV19</name>
+            <Type>Y</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>DSC</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>10</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>DSCDATE</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDate" />
+              </SchemaElement>
+              <SchemaElement>
+                <name>SEVERITY</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+          <SchemaElement>
+            <name>Z_SL</name>
+            <Type>Y</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>DATE_Z_1</name>
+                <Type>Y</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDate" />
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+          <SchemaElement>
+            <name>DISPN</name>
+            <Type>YM</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>DSG</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>DS</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>10</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+          <SchemaElement>
+            <name>SL</name>
+            <Type>YM</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>DSG</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>1</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>DS</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>10</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+          <SchemaElement>
+            <name>DISP</name>
+            <Type>Y</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>DATEDISP</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDate" />
+              </SchemaElement>
+              <SchemaElement>
+                <name>DISPTYPE</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>3</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>RES</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>3</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+          <SchemaElement>
+            <name>DISP21</name>
+            <Type>Y</Type>
+            <Unique>false</Unique>
+            <UniqueGlobal>false</UniqueGlobal>
+            <format xsi:type="TypeSComplex" />
+            <Elements>
+              <SchemaElement>
+                <name>DATEDISP</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDate" />
+              </SchemaElement>
+              <SchemaElement>
+                <name>DISPTYPE</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSString">
+                  <ZnakMest>3</ZnakMest>
+                  <Enum />
+                </format>
+              </SchemaElement>
+              <SchemaElement>
+                <name>RES</name>
+                <Type>O</Type>
+                <Unique>false</Unique>
+                <UniqueGlobal>false</UniqueGlobal>
+                <format xsi:type="TypeSDigit">
+                  <ZnakMest>3</ZnakMest>
+                  <ZnakMestPosDot>0</ZnakMestPosDot>
+                  <Enum />
+                </format>
+              </SchemaElement>
+            </Elements>
+          </SchemaElement>
+        </Elements>
+      </SchemaElement>
+    </Elements>
+  </SchemaElement>
+</ArrayOfSchemaElement>

@@ -115,6 +115,10 @@
     <Compile Include="MEK_RESULT\FileCreator\IFileCreator.cs" />
     <Compile Include="Class\LogItem.cs" />
     <Compile Include="MEK_RESULT\FileCreator\TaskManager.cs" />
+    <Compile Include="ORDERS\DISP\DISPWin.xaml.cs">
+      <DependentUpon>DISPWin.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ORDERS\DISP\XML.cs" />
     <Compile Include="ORDERS\FSB\FSB.xaml.cs">
       <DependentUpon>FSB.xaml</DependentUpon>
     </Compile>
@@ -208,6 +212,10 @@
     </Compile>
     <Compile Include="wpf\Behaviours.cs" />
     <Page Include="MEK_RESULT\ACTMEK\ACT_MEK.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ORDERS\DISP\DISPWin.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
@@ -374,6 +382,10 @@
     <ProjectReference Include="..\ExcelManager\ExcelManager.csproj">
       <Project>{951db272-f346-4ddf-9743-742734e1385e}</Project>
       <Name>ExcelManager</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\MYBDOracleNEW\MYBDOracle.csproj">
+      <Project>{3dd4aa19-7ff0-4853-a860-2b45ea282db1}</Project>
+      <Name>MYBDOracle</Name>
     </ProjectReference>
     <ProjectReference Include="..\ServiceLoaderMedpomData\ServiceLoaderMedpomData.csproj">
       <Project>{afbc0326-efd5-4737-a7d9-3784b9ac58a4}</Project>

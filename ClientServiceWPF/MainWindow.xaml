@@ -81,6 +81,7 @@
                 <MenuItem Header="Приказ №260 - Онкология" Command="{Binding ORD260NavigateCommand}"/>
                 <Separator></Separator>
                 <MenuItem Header="Выгрузка персональных данных" Command="{Binding FSBNavigateCommand}"/>
+                <MenuItem Header="Выгрузка DISP" Command="{Binding DISPNavigateCommand}"/>
             </MenuItem>
             <MenuItem Header="Инструменты">
                 <MenuItem Header="Редактор XML схем" x:Name="MenuItemXSDCreator" Command="{Binding XMLshemaNavigateCommand}"/>

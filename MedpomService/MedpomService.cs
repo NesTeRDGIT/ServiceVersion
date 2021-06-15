@@ -17,6 +17,7 @@ using ExcelManager;
 using Ionic.Zip;
 using ServiceLoaderMedpomData.EntityMP_V31;
 using ThreadState = System.Threading.ThreadState;
+using MYBDOracle;
 
 //Общая концепция
 //Мониторим файлы в каталоге после прихода файла посылаем ешл на обработку. На каждый файл свой поток. Работа с файлами проходит в виде пакетов.
@@ -51,6 +52,7 @@ namespace MedpomService
         private ILogger Logger = new LoggerEventLog("MedpomServiceLog");
         private MyOracleProvider _MyOracleProvider;
 
+        private IRepositoryCheckingList repositoryCheckingList;
        // private ChekingList chList;
 
         private string localDir => Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);
@@ -74,18 +76,20 @@ namespace MedpomService
                 }
                 catch (Exception ex)
                 {
-                    Logger.AddLog("Ошибка файла SYS_PWD.txt:" + ex.Message, LogType.Error);
+                    Logger.AddLog($"Ошибка файла SYS_PWD.txt:{ex.Message}", LogType.Error);
                 }
-                Logger.AddLog("Старт службы " + ServiceName, LogType.Information);
-
+                Logger.AddLog($"Старт службы {ServiceName}", LogType.Information);
+              
                 MessageMO = new MessageMO(Logger);
                 mybd = CreateMyBD();
+
+                repositoryCheckingList = new OracleCheckingList(AppConfig.Property.ConnectionString);
                 ExcelProtokol = new ExcelProtokol(Logger);
                 SchemaCheck = new SchemaCheck(mybd, MessageMO, ExcelProtokol, Logger);
 
                 PacketCreator = new PacketCreator(mybd, SchemaCheck, Logger);
                 PacketQuery = new PacketQuery(PacketCreator,  SchemaCheck);
-                ProcessReestr = new ProcessReestr(PacketQuery, ExcelProtokol, MessageMO, Logger);
+                ProcessReestr = new ProcessReestr(PacketQuery, ExcelProtokol, MessageMO, repositoryCheckingList, Logger);
                 PacketQuery.SetProcessReestr(ProcessReestr);
                 FileInviter = new FileInviter(MessageMO, PacketQuery, Logger);
 
@@ -117,14 +121,11 @@ namespace MedpomService
                 if (AppConfig.Property.FILE_ON)
                     wi.StartProcess(AppConfig.Property.MainTypePriem, AppConfig.Property.AUTO, AppConfig.Property.OtchetDate);
 
-                Task.Run(() =>
-                {
-                    SendNewFileManagerThread();
-                });
+                Task.Run(SendNewFileManagerThread);
             }
             catch(Exception ex)
             {
-                Logger.AddLog($"Ошибка запуска службы: {ex.Message}", LogType.Error);
+                Logger.AddLog($"Ошибка запуска службы: {ex.FullError()}:{ex.StackTrace}", LogType.Error);
                 Stop();
             }
         }
@@ -161,7 +162,7 @@ namespace MedpomService
             try
             {
                 const string uri = @"net.tcp://localhost:12344/TFOMSMEDPOM.svc"; // Адрес, который будет прослушивать сервер
-        
+                const string mex = @"http://localhost:8080/TFOMSMEDPOM.svc";
 
                 var netTcpBinding = new NetTcpBinding(SecurityMode.None)
                 {
@@ -176,20 +177,22 @@ namespace MedpomService
                     MaxBufferSize = int.MaxValue,
                     OpenTimeout = new TimeSpan(24, 0, 0),
                     ReceiveTimeout = new TimeSpan(24, 0, 0),
-                    SendTimeout = new TimeSpan(24, 0, 0)
-                };
+                    SendTimeout = new TimeSpan(24, 0, 0),
+                    PortSharingEnabled = true,
+                    Security = {Mode = SecurityMode.TransportWithMessageCredential, Message = {ClientCredentialType = MessageCredentialType.UserName}, Transport = {ClientCredentialType = TcpClientCredentialType.None}}
+            };
 
                 wi = new WcfInterface(ProcessReestr, SchemaCheck, FileInviter, PacketQuery, Logger);
-                WcfConection = new ServiceHost(wi, new Uri(uri));
+                WcfConection = new ServiceHost(wi, new Uri(uri),new Uri(mex));
                 wi.RaiseRegisterNewFileManager += Wi_RaiseRegisterNewFileManager;
-                var myEndpointAdd =new EndpointAddress(new Uri(uri), EndpointIdentity.CreateDnsIdentity("MSERVICE"));
+                var myEndpointAdd =new EndpointAddress(new Uri(uri), EndpointIdentity.CreateDnsIdentity("NESTER"));
                 var ep = WcfConection.AddServiceEndpoint(typeof(IWcfInterface), netTcpBinding, "");
                 ep.Address = myEndpointAdd;
 
                 WcfConection.OpenTimeout = new TimeSpan(24, 0, 0);
                 WcfConection.CloseTimeout = new TimeSpan(24, 0, 0);
 
-                netTcpBinding.Security.Mode = SecurityMode.Message;
+               // netTcpBinding.Security.Mode = SecurityMode.Message;
                 netTcpBinding.Security.Message.ClientCredentialType = MessageCredentialType.UserName;
                 netTcpBinding.Security.Transport.ClientCredentialType = TcpClientCredentialType.None;
 
@@ -204,27 +207,20 @@ namespace MedpomService
 
             
 
-                WcfConection.Credentials.ServiceCertificate.SetCertificate(StoreLocation.LocalMachine, StoreName.My,
-                    X509FindType.FindBySubjectName, "MSERVICE");
-
-                //МЕТАДАННЫЕ
-               /*
+                WcfConection.Credentials.ServiceCertificate.SetCertificate(StoreLocation.LocalMachine, StoreName.My, X509FindType.FindBySubjectName, "NESTER");
+              
+                #region МЕТАДАННЫЕ
                 var smb = WcfConection.Description.Behaviors.Find<ServiceMetadataBehavior>() ?? new ServiceMetadataBehavior();
-                
-
                 smb.HttpGetEnabled = true;
-                smb.HttpGetUrl = new Uri(@"HTTP://localhost:12343/TFOMSMEDPOM.svc");
                 smb.MetadataExporter.PolicyVersion = PolicyVersion.Policy15;
-                smb.ExternalMetadataLocation = new Uri(@"HTTP://localhost:12343/TFOMSMEDPOM.svc");
                 WcfConection.Description.Behaviors.Add(smb);
-                WcfConection.AddServiceEndpoint(ServiceMetadataBehavior.MexContractName, MetadataExchangeBindings.CreateMexTcpBinding(), "mex");
-                */
+                WcfConection.AddServiceEndpoint(ServiceMetadataBehavior.MexContractName, MetadataExchangeBindings.CreateMexHttpBinding(), $"mex");
+                #endregion
+              
 
                 WcfConection.Authorization.ServiceAuthorizationManager = new MyServiceAuthorizationManager();
                 var list1 = new List<System.IdentityModel.Policy.IAuthorizationPolicy> {new AuthorizationPolicy()};
-                var list =
-                    new System.Collections.ObjectModel.ReadOnlyCollection<
-                        System.IdentityModel.Policy.IAuthorizationPolicy>(list1);
+                var list = new System.Collections.ObjectModel.ReadOnlyCollection<System.IdentityModel.Policy.IAuthorizationPolicy>(list1);
                 WcfConection.Authorization.ExternalAuthorizationPolicies = list;
                 WcfConection.Authorization.PrincipalPermissionMode = PrincipalPermissionMode.Custom;
 
@@ -244,23 +240,21 @@ namespace MedpomService
 
     
 
-        MYBDOracleNEW CreateMyBD()
+        MYBDOracle.MYBDOracle CreateMyBD()
         {
-            return new MYBDOracleNEW(
+            return new MYBDOracle.MYBDOracle(
                                  AppConfig.Property.ConnectionString,
                                  new TableInfo { TableName = AppConfig.Property.xml_h_zglv, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_schet, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_sank, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_sank_code_exp, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
 
-                            
-
                                  new TableInfo { TableName = AppConfig.Property.xml_h_pacient, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_zap, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_usl, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_sluch, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
 
-                                      new TableInfo { TableName = AppConfig.Property.xml_h_ds2, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
+                                 new TableInfo { TableName = AppConfig.Property.xml_h_ds2, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_ds3, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_crit, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
 

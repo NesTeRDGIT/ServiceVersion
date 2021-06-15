@@ -31,16 +31,18 @@ namespace MedpomService
     {
         const string SvodFileNameXLS = "FileStat.xlsx";
         private  CheckingList CheckList { get; set; }= new CheckingList();
-        private IPacketQuery PacketQuery { get; set; }
-        private readonly IExcelProtokol excelProtokol;
-        private readonly IMessageMO messageMo;
-        private ILogger Logger;
-        public ProcessReestr(IPacketQuery PacketQuery,  IExcelProtokol excelProtokol, IMessageMO messageMo, ILogger Logger)
+        private IPacketQuery PacketQuery { get;}
+        private  IExcelProtokol excelProtokol { get; }
+        private  IMessageMO messageMo { get; }
+        private  ILogger Logger { get; }
+        private  IRepositoryCheckingList repositoryCheckingList { get; }
+        public ProcessReestr(IPacketQuery PacketQuery,  IExcelProtokol excelProtokol, IMessageMO messageMo, IRepositoryCheckingList repositoryCheckingList, ILogger Logger)
         {
             this.PacketQuery = PacketQuery;
             this.excelProtokol = excelProtokol;
             this.messageMo = messageMo;
             this.Logger = Logger;
+            this.repositoryCheckingList = repositoryCheckingList;
         }
         private CancellationTokenSource BDinviteCancellationTokenSource;
         private Task thWorkProcess;
@@ -422,7 +424,7 @@ namespace MedpomService
 
         IRepository CreateMyBD()
         {
-            return new MYBDOracleNEW(
+            return new MYBDOracle.MYBDOracle(
                                  AppConfig.Property.ConnectionString,
                                  new TableInfo { TableName = AppConfig.Property.xml_h_zglv, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_schet, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
@@ -508,12 +510,12 @@ namespace MedpomService
 
         public void SaveCheckingList()
         {
-            CheckList.SaveToBD(AppConfig.Property.ConnectionString);
+            repositoryCheckingList.SaveToBD(CheckList);
         }
 
         public void LoadCheckingList()
         {
-            CheckList.LoadFromBD(AppConfig.Property.ConnectionString);
+            CheckList =  repositoryCheckingList.LoadFromBD();
         }
 
         public bool IsBDInvite()

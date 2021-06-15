@@ -3,8 +3,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ClientServiceWPF.ORDERS.ORD104"
-        x:Class="ClientServiceWPF.ORDERS.ORD104.ORD104"
+        xmlns:local="clr-namespace:ClientServiceWPF.ORDERS.DISP"
+        x:Class="ClientServiceWPF.ORDERS.DISP.DISPWin"
         xmlns:wpfclass="clr-namespace:ClientServiceWPF.Class" xmlns:FileCreator="clr-namespace:ClientServiceWPF.MEK_RESULT.FileCreator" 
         mc:Ignorable="d"
         x:Name="this"
@@ -12,18 +12,12 @@
     <Window.Resources>
         <wpfclass:BoolInverterConverter x:Key="BoolInverterConverter"/>
         <CollectionViewSource x:Key="CollectionViewSourceFilesLOG" Source="{Binding Logs}" d:DesignSource="{d:DesignInstance {x:Type wpfclass:LogItem}, CreateList=True}" />
-     
+
     </Window.Resources>
     <Window.DataContext>
         <Binding ElementName="this" Path="VM" ></Binding>
     </Window.DataContext>
     <Grid>
-       
-        <GroupBox  Header="Период" HorizontalAlignment="Left" Height="60" VerticalAlignment="Top" Width="324" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
-            <Grid>
-                <DatePicker wpfclass:DatePickerCalendar.IsMonthYear="True" wpfclass:DatePickerDateFormat.DateFormat="MM.yyyy" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="123" SelectedDate="{Binding PARAM.PERIOD}" />
-            </Grid>
-        </GroupBox>
         <GroupBox  Header="Лог выгрузки" Margin="329,0,0,33">
             <Grid>
                 <ListView x:Name="ListBoxLogs" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CollectionViewSourceFilesLOG}}" Margin="0,0,0,26"  >
@@ -56,38 +50,30 @@
                 <Label  Content="{Binding Count, Mode=OneWay, Source={StaticResource CollectionViewSourceFilesLOG}}" HorizontalAlignment="Right" Margin="0,0,0,1" VerticalAlignment="Bottom" Width="126" HorizontalContentAlignment="Right"/>
             </Grid>
         </GroupBox>
-        <GroupBox  Header="Файл" HorizontalAlignment="Left" Height="230" VerticalAlignment="Top" Width="324" Margin="0,65,0,0" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
+        <GroupBox  Header="Файл" HorizontalAlignment="Left" Height="230" VerticalAlignment="Top" Width="324" Margin="0,10,0,0" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
             <Grid>
                 <DatePicker Margin="177,11,0,0" VerticalAlignment="Top" SelectedDate="{Binding PARAM.DATE}" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}" HorizontalAlignment="Left" Width="125"/>
                 <Label Content="Дата файла" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                 <TextBox Height="22" Margin="177,40,10,0"  Text="{Binding PARAM.NN, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top"/>
                 <Label Content="Порядковый номер файла" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top"/>
-                <TextBox Height="22" Margin="177,67,10,0"  Text="{Binding PARAM.ISP_NAME}" VerticalAlignment="Top" />
-                <CheckBox Content="Файл исправлений файла" HorizontalAlignment="Left" Margin="11,69,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.ISP}"/>
                 <Button Content="Сохранить" HorizontalAlignment="Left" Margin="11,177,0,0" VerticalAlignment="Top" Width="291" Style="{StaticResource MainButton}" Command="{Binding SaveFileCommand}" />
-                <TextBox Height="22" Margin="177,93,10,0" Text="{Binding PARAM.FILENAME, Mode=OneWay}" VerticalAlignment="Top" IsReadOnly="True" Foreground="DimGray"/>
-                <Label Content="Имя файла" HorizontalAlignment="Left" Margin="10,89,0,0" VerticalAlignment="Top"/>
-                <GroupBox Header="Тип файла" HorizontalAlignment="Left" Height="57" Margin="0,115,0,0" VerticalAlignment="Top" Width="312">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="1*"/>
-                            <ColumnDefinition Width="1*"/>
-                        </Grid.ColumnDefinitions>
-                        <RadioButton ToolTip="Сведения о медицинской помощи" Margin="0,5,3,0" HorizontalAlignment="Right" Width="42" Height="18" VerticalAlignment="Top" IsChecked="{Binding PARAM.MR_FILE}">MR</RadioButton>
-                        <RadioButton ToolTip="Сведения о ЭКМП" Margin="2,5,0,0" Grid.Column="1" Height="19" VerticalAlignment="Top" HorizontalAlignment="Left" Width="50" IsChecked="{Binding PARAM.MR_FILE, Converter={StaticResource BoolInverterConverter}}">ER</RadioButton>
-                    </Grid>
-                </GroupBox>
+                <TextBox Height="22" Margin="177,67,10,0" Text="{Binding PARAM.FILENAME_VIEW, Mode=OneWay}" VerticalAlignment="Top" IsReadOnly="True" Foreground="DimGray"/>
+                <Label Content="Имя файла" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
             </Grid>
         </GroupBox>
         <StatusBar Height="30" VerticalAlignment="Bottom">
             <StatusBarItem Padding="0">
                 <StackPanel Orientation="Horizontal">
                     <ProgressBar Width="300" Height="30" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}" IsIndeterminate="{Binding Progress1.IsIndeterminate}"></ProgressBar>
-                    <TextBlock Text="{Binding Progress1.Text}" Margin="5,0,0,0" VerticalAlignment="Center"/>
+                    <TextBlock Text="{Binding Progress1.Text}" Margin="5,0,5,0" VerticalAlignment="Center"/>
+
+                    <ProgressBar Width="300" Height="30" Maximum="{Binding Progress2.Maximum}" Value="{Binding Progress2.Value}" IsIndeterminate="{Binding Progress2.IsIndeterminate}"></ProgressBar>
+                    <TextBlock Text="{Binding Progress2.Text}" Margin="5,0,0,0" VerticalAlignment="Center"/>
                 </StackPanel>
 
             </StatusBarItem>
         </StatusBar>
+        <Button Content="Прервать" HorizontalAlignment="Left" Margin="0,444,0,0" VerticalAlignment="Top" Width="291" Style="{StaticResource MainButton}" Command="{Binding BreakCommand}" />
 
     </Grid>
 </Window>

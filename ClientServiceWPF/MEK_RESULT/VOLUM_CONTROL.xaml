@@ -9,7 +9,7 @@
         Name="this"
         Title="Контроль объемов" Height="592" Width="1077.661" Style="{DynamicResource StyleWindow}">
     <Window.Resources>
-        <CollectionViewSource x:Key="CVSVolumView" Source="{Binding ElementName=this, Path=VOL_DATA.LIST}" d:DesignSource="{d:DesignInstance {x:Type local:VOLUME_CONTROLRow}, CreateList=True}" Filter="CVSVolumView_OnFilter"  ></CollectionViewSource>
+        <CollectionViewSource x:Key="CVSVolumView" Source="{Binding ElementName=this, Path=ControlProcedureVM.LIST_FILTER}"   d:DesignSource="{d:DesignInstance {x:Type local:VOLUME_CONTROLRow}, CreateList=True}"  ></CollectionViewSource>
         <CollectionViewSource x:Key="CVSVolumMO" Source="{Binding ElementName=this, Path=VOL_DATA.MO_SPR}" d:DesignSource="{d:DesignInstance {x:Type local:MO_SPRRow}, CreateList=True}"  ></CollectionViewSource>
         <CollectionViewSource x:Key="CVSVolumSMO"  Source="{Binding ElementName=this, Path=VOL_DATA.SMO_SPR}" d:DesignSource="{d:DesignInstance {x:Type local:SMO_SPRRow}, CreateList=True}"  ></CollectionViewSource>
         <CollectionViewSource x:Key="CVSVolumRUB"  Source="{Binding ElementName=this, Path=VOL_DATA.RUBRIC_SPR}" d:DesignSource="{d:DesignInstance {x:Type local:RUBRIC_SPRRow}, CreateList=True}"></CollectionViewSource>
@@ -30,28 +30,34 @@
     </Window.Resources>
     <Grid>
         <TabControl>
+
             <TabItem Header="Процедура контроля">
+            <TabItem.DataContext>
+                    <Binding ElementName="this" Path="ControlProcedureVM"></Binding>
+            </TabItem.DataContext>
                 <Grid>
                     <GroupBox Header="Фильтрация" Height="112" VerticalAlignment="Top">
                         <Grid>
-                            <CheckBox x:Name="CheckBoxMEK_KOL" Content="Количественные показатели" HorizontalAlignment="Left" Margin="4,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{x:Null}"/>
-                            <CheckBox x:Name="CheckBoxMEK_SUM" Content="Стоимостные показатели" HorizontalAlignment="Left" Margin="197,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{x:Null}"/>
-                            <ComboBox x:Name="comboBoxVOL_MO" HorizontalAlignment="Left" Margin="65,30,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSVolumMO}}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME"/>
+                            <CheckBox x:Name="CheckBoxMEK_KOL" Content="Количественные показатели" HorizontalAlignment="Left" Margin="4,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_KOL}"/>
+                            <CheckBox x:Name="CheckBoxMEK_SUM" Content="Стоимостные показатели" HorizontalAlignment="Left" Margin="197,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_SUM}"/>
+                            <ComboBox x:Name="comboBoxVOL_MO" HorizontalAlignment="Left" Margin="65,30,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Path=MO_SPR}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME"/>
                             <Label Content="МО" HorizontalAlignment="Left" Margin="4,26,0,0" VerticalAlignment="Top"/>
-                            <ComboBox x:Name="comboBoxVOL_SMO" HorizontalAlignment="Left" Margin="403,30,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSVolumSMO}}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME"/>
+                            <ComboBox x:Name="comboBoxVOL_SMO" HorizontalAlignment="Left" Margin="403,30,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Path=SMO_SPR}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME"/>
                             <Label Content="СМО" HorizontalAlignment="Left" Margin="361,26,0,0" VerticalAlignment="Top"/>
-                            <ComboBox x:Name="comboBoxVOL_RUB" HorizontalAlignment="Left" Margin="65,61,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSVolumRUB}}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME"/>
+                            <ComboBox x:Name="comboBoxVOL_RUB" HorizontalAlignment="Left" Margin="65,61,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Path=RUBRIC_SPR}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME"/>
                             <Label Content="Рубрика" HorizontalAlignment="Left" Margin="4,57,0,0" VerticalAlignment="Top"/>
-                            <Button x:Name="buttonFilter" Content="Применить" HorizontalAlignment="Right" Margin="0,6,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Click="buttonFilter_Click"/>
+                            <Button x:Name="buttonFilter" Content="Применить" HorizontalAlignment="Right" Margin="0,6,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Command="{Binding FilterCommand}"/>
 
                         </Grid>
                     </GroupBox>
-                    <DataGrid x:Name="dataGrid" Margin="0,117,0,32" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSVolumView}}" IsReadOnly="True" SelectionUnit="CellOrRowHeader">
+                    <DataGrid x:Name="dataGrid" Margin="0,117,0,32" AutoGenerateColumns="True" ItemsSource="{Binding Mode=OneWay, Path= LIST_FILTER}"  IsReadOnly="True" SelectionUnit="CellOrRowHeader"   >
+                      
+                        
 
                     </DataGrid>
-                    <Button x:Name="buttonGetVolumGetData" Content="Запрос данных" HorizontalAlignment="Left" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="302" Style="{DynamicResource MainButton}" Click="buttonGetVolumGetData_Click"/>
-                    <ProgressBar Name="ProgressBarVolumView" HorizontalAlignment="Left" Height="20" Margin="312,0,0,7" VerticalAlignment="Bottom" Width="313"/>
-                    <Label x:Name="LabelProgress" Padding="0" VerticalContentAlignment="Center" Content="" Margin="630,0,67,7" VerticalAlignment="Bottom" Height="20"/>
+                    <Button x:Name="buttonGetVolumGetData" Content="Запрос данных" HorizontalAlignment="Left" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="302" Style="{DynamicResource MainButton}" Command="{Binding RefreshCommand}"/>
+                    <ProgressBar Name="ProgressBarVolumView" HorizontalAlignment="Left" Height="20" Margin="312,0,0,7" VerticalAlignment="Bottom" Width="313" IsIndeterminate="{Binding Progress1}" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}"/>
+                    <Label x:Name="LabelProgress" Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="630,0,67,7" VerticalAlignment="Bottom" Height="20" />
                     <Label Padding="0" VerticalContentAlignment="Center" Content="{Binding Items.Count, ElementName=dataGrid, Mode=OneWay, StringFormat=\{0:N\}}" Margin="0,0,0,7" VerticalAlignment="Bottom" Height="20" HorizontalAlignment="Right" Width="62" HorizontalContentAlignment="Right"/>
                 </Grid>
             </TabItem>

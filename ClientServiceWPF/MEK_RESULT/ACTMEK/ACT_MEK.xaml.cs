@@ -309,6 +309,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 {
                     dispatcher.Invoke(() => { Progress1.Text = $"Выгрузка сводного акта для {sv.Key}"; });
                     CreateActSVOD(sv.Value, System.IO.Path.Combine(pathSVOD, $"Заключение МЭК СВОД для {sv.Key}.xlsx"));
+                    CreateActSVOD_SHORT(sv.Value, System.IO.Path.Combine(pathSVOD, $"Заключение МЭК СВОД_КРАТКИЙ для {sv.Key}.xlsx"));
                 }
             }
             catch (Exception ex)
@@ -370,7 +371,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         }
         private void CreateActSVOD(SVOD_MEK svod, string ACT_MEK_PATH)
         {
-            dispatcher.Invoke(() => { Progress2.Text = $"Формирования СВОДА"; });
+            dispatcher.Invoke(() => { Progress2.Text = "Формирования СВОДА"; });
             var FOND_INFO = svod.FOND;
             var par = svod.PARAM;
             //Дефекты
@@ -379,7 +380,17 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             var creator = new ActMEKCreator(ACT_MEK_TEMPLATE, Progress2, dispatcher);
             creator.CreateActMEK(item, ACT_MEK_PATH, FOND_INFO, DEFECT, par, ISP, RUK);
         }
-
+        private void CreateActSVOD_SHORT(SVOD_MEK svod, string ACT_MEK_PATH)
+        {
+            dispatcher.Invoke(() => { Progress2.Text = "Формирования СВОДА"; });
+            var FOND_INFO = svod.FOND;
+            var par = svod.PARAM;
+            //Дефекты
+            var DEFECT = svod.DEFECT;
+            var item = svod.MO_ITEM;
+            var creator = new ActMEKCreator(ACT_MEK_TEMPLATE, Progress2, dispatcher);
+            creator.CreateActMEK_SHORT(item, ACT_MEK_PATH, FOND_INFO, DEFECT, par, ISP, RUK);
+        }
 
         private void ExportDop(string folder, CancellationToken cancel)
         {

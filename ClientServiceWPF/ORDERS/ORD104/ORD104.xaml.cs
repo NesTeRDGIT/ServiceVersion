@@ -115,7 +115,7 @@ namespace ClientServiceWPF.ORDERS.ORD104
                 Progress1.Clear("");
                 IsOperationRun = false;
             }
-        });
+        }, o => !IsOperationRun );
         void GetFileMR(string path, string FILENAME, DateTime DateFile, string ISPName, int Year, int Month)
         {
             try

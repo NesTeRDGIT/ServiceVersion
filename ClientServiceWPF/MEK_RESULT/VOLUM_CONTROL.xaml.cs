@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,9 +18,13 @@ using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
 using ClientServiceWPF.Class;
 using ExcelManager;
+using Microsoft.Office.Interop.Excel;
 using Microsoft.Win32;
 using Oracle.ManagedDataAccess.Client;
+using ServiceLoaderMedpomData.Annotations;
+using DataTable = System.Data.DataTable;
 using Path = System.IO.Path;
+using Window = System.Windows.Window;
 
 namespace ClientServiceWPF
 {
@@ -27,6 +33,8 @@ namespace ClientServiceWPF
     /// </summary>
     public partial class VOLUM_CONTROL : Window,INotifyPropertyChanged
     {
+        public ControlProcedureVM ControlProcedureVM { get; } = new ControlProcedureVM();
+
         public VOLUME_DATA VOL_DATA { get; set; } = new VOLUME_DATA();
         public class VOLUME_DATA
         {
@@ -1219,8 +1227,6 @@ namespace ClientServiceWPF
             }
         }
     }
-
-
     public class VOLUME_CONTROLRow
     {
         public static List<VOLUME_CONTROLRow> Get(IEnumerable<DataRow> rows)
@@ -1373,7 +1379,6 @@ namespace ClientServiceWPF
 
         public string FULL_NAME => $"{VOLUM_RUBRIC_ID} {NAME}";
     }
-
     public class LIMITRow
     {
         public static List<LIMITRow> Get(IEnumerable<DataRow> rows)
@@ -1698,7 +1703,6 @@ namespace ClientServiceWPF
             }
         }
     }
-
     public class LIMIT_RESULTRow
     {
         public static List<LIMIT_RESULTRow> Get(IEnumerable<DataRow> rows)
@@ -1889,6 +1893,251 @@ namespace ClientServiceWPF
     }
 
 
-  
+
+
+    public class ControlProcedureVM:INotifyPropertyChanged
+    {
+        public ProgressItem Progress1 { get; } = new ProgressItem();
+        public ObservableCollection<VOLUME_CONTROLRow> LIST { get; set; } = new ObservableCollection<VOLUME_CONTROLRow>();
+        public ObservableCollection<MO_SPRRow> MO_SPR { get; set; } = new ObservableCollection<MO_SPRRow>();
+        public ObservableCollection<SMO_SPRRow> SMO_SPR { get; set; } = new ObservableCollection<SMO_SPRRow>();
+        public ObservableCollection<RUBRIC_SPRRow> RUBRIC_SPR { get; set; } = new ObservableCollection<RUBRIC_SPRRow>();
+        private bool _IsOperationRun;
+        public bool IsOperationRun
+        {
+            get => _IsOperationRun;
+            set
+            {
+                _IsOperationRun = value;
+                RaisePropertyChanged();
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+
+        private void Clear()
+        {
+            LIST.Clear();
+            MO_SPR.Clear();
+            SMO_SPR.Clear();
+            RUBRIC_SPR.Clear();
+        }
+        public ICommand RefreshCommand => new Command(async obj =>
+        {
+            try
+            {
+                IsOperationRun = true;
+                Clear();
+                Progress1.IsIndeterminate = true;
+                Progress1.Text = "Запрос данных";
+                var list = await Task.Run(GetVolumViewData);
+                SetLIST(list);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                Progress1.Clear("");
+                IsOperationRun = false;
+            }
+           
+        }, o=>!IsOperationRun);
+        private void SetLIST(List<VOLUME_CONTROLRow> List)
+        {
+            LIST.AddRange(List);
+            var DIC_MO = new Dictionary<string, string>();
+            var DIC_SMO = new Dictionary<string, string>();
+            var DIC_RUB = new Dictionary<string, string>();
+            foreach (var row in LIST)
+            {
+                if (!DIC_MO.ContainsKey(row.CODE_MO))
+                    DIC_MO.Add(row.CODE_MO, row.NAM_MOK);
+
+                if (!DIC_SMO.ContainsKey(row.SMO))
+                    DIC_SMO.Add(row.SMO, row.NAM_SMOK);
+
+                if (!DIC_RUB.ContainsKey(row.RUBRIC_ID))
+                    DIC_RUB.Add(row.RUBRIC_ID, row.NAME_RUB);
+
+            }
+            MO_SPR.Clear();
+            MO_SPR.Insert(0, new MO_SPRRow());
+            MO_SPR.AddRange(DIC_MO.Select(x => new MO_SPRRow { CODE_MO = x.Key, NAM_OK = x.Value }).OrderBy(x => x.CODE_MO));
+
+            SMO_SPR.Clear();
+            SMO_SPR.Insert(0, new SMO_SPRRow());
+            SMO_SPR.AddRange(DIC_SMO.Select(x => new SMO_SPRRow { SMOCOD = x.Key, NAM_SMOK = x.Value }).OrderBy(x => x.SMOCOD));
+
+            RUBRIC_SPR.Clear();
+            RUBRIC_SPR.Insert(0, new RUBRIC_SPRRow());
+            RUBRIC_SPR.AddRange(DIC_RUB.Select(x => new RUBRIC_SPRRow { VOLUM_RUBRIC_ID = x.Key, NAME = x.Value }).OrderBy(x => x.VOLUM_RUBRIC_ID));
+
+            RaisePropertyChanged(nameof(LIST_FILTER));
+        }
+
+        public ICommand FilterCommand => new Command(async obj =>
+        {
+            try
+            {
+                IsOperationRun = true;
+                Progress1.IsIndeterminate = true;
+                Progress1.Text = "Фильтрация...";
+    
+                await Task.Run(FilteringList);
+                RaisePropertyChanged(nameof(LIST_FILTER));
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                Progress1.Clear("");
+                IsOperationRun = false;
+            }
+
+        }, o => !IsOperationRun);
+
+        private void FilteringList()
+        {
+            foreach (var item in LIST)
+            {
+                item.IsSHOW = true;
+                if (Filter.IsMEK_KOL.HasValue)
+                {
+                    item.IsSHOW &= Filter.IsMEK_KOL.Value == item.MEK_KOL;
+                }
+                if (Filter.IsMEK_SUM.HasValue)
+                {
+                    item.IsSHOW &= Filter.IsMEK_SUM.Value == item.MEK_KOL;
+                }
+                if (!string.IsNullOrEmpty(Filter.CODE_MO))
+                {
+                    item.IsSHOW &= Filter.CODE_MO == item.CODE_MO;
+                }
+                if (!string.IsNullOrEmpty(Filter.SMO))
+                {
+                    item.IsSHOW &= Filter.SMO == item.SMO;
+                }
+                if (!string.IsNullOrEmpty(Filter.RUB))
+                {
+                    item.IsSHOW &= Filter.RUB == item.RUBRIC_ID;
+                }
+            }
+        }
+
+
+        public bool OnFilterTriggered(object item)
+        {
+            if (item is VOLUME_CONTROLRow vol)
+            {
+                return vol.IsSHOW;
+            }
+            return true;
+        }
+        List<VOLUME_CONTROLRow> GetVolumViewData()
+        {
+
+            using (var oda = new OracleDataAdapter("select * from table(volum_control.GET_VOLUME)", AppConfig.Property.ConnectionString))
+            {
+                var tbl = new DataTable();
+                oda.Fill(tbl);
+                return VOLUME_CONTROLRow.Get(tbl.Select());
+            }
+        }
+
+        public IEnumerable<VOLUME_CONTROLRow> LIST_FILTER
+        {
+            get
+            {
+                foreach (var item in LIST)
+                {
+                    if(item.IsSHOW)
+                        yield return item;
+                }
+            }
+        }
+
+
+
+        public FilterParam Filter { get; } = new FilterParam();
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
+    }
+
+
+    public class FilterParam : INotifyPropertyChanged
+    {
+        private string _CODE_MO;
+        public string CODE_MO
+        {
+            get => _CODE_MO;
+            set
+            {
+                _CODE_MO = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _SMO;
+        public string SMO
+        {
+            get => _SMO;
+            set
+            {
+                _SMO = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _RUB;
+        public string RUB
+        {
+            get => _RUB;
+            set
+            {
+                _RUB = value;
+                RaisePropertyChanged();
+            }
+        }
+        private bool? _IsMEK_SUM;
+        public bool? IsMEK_SUM
+        {
+            get => _IsMEK_SUM;
+            set
+            {
+                _IsMEK_SUM = value;
+                RaisePropertyChanged();
+            }
+        }
+        private bool? _IsMEK_KOL;
+        public bool? IsMEK_KOL
+        {
+            get => _IsMEK_KOL;
+            set
+            {
+                _IsMEK_KOL = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
 
 }

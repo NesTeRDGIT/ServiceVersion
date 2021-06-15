@@ -6,11 +6,8 @@ using System.IO;
 using System.Xml;
 using System.Xml.Schema;
 using System.Xml.Serialization;
-using System.Xml.Linq;
 using System.Runtime.Serialization;
 using System.Globalization;
-using System.Data;
-using System.Net;
 
 namespace ServiceLoaderMedpomData
 {
@@ -1277,16 +1274,16 @@ namespace ServiceLoaderMedpomData
                 case XmlNodeType.Text:
                     switch (depthXml.Path)
                     {
-                        case "ZL_LIST/ZGLV/YEAR":
+                        case "ZL_LIST/SCHET/YEAR":
                                 SCHET.YEAR = CreateIntXML_Element(reader);
                             break;
-                        case "ZL_LIST/ZGLV/MONTH":
+                        case "ZL_LIST/SCHET/MONTH":
                                 SCHET.MONTH = CreateIntXML_Element(reader);
                             break;
                         case "ZL_LIST/ZGLV/FILENAME":
                                 SCHET.FILENAME = CreateStringXML_Element(reader);
                             break;
-                        case "OKATO_OMS":
+                        case "ZL_LIST/ZGLV/OKATO_OMS":
                                 SCHET.OKATO_OMS = CreateStringXML_Element(reader);
                             break;
                         case "ZL_LIST/ZGLV/SD_Z":

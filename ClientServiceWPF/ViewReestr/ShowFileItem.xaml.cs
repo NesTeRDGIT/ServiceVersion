@@ -258,7 +258,7 @@ namespace ClientServiceWPF
         private FilePacket _pack;
         public FilePacket pack
         {
-            get { return _pack;}
+            get => _pack;
             private set { _pack = value; OnPropertyChanged(); }
         }
 

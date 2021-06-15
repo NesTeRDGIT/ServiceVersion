@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ClientServiceWPF"
         mc:Ignorable="d"
         Name="this"
-        Title="Печать файлов XLSX" Height="539.333" Width="640.407" Style="{DynamicResource StyleWindow}" Closing="PRINT_FILE_XLSX_OnClosing">
+        Title="Печать файлов XLSX" Height="506.294" Width="640.407" Style="{DynamicResource StyleWindow}" Closing="PRINT_FILE_XLSX_OnClosing">
     <Window.Resources>
         <CollectionViewSource x:Key="CVSFiles" Source="{Binding ElementName=this, Path=FilePrintXLS}" d:DesignSource="{d:DesignInstance {x:Type local:FilePrintXLS}, CreateList=True}"  ></CollectionViewSource>
     </Window.Resources>
@@ -27,8 +27,8 @@
                 </ContextMenu>
             </ListView.ContextMenu>
         </ListView>
-        <Button Content="Добавить файлы" Margin="0,0,0,128" Height="42" VerticalAlignment="Bottom" Style="{DynamicResource MainButton}" Name="ButtonAddFiles" Click="ButtonAddFiles_OnClick"></Button>
-        <Button  Height="42" VerticalAlignment="Bottom" Margin="0,0,0,32" Name="ButtonPrint" Click="ButtonPrint_OnClick">
+        <Button Content="Добавить файлы" Margin="0,0,0,172" Height="42" VerticalAlignment="Bottom" Style="{DynamicResource MainButton}" Name="ButtonAddFiles" Click="ButtonAddFiles_OnClick"></Button>
+        <Button  Height="42" VerticalAlignment="Bottom" Margin="0,0,0,76" Name="ButtonPrint" Click="ButtonPrint_OnClick">
             <Button.Style>
                 <Style TargetType="Button" BasedOn="{StaticResource MainButton}">
                     <Setter Property="Content" Value="Печать"></Setter>
@@ -50,7 +50,10 @@
             <Label Padding="0" Name="LabelProgress2"></Label>
         </StatusBar>
         <TextBlock  Text="{Binding StringFormat=Всего {0} страниц, Path=CountPageAll, ElementName=this, Mode=OneWay}" HorizontalAlignment="Right" Margin="0,0,10,199" VerticalAlignment="Bottom" Width="207" TextAlignment="Right" />
-        <Button Content="Рассчитать кол-во страниц" Margin="0,0,0,81" Height="42" VerticalAlignment="Bottom" Style="{DynamicResource MainButton}" x:Name="ButtonPageCount" Click="ButtonPageCount_Click" />
+        <Button Content="Рассчитать кол-во страниц" Margin="0,0,0,125" Height="42" VerticalAlignment="Bottom" Style="{DynamicResource MainButton}" x:Name="ButtonPageCount" Click="ButtonPageCount_Click" />
+        <Button  Height="42" VerticalAlignment="Bottom" Margin="0,0,0,27" Name="ButtonPause" Click="ButtonPause_OnClick" Content="Пауза" Style="{DynamicResource MainButton}">
+           
+        </Button>
 
     </Grid>
 </Window>

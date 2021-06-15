@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31313.79
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceLoaderMedpomData", "ServiceLoaderMedpomData\ServiceLoaderMedpomData.csproj", "{AFBC0326-EFD5-4737-A7D9-3784B9AC58A4}"
 EndProject
@@ -12,6 +12,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientServiceWPF", "ClientServiceWPF\ClientServiceWPF.csproj", "{7802ED26-3080-4F93-99A4-120E65BB5AB6}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceLoaderMedpomDataTests", "ServiceLoaderMedpomDataTests\ServiceLoaderMedpomDataTests.csproj", "{AEC91D41-3307-4795-B942-BA4AB11E84B7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MYBDOracle", "MYBDOracleNEW\MYBDOracle.csproj", "{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -178,8 +180,41 @@ Global
 		{AEC91D41-3307-4795-B942-BA4AB11E84B7}.SingleImage|Mixed Platforms.Build.0 = Release|Any CPU
 		{AEC91D41-3307-4795-B942-BA4AB11E84B7}.SingleImage|x86.ActiveCfg = Release|Any CPU
 		{AEC91D41-3307-4795-B942-BA4AB11E84B7}.SingleImage|x86.Build.0 = Release|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.CD_ROM|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.CD_ROM|Any CPU.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.CD_ROM|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.CD_ROM|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.CD_ROM|x86.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.CD_ROM|x86.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Debug|x86.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.DVD-5|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.DVD-5|Any CPU.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.DVD-5|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.DVD-5|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.DVD-5|x86.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.DVD-5|x86.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Release|Mixed Platforms.Build.0 = Release|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Release|x86.ActiveCfg = Release|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.Release|x86.Build.0 = Release|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.SingleImage|Any CPU.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.SingleImage|Any CPU.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.SingleImage|Mixed Platforms.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.SingleImage|Mixed Platforms.Build.0 = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.SingleImage|x86.ActiveCfg = Debug|Any CPU
+		{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}.SingleImage|x86.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {D874D477-4CAC-4D5F-B829-5D379380DE13}
 	EndGlobalSection
 EndGlobal

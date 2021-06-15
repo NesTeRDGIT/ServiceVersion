@@ -34,10 +34,10 @@ namespace ClientServiceWPF.SANK_INVITER
     public partial class SANK_INVITER : Window, INotifyPropertyChanged
     {
         public SANK_INVITERVM VM { get; set; } 
-        public List<string> SMO_LIST { get; set; } = new List<string>
+        public List<SMO_ITEM> SMO_LIST { get; set; } = new List<SMO_ITEM>
         {
-            "ЗМС",
-            "СВ"
+            new SMO_ITEM{NAME = "ЗМС", SMO_COD = "75001"},
+            new SMO_ITEM{NAME = "СВ", SMO_COD = "75003"}
         };
         private static string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
         public SANK_INVITER()
@@ -71,12 +71,12 @@ namespace ClientServiceWPF.SANK_INVITER
         {
             VM.Param.LogFolder = Properties.Settings.Default.FOLDER_LOG_SANK;
             VM.Param.PERIOD = DateTime.Now.AddMonths(-1);
-            VM.Param.SMO = SMO_LIST.FirstOrDefault();
+            VM.Param.SMO = SMO_LIST.FirstOrDefault()?.SMO_COD;
         }
 
         IRepository CreateMyBD()
         {
-            return new MYBDOracleNEW(
+            return new MYBDOracle.MYBDOracle(
                                  AppConfig.Property.ConnectionString,
                                  new TableInfo { TableName = AppConfig.Property.xml_h_zglv, SchemaName = AppConfig.Property.schemaOracle, SeqName = AppConfig.Property.seq_ZGLV },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_schet, SchemaName = AppConfig.Property.schemaOracle, SeqName = AppConfig.Property.seq_SCHET },
@@ -205,10 +205,15 @@ namespace ClientServiceWPF.SANK_INVITER
                     ErrDOP++;
                 if (item.Flag.FLK_OK == false)
                     FLK_ERR++;
-                if (item.Flag.Inserted == true)
-                    ERR_INSERT++;
-                if (item.Flag.Inserted == false)
-                    OK_INSERT++;
+                switch (item.Flag.Inserted)
+                {
+                    case false:
+                        ERR_INSERT++;
+                        break;
+                    case true:
+                        OK_INSERT++;
+                        break;
+                }
                 if (item.Flag.IsFLKCheck)
                     IsFLKCheck = true;
                 if (item.Flag.IsInsertCheck)
@@ -226,7 +231,6 @@ namespace ClientServiceWPF.SANK_INVITER
                 STAT.ERR_FLK = FLK_ERR;
                 STAT.ERR_INSERT = ERR_INSERT;
                 STAT.Inserted = OK_INSERT;
-
                 STAT.IsFLKCheck = IsFLKCheck;
                 STAT.IsInsertCheck = IsInsertCheck;
                 STAT.IsXSDCheck = IsXSDCheck;
@@ -1220,7 +1224,6 @@ namespace ClientServiceWPF.SANK_INVITER
         }
         #endregion
     }
-
     public class ProcessActive : INotifyPropertyChanged
     {
         private bool _Active;
@@ -1246,5 +1249,13 @@ namespace ClientServiceWPF.SANK_INVITER
         }
         #endregion
     }
+
+
+    public class SMO_ITEM
+    {
+        public string SMO_COD { get; set; }
+        public string NAME { get; set; }
+    }
+
 
 }

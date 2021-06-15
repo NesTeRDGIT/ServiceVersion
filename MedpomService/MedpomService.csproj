@@ -205,6 +205,10 @@
       <Project>{951db272-f346-4ddf-9743-742734e1385e}</Project>
       <Name>ExcelManager</Name>
     </ProjectReference>
+    <ProjectReference Include="..\MYBDOracleNEW\MYBDOracle.csproj">
+      <Project>{3DD4AA19-7FF0-4853-A860-2B45EA282DB1}</Project>
+      <Name>MYBDOracle</Name>
+    </ProjectReference>
     <ProjectReference Include="..\ServiceLoaderMedpomData\ServiceLoaderMedpomData.csproj">
       <Project>{afbc0326-efd5-4737-a7d9-3784b9ac58a4}</Project>
       <Name>ServiceLoaderMedpomData</Name>

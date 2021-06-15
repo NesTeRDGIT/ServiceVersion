@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace ServiceLoaderMedpomData
 {
@@ -9,7 +6,7 @@ namespace ServiceLoaderMedpomData
     {
         public static string FullError(this Exception ex)
         {
-            string rzlt = ex.Message;
+            var rzlt = ex.Message;
             if(ex.InnerException!=null)
                 rzlt += "||"+ex.InnerException.FullError();           
             return rzlt;

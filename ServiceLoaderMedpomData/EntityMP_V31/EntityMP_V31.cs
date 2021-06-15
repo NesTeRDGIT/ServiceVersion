@@ -1143,7 +1143,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             return SANK_IT.HasValue;
         }
-
+        [XmlElement("EXPERTISE", Form = XmlSchemaForm.Unqualified, IsNullable = false)]
+        public List<EXPERTISE> EXPERTISE { get; set; } = new List<EXPERTISE>();
         [XmlIgnore]
         public decimal? PACIENT_ID { get;  set; }
 
@@ -2192,6 +2193,49 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlIgnore]
         public string GetSL_ID => string.Join(",", SL_ID);
     }
+    [Serializable]
+    public class EXPERTISE
+    {
+        public EXPERTISE()
+        {
+            
+        }
+        public static EXPERTISE Get(DataRow row)
+        {
+            try
+            {
+                var item = new EXPERTISE
+                {
+                    SLUCH_Z_ID = Convert.ToInt64(row["SLUCH_Z_ID"]),
+                    E_CODE = row["E_CODE"].ToString(),
+                  
+                    E_TIP = Convert.ToInt32(row["E_TIP"]),
+                    E_DATE = Convert.ToDateTime(row["E_DATE"])
+                };
+                if (row["E_COM"] != DBNull.Value)
+                    item.E_COM = row["E_COM"].ToString();
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения SANK:{ex.Message}");
+            }
+        }
+
+        [XmlIgnore]
+        public long? SLUCH_Z_ID { get; set; }
+        [XmlElement]
+        public string E_CODE { get; set; }
+      
+        [XmlElement]
+        public int E_TIP { get; set; }
+        [XmlElement(DataType = "date")]
+        public DateTime E_DATE { get; set; }
+        [XmlElement(IsNullable = false)]
+        public string E_COM { get; set; }
+    }
+
+    
     public class CODE_EXP
     {
         [XmlIgnore]
