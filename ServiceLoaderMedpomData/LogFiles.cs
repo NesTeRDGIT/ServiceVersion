@@ -14,12 +14,11 @@ namespace ServiceLoaderMedpomData
     [DataContract]
     public class LogFile
     {
+        private Encoding encoding = Encoding.GetEncoding("Windows-1251");
         /// <summary>
         /// Поток файла
         /// </summary>
-        [NonSerialized]
-        [IgnoreDataMember]
-        StreamWriter SW;
+        [NonSerialized] [IgnoreDataMember] private StreamWriter SW;
         [DataMember]
         string filename;
 
@@ -35,7 +34,7 @@ namespace ServiceLoaderMedpomData
         public LogFile(string _filename)
         {
             filename = _filename;
-            SW = new StreamWriter(filename, false);
+            SW = new StreamWriter(filename, false, encoding);
         }
         /// <summary>
         /// Записать с переходом на новую строку
@@ -64,7 +63,7 @@ namespace ServiceLoaderMedpomData
         {
             if (SW != null) return ;
             Stream st = File.Open(filename, FileMode.Append, FileAccess.Write);
-            SW = new StreamWriter(st);
+            SW = new StreamWriter(st, encoding);
 
         }
 
@@ -72,7 +71,7 @@ namespace ServiceLoaderMedpomData
         {
             if (SW != null) return;
             Stream st = File.Open(filename, FileMode.Create, FileAccess.Write);
-            SW = new StreamWriter(st);
+            SW = new StreamWriter(st, encoding);
         }
 
 
@@ -80,14 +79,8 @@ namespace ServiceLoaderMedpomData
 
         public string FilePath
         {
-            get
-            {
-                return filename;
-            }
-            set
-            {
-                filename = value;
-            }
+            get => filename;
+            set => filename = value;
         }
     }
 }

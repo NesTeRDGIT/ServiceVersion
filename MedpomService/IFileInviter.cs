@@ -97,31 +97,32 @@ namespace MedpomService
             var del = Task.Delay(ms);
             del.Wait();
         }
+
         /// <summary>
         /// обработка файла архива ZIP
         /// </summary>
-        private void ArchiveInviter()
+        private async Task<bool> ArchiveInviter()
         {
-            CTSThArchive = new CancellationTokenSource();
             var Name = "";
             while (!CTSThArchive.IsCancellationRequested)
             {
-                //Даем зазор в 0,5 секунды, бывает что файл 0 байт и открывается в процессе копирования. Вроде доступен с ПО, а потом бах и занят...
-                var ArchiveFileListFiller = ArchiveFileList.Where(x => (DateTime.Now - x.DateIN).Milliseconds > 500).ToList();
-                if (ArchiveFileListFiller.Count == 0)
-                {
-                    Delay(1500);
-                    continue;
-                }
-
-                var item = ArchiveFileListFiller[0];
-                var FullPath = item.path;
-                Name = Path.GetFileName(FullPath);
-                ArchiveFileList.Remove(item);
                 try
                 {
-                    PrichinAv? pr;
+                    //Даем зазор в 0,5 секунды, бывает что файл 0 байт и открывается в процессе копирования. Вроде доступен с ПО, а потом бах и занят...
+                    var ArchiveFileListFiller = ArchiveFileList.Where(x => (DateTime.Now - x.DateIN).Milliseconds > 500).ToList();
+                    if (ArchiveFileListFiller.Count == 0)
+                    {
+                        Delay(1500);
+                        continue;
+                    }
+
+                    var item = ArchiveFileListFiller[0];
+                    var FullPath = item.path;
+                    Name = Path.GetFileName(FullPath);
+                    ArchiveFileList.Remove(item);
+
                     var NOT_FOUND = 0;
+                    PrichinAv? pr;
                     while (!FilesHelper.CheckFileAv(FullPath, out pr))
                     {
 
@@ -168,10 +169,10 @@ namespace MedpomService
                         {
                             //Извлекаем файлы из архива
                             var tmpdir = Directory.CreateDirectory($"{AppConfig.Property.ProcessDir}\\tmp");
-                            var t = FilesHelper.FilesExtract(FullPath, tmpdir.FullName);
+                            var t = await FilesHelper.FilesExtract(FullPath, tmpdir.FullName);
                             if (t.Result)
                             {
-                                var mas = tmpdir.GetFiles();
+                                var mas = tmpdir.GetFiles("*.XML");
                                 foreach (var fi in mas)
                                 {
                                     var name = fi.Name;
@@ -179,17 +180,18 @@ namespace MedpomService
                                     {
                                         name = $"{Path.GetFileNameWithoutExtension(name)}1{Path.GetExtension(name)}";
                                     }
+
                                     if (name != fi.Name)
                                         Logger.AddLog($"Произошла замена имени файла из {Name} для {fi.Name} на {name}", LogType.Warning);
                                     FileFromArchive.Add(name.ToUpper());
-                                    File.Move(fi.FullName, $"{AppConfig.Property.IncomingDir}\\{name}");
-
+                                    FilesHelper.MoveFileTo(fi.FullName, $"{AppConfig.Property.IncomingDir}\\{name}");
                                     if (!AppConfig.Property.AUTO)
                                     {
-                                        FileList.Add(new FileListItem { path = $"{AppConfig.Property.IncomingDir}\\{name}", InArchive = true });
+                                        FileList.Add(new FileListItem {path = $"{AppConfig.Property.IncomingDir}\\{name}", InArchive = true});
                                     }
                                 }
-                                Directory.Delete(tmpdir.FullName, true);
+
+                                await FilesHelper.DeleteDirectoryAsync(tmpdir.FullName);
                                 FilesHelper.MoveFileTo(FullPath, Path.Combine(AppConfig.Property.InputDir, "Archive", DateTime.Now.ToString("yyyy_MM_dd"), "MAIL", fp.Ni, Name));
                             }
                             else
@@ -212,6 +214,8 @@ namespace MedpomService
                     Logger.AddLog($"Ошибка в потоке приема архивов({Name}): {ex.Message}", LogType.Error);
                 }
             }
+
+            return true;
         }
 
         /// <summary>
@@ -222,88 +226,97 @@ namespace MedpomService
             CTSThFiles = new CancellationTokenSource();
             while (!CTSThFiles.IsCancellationRequested)
             {
-                if (FileList.Count == 0)
+                try
                 {
-                    Delay(500);
-                    continue;
-                }
-                var Fitem = FileList[0];
-                var name = Path.GetFileName(Fitem.path);
-                var FullPath = Fitem.path;
-                FileList.RemoveAt(0);
-
-                PrichinAv? pr;
-                var flagcontinue = false;
-                while (!FilesHelper.CheckFileAv(FullPath, out pr))
-                {
-                    if (pr.HasValue)
-                        if (pr.Value == PrichinAv.NOT_FOUND)
-                        {
-                            Logger.AddLog($"Не удалось найти файл {FullPath}", LogType.Error);
-                            flagcontinue = true;
-                            break;
-                        }
-                }
-                if (flagcontinue)
-                    continue;
-                var FP = ParseFileName.Parse(name);
-                if (!FP.IsNull)
-                {
-                    if ((FP.Np == "75" && FP.Pp.Value == Penum.T) || (FP.Np == "75003" && FP.Pp.Value == Penum.S))
+                    if (FileList.Count == 0)
                     {
-                        var item = new FileItem
-                        {
-                            FileName = name.ToUpper(),
-                            FilePach = FullPath,
-                            FileLog = null,
-                            Comment = "",
-                            Type = FP.FILE_TYPE.ToFileType(),
-                            Process = StepsProcess.NotInvite,
-                            DateCreate = DateTime.Now,
-                            IsArchive = Fitem.InArchive
-                        };
+                        Delay(500);
+                        continue;
+                    }
 
-                        FM.AddItem(item, FP.Ni);
-                        try
-                        {
-                            if (!item.IsArchive)
+                    var Fitem = FileList[0];
+                    var name = Path.GetFileName(Fitem.path);
+                    var FullPath = Fitem.path;
+                    FileList.RemoveAt(0);
+
+                    PrichinAv? pr;
+                    var flagcontinue = false;
+                    while (!FilesHelper.CheckFileAv(FullPath, out pr))
+                    {
+                        if (pr.HasValue)
+                            if (pr.Value == PrichinAv.NOT_FOUND)
                             {
-                                FilesHelper.CopyFileTo(FullPath, Path.Combine(AppConfig.Property.InputDir, "Archive", DateTime.Now.ToString("yyyy_MM_dd"), "MAIL", FP.Ni, name));
-                                item.IsArchive = true;
+                                Logger.AddLog($"Не удалось найти файл {FullPath}", LogType.Error);
+                                flagcontinue = true;
+                                break;
+                            }
+                    }
+
+                    if (flagcontinue)
+                        continue;
+                    var FP = ParseFileName.Parse(name);
+                    if (!FP.IsNull)
+                    {
+                        if ((FP.Np == "75" && FP.Pp.Value == Penum.T) || (FP.Np == "75003" && FP.Pp.Value == Penum.S))
+                        {
+                            var item = new FileItem
+                            {
+                                FileName = name.ToUpper(),
+                                FilePach = FullPath,
+                                FileLog = null,
+                                Comment = "",
+                                Type = FP.FILE_TYPE.ToFileType(),
+                                Process = StepsProcess.NotInvite,
+                                DateCreate = DateTime.Now,
+                                IsArchive = Fitem.InArchive
+                            };
+
+                            FM.AddItem(item, FP.Ni);
+                            try
+                            {
+                                if (!item.IsArchive)
+                                {
+                                    FilesHelper.CopyFileTo(FullPath, Path.Combine(AppConfig.Property.InputDir, "Archive", DateTime.Now.ToString("yyyy_MM_dd"), "MAIL", FP.Ni, name));
+                                    item.IsArchive = true;
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Logger.AddLog($"Ошибка при копировании в архив{FullPath}: {ex.Message}", LogType.Error);
                             }
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Logger.AddLog($"Ошибка при копировании в архив{FullPath}: {ex.Message}",LogType.Error);
+                            Logger.AddLog($"В файле {name} не верно указана организация-получатель", LogType.Warning);
+                            messageMo.CreateMessage($"В файле {name} не верно указана организация-получатель", Path.Combine(AppConfig.Property.ErrorMessageFile, GetErrorName(FP) + ".zip"), FullPath);
+                            FilesHelper.MoveFileTo(FullPath, Path.Combine(ErrorPath, FP.Ni, name));
                         }
                     }
                     else
                     {
-                        Logger.AddLog($"В файле {name} не верно указана организация-получатель", LogType.Warning);
-                        messageMo.CreateMessage($"В файле {name} не верно указана организация-получатель", Path.Combine(AppConfig.Property.ErrorMessageFile, GetErrorName(FP) + ".zip"), FullPath);
-                        FilesHelper.MoveFileTo(FullPath, Path.Combine(ErrorPath, FP.Ni, name));
+                        try
+                        {
+                            var CODE_MO = "UNKNOWN";
+                            if (FP.Ni != null)
+                            {
+                                CODE_MO = FP.Ni;
+                            }
+
+                            Logger.AddLog($"Имя файла {name} не корректно. Файл не принят в обработку!", LogType.Warning);
+                            messageMo.CreateMessage($"Имя файла {name} не корректно. Файл не принят в обработку!{Environment.NewLine}{FP.ErrText}", Path.Combine(AppConfig.Property.ErrorMessageFile, $"{GetErrorName(FP)}.ZIP"), FullPath);
+                            FilesHelper.MoveFileTo(FullPath, Path.Combine(ErrorPath, CODE_MO, name));
+                        }
+                        catch (Exception ex)
+                        {
+                            Logger.AddLog($"Ошибка при переносе в ErrorPath {FullPath}: {ex.Message}", LogType.Error);
+                        }
                     }
                 }
-                else
+                catch (Exception ex)
                 {
-                    try
-                    {
-                        var CODE_MO = "UNKNOWN";
-                        if (FP.Ni != null)
-                        {
-                            CODE_MO = FP.Ni;
-                        }
-                        Logger.AddLog($"Имя файла {name} не корректно. Файл не принят в обработку!", LogType.Warning);
-                        messageMo.CreateMessage($"Имя файла {name} не корректно. Файл не принят в обработку!{Environment.NewLine}{FP.ErrText}", Path.Combine(AppConfig.Property.ErrorMessageFile, GetErrorName(FP) + ".ZIP"), FullPath);
-                        FilesHelper.MoveFileTo(FullPath, Path.Combine(ErrorPath, CODE_MO, name));
-                    }
-                    catch (Exception ex)
-                    {
-                        Logger.AddLog($"Ошибка при переносе {FullPath}: {ex.Message}", LogType.Error);
-                    }
+                    Logger.AddLog($"Ошибка в потоке приема файлов: {ex.Message}", LogType.Error);
                 }
             }
-
         }
 
         public async void ToArchive(FilePacket fp)
@@ -337,15 +350,19 @@ namespace MedpomService
 
 
         private CancellationTokenSource CTSThArchive;
-        private Task ThArchive;
+        private Task ThArchive { get; set; }
 
 
         public void StartArchiveInviter()
         {
             if(isArchiveInviter())
                 throw new Exception("Поток приема архивов уже запущен");
-            ThArchive = new Task(ArchiveInviter) ;
-            ThArchive.Start();
+
+            CTSThArchive = new CancellationTokenSource();
+            ThArchive = Task.Run(async ()=>
+            {
+                 await ArchiveInviter();
+            });
         }
 
         public void StopArchiveInviter()
@@ -356,10 +373,10 @@ namespace MedpomService
 
         public bool isArchiveInviter()
         {
-            return ThArchive != null && ThArchive.Status == TaskStatus.Running;
+            return ThArchive != null && ThArchive.IsActive();
         }
 
-        private CancellationTokenSource CTSThFiles;
+        private CancellationTokenSource CTSThFiles { get; set; }
         private Task ThFiles;
         public void StartFileInviter()
         {
@@ -378,7 +395,7 @@ namespace MedpomService
 
         public bool isFileInviter()
         {
-            return ThFiles != null && ThFiles.Status == TaskStatus.Running;
+            return ThFiles != null && ThFiles.IsActive();
         }
 
         public void ActivateFileAuto(bool value, string path)

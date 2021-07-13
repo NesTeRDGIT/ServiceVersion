@@ -423,9 +423,6 @@ namespace ClientServiceWPF
     public class PRINT_FILE_XLSXVM : INotifyPropertyChanged
     {
         public ObservableCollection<FilePrintXLS> FilePrintXLS { get; set; } = new ObservableCollection<FilePrintXLS>();
-
-
-
         public ICommand RemoveItemsCommand => new Command(o =>
         {
             var sel = (List<FilePrintXLS>)o;

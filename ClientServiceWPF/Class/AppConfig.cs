@@ -51,6 +51,7 @@ namespace ClientServiceWPF.Class
         public string xml_h_ds2 { get; set; }
         public string xml_h_ds3 { get; set; }
         public string xml_h_crit { get; set; }
+        public string xml_h_mr_usl_n { get;  set; }
     }
 
 

@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -20,6 +23,7 @@ using ClientServiceWPF.MEK_RESULT;
 using ClientServiceWPF.MEK_RESULT.ACTMEK;
 using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData;
+using ServiceLoaderMedpomData.Annotations;
 using Application = System.Windows.Application;
 using MessageBox = System.Windows.MessageBox;
 
@@ -28,51 +32,20 @@ namespace ClientServiceWPF
     /// <summary>
     /// Логика взаимодействия для Setting.xaml
     /// </summary>
-    public partial class Setting : Window
+    public partial class Setting : Window,INotifyPropertyChanged
     {
+        public SettingVM VM { get; set; } = new SettingVM(LoginForm.wcf);
         private IWcfInterface wcf => LoginForm.wcf;
-
-        private SchemaCollection sc;
-        private SchemaCollection sc_local;
-        
-        private CollectionViewSource CVSSchemaElementValue;
-        private CollectionViewSource CVSTableItems;
-        private CollectionViewSource CVSTableItemsLOCAL;
-        private CollectionViewSource CVSSeqItemsLOCAL;
-
-        private CollectionViewSource CVSTableItemsTRANS;
-        private CollectionViewSource CVSCheckTableName;
-        private CollectionViewSource CVSOrclProcedure;
-        private CollectionViewSource CVSSchemaElementValueLocal;
-        private bool OnlyLocal;
-
-
-        CheckingList checList = new CheckingList();
-
+        private bool OnlyLocal { get; set; }
         public Setting(bool OnlyLocal)
         {
             InitializeComponent();
             this.OnlyLocal = OnlyLocal;
-            CVSSchemaElementValue = (CollectionViewSource) FindResource("CVSSchemaElementValue");
-            CVSTableItems = (CollectionViewSource) FindResource("CVSTableItems");
-            CVSTableItemsLOCAL = (CollectionViewSource)FindResource("CVSTableItemsLOCAL");
-            CVSSeqItemsLOCAL = (CollectionViewSource)FindResource("CVSSeqItemsLOCAL");
 
-            CVSTableItemsTRANS = (CollectionViewSource) FindResource("CVSTableItemsTRANS");
-            CVSOrclProcedure = (CollectionViewSource) FindResource("CVSOrclProcedure");
-            CVSCheckTableName = (CollectionViewSource) FindResource("CVSCheckTableName");
-            CVSSchemaElementValueLocal = (CollectionViewSource)FindResource("CVSSchemaElementValueLocal");
         }
 
         void BlockTabs()
         {
-            TabItemFolder.IsEnabled = !OnlyLocal;
-            TabItemSchemaServer.IsEnabled = !OnlyLocal;
-            TabItemConnectServer.IsEnabled = !OnlyLocal;
-            TabItemTableServer.IsEnabled = !OnlyLocal;
-            TabItemTransfer.IsEnabled = !OnlyLocal;
-            textBoxTimeAwait.IsEnabled = !OnlyLocal;
-            textBoxISP.IsEnabled = !OnlyLocal;
             foreach (TabItem tab in TabControl.Items)
             {
                 if (tab.IsEnabled)
@@ -86,1078 +59,107 @@ namespace ClientServiceWPF
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
+            VM.LoadParam(OnlyLocal);
+            VM.OnClosed += VM_OnClosed;
             BlockTabs();
-            if (!OnlyLocal)
-            {
-                WriteServerConnect();
-                CreateTableItems();
-                CreateTableItemsTRANS();
-                WriteFolder();
-                WriteSchema();
-                WriteCheckList();
-                ButtonLoadCheckFromServer_Click(ButtonLoadCheckFromServer, new RoutedEventArgs());
-            }
-            SetStaticParam();
-            WriteLocalConnect();
-            CreateTableItemsLOCAL();
-            WriteSchemaLOCAL();
         }
 
-        public List<TableName> CheckTableName { get; set; } = new List<TableName>();
-
-        private void WriteCheckList()
-        {
-            CheckTableName.Clear();
-            CheckTableName.AddRange(checList.GeTableNames());
-            CVSCheckTableName.View.Refresh();
-        }
-        private void SetStaticParam()
-        {
-            checkBoxIsVirtualPath.IsChecked = Properties.Settings.Default.ISVIRTUALPATH;
-            textBoxVirtualPath.Text = Properties.Settings.Default.VIRTUALPATH;
-        }
-        private void GetStaticParam()
-        {
-            Properties.Settings.Default.ISVIRTUALPATH = checkBoxIsVirtualPath.IsChecked == true;
-            Properties.Settings.Default.VIRTUALPATH = textBoxVirtualPath.Text;
-        }
-        private void WriteSchema()
-        {
-            foreach (var ft in (FileType[]) Enum.GetValues(typeof(FileType)))
-            {
-                listBoxTypeSchema.Items.Add(ft);
-            }
-
-            sc = wcf.GetSchemaCollection();
-
-            foreach (var ver in sc.Versions)
-            {
-                comboBoxVersionSc.Items.Add(ver);
-            }
-
-            if (comboBoxVersionSc.Items.Count != 0)
-                comboBoxVersionSc.SelectedIndex = 0;
-            listBoxTypeSchema.SelectedIndex = 0;
-        }
-        private static string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
-        private void WriteSchemaLOCAL()
-        {
-            foreach (var ft in (FileType[])Enum.GetValues(typeof(FileType)))
-            {
-                listBoxTypeSchemaLOCAL.Items.Add(ft);
-            }
-
-            sc_local = new SchemaCollection();
-            if (File.Exists(System.IO.Path.Combine(LocalFolder, "SANK_INVITER_SCHEMA.dat")))
-                sc_local.LoadFromFile(System.IO.Path.Combine(LocalFolder, "SANK_INVITER_SCHEMA.dat"));
-
-            foreach (var ver in sc_local.Versions)
-            {
-                comboBoxVersionScLOCAL.Items.Add(ver);
-            }
-
-            if (comboBoxVersionScLOCAL.Items.Count != 0)
-                comboBoxVersionScLOCAL.SelectedIndex = 0;
-            listBoxTypeSchemaLOCAL.SelectedIndex = 0;
-        }
-        private void WriteFolder()
-        {
-            var set = wcf.GetSettingsFolder();
-            textBoxIncomingDir.Text = set.IncomingDir;
-            textBoxInputDir.Text = set.InputDir;
-            textBoxErrorDir.Text = set.ErrorDir;
-            textBoxProcessDir.Text = set.ProcessDir;
-            textBoxErrorMessageFile.Text = set.ErrorMessageFile;
-            textBoxAddDIRInERROR.Text = set.AddDIRInERROR;
-            textBoxTimeAwait.Text = set.TimePacketOpen.ToString();
-            textBoxISP.Text = set.ISP;
-        }
-        private SettingsFolder ReadFolder()
-        {
-            var set = new SettingsFolder();
-            set.IncomingDir = textBoxIncomingDir.Text;
-            set.InputDir = textBoxInputDir.Text;
-            set.ErrorDir = textBoxErrorDir.Text;
-            set.ProcessDir = textBoxProcessDir.Text;
-            set.ErrorMessageFile = textBoxErrorMessageFile.Text;
-            set.AddDIRInERROR = textBoxAddDIRInERROR.Text;
-            set.TimePacketOpen = Convert.ToInt32(textBoxTimeAwait.Text);
-            set.ISP = textBoxISP.Text;
-            return set;
-        }
-        string ReadLocalConnect()
-        {
-            var conn = new OracleConnectionStringBuilder();
-            conn.DataSource = $"{textBoxHOSTORA.Text}:{textBoxPORTORA.Text}/{textBoxBDORA.Text}";
-            conn.UserID = textBoxLOGORA.Text;
-            conn.Password = passwordBoxPASSORA.Password;
-            conn.DBAPrivilege = comboBoxPRIVORA.Text.In("SYSOPER", "SYSDBA") ? comboBoxPRIVORA.Text : "";
-            return conn.ConnectionString;
-        }
-        string ReadServerConnect()
-        {
-            var conn = new OracleConnectionStringBuilder();
-            conn.DataSource = $"{textBoxHOSTORA_SERVER.Text}:{textBoxPORTORA_SERVER.Text}/{textBoxBDORA_SERVER.Text}";
-            conn.UserID = textBoxLOGORA_SERVER.Text;
-            conn.Password = passwordBoxPASSORA_SERVER.Password;
-            conn.DBAPrivilege = comboBoxPRIVORA_SERVER.Text.In("SYSOPER", "SYSDBA") ? comboBoxPRIVORA_SERVER.Text : "";
-            return conn.ConnectionString;
-        }
-        void WriteLocalConnect()
-        {
-            var sr = ServerRef.ParseDataSource(AppConfig.Property.ConnectionString);
-            textBoxLOGORA.Text = sr.UserID;
-            passwordBoxPASSORA.Password = sr.Password;
-            comboBoxPRIVORA.Text = sr.DBAPrivilege;
-            textBoxHOSTORA.Text = sr.HOST;
-            textBoxPORTORA.Text = sr.PORT;
-            textBoxBDORA.Text = sr.BD;
-        }
-        void WriteServerConnect()
-        {
-            var set = wcf.GetSettingConnect();
-            
-            var sr = ServerRef.ParseDataSource(set.ConnectingString);
-            textBoxLOGORA_SERVER.Text = sr.UserID;
-            passwordBoxPASSORA_SERVER.Password = sr.Password;
-            comboBoxPRIVORA_SERVER.Text = sr.DBAPrivilege;
-            textBoxHOSTORA_SERVER.Text = sr.HOST;
-            textBoxPORTORA_SERVER.Text = sr.PORT;
-            textBoxBDORA_SERVER.Text = sr.BD;
-        }
-
-
-
-
-
-
-
-        private void buttonORA_OK_Click(object sender, RoutedEventArgs e)
-        {
-            AppConfig.Property.ConnectionString = ReadLocalConnect();
-           
-        }
-
-        private void buttonORA_Return_Click(object sender, RoutedEventArgs e)
-        {
-            WriteLocalConnect();
-        }
-
-        private void buttonORATEST_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var con = new OracleConnection(ReadLocalConnect());
-                con.Open();
-                con.Close();
-                imageORATEST.Source = new BitmapImage(new Uri("Image/button_ok.png", UriKind.Relative));
-                textBlockORA.Text = "Подключение успешно";
-                textBlockORA.Foreground = Brushes.LimeGreen;
-                System.Media.SystemSounds.Asterisk.Play();
-            }
-            catch (Exception ex)
-            {
-                imageORATEST.Source = new BitmapImage(new Uri("Image/error.png", UriKind.Relative));
-                textBlockORA.Text = "Ошибка подключения" + Environment.NewLine + ex.Message;
-                textBlockORA.Foreground = Brushes.Red;
-                System.Media.SystemSounds.Exclamation.Play();
-            }
-        }
-
-       
-
-        private void textBoxPORTORA_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            int o;
-            if (!int.TryParse(textBoxPORTORA.Text, out o))
-            {
-                e.Handled = true;
-            }
-        }
-
-        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
-        {
-           
-        }
-
-        private void ButtonIncomingDir_Click(object sender, RoutedEventArgs e)
-        {
-            var di = new RemoteFolderDialog(textBoxIncomingDir.Text, true);
-            if (di.ShowDialog() == true)
-            {
-                textBoxIncomingDir.Text =  di.selectpath;
-            }
-        }
-
-        private void ButtonInputDir_Click(object sender, RoutedEventArgs e)
-        {
-            var di = new RemoteFolderDialog(textBoxInputDir.Text, true);
-            if (di.ShowDialog() == true)
-            {
-                textBoxInputDir.Text =  di.selectpath;
-            }
-        }
-
-        private void ButtonErrorDir_Click(object sender, RoutedEventArgs e)
-        {
-            var di = new RemoteFolderDialog(textBoxErrorDir.Text, true);
-            if (di.ShowDialog() == true)
-            {
-                textBoxErrorDir.Text =  di.selectpath;
-            }
-        }
-
-        private void ButtonProcessDir_Click(object sender, RoutedEventArgs e)
-        {
-            var di = new RemoteFolderDialog(textBoxProcessDir.Text, true);
-            if (di.ShowDialog() == true)
-            {
-                textBoxProcessDir.Text = di.selectpath;
-            }
-        }
-
-        private void ButtonErrorMessageFile_Click(object sender, RoutedEventArgs e)
-        {
-            var di = new RemoteFolderDialog(textBoxErrorMessageFile.Text, true);
-            if (di.ShowDialog() == true)
-            {
-                textBoxErrorMessageFile.Text =  di.selectpath;
-            }
-        }
-
-        private void ButtonAddDIRInERROR_Click(object sender, RoutedEventArgs e)
-        {
-            var di = new RemoteFolderDialog(textBoxAddDIRInERROR.Text, true);
-            if (di.ShowDialog() == true)
-            {
-                textBoxAddDIRInERROR.Text = di.selectpath;
-            }
-            
-        }
-        VersionMP version = VersionMP.V2_1;
-        private void comboBoxVersionSc_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (comboBoxVersionSc.SelectedItem != null)
-            {
-                version = (VersionMP)comboBoxVersionSc.SelectedItem;
-                RefreshLBZglvVers();
-                UpdatedataGrid();
-            }
-        }
-
-        void RefreshLBZglvVers()
-        {
-            listBoxVers.Items.Clear();
-            if (sc.ContainsVersion(version))
-            {
-                foreach (string val in sc[version].VersionsZGLV)
-                {
-                    listBoxVers.Items.Add(val);
-                }
-            }
-        }
-
-
-       
-
-        private void button_Click(object sender, RoutedEventArgs e)
-        {
-            if (sc.ContainsVersion(version))
-            {
-                sc[version].VersionsZGLV.Add(textBoxNewVers.Text.ToUpper().Trim());
-                RefreshLBZglvVers();
-            }
-        }
-
-        private void listBoxTypeSchema_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            UpdatedataGrid();
-        }
-
-
-        void UpdatedataGrid()
-        {
-            if (listBoxTypeSchema.SelectedIndex != -1)
-                SetSchemaSet(sc[version, (FileType)listBoxTypeSchema.SelectedIndex]);
-        }
-
-        void SetSchemaSet(List<SchemaElementValue> val)
-        {
-            CVSSchemaElementValue.Source = val;
-        }
-        private List<FileType> selectedTypeSchema => listBoxTypeSchema.SelectedItems.Cast<FileType>().ToList();
-        private void MenuItem_Click_3(object sender, RoutedEventArgs e)
-        {
-            if (selectedTypeSchema.Count != 0)
-            {
-                var win = new NewSchemaItem(false);
-                if (win.ShowDialog() == true)
-                {
-                    foreach (var item in selectedTypeSchema)
-                    {
-                        try
-                        {
-                            sc[version].AddAndCheck(item,new SchemaElementValue { DATE_B = win.DATE_B, DATE_E = win.DATE_E, Value = win.PATH });
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($@"Не удалось добавить схему к файлу {item} версии {version} по причине: {ex.Message}");
-                        }
-
-                    }
-
-                    CVSSchemaElementValue.View.Refresh();
-                }
-            }
-        }
-
-        private void MenuItem_Click_4(object sender, RoutedEventArgs e)
-        {
-            if (selectedTypeSchema.Count != 0)
-            {
-                foreach (var item in selectedTypeSchema)
-                {
-                    try
-                    {
-                        sc[version].ClearSchema(item);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(
-                            $@"Не удалось добавить схему к файлу {item} версии {version} по причине: {ex.Message}");
-                    }
-                }
-                CVSSchemaElementValue.View.Refresh();
-            }
-        }
-
-        private void MenuItem_Click_2(object sender, RoutedEventArgs e)
-        {
-            if (listBoxVers.SelectedItem != null)
-            {
-                sc[version].VersionsZGLV.Remove(listBoxVers.SelectedItem.ToString());
-                RefreshLBZglvVers();
-            }
-        }
-
-
-        private string GetTableItems(TableItemType type)
-        {
-           return TableItems.FirstOrDefault(x => x.Type == type)?.TableName??"";
-        }
-        public List<TableItem> TableItems { get; set; } = new List<TableItem>();
-
-        private void CreateTableItems()
-        {
-            var setCon = wcf.GetSettingConnect();
-            TableItems.Clear();
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_zglv, Type = TableItemType.XML_H_ZGLV });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_schet, Type = TableItemType.XML_H_SCHET });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_zap, Type = TableItemType.XML_H_ZAP });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_pacient, Type = TableItemType.XML_H_PACIENT });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_z_sluch, Type = TableItemType.XML_H_Z_SLUCH });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_sank_smo, Type = TableItemType.XML_H_SANK_SMO });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_sank_code_exp, Type = TableItemType.XML_H_SANK_CODE_EXP });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_sluch, Type = TableItemType.XML_H_SLUCH });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_kslp, Type = TableItemType.XML_H_KSLP });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_crit, Type = TableItemType.XML_H_CRIT });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_napr, Type = TableItemType.XML_H_NAPR });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_b_diag, Type = TableItemType.XML_H_B_DIAG });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_b_prot, Type = TableItemType.XML_H_B_PROT });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_cons, Type = TableItemType.XML_H_CONS });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_ds2, Type = TableItemType.XML_H_DS2 });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_ds3, Type = TableItemType.XML_H_DS3 });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_ds2_n, Type = TableItemType.XML_H_DS2_N });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_nazr, Type = TableItemType.XML_H_NAZR });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_onk_usl, Type = TableItemType.XML_H_ONK_USL });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_lek_pr, Type = TableItemType.XML_H_LEK_PR });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_lek_pr_date_inj, Type = TableItemType.XML_H_LEK_PR_DATE_INJ });
-            TableItems.Add(new TableItem { TableName = setCon.xml_h_usl, Type = TableItemType.XML_H_USL });
-            TableItems.Add(new TableItem { TableName = setCon.xml_l_zglv, Type = TableItemType.XML_L_ZGLV });
-            TableItems.Add(new TableItem { TableName = setCon.xml_l_pers, Type = TableItemType.XML_L_PERS });
-            TableItems.Add(new TableItem { TableName = setCon.v_xml_error, Type = TableItemType.V_XML_ERROR });
-            CVSTableItems.View.Refresh();
-            textBoxTableOwner.Text = setCon.schemaOracle;
-        }
-        private SettingConnect ReadTableItems()
-        {
-            var setCon = new SettingConnect();
-            setCon.schemaOracle = textBoxTableOwner.Text;
-            setCon.xml_h_zglv = GetTableItems(TableItemType.XML_H_ZGLV);
-            setCon.xml_h_schet = GetTableItems(TableItemType.XML_H_SCHET);
-            setCon.xml_h_zap = GetTableItems(TableItemType.XML_H_ZAP);
-            setCon.xml_h_pacient = GetTableItems(TableItemType.XML_H_PACIENT);
-            setCon.xml_h_z_sluch = GetTableItems(TableItemType.XML_H_Z_SLUCH);
-            setCon.xml_h_sank_smo = GetTableItems(TableItemType.XML_H_SANK_SMO);
-            setCon.xml_h_sank_code_exp = GetTableItems(TableItemType.XML_H_SANK_CODE_EXP);
-            setCon.xml_h_sluch = GetTableItems(TableItemType.XML_H_SLUCH);
-            setCon.xml_h_kslp = GetTableItems(TableItemType.XML_H_KSLP);
-            setCon.xml_h_crit = GetTableItems(TableItemType.XML_H_CRIT);
-            setCon.xml_h_napr = GetTableItems(TableItemType.XML_H_NAPR);
-            setCon.xml_h_b_diag = GetTableItems(TableItemType.XML_H_B_DIAG);
-            setCon.xml_h_b_prot = GetTableItems(TableItemType.XML_H_B_PROT);
-            setCon.xml_h_cons = GetTableItems(TableItemType.XML_H_CONS);
-            setCon.xml_h_ds2 = GetTableItems(TableItemType.XML_H_DS2);
-            setCon.xml_h_ds3 = GetTableItems(TableItemType.XML_H_DS3);
-            setCon.xml_h_ds2_n = GetTableItems(TableItemType.XML_H_DS2_N);
-            setCon.xml_h_nazr = GetTableItems(TableItemType.XML_H_NAZR);
-            setCon.xml_h_onk_usl = GetTableItems(TableItemType.XML_H_ONK_USL);
-            setCon.xml_h_lek_pr = GetTableItems(TableItemType.XML_H_LEK_PR);
-            setCon.xml_h_lek_pr_date_inj = GetTableItems(TableItemType.XML_H_LEK_PR_DATE_INJ);
-            setCon.xml_h_usl = GetTableItems(TableItemType.XML_H_USL);
-            setCon.xml_l_zglv = GetTableItems(TableItemType.XML_L_ZGLV);
-            setCon.xml_l_pers = GetTableItems(TableItemType.XML_L_PERS);
-            setCon.v_xml_error = GetTableItems(TableItemType.V_XML_ERROR);
-            return setCon;
-        }
-
-     
-        private string GetTableItemsLOCAL(TableItemType type)
-        {
-            return TableItemsLOCAL.FirstOrDefault(x => x.Type == type)?.TableName ?? "";
-        }
-        public List<TableItem> TableItemsLOCAL { get; set; } = new List<TableItem>();
-
-
-        private string GetSeqItemsLOCAL(TableItemType type)
-        {
-            return SeqItemsLOCAL.FirstOrDefault(x => x.Type == type)?.TableName ?? "";
-        }
-        public List<TableItem> SeqItemsLOCAL { get; set; } = new List<TableItem>();
-
-        private void CreateTableItemsLOCAL()
-        {
-           
-            TableItemsLOCAL.Clear();
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_zglv, Type = TableItemType.XML_H_ZGLV });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_schet, Type = TableItemType.XML_H_SCHET });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_zap, Type = TableItemType.XML_H_ZAP });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_pacient, Type = TableItemType.XML_H_PACIENT });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_z_sluch, Type = TableItemType.XML_H_Z_SLUCH });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_sank, Type = TableItemType.XML_H_SANK_SMO });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_code_exp, Type = TableItemType.XML_H_SANK_CODE_EXP });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_sluch, Type = TableItemType.XML_H_SLUCH });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_kslp, Type = TableItemType.XML_H_KSLP });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_crit, Type = TableItemType.XML_H_CRIT });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_napr, Type = TableItemType.XML_H_NAPR });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_b_diag, Type = TableItemType.XML_H_B_DIAG });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_b_prot, Type = TableItemType.XML_H_B_PROT });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_cons, Type = TableItemType.XML_H_CONS });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_ds2, Type = TableItemType.XML_H_DS2 });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_ds3, Type = TableItemType.XML_H_DS3 });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_ds2_n, Type = TableItemType.XML_H_DS2_N });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_nazr, Type = TableItemType.XML_H_NAZR });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_onk_usl, Type = TableItemType.XML_H_ONK_USL });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_lek_pr, Type = TableItemType.XML_H_LEK_PR });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_date_inj, Type = TableItemType.XML_H_LEK_PR_DATE_INJ });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_h_usl, Type = TableItemType.XML_H_USL });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_l_zglv, Type = TableItemType.XML_L_ZGLV });
-            TableItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.xml_l_pers, Type = TableItemType.XML_L_PERS });
-            textBoxTableOwnerLOCAL.Text = AppConfig.Property.schemaOracle;
-
-
-            SeqItemsLOCAL.Clear();
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_ZGLV, Type = TableItemType.seq_ZGLV });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_SCHET, Type = TableItemType.seq_SCHET });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_ZAP, Type = TableItemType.seq_ZAP });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_PACIENT, Type = TableItemType.seq_PACIENT });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_z_sluch, Type = TableItemType.seq_z_sluch });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_SANK, Type = TableItemType.seq_SANK });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_SLUCH, Type = TableItemType.seq_SLUCH });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_USL, Type = TableItemType.seq_USL });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_L_ZGLV, Type = TableItemType.seq_L_ZGLV });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_L_pers, Type = TableItemType.seq_L_pers });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_xml_h_onk_usl, Type = TableItemType.seq_xml_h_onk_usl });
-            SeqItemsLOCAL.Add(new TableItem { TableName = AppConfig.Property.seq_xml_h_lek_pr, Type = TableItemType.seq_xml_h_lek_pr });
-
-
-            CVSTableItemsLOCAL.View.Refresh();
-            CVSSeqItemsLOCAL.View.Refresh();
-
-        }
-        private void ReadTableItemsLOCAL()
-        {
-            AppConfig.Property.xml_h_zglv = GetTableItemsLOCAL(TableItemType.XML_H_ZGLV);
-            AppConfig.Property.xml_h_schet = GetTableItemsLOCAL(TableItemType.XML_H_SCHET);
-            AppConfig.Property.xml_h_zap = GetTableItemsLOCAL(TableItemType.XML_H_ZAP);
-            AppConfig.Property.xml_h_pacient = GetTableItemsLOCAL(TableItemType.XML_H_PACIENT);
-            AppConfig.Property.xml_h_z_sluch = GetTableItemsLOCAL(TableItemType.XML_H_Z_SLUCH);
-            AppConfig.Property.xml_h_sank = GetTableItemsLOCAL(TableItemType.XML_H_SANK_SMO);
-            AppConfig.Property.xml_h_code_exp = GetTableItemsLOCAL(TableItemType.XML_H_SANK_CODE_EXP);
-            AppConfig.Property.xml_h_sluch = GetTableItemsLOCAL(TableItemType.XML_H_SLUCH);
-            AppConfig.Property.xml_h_kslp = GetTableItemsLOCAL(TableItemType.XML_H_KSLP);
-            AppConfig.Property.xml_h_crit = GetTableItemsLOCAL(TableItemType.XML_H_CRIT);
-            AppConfig.Property.xml_h_napr = GetTableItemsLOCAL(TableItemType.XML_H_NAPR);
-            AppConfig.Property.xml_h_b_diag = GetTableItemsLOCAL(TableItemType.XML_H_B_DIAG);
-            AppConfig.Property.xml_h_b_prot = GetTableItemsLOCAL(TableItemType.XML_H_B_PROT);
-            AppConfig.Property.xml_h_cons = GetTableItemsLOCAL(TableItemType.XML_H_CONS);
-            AppConfig.Property.xml_h_ds2 = GetTableItemsLOCAL(TableItemType.XML_H_DS2);
-            AppConfig.Property.xml_h_ds3 = GetTableItemsLOCAL(TableItemType.XML_H_DS3);
-            AppConfig.Property.xml_h_ds2_n = GetTableItemsLOCAL(TableItemType.XML_H_DS2_N);
-            AppConfig.Property.xml_h_nazr = GetTableItemsLOCAL(TableItemType.XML_H_NAZR);
-            AppConfig.Property.xml_h_onk_usl = GetTableItemsLOCAL(TableItemType.XML_H_ONK_USL);
-            AppConfig.Property.xml_h_lek_pr = GetTableItemsLOCAL(TableItemType.XML_H_LEK_PR);
-            AppConfig.Property.xml_h_date_inj = GetTableItemsLOCAL(TableItemType.XML_H_LEK_PR_DATE_INJ);
-            AppConfig.Property.xml_h_usl = GetTableItemsLOCAL(TableItemType.XML_H_USL);
-            AppConfig.Property.xml_l_zglv = GetTableItemsLOCAL(TableItemType.XML_L_ZGLV);
-            AppConfig.Property.xml_l_pers = GetTableItemsLOCAL(TableItemType.XML_L_PERS);
-            AppConfig.Property.schemaOracle = textBoxTableOwnerLOCAL.Text;
-
-
-            AppConfig.Property.seq_ZGLV = GetSeqItemsLOCAL(TableItemType.seq_ZGLV);
-            AppConfig.Property.seq_SCHET = GetSeqItemsLOCAL(TableItemType.seq_SCHET);
-            AppConfig.Property.seq_ZAP = GetSeqItemsLOCAL(TableItemType.seq_ZAP);
-            AppConfig.Property.seq_PACIENT = GetSeqItemsLOCAL(TableItemType.seq_PACIENT);
-            AppConfig.Property.seq_z_sluch = GetSeqItemsLOCAL(TableItemType.seq_z_sluch);
-            AppConfig.Property.seq_SANK = GetSeqItemsLOCAL(TableItemType.seq_SANK);
-            AppConfig.Property.seq_SLUCH = GetSeqItemsLOCAL(TableItemType.seq_SLUCH);
-            AppConfig.Property.seq_USL = GetSeqItemsLOCAL(TableItemType.seq_USL);
-            AppConfig.Property.seq_L_ZGLV = GetSeqItemsLOCAL(TableItemType.seq_L_ZGLV);
-            AppConfig.Property.seq_L_pers = GetSeqItemsLOCAL(TableItemType.seq_L_pers);
-            AppConfig.Property.seq_xml_h_onk_usl = GetSeqItemsLOCAL(TableItemType.seq_xml_h_onk_usl);
-            AppConfig.Property.seq_xml_h_lek_pr = GetSeqItemsLOCAL(TableItemType.seq_xml_h_lek_pr);
-        }
-        private string GetTableItemsTRANS(TableItemType type)
-        {
-            return TableItemsTRANS.FirstOrDefault(x => x.Type == type)?.TableName ?? "";
-        }
-        public List<TableItem> TableItemsTRANS { get; set; } = new List<TableItem>();
-        private void CreateTableItemsTRANS()
-        {
-            var setTrans = wcf.GetSettingTransfer();
-            TableItemsTRANS.Clear();
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_zglv, Type = TableItemType.XML_H_ZGLV });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_schet, Type = TableItemType.XML_H_SCHET });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_zap, Type = TableItemType.XML_H_ZAP });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_pacient, Type = TableItemType.XML_H_PACIENT });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_z_sluch, Type = TableItemType.XML_H_Z_SLUCH });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_sank_smo, Type = TableItemType.XML_H_SANK_SMO });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_sank_code_exp, Type = TableItemType.XML_H_SANK_CODE_EXP });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_sluch, Type = TableItemType.XML_H_SLUCH });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_kslp, Type = TableItemType.XML_H_KSLP });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_crit, Type = TableItemType.XML_H_CRIT });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_napr, Type = TableItemType.XML_H_NAPR });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_b_diag, Type = TableItemType.XML_H_B_DIAG });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_b_prot, Type = TableItemType.XML_H_B_PROT });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_cons, Type = TableItemType.XML_H_CONS });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_ds2, Type = TableItemType.XML_H_DS2 });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_ds3, Type = TableItemType.XML_H_DS3 });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_ds2_n_transfer, Type = TableItemType.XML_H_DS2_N });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_nazr_transfer, Type = TableItemType.XML_H_NAZR });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_onk_usl, Type = TableItemType.XML_H_ONK_USL });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_lek_pr, Type = TableItemType.XML_H_LEK_PR });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_lek_pr_date_inj, Type = TableItemType.XML_H_LEK_PR_DATE_INJ });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_h_usl, Type = TableItemType.XML_H_USL });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_l_zglv, Type = TableItemType.XML_L_ZGLV });
-            TableItemsTRANS.Add(new TableItem { TableName = setTrans.xml_l_pers, Type = TableItemType.XML_L_PERS });
-         
-            CVSTableItemsTRANS.View.Refresh();
-            textBoxTRANSOwner.Text = setTrans.schemaOracle;
-            CheckBoxEnableTRANS.IsChecked = setTrans.Transfer;
-        }
-
-        private SettingTransfer ReadTableItemsTRANS()
-        {
-            var setTrans = new SettingTransfer();
-            setTrans.schemaOracle = textBoxTableOwner.Text;
-            setTrans.Transfer = CheckBoxEnableTRANS.IsChecked == true;
-            setTrans.xml_h_zglv = GetTableItemsTRANS(TableItemType.XML_H_ZGLV);
-            setTrans.xml_h_schet = GetTableItemsTRANS(TableItemType.XML_H_SCHET);
-            setTrans.xml_h_zap = GetTableItemsTRANS(TableItemType.XML_H_ZAP);
-            setTrans.xml_h_pacient = GetTableItemsTRANS(TableItemType.XML_H_PACIENT);
-            setTrans.xml_h_z_sluch = GetTableItemsTRANS(TableItemType.XML_H_Z_SLUCH);
-            setTrans.xml_h_sank_smo = GetTableItemsTRANS(TableItemType.XML_H_SANK_SMO);
-            setTrans.xml_h_sank_code_exp = GetTableItemsTRANS(TableItemType.XML_H_SANK_CODE_EXP);
-            setTrans.xml_h_sluch = GetTableItemsTRANS(TableItemType.XML_H_SLUCH);
-            setTrans.xml_h_kslp = GetTableItemsTRANS(TableItemType.XML_H_KSLP);
-            setTrans.xml_h_crit = GetTableItemsTRANS(TableItemType.XML_H_CRIT);
-            setTrans.xml_h_napr = GetTableItemsTRANS(TableItemType.XML_H_NAPR);
-            setTrans.xml_h_b_diag = GetTableItemsTRANS(TableItemType.XML_H_B_DIAG);
-            setTrans.xml_h_b_prot = GetTableItemsTRANS(TableItemType.XML_H_B_PROT);
-            setTrans.xml_h_cons = GetTableItemsTRANS(TableItemType.XML_H_CONS);
-            setTrans.xml_h_ds2 = GetTableItemsTRANS(TableItemType.XML_H_DS2);
-            setTrans.xml_h_ds3 = GetTableItemsTRANS(TableItemType.XML_H_DS3);
-            setTrans.xml_h_ds2_n_transfer = GetTableItemsTRANS(TableItemType.XML_H_DS2_N);
-            setTrans.xml_h_nazr_transfer = GetTableItemsTRANS(TableItemType.XML_H_NAZR);
-            setTrans.xml_h_onk_usl = GetTableItemsTRANS(TableItemType.XML_H_ONK_USL);
-            setTrans.xml_h_lek_pr = GetTableItemsTRANS(TableItemType.XML_H_LEK_PR);
-            setTrans.xml_h_lek_pr_date_inj = GetTableItemsTRANS(TableItemType.XML_H_LEK_PR_DATE_INJ);
-            setTrans.xml_h_usl = GetTableItemsTRANS(TableItemType.XML_H_USL);
-            setTrans.xml_l_zglv = GetTableItemsTRANS(TableItemType.XML_L_ZGLV);
-            setTrans.xml_l_pers = GetTableItemsTRANS(TableItemType.XML_L_PERS);
-            return setTrans;
-        }
-        private void ButtonCheckTable_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var set = ReadTableItems();
-                var tblrez = wcf.GetTableServer(set.schemaOracle);
-                if (tblrez.Result == null)
-                {
-                    throw new Exception(tblrez.Exception);
-                }
-
-                foreach (var tbl in TableItems)
-                {
-                    tbl.Check = tblrez.Result.Select($"TABLE_NAME = '{tbl.TableName.ToUpper()}'").Length != 0;
-                }
-                CVSTableItems.View.Refresh();
-                System.Media.SystemSounds.Asterisk.Play();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-          
-        }
-
-        private void ButtonCheckTRANS_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var set = ReadTableItemsTRANS();
-                var tblrez = wcf.GetTableServer(set.schemaOracle);
-                if (tblrez.Result == null)
-                {
-                    throw new Exception(tblrez.Exception);
-                }
-
-                foreach (var tbl in TableItemsTRANS)
-                {
-                    tbl.Check = tblrez.Result.Select($"TABLE_NAME = '{tbl.TableName.ToUpper()}'").Length != 0;
-                }
-                CVSTableItemsTRANS.View.Refresh();
-                System.Media.SystemSounds.Asterisk.Play();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-
-        }
-
-        private void buttonBrouseVirtualPath_Click(object sender, RoutedEventArgs e)
-        {
-            var fbd = new FolderBrowserDialog();
-            if (fbd.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                textBoxVirtualPath.Text = fbd.SelectedPath;
-                
-            }
-        }
-        TableName? CurrentCheckTableName => (TableName?) ListBoxCheckTableName.SelectedItem;
-        List<TableName> SelectedCheckTableName => ListBoxCheckTableName.SelectedItems.Cast<TableName>().ToList();
-        private void ListBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            refreshListViewChek_ALL();
-        }
-
-        void refreshListViewChek_ALL()
-        {
-            var select = CurrentCheckTableName;
-            if (select.HasValue)
-            {
-                CVSOrclProcedure.Source = checList[select.Value];
-                CVSOrclProcedure.View.Refresh();
-            }
-        }
-        private void ButtonAddPacket_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var select = CurrentCheckTableName;
-                if (select.HasValue)
-                {
-                    checList.AddList(select.Value, wcf.GetProcedureFromPack(TextBoxAddPack.Text));
-                    refreshListViewChek_ALL();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private OpenFileDialog openFileDialog1 = new OpenFileDialog{Filter = @"Файл проверок(CheckListFile(*.clf))|*.clv"}; 
-        private void ButtonLoadCheckFromFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (openFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-            {
-                var res = checList.LoadToFile(openFileDialog1.FileName);
-                if (res == false) MessageBox.Show("Не удалось загрузить файл!");
-                refreshListViewChek_ALL();
-            }
-        }
-        private SaveFileDialog saveFileDialog1 = new SaveFileDialog { Filter = @"Файл проверок(CheckListFile(*.clf))|*.clv" };
-        private void ButtonSaveCheckInFile_Click(object sender, RoutedEventArgs e)
-        {
-            if (saveFileDialog1.ShowDialog() == System.Windows.Forms.DialogResult.OK)
-                checList.SaveToFile(saveFileDialog1.FileName);
-        }
-
-        private void ButtonCheckListCheck_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var tmp = wcf.ExecuteCheckAv(checList);
-                if (tmp == null)
-                {
-                    System.Windows.Forms.MessageBox.Show($@"Ошибка при выполнении см. лог сервера", "", MessageBoxButtons.OK,MessageBoxIcon.Error);
-                    return;
-                }
-                checList = tmp;
-                refreshListViewChek_ALL();
-            }
-            catch (Exception ex)
-            {
-                System.Windows.Forms.MessageBox.Show(ex.Message, "", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-            System.Windows.Forms.MessageBox.Show(@"Выполнено", "", MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
-        }
-
-        private void ButtonSaveCheckInServer_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var res = wcf.SetCheckingList(checList);
-                MessageBox.Show(res.Result? "Передача настроек успешна!" : $"Ошибка при передаче настроек: {res.Exception}");
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void ButtonLoadCheckFromServer_Click(object sender, RoutedEventArgs e)
-        {
-            var br = wcf.LoadCheckListFromBD();
-            if (br.Result == false)
-            {
-                MessageBox.Show(br.Exception);
-                return;
-            }
-            checList = wcf.GetCheckingList();
-            refreshListViewChek_ALL();
-        }
-
-        private List<OrclProcedure> currOrclProcedure => ListViewCheck.SelectedItems.Cast<OrclProcedure>().ToList();
-
-
-        private void MenuItemCheckDouble_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var select = CurrentCheckTableName;
-                if (select.HasValue)
-                {
-                    var proc = currOrclProcedure;
-                    if (proc.Count != 0)
-                    {
-                        var newproc = new OrclProcedure(proc.First());
-                        checList[select.Value].Add(newproc);
-                        refreshListViewChek_ALL();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void MenuItemCheckDelete_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var selected = SelectedCheckTableName;
-                if (selected.Count!=0)
-                {
-                    if (MessageBox.Show($"Вы уверены что хотите удалить проверк{(selected.Count==1? "у" : "и")}?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    {
-                        var proc = currOrclProcedure;
-                        foreach (var item in selected)
-                        {
-                            checList[item].Remove(proc.First());
-                        }
-                        refreshListViewChek_ALL();
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void MenuItemCheckAdd_Click(object sender, RoutedEventArgs e)
-        {
-            var select = CurrentCheckTableName;
-            if (select.HasValue)
-            {
-                var proc = new OrclProcedure();
-                var win = new EdditProc(proc, AppConfig.Property.ConnectionString) {Owner = this};
-                if (win.ShowDialog() == true)
-                {
-                    checList.Add(select.Value, win.curr);
-                    refreshListViewChek_ALL();
-
-                }
-            }
-        }
-
-        private void MenuItemCheckChange_Click(object sender, RoutedEventArgs e)
-        {
-            var orclselect = currOrclProcedure;
-            if (orclselect.Count != 0)
-            {
-                var proc = orclselect.First();
-                var win = new EdditProc(new OrclProcedure(proc), AppConfig.Property.ConnectionString) {Owner = this};
-                if (win.ShowDialog() == true)
-                {
-                    proc.CopyFrom(win.curr);
-                    refreshListViewChek_ALL();
-                }
-            }
-        }
-
-        private void buttonRestore_SERVER_Click(object sender, RoutedEventArgs e)
-        {
-            WriteServerConnect();
-        }
-
-        private void buttonOK_SERVER_Click(object sender, RoutedEventArgs e)
-        {
-           var setCon = wcf.GetSettingConnect();
-            setCon.ConnectingString = ReadServerConnect();
-            wcf.SettingConnect(setCon);
-        }
-
-        private void buttonTEST_SERVER_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var rez = wcf.isConnect(ReadServerConnect());
-                if (rez.Result)
-                {
-                    imageTEST_SERVER.Source = new BitmapImage(new Uri("Image/button_ok.png", UriKind.Relative));
-                    textBlockORA_TEST_SERVER.Text = "Подключение успешно";
-                    textBlockORA_TEST_SERVER.Foreground = Brushes.LimeGreen;
-                    System.Media.SystemSounds.Asterisk.Play();
-                }
-                else
-                {
-                    imageTEST_SERVER.Source = new BitmapImage(new Uri("Image/error.png", UriKind.Relative));
-                    textBlockORA_TEST_SERVER.Text = "Ошибка подключения" + Environment.NewLine + rez.Exception;
-                    textBlockORA_TEST_SERVER.Foreground = Brushes.Red;
-                    System.Media.SystemSounds.Exclamation.Play();
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        private void buttonOK_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (!OnlyLocal)
-                {
-                    wcf.SettingsFolder(ReadFolder());
-                    wcf.SettingSchemaCollection(sc);
-                    var set = ReadTableItems();
-                    set.ConnectingString = ReadServerConnect();
-                    wcf.SettingConnect(set);
-                    wcf.SetCheckingList(checList);
-                    wcf.SetSettingTransfer(ReadTableItemsTRANS());
-                    wcf.SaveProperty();
-                }
-                GetStaticParam();
-                ReadTableItemsLOCAL();
-                sc_local.SaveToFile(System.IO.Path.Combine(LocalFolder, "SANK_INVITER_SCHEMA.dat"));
-                AppConfig.Save();
-                Properties.Settings.Default.Save();
-                DialogResult = true;
-                this.Close();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-          
-
-        }
-
-        private void buttonCancel_Click(object sender, RoutedEventArgs e)
-        {
-            DialogResult = false;
-        }
-
-        private void Setting_OnClosed(object sender, EventArgs e)
+        private void VM_OnClosed(bool DialogResult)
         {
             AppConfig.Load();
             Properties.Settings.Default.Reload();
             if (!OnlyLocal)
                 wcf.LoadProperty();
-        }
-        private List<FileType> selectedTypeSchemaLocal => listBoxTypeSchemaLOCAL.SelectedItems.Cast<FileType>().ToList();
-        private void MenuItemAddSchemaLocal_OnClick(object sender, RoutedEventArgs e)
-        {
-            if (selectedTypeSchemaLocal.Count != 0)
-            {
-                var win = new NewSchemaItem(true);
-                if (win.ShowDialog() == true)
-                {
-                    if (!win.PATH.ToUpper().Contains(LocalFolder.ToUpper()))
-                    {
-                        MessageBox.Show("Выбранный файл вне каталога программы!");
-                    }
-
-                    var path = win.PATH.ToUpper().Replace(LocalFolder.ToUpper(), "");
-                    foreach (var item in selectedTypeSchemaLocal)
-                    {
-                        try
-                        {
-                            sc_local[versionLOCAL].AddAndCheck(item, new SchemaElementValue { DATE_B = win.DATE_B, DATE_E = win.DATE_E, Value = path });
-                        }
-                        catch (Exception ex)
-                        {
-                            MessageBox.Show($@"Не удалось добавить схему к файлу {item} версии {version} по причине: {ex.Message}");
-                        }
-
-                    }
-
-                    CVSSchemaElementValueLocal.View.Refresh();
-                }
-            }
-
+            this.DialogResult = DialogResult;
+            Close();
         }
 
-
-        private void MenuItemClearSchemaLocal_OnClick(object sender, RoutedEventArgs e)
+     
+        private List<string> _SelectedServerVersionZGLV = new List<string>();
+        public List<string> SelectedServerVersionZGLV
         {
-            if (selectedTypeSchemaLocal.Count != 0)
+            get => _SelectedServerVersionZGLV;
+            set
             {
-                foreach (var item in selectedTypeSchemaLocal)
-                {
-                    try
-                    {
-                        sc_local[versionLOCAL].ClearSchema(item);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($@"Не удалось добавить схему к файлу {item} версии {version} по причине: {ex.Message}");
-                    }
-                }
-                CVSSchemaElementValueLocal.View.Refresh();
-            }
-            
-        }
-        VersionMP versionLOCAL = VersionMP.V2_1;
-        private void ComboBoxVersionScLOCAL_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            if (comboBoxVersionScLOCAL.SelectedItem != null)
-            {
-                versionLOCAL = (VersionMP)comboBoxVersionScLOCAL.SelectedItem;
-                RefreshLBZglvVersLOCAL();
-                UpdatedataGridLOCAL();
+                _SelectedServerVersionZGLV = value;
+                RaisePropertyChanged();
             }
         }
-
-
-        void RefreshLBZglvVersLOCAL()
+        private void ListBoxServerVersionZGLV_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            listBoxVersLOCAL.Items.Clear();
-            if (sc_local.ContainsVersion(version))
+            SelectedServerVersionZGLV = ListBoxServerVersionZGLV.SelectedItems.Cast<string>().ToList();
+        }
+        private List<FileType> _SelectedServerFileType = new List<FileType>();
+        public List<FileType> SelectedServerServerFileType
+        {
+            get => _SelectedServerFileType;
+            set
             {
-                foreach (string val in sc_local[versionLOCAL].VersionsZGLV)
-                {
-                    listBoxVersLOCAL.Items.Add(val);
-                }
+                _SelectedServerFileType = value;
+                RaisePropertyChanged();
             }
         }
-
-
-        private void MenuItemDeleteVersLocal_OnClick(object sender, RoutedEventArgs e)
+        private void ListBoxServerFileType_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (listBoxVersLOCAL.SelectedItem != null)
+            SelectedServerServerFileType = ListBoxServerFileType.SelectedItems.Cast<FileType>().ToList();
+        }
+        private List<string> _SelectedLocalVersionZGLV = new List<string>();
+        public List<string> SelectedLocalVersionZGLV
+        {
+            get => _SelectedLocalVersionZGLV;
+            set
             {
-                sc_local[versionLOCAL].VersionsZGLV.Remove(listBoxVersLOCAL.SelectedItem.ToString());
-                RefreshLBZglvVersLOCAL();
+                _SelectedLocalVersionZGLV = value;
+                RaisePropertyChanged();
             }
         }
-
-        private void ButtonLOCAL_OnClick(object sender, RoutedEventArgs e)
+        private void ListBoxLocalVersionZGLV_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (sc_local.ContainsVersion(versionLOCAL))
+            SelectedLocalVersionZGLV = ListBoxLocalVersionZGLV.SelectedItems.Cast<string>().ToList();
+        }
+
+        private List<FileType> _SelectedLocalFileType = new List<FileType>();
+        public List<FileType> SelectedLocalFileType
+        {
+            get => _SelectedLocalFileType;
+            set
             {
-                sc_local[versionLOCAL].VersionsZGLV.Add(textBoxNewVersLOCAL.Text.ToUpper().Trim());
-                RefreshLBZglvVersLOCAL();
+                _SelectedLocalFileType = value;
+                RaisePropertyChanged();
             }
         }
-
-
-        public DataTable GetTableLOCAL()
+        private void ListBoxLocalFileType_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var oda = new OracleDataAdapter($@"SELECT TABLE_NAME FROM ALL_TABLES where  OWNER = '{AppConfig.Property.schemaOracle.ToUpper()}'", new OracleConnection(AppConfig.Property.ConnectionString));
-            var tbl = new DataTable();
-            oda.Fill(tbl);
-            return tbl;
+            SelectedLocalFileType = ListBoxLocalFileType.SelectedItems.Cast<FileType>().ToList();
         }
-
-
-        public DataTable GetSeqLOCAL()
+        private List<OrclProcedure> _SelectCheck = new List<OrclProcedure>();
+        public List<OrclProcedure> SelectCheck
         {
-            var oda = new OracleDataAdapter($@"SELECT SEQUENCE_NAME FROM ALL_SEQUENCES where  SEQUENCE_OWNER = '{AppConfig.Property.schemaOracle.ToUpper()}'", new OracleConnection(AppConfig.Property.ConnectionString));
-            var tbl = new DataTable();
-            oda.Fill(tbl);
-            return tbl;
-        }
-
-        private void ButtonCheckTableLOCAL_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
+            get => _SelectCheck;
+            set
             {
-                var TBL = GetTableLOCAL();
-                var SEQ = GetSeqLOCAL();
-
-                foreach (var tbl in TableItemsLOCAL)
-                {
-                    tbl.Check = TBL.Select($"TABLE_NAME = '{tbl.TableName.ToUpper()}'").Length != 0;
-                }
-
-                foreach (var tbl in SeqItemsLOCAL)
-                {
-                    tbl.Check = SEQ.Select($"SEQUENCE_NAME = '{tbl.TableName.ToUpper()}'").Length != 0;
-                }
-                CVSTableItemsLOCAL.View.Refresh();
-                CVSSeqItemsLOCAL.View.Refresh();
-                System.Media.SystemSounds.Asterisk.Play();
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
+                _SelectCheck = value;
+                RaisePropertyChanged();
             }
         }
-
-        private void ListBoxTypeSchemaLOCAL_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        private void ListViewCheck_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            UpdatedataGridLOCAL();
-        }
-        void UpdatedataGridLOCAL()
-        {
-            if (listBoxTypeSchemaLOCAL.SelectedIndex != -1)
-            {
-                SetSchemaSetLOCAL(sc_local[versionLOCAL, (FileType)listBoxTypeSchemaLOCAL.SelectedIndex]);
-            }
+            SelectCheck = ListViewCheck.SelectedItems.Cast<OrclProcedure>().ToList();
         }
 
-        void SetSchemaSetLOCAL(List<SchemaElementValue> val)
+
+
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
         {
-            CVSSchemaElementValueLocal.Source = val;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
+        #endregion
+
+      
     }
 
     public enum TableItemType
@@ -1198,16 +200,1538 @@ namespace ClientServiceWPF
         seq_L_ZGLV,
         seq_xml_h_onk_usl,
         seq_L_pers,
-        seq_xml_h_lek_pr
+        seq_xml_h_lek_pr,
+        XML_H_MR_USL_N
     }
-    public class TableItem
+    public class TableItem : INotifyPropertyChanged
     {
-        public TableItemType Type { get; set; }
-        public string TableName { get; set; }
-        public bool? Check { get; set; }
+        private TableItemType _Type { get; set; }
+        public TableItemType Type
+        {
+            get => _Type;
+            set
+            {
+                _Type = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _TableName { get; set; }
+        public string TableName
+        {
+            get => _TableName ?? "";
+            set
+            {
+                _TableName = value;
+                RaisePropertyChanged();
+            }
+        }
+        private bool? _Check { get; set; }
+        public bool? Check
+        {
+            get => _Check;
+            set
+            {
+                _Check = value;
+                RaisePropertyChanged();
+            }
+        }
+
+
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
     }
 
- 
 
-   
+    public class SettingVM : INotifyPropertyChanged
+    {
+        public delegate void SettingVMClose(bool DialogResult);
+
+        public event SettingVMClose OnClosed;
+
+        private string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
+        private IWcfInterface wcf { get; }
+        public SettingParamFolder ParamFolder { get; } = new SettingParamFolder();
+
+        public SettingVM(IWcfInterface wcf)
+        {
+            this.wcf = wcf;
+        }
+
+        #region LocalParam
+        private bool _ISVIRTUALPATH;
+        public bool ISVIRTUALPATH
+        {
+            get => _ISVIRTUALPATH;
+            set
+            {
+                _ISVIRTUALPATH = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _VIRTUALPATH;
+        public string VIRTUALPATH
+        {
+            get => _VIRTUALPATH;
+            set
+            {
+                _VIRTUALPATH = value;
+                RaisePropertyChanged();
+            }
+        }
+        public ICommand SelectVIRTUALPATH => new Command(o =>
+        {
+            try
+            {
+                var fbd = new FolderBrowserDialog();
+                if (fbd.ShowDialog() == DialogResult.OK)
+                {
+                    VIRTUALPATH = fbd.SelectedPath;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+
+        #endregion
+        #region LoadParam
+        private bool _OnlyLocal;
+        public bool OnlyLocal
+        {
+            get => _OnlyLocal;
+            set
+            {
+                _OnlyLocal = value;
+                RaisePropertyChanged();
+            }
+        }
+        public void LoadParam(bool OnlyLocal)
+        {
+            this.OnlyLocal = OnlyLocal;
+            if (!OnlyLocal)
+            {
+                var set = wcf.GetSettingsFolder();
+                ParamFolder.SetFolder(set);
+                var sc = wcf.GetSchemaCollection();
+                SchemaServerParam.SetSchemaCollection(sc);
+
+                var conn = wcf.GetSettingConnect();
+                ConnectionServer.SetConnectionString(conn.ConnectingString);
+                TableServerParam.CreateTableItemsServer(conn);
+
+                TableTransferParam.CreateTableItemsTransfer(wcf.GetSettingTransfer());
+                LoadCheckFromBDCommand.Execute(null);
+            }
+
+            var sc_local = new SchemaCollection();
+            if (File.Exists(System.IO.Path.Combine(LocalFolder, "SANK_INVITER_SCHEMA.dat")))
+                sc_local.LoadFromFile(System.IO.Path.Combine(LocalFolder, "SANK_INVITER_SCHEMA.dat"));
+            SchemaLocalParam.SetSchemaCollection(sc_local);
+            ConnectionLocal.SetConnectionString(AppConfig.Property.ConnectionString);
+
+            TableLocalParam.CreateTableItemsLocal(AppConfig.Property);
+
+
+           ISVIRTUALPATH = Properties.Settings.Default.ISVIRTUALPATH;
+           VIRTUALPATH = Properties.Settings.Default.VIRTUALPATH; 
+
+        }
+
+
+        #endregion LoadParam
+        #region SelectFolderCommand
+
+        public ICommand SelectIncomingDir => new Command(o =>
+        {
+            try
+            {
+                var di = new RemoteFolderDialog(ParamFolder.IncomingDir, true);
+                if (di.ShowDialog() == true)
+                {
+                    ParamFolder.IncomingDir = di.selectpath;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+        public ICommand SelectProcessDir => new Command(o =>
+        {
+            try
+            {
+                var di = new RemoteFolderDialog(ParamFolder.ProcessDir, true);
+                if (di.ShowDialog() == true)
+                {
+                    ParamFolder.ProcessDir = di.selectpath;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+        public ICommand SelectInputDir => new Command(o =>
+        {
+            try
+            {
+                var di = new RemoteFolderDialog(ParamFolder.InputDir, true);
+                if (di.ShowDialog() == true)
+                {
+                    ParamFolder.InputDir = di.selectpath;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+        public ICommand SelectErrorMessageFile => new Command(o =>
+        {
+            try
+            {
+                var di = new RemoteFolderDialog(ParamFolder.ErrorMessageFile, true);
+                if (di.ShowDialog() == true)
+                {
+                    ParamFolder.ErrorMessageFile = di.selectpath;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+        public ICommand SelectErrorDir => new Command(o =>
+        {
+            try
+            {
+                var di = new RemoteFolderDialog(ParamFolder.ErrorDir, true);
+                if (di.ShowDialog() == true)
+                {
+                    ParamFolder.ErrorDir = di.selectpath;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+        public ICommand SelectAddDIRInERROR => new Command(o =>
+        {
+            try
+            {
+                var di = new RemoteFolderDialog(ParamFolder.AddDIRInERROR, true);
+                if (di.ShowDialog() == true)
+                {
+                    ParamFolder.AddDIRInERROR = di.selectpath;
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+        #endregion
+
+        public SchemaParamVM SchemaServerParam { get; } = new SchemaParamVM();
+        public SchemaParamVM SchemaLocalParam { get; } = new SchemaParamVM();
+
+        #region ConnectionParam
+        public ConnectionParamVM ConnectionLocal { get; } = new ConnectionParamVM();
+        public ICommand SaveConnectionLocal => new Command(o =>
+        {
+            try
+            {
+                AppConfig.Property.ConnectionString = ConnectionLocal.ConnectionString;
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+        public ICommand ResetConnectionLocal => new Command(o =>
+        {
+            try
+            {
+                ConnectionLocal.SetConnectionString(AppConfig.Property.ConnectionString);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+        public ICommand CheckConnectionLocal => new Command(o =>
+        {
+            try
+            {
+                using (var con = new OracleConnection(ConnectionLocal.ConnectionString))
+                {
+                    con.Open();
+                    con.Close();
+                    ConnectionLocal.IsTestingOK = true;
+                    ConnectionLocal.IsTestingMessage = "Подключение успешно";
+                    System.Media.SystemSounds.Asterisk.Play();
+                }
+            }
+            catch (Exception ex)
+            {
+                ConnectionLocal.IsTestingOK = false;
+                ConnectionLocal.IsTestingMessage = $"Ошибка подключения{Environment.NewLine}{ex.Message}";
+                System.Media.SystemSounds.Exclamation.Play();
+            }
+        });
+
+        public ConnectionParamVM ConnectionServer { get; } = new ConnectionParamVM();
+        public ICommand SaveConnectionServer => new Command(o =>
+        {
+            try
+            {
+                var setCon = new SettingConnect {ConnectingString = ConnectionServer.ConnectionString};
+                wcf.SettingConnect(setCon);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+        public ICommand ResetConnectionServer => new Command(o =>
+        {
+            try
+            {
+                ConnectionServer.SetConnectionString(wcf.GetSettingConnect().ConnectingString);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+        public ICommand CheckConnectionServer => new Command(o =>
+        {
+            try
+            {
+                var rez = wcf.isConnect(ConnectionServer.ConnectionString);
+                if (rez.Result)
+                {
+                    ConnectionServer.IsTestingOK = true;
+                    ConnectionServer.IsTestingMessage = "Подключение успешно";
+                    System.Media.SystemSounds.Asterisk.Play();
+                }
+                else
+                {
+                    ConnectionServer.IsTestingOK = false;
+                    ConnectionServer.IsTestingMessage = $"Ошибка подключения{Environment.NewLine}{rez.Exception}";
+                    System.Media.SystemSounds.Exclamation.Play();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        #endregion
+        #region TableParam
+        public TableParamVM TableServerParam { get; } = new TableParamVM();
+        public ICommand CheckTableServerCommand => new Command(o =>
+        {
+            try
+            {
+                var tblrez = wcf.GetTableServer(TableServerParam.Owner);
+                if (tblrez.Result == null)
+                {
+                    throw new Exception(tblrez.Exception);
+                }
+
+                foreach (var tbl in TableServerParam.TableItems)
+                {
+                    tbl.Check = tblrez.Result.Select($"TABLE_NAME = '{tbl.TableName.ToUpper()}'").Length != 0;
+                }
+
+                System.Media.SystemSounds.Asterisk.Play();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+
+        public TableParamVM TableLocalParam { get; } = new TableParamVM();
+        public ICommand CheckTableLocalCommand => new Command(o =>
+        {
+            try
+            {
+                var TBL = GetTableLOCAL();
+                var SEQ = GetSeqLOCAL();
+
+                foreach (var tbl in TableLocalParam.TableItems)
+                {
+                    tbl.Check = TBL.Select($"TABLE_NAME = '{tbl.TableName.ToUpper()}'").Length != 0;
+                }
+
+                foreach (var tbl in TableLocalParam.SeqItems)
+                {
+                    tbl.Check = SEQ.Select($"SEQUENCE_NAME = '{tbl.TableName.ToUpper()}'").Length != 0;
+                }
+
+                System.Media.SystemSounds.Asterisk.Play();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+        });
+        private DataTable GetTableLOCAL()
+        {
+            using (var con = new OracleConnection(AppConfig.Property.ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($@"SELECT TABLE_NAME FROM ALL_TABLES where  OWNER = '{AppConfig.Property.schemaOracle.ToUpper()}'", con))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+        }
+        private DataTable GetSeqLOCAL()
+        {
+            using (var con = new OracleConnection(AppConfig.Property.ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($@"SELECT SEQUENCE_NAME FROM ALL_SEQUENCES where  SEQUENCE_OWNER = '{AppConfig.Property.schemaOracle.ToUpper()}'", con))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+        }
+
+        public TableParamVM TableTransferParam { get; } = new TableParamVM();
+        public ICommand CheckTableTransferCommand => new Command(o =>
+        {
+            try
+            {
+                var set = TableTransferParam.ReadTableItemsTransfer();
+                var tblrez = wcf.GetTableServer(set.schemaOracle);
+                if (tblrez.Result == null)
+                {
+                    throw new Exception(tblrez.Exception);
+                }
+
+                foreach (var tbl in TableTransferParam.TableItems)
+                {
+                    tbl.Check = tblrez.Result.Select($"TABLE_NAME = '{tbl.TableName.ToUpper()}'").Length != 0;
+                }
+
+                System.Media.SystemSounds.Asterisk.Play();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        #endregion
+
+        public ICommand SaveParamCommand => new Command(o =>
+        {
+            try
+            {
+                if (!OnlyLocal)
+                {
+                    wcf.SettingsFolder(ParamFolder.GetFolder());
+                    wcf.SettingSchemaCollection(SchemaServerParam.sc);
+                    var set = TableServerParam.GetSettingConnect();
+               
+                    set.ConnectingString = ConnectionServer.ConnectionString;
+                    wcf.SettingConnect(set);
+                  
+                    wcf.SetSettingTransfer(TableTransferParam.ReadTableItemsTransfer());
+                    //wcf.SetCheckingList(checList);
+                    wcf.SaveProperty();
+                  
+                }
+
+                Properties.Settings.Default.ISVIRTUALPATH = ISVIRTUALPATH;
+                Properties.Settings.Default.VIRTUALPATH = VIRTUALPATH;
+
+
+                TableLocalParam.ReadTableItemsLocal();
+                SchemaLocalParam.sc.SaveToFile(Path.Combine(LocalFolder, "SANK_INVITER_SCHEMA.dat"));
+                AppConfig.Save();
+                Properties.Settings.Default.Save();
+                OnClosed?.Invoke(true);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+
+        public ICommand CancelParamCommand => new Command(o =>
+        {
+            try
+            {
+                OnClosed?.Invoke(false);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        #region CheckParam
+
+        public CheckParamVM CheckParam { get; } = new CheckParamVM();
+
+        public ICommand LoadCheckFromBDCommand => new Command(o =>
+        {
+            try
+            {
+                var br = wcf.LoadCheckListFromBD();
+                if (br.Result == false)
+                {
+                    MessageBox.Show(br.Exception);
+                    return;
+                }
+                CheckParam.checkList =  wcf.GetCheckingList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand SaveCheckInBDCommand => new Command(o =>
+        {
+            try
+            {
+                var res = wcf.SetCheckingList(CheckParam.checkList);
+                MessageBox.Show(res.Result ? "Передача настроек успешна!" : $"Ошибка при передаче настроек: {res.Exception}");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand CheckCheckInBDCommand => new Command(o =>
+        {
+            try
+            {
+                var result = wcf.ExecuteCheckAv(CheckParam.checkList);
+                if (result == null)
+                {
+                    System.Windows.Forms.MessageBox.Show(@"Ошибка при выполнении см. лог сервера", "", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                CheckParam.checkList = result;
+                MessageBox.Show(@"Выполнено", "", MessageBoxButton.OK, MessageBoxImage.Asterisk);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+           
+
+        });
+        private SaveFileDialog saveFileDialog1 = new SaveFileDialog { Filter = @"Файл проверок(CheckListFile(*.clf))|*.clv" };
+        public ICommand SaveCheckInFileCommand => new Command(o =>
+        {
+            try
+            {
+                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+                    CheckParam.checkList.SaveToFile(saveFileDialog1.FileName);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        });
+        private OpenFileDialog openFileDialog1 = new OpenFileDialog { Filter = @"Файл проверок(CheckListFile(*.clf))|*.clv" };
+        public ICommand LoadCheckFromFileCommand => new Command(o =>
+        {
+            try
+            {
+                if (openFileDialog1.ShowDialog() ==DialogResult.OK)
+                {
+                    var checList = new CheckingList();
+                    var res = checList.LoadToFile(openFileDialog1.FileName);
+                    if (res == false) MessageBox.Show("Не удалось загрузить файл!");
+                    CheckParam.checkList = checList;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        });
+
+
+        public ICommand AddPackageCheckCommand => new Command(o =>
+        {
+            try
+            {
+                var AddPack = (string) o;
+                if (!string.IsNullOrEmpty(AddPack))
+                {
+                    CheckParam.AddListProcedure( wcf.GetProcedureFromPack(AddPack));
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        });
+
+
+        public ICommand AddProcedureCheckCommand => new Command(o =>
+        {
+            try
+            {
+                var proc = new OrclProcedure();
+                var win = new EdditProc(proc, AppConfig.Property.ConnectionString);
+                if (win.ShowDialog() == true)
+                {
+                    CheckParam.AddProcedure(proc);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        });
+
+        public ICommand EditProcedureCheckCommand => new Command(o =>
+        {
+            try
+            {
+                var orclselect = (List<OrclProcedure>)o;
+                var proc = orclselect.FirstOrDefault();
+                if (proc != null)
+                {
+                    var win = new EdditProc(new OrclProcedure(proc), AppConfig.Property.ConnectionString);
+                    if (win.ShowDialog() == true)
+                    {
+                        proc.CopyFrom(win.curr);
+                        CheckParam.RefreshProcedure();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        });
+
+        public ICommand DuplicateProcedureCheckCommand => new Command(o =>
+        {
+            try
+            {
+                var orclselect = (List<OrclProcedure>)o;
+                var proc = orclselect.FirstOrDefault();
+                if (proc != null)
+                {
+                    var newproc = new OrclProcedure(proc);
+                    CheckParam.AddProcedure(newproc);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        });
+
+
+        public ICommand DeleteProcedureCheckCommand => new Command(o =>
+        {
+            try
+            {
+                var orclselect = (List<OrclProcedure>)o;
+                if (orclselect.Count != 0)
+                {
+                    if (MessageBox.Show($"Вы уверены что хотите удалить проверк{(orclselect.Count == 1 ? "у" : "и")}?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        foreach (var item in orclselect)
+                        {
+                            CheckParam.RemoveProcedure(item);
+                        }
+                     
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        });
+
+        /*
+            try
+            {
+                var select = CurrentCheckTableName;
+                if (select.HasValue)
+                {
+                    var proc = currOrclProcedure;
+                    if (proc.Count != 0)
+                    {
+                        var newproc = new OrclProcedure(proc.First());
+                        checList[select.Value].Add(newproc);
+                        refreshListViewChek_ALL();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }*/
+
+
+        /*
+            var select = CurrentCheckTableName;
+            if (select.HasValue)
+            {
+                var proc = new OrclProcedure();
+                var win = new EdditProc(proc, AppConfig.Property.ConnectionString) { Owner = this };
+                if (win.ShowDialog() == true)
+                {
+                    checList.Add(select.Value, win.curr);
+                    refreshListViewChek_ALL();
+
+                }
+            }*/
+        /*
+           try
+           {
+               var select = CurrentCheckTableName;
+               if (select.HasValue)
+               {
+                   checList.AddList(select.Value, wcf.GetProcedureFromPack(TextBoxAddPack.Text));
+                   refreshListViewChek_ALL();
+               }
+           }
+           catch (Exception ex)
+           {
+               MessageBox.Show(ex.Message);
+           }*/
+
+        #endregion
+
+
+        #region INotifyPropertyChanged
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        #endregion
+    }
+
+
+    public class SettingParamFolder : INotifyPropertyChanged
+    {
+        public string _IncomingDir;
+        public string IncomingDir
+        {
+            get => _IncomingDir;
+            set
+            {
+                _IncomingDir = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public string _InputDir;
+        public string InputDir
+        {
+            get => _InputDir;
+            set
+            {
+                _InputDir = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public string _ErrorDir;
+        public string ErrorDir
+        {
+            get => _ErrorDir;
+            set
+            {
+                _ErrorDir = value;
+                RaisePropertyChanged();
+            }
+        }
+        public string _ErrorMessageFile;
+        public string ErrorMessageFile
+        {
+            get => _ErrorMessageFile;
+            set
+            {
+                _ErrorMessageFile = value;
+                RaisePropertyChanged();
+            }
+        }
+        public string _ProcessDir;
+        public string ProcessDir
+        {
+            get => _ProcessDir;
+            set
+            {
+                _ProcessDir = value;
+                RaisePropertyChanged();
+            }
+        }
+        public string _AddDIRInERROR;
+        public string AddDIRInERROR
+        {
+            get => _AddDIRInERROR;
+            set
+            {
+                _AddDIRInERROR = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public int _TimePacketOpen;
+        public int TimePacketOpen
+        {
+            get => _TimePacketOpen;
+            set
+            {
+                _TimePacketOpen = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public string _ISP;
+        public string ISP
+        {
+            get => _ISP;
+            set
+            {
+                _ISP = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public void SetFolder(SettingsFolder set)
+        {
+            IncomingDir = set.IncomingDir;
+            InputDir = set.InputDir;
+            ErrorDir = set.ErrorDir;
+            ProcessDir = set.ProcessDir;
+            ErrorMessageFile = set.ErrorMessageFile;
+            AddDIRInERROR = set.AddDIRInERROR;
+            TimePacketOpen = set.TimePacketOpen;
+            ISP = set.ISP;
+        }
+
+        public SettingsFolder GetFolder( )
+        {
+            var set = new SettingsFolder
+            {
+                IncomingDir = IncomingDir,
+                InputDir = InputDir,
+                ErrorDir = ErrorDir,
+                ProcessDir = ProcessDir,
+                ErrorMessageFile = ErrorMessageFile,
+                AddDIRInERROR = AddDIRInERROR,
+                TimePacketOpen = TimePacketOpen,
+                ISP = ISP
+            };
+            return set;
+        }
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
+    }
+    public class SchemaParamVM:INotifyPropertyChanged
+    {
+        public void SetSchemaCollection(SchemaCollection sc)
+        {
+            this.sc = sc;
+            RaisePropertyChanged(nameof(Versions));
+            RaisePropertyChanged(nameof(Elements));
+            RaisePropertyChanged(nameof(VersionZGLV));
+        }
+
+
+        public SchemaCollection sc { get; private set; } = new SchemaCollection();
+        public IEnumerable<FileType> FileTypes => (FileType[])Enum.GetValues(typeof(FileType));
+        private FileType _CurrentFileType;
+        public FileType CurrentFileType
+        {
+            get => _CurrentFileType;
+            set
+            {
+                _CurrentFileType = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(Elements));
+            }
+        }
+
+        public List<VersionMP> Versions => sc.Versions;
+        private VersionMP _CurrentVersion;
+        public VersionMP CurrentVersion
+        {
+            get => _CurrentVersion;
+            set
+            {
+                _CurrentVersion = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(Elements));
+                RaisePropertyChanged(nameof(VersionZGLV));
+            }
+        }
+
+        public IEnumerable<SchemaElementValue> Elements
+        {
+            get
+            {
+                foreach (var item in sc[CurrentVersion, CurrentFileType])
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        public IEnumerable<string> VersionZGLV
+        {
+            get
+            {
+                foreach (var item in sc[CurrentVersion].VersionsZGLV)
+                {
+                    yield return item;
+                }
+            }
+        }
+
+
+        public ICommand AddVersionZglvCommand => new Command(o =>
+        {
+            try
+            {
+                var value = o.ToString();
+                if (!string.IsNullOrEmpty(value))
+                    sc[CurrentVersion].VersionsZGLV.Add(o.ToString());
+                RaisePropertyChanged(nameof(VersionZGLV));
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+        public ICommand RemoveVersionZglvCommand => new Command(o =>
+        {
+            try
+            {
+                var value = (IEnumerable<string>)o;
+                foreach (var item in value)
+                {
+                    sc[CurrentVersion].VersionsZGLV.Remove(item);
+                }
+                RaisePropertyChanged(nameof(VersionZGLV));
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+        public ICommand AddSchemaElementCommand => new Command(o =>
+        {
+            try
+            {
+                var selectedTypeSchema = (List<FileType>) o;
+                if (selectedTypeSchema.Count != 0)
+                {
+                    var win = new NewSchemaItem(false);
+                    if (win.ShowDialog() == true)
+                    {
+                        foreach (var item in selectedTypeSchema)
+                        {
+                            try
+                            {
+                                sc[CurrentVersion].AddAndCheck(item, new SchemaElementValue { DATE_B = win.DATE_B, DATE_E = win.DATE_E, Value = win.PATH });
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($@"Не удалось добавить схему к файлу {item} версии {CurrentVersion} по причине: {ex.Message}");
+                            }
+                        }
+                        RaisePropertyChanged(nameof(Elements));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+
+        });
+        private string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
+        public ICommand AddSchemaElementLocalCommand => new Command(o =>
+        {
+            try
+            {
+                var selectedTypeSchema = (List<FileType>)o;
+                if (selectedTypeSchema.Count != 0)
+                {
+                    var win = new NewSchemaItem(true);
+                    if (win.ShowDialog() == true)
+                    {
+                        if (!win.PATH.ToUpper().Contains(LocalFolder.ToUpper()))
+                        {
+                            MessageBox.Show("Выбранный файл вне каталога программы!");
+                        }
+                        var path = win.PATH.ToUpper().Replace(LocalFolder.ToUpper(), "");
+                        foreach (var item in selectedTypeSchema)
+                        {
+                            try
+                            {
+                                sc[CurrentVersion].AddAndCheck(item, new SchemaElementValue { DATE_B = win.DATE_B, DATE_E = win.DATE_E, Value = path });
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($@"Не удалось добавить схему к файлу {item} версии {CurrentVersion} по причине: {ex.Message}");
+                            }
+                        }
+                        RaisePropertyChanged(nameof(Elements));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+
+        });
+
+        public ICommand ClearSchemaElementCommand => new Command(o =>
+        {
+            try
+            {
+                var selectedTypeSchema = (List<FileType>) o;
+                if (selectedTypeSchema.Count != 0)
+                {
+                    foreach (var item in selectedTypeSchema)
+                    {
+                        try
+                        {
+                            sc[CurrentVersion].ClearSchema(item);
+                        }
+                        catch (Exception ex)
+                        {
+                            MessageBox.Show($@"Не удалось добавить схему к файлу {item} версии {CurrentVersion} по причине: {ex.Message}");
+                        }
+                    }
+                    RaisePropertyChanged(nameof(Elements));
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
+    }
+    public class ConnectionParamVM : INotifyPropertyChanged
+    {
+        public List<string> DBAPrivilegeList { get; } = new List<string> {"NORMAL", "SYSDBA", "SYSOPER"};
+
+        private string _HOST;
+        public string HOST
+        {
+            get => _HOST;
+            set
+            {
+                _HOST = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _User;
+        public string User
+        {
+            get => _User;
+            set
+            {
+                _User = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _Password;
+        public string Password
+        {
+            get => _Password;
+            set
+            {
+                _Password = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _DataBase;
+        public string DataBase
+        {
+            get => _DataBase;
+            set
+            {
+                _DataBase = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _Port;
+        public string Port
+        {
+            get => _Port;
+            set
+            {
+                _Port = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _DBAPrivilege;
+        public string DBAPrivilege
+        {
+            get => _DBAPrivilege;
+            set
+            {
+                _DBAPrivilege = value;
+                RaisePropertyChanged();
+            }
+        }
+
+
+        private bool? _IsTestingOK;
+        public bool? IsTestingOK
+        {
+            get => _IsTestingOK;
+            set
+            {
+                _IsTestingOK = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private string _IsTestingMessage;
+        public string IsTestingMessage
+        {
+            get => _IsTestingMessage;
+            set
+            {
+                _IsTestingMessage = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public void SetConnectionString(string ConnectionString)
+        {
+            var conn = ServerRef.ParseDataSource(ConnectionString);
+            HOST = conn.HOST;
+            User = conn.UserID;
+            Password = conn.Password;
+            DataBase = conn.BD;
+            Port = conn.PORT;
+            DBAPrivilege = conn.DBAPrivilege;
+        }
+
+        public string ConnectionString
+        {
+            get
+            {
+                var conn = new OracleConnectionStringBuilder {DataSource = $"{HOST}:{Port}/{DataBase}", UserID = User, Password = Password, DBAPrivilege = DBAPrivilege.In("SYSOPER", "SYSDBA") ? DBAPrivilege : ""};
+                return conn.ConnectionString;
+            }
+        }
+
+            
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+
+    }
+    public class TableParamVM : INotifyPropertyChanged
+    {
+        public ObservableCollection<TableItem> TableItems { get; } = new ObservableCollection<TableItem>();
+        public ObservableCollection<TableItem> SeqItems { get; } = new ObservableCollection<TableItem>();
+        
+        private string _Owner;
+        public string Owner
+        {
+            get => _Owner;
+            set
+            {
+                _Owner = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private bool _Enabled;
+        public bool Enabled
+        {
+            get => _Enabled;
+            set
+            {
+                _Enabled = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public void CreateTableItemsServer(SettingConnect setCon)
+        {
+            TableItems.Clear();
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_zglv, Type = TableItemType.XML_H_ZGLV });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_schet, Type = TableItemType.XML_H_SCHET });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_zap, Type = TableItemType.XML_H_ZAP });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_pacient, Type = TableItemType.XML_H_PACIENT });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_z_sluch, Type = TableItemType.XML_H_Z_SLUCH });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_sank_smo, Type = TableItemType.XML_H_SANK_SMO });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_sank_code_exp, Type = TableItemType.XML_H_SANK_CODE_EXP });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_sluch, Type = TableItemType.XML_H_SLUCH });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_kslp, Type = TableItemType.XML_H_KSLP });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_crit, Type = TableItemType.XML_H_CRIT });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_napr, Type = TableItemType.XML_H_NAPR });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_b_diag, Type = TableItemType.XML_H_B_DIAG });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_b_prot, Type = TableItemType.XML_H_B_PROT });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_cons, Type = TableItemType.XML_H_CONS });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_ds2, Type = TableItemType.XML_H_DS2 });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_ds3, Type = TableItemType.XML_H_DS3 });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_ds2_n, Type = TableItemType.XML_H_DS2_N });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_nazr, Type = TableItemType.XML_H_NAZR });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_onk_usl, Type = TableItemType.XML_H_ONK_USL });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_lek_pr, Type = TableItemType.XML_H_LEK_PR });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_lek_pr_date_inj, Type = TableItemType.XML_H_LEK_PR_DATE_INJ });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_usl, Type = TableItemType.XML_H_USL });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_mr_usl_n, Type = TableItemType.XML_H_MR_USL_N });
+            TableItems.Add(new TableItem { TableName = setCon.xml_l_zglv, Type = TableItemType.XML_L_ZGLV });
+            TableItems.Add(new TableItem { TableName = setCon.xml_l_pers, Type = TableItemType.XML_L_PERS });
+            TableItems.Add(new TableItem { TableName = setCon.v_xml_error, Type = TableItemType.V_XML_ERROR });
+            Owner = setCon.schemaOracle;
+        }
+        public void CreateTableItemsLocal(AppProperties prop)
+        {
+            TableItems.Clear();
+            TableItems.Add(new TableItem { TableName = prop.xml_h_zglv, Type = TableItemType.XML_H_ZGLV });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_schet, Type = TableItemType.XML_H_SCHET });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_zap, Type = TableItemType.XML_H_ZAP });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_pacient, Type = TableItemType.XML_H_PACIENT });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_z_sluch, Type = TableItemType.XML_H_Z_SLUCH });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_sank, Type = TableItemType.XML_H_SANK_SMO });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_code_exp, Type = TableItemType.XML_H_SANK_CODE_EXP });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_sluch, Type = TableItemType.XML_H_SLUCH });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_kslp, Type = TableItemType.XML_H_KSLP });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_crit, Type = TableItemType.XML_H_CRIT });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_napr, Type = TableItemType.XML_H_NAPR });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_b_diag, Type = TableItemType.XML_H_B_DIAG });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_b_prot, Type = TableItemType.XML_H_B_PROT });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_cons, Type = TableItemType.XML_H_CONS });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_ds2, Type = TableItemType.XML_H_DS2 });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_ds3, Type = TableItemType.XML_H_DS3 });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_ds2_n, Type = TableItemType.XML_H_DS2_N });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_nazr, Type = TableItemType.XML_H_NAZR });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_onk_usl, Type = TableItemType.XML_H_ONK_USL });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_lek_pr, Type = TableItemType.XML_H_LEK_PR });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_date_inj, Type = TableItemType.XML_H_LEK_PR_DATE_INJ });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_usl, Type = TableItemType.XML_H_USL });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_mr_usl_n, Type = TableItemType.XML_H_MR_USL_N });
+            TableItems.Add(new TableItem { TableName = prop.xml_l_zglv, Type = TableItemType.XML_L_ZGLV });
+            TableItems.Add(new TableItem { TableName = prop.xml_l_pers, Type = TableItemType.XML_L_PERS });
+            Owner= prop.schemaOracle;
+
+
+            SeqItems.Clear();
+            SeqItems.Add(new TableItem { TableName = prop.seq_ZGLV, Type = TableItemType.seq_ZGLV });
+            SeqItems.Add(new TableItem { TableName = prop.seq_SCHET, Type = TableItemType.seq_SCHET });
+            SeqItems.Add(new TableItem { TableName = prop.seq_ZAP, Type = TableItemType.seq_ZAP });
+            SeqItems.Add(new TableItem { TableName = prop.seq_PACIENT, Type = TableItemType.seq_PACIENT });
+            SeqItems.Add(new TableItem { TableName = prop.seq_z_sluch, Type = TableItemType.seq_z_sluch });
+            SeqItems.Add(new TableItem { TableName = prop.seq_SANK, Type = TableItemType.seq_SANK });
+            SeqItems.Add(new TableItem { TableName = prop.seq_SLUCH, Type = TableItemType.seq_SLUCH });
+            SeqItems.Add(new TableItem { TableName = prop.seq_USL, Type = TableItemType.seq_USL });
+            SeqItems.Add(new TableItem { TableName = prop.seq_L_ZGLV, Type = TableItemType.seq_L_ZGLV });
+            SeqItems.Add(new TableItem { TableName = prop.seq_L_pers, Type = TableItemType.seq_L_pers });
+            SeqItems.Add(new TableItem { TableName = prop.seq_xml_h_onk_usl, Type = TableItemType.seq_xml_h_onk_usl });
+            SeqItems.Add(new TableItem { TableName = prop.seq_xml_h_lek_pr, Type = TableItemType.seq_xml_h_lek_pr });
+        }
+        public void CreateTableItemsTransfer(SettingTransfer setTrans)
+        {
+            TableItems.Clear();
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_zglv, Type = TableItemType.XML_H_ZGLV });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_schet, Type = TableItemType.XML_H_SCHET });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_zap, Type = TableItemType.XML_H_ZAP });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_pacient, Type = TableItemType.XML_H_PACIENT });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_z_sluch, Type = TableItemType.XML_H_Z_SLUCH });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_sank_smo, Type = TableItemType.XML_H_SANK_SMO });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_sank_code_exp, Type = TableItemType.XML_H_SANK_CODE_EXP });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_sluch, Type = TableItemType.XML_H_SLUCH });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_kslp, Type = TableItemType.XML_H_KSLP });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_crit, Type = TableItemType.XML_H_CRIT });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_napr, Type = TableItemType.XML_H_NAPR });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_b_diag, Type = TableItemType.XML_H_B_DIAG });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_b_prot, Type = TableItemType.XML_H_B_PROT });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_cons, Type = TableItemType.XML_H_CONS });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_ds2, Type = TableItemType.XML_H_DS2 });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_ds3, Type = TableItemType.XML_H_DS3 });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_ds2_n_transfer, Type = TableItemType.XML_H_DS2_N });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_nazr_transfer, Type = TableItemType.XML_H_NAZR });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_onk_usl, Type = TableItemType.XML_H_ONK_USL });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_lek_pr, Type = TableItemType.XML_H_LEK_PR });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_lek_pr_date_inj, Type = TableItemType.XML_H_LEK_PR_DATE_INJ });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_usl, Type = TableItemType.XML_H_USL });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_mr_usl_n, Type = TableItemType.XML_H_MR_USL_N });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_l_zglv, Type = TableItemType.XML_L_ZGLV });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_l_pers, Type = TableItemType.XML_L_PERS });
+
+            Owner = setTrans.schemaOracle;
+            Enabled = setTrans.Transfer;
+        }
+
+        public SettingConnect GetSettingConnect()
+        {
+            var setCon = new SettingConnect
+            {
+                schemaOracle = Owner,
+                xml_h_zglv = GetTableItems(TableItemType.XML_H_ZGLV),
+                xml_h_schet = GetTableItems(TableItemType.XML_H_SCHET),
+                xml_h_zap = GetTableItems(TableItemType.XML_H_ZAP),
+                xml_h_pacient = GetTableItems(TableItemType.XML_H_PACIENT),
+                xml_h_z_sluch = GetTableItems(TableItemType.XML_H_Z_SLUCH),
+                xml_h_sank_smo = GetTableItems(TableItemType.XML_H_SANK_SMO),
+                xml_h_sank_code_exp = GetTableItems(TableItemType.XML_H_SANK_CODE_EXP),
+                xml_h_sluch = GetTableItems(TableItemType.XML_H_SLUCH),
+                xml_h_kslp = GetTableItems(TableItemType.XML_H_KSLP),
+                xml_h_crit = GetTableItems(TableItemType.XML_H_CRIT),
+                xml_h_napr = GetTableItems(TableItemType.XML_H_NAPR),
+                xml_h_b_diag = GetTableItems(TableItemType.XML_H_B_DIAG),
+                xml_h_b_prot = GetTableItems(TableItemType.XML_H_B_PROT),
+                xml_h_cons = GetTableItems(TableItemType.XML_H_CONS),
+                xml_h_ds2 = GetTableItems(TableItemType.XML_H_DS2),
+                xml_h_ds3 = GetTableItems(TableItemType.XML_H_DS3),
+                xml_h_ds2_n = GetTableItems(TableItemType.XML_H_DS2_N),
+                xml_h_nazr = GetTableItems(TableItemType.XML_H_NAZR),
+                xml_h_onk_usl = GetTableItems(TableItemType.XML_H_ONK_USL),
+                xml_h_lek_pr = GetTableItems(TableItemType.XML_H_LEK_PR),
+                xml_h_lek_pr_date_inj = GetTableItems(TableItemType.XML_H_LEK_PR_DATE_INJ),
+                xml_h_usl = GetTableItems(TableItemType.XML_H_USL),
+                xml_h_mr_usl_n = GetTableItems(TableItemType.XML_H_MR_USL_N),
+                xml_l_zglv = GetTableItems(TableItemType.XML_L_ZGLV),
+                xml_l_pers = GetTableItems(TableItemType.XML_L_PERS),
+                v_xml_error = GetTableItems(TableItemType.V_XML_ERROR)
+            };
+            return setCon;
+        }
+        public void ReadTableItemsLocal()
+        {
+            AppConfig.Property.xml_h_zglv = GetTableItems(TableItemType.XML_H_ZGLV);
+            AppConfig.Property.xml_h_schet = GetTableItems(TableItemType.XML_H_SCHET);
+            AppConfig.Property.xml_h_zap = GetTableItems(TableItemType.XML_H_ZAP);
+            AppConfig.Property.xml_h_pacient = GetTableItems(TableItemType.XML_H_PACIENT);
+            AppConfig.Property.xml_h_z_sluch = GetTableItems(TableItemType.XML_H_Z_SLUCH);
+            AppConfig.Property.xml_h_sank = GetTableItems(TableItemType.XML_H_SANK_SMO);
+            AppConfig.Property.xml_h_code_exp = GetTableItems(TableItemType.XML_H_SANK_CODE_EXP);
+            AppConfig.Property.xml_h_sluch = GetTableItems(TableItemType.XML_H_SLUCH);
+            AppConfig.Property.xml_h_kslp = GetTableItems(TableItemType.XML_H_KSLP);
+            AppConfig.Property.xml_h_crit = GetTableItems(TableItemType.XML_H_CRIT);
+            AppConfig.Property.xml_h_napr = GetTableItems(TableItemType.XML_H_NAPR);
+            AppConfig.Property.xml_h_b_diag = GetTableItems(TableItemType.XML_H_B_DIAG);
+            AppConfig.Property.xml_h_b_prot = GetTableItems(TableItemType.XML_H_B_PROT);
+            AppConfig.Property.xml_h_cons = GetTableItems(TableItemType.XML_H_CONS);
+            AppConfig.Property.xml_h_ds2 = GetTableItems(TableItemType.XML_H_DS2);
+            AppConfig.Property.xml_h_ds3 = GetTableItems(TableItemType.XML_H_DS3);
+            AppConfig.Property.xml_h_ds2_n = GetTableItems(TableItemType.XML_H_DS2_N);
+            AppConfig.Property.xml_h_nazr = GetTableItems(TableItemType.XML_H_NAZR);
+            AppConfig.Property.xml_h_onk_usl = GetTableItems(TableItemType.XML_H_ONK_USL);
+            AppConfig.Property.xml_h_lek_pr = GetTableItems(TableItemType.XML_H_LEK_PR);
+            AppConfig.Property.xml_h_date_inj = GetTableItems(TableItemType.XML_H_LEK_PR_DATE_INJ);
+            AppConfig.Property.xml_h_usl = GetTableItems(TableItemType.XML_H_USL);
+            AppConfig.Property.xml_h_mr_usl_n= GetTableItems(TableItemType.XML_H_MR_USL_N);
+            AppConfig.Property.xml_l_zglv = GetTableItems(TableItemType.XML_L_ZGLV);
+            AppConfig.Property.xml_l_pers = GetTableItems(TableItemType.XML_L_PERS);
+            AppConfig.Property.schemaOracle = Owner;
+
+
+            AppConfig.Property.seq_ZGLV = GetSeqItems(TableItemType.seq_ZGLV);
+            AppConfig.Property.seq_SCHET = GetSeqItems(TableItemType.seq_SCHET);
+            AppConfig.Property.seq_ZAP = GetSeqItems(TableItemType.seq_ZAP);
+            AppConfig.Property.seq_PACIENT = GetSeqItems(TableItemType.seq_PACIENT);
+            AppConfig.Property.seq_z_sluch = GetSeqItems(TableItemType.seq_z_sluch);
+            AppConfig.Property.seq_SANK = GetSeqItems(TableItemType.seq_SANK);
+            AppConfig.Property.seq_SLUCH = GetSeqItems(TableItemType.seq_SLUCH);
+            AppConfig.Property.seq_USL = GetSeqItems(TableItemType.seq_USL);
+            AppConfig.Property.seq_L_ZGLV = GetSeqItems(TableItemType.seq_L_ZGLV);
+            AppConfig.Property.seq_L_pers = GetSeqItems(TableItemType.seq_L_pers);
+            AppConfig.Property.seq_xml_h_onk_usl = GetSeqItems(TableItemType.seq_xml_h_onk_usl);
+            AppConfig.Property.seq_xml_h_lek_pr = GetSeqItems(TableItemType.seq_xml_h_lek_pr);
+        }
+
+        public SettingTransfer ReadTableItemsTransfer()
+        {
+            var setTrans = new SettingTransfer
+            {
+                schemaOracle = Owner,
+                Transfer = Enabled,
+                xml_h_zglv = GetTableItems(TableItemType.XML_H_ZGLV),
+                xml_h_schet = GetTableItems(TableItemType.XML_H_SCHET),
+                xml_h_zap = GetTableItems(TableItemType.XML_H_ZAP),
+                xml_h_pacient = GetTableItems(TableItemType.XML_H_PACIENT),
+                xml_h_z_sluch = GetTableItems(TableItemType.XML_H_Z_SLUCH),
+                xml_h_sank_smo = GetTableItems(TableItemType.XML_H_SANK_SMO),
+                xml_h_sank_code_exp = GetTableItems(TableItemType.XML_H_SANK_CODE_EXP),
+                xml_h_sluch = GetTableItems(TableItemType.XML_H_SLUCH),
+                xml_h_kslp = GetTableItems(TableItemType.XML_H_KSLP),
+                xml_h_crit = GetTableItems(TableItemType.XML_H_CRIT),
+                xml_h_napr = GetTableItems(TableItemType.XML_H_NAPR),
+                xml_h_b_diag = GetTableItems(TableItemType.XML_H_B_DIAG),
+                xml_h_b_prot = GetTableItems(TableItemType.XML_H_B_PROT),
+                xml_h_cons = GetTableItems(TableItemType.XML_H_CONS),
+                xml_h_ds2 = GetTableItems(TableItemType.XML_H_DS2),
+                xml_h_ds3 = GetTableItems(TableItemType.XML_H_DS3),
+                xml_h_ds2_n_transfer = GetTableItems(TableItemType.XML_H_DS2_N),
+                xml_h_nazr_transfer = GetTableItems(TableItemType.XML_H_NAZR),
+                xml_h_onk_usl = GetTableItems(TableItemType.XML_H_ONK_USL),
+                xml_h_lek_pr = GetTableItems(TableItemType.XML_H_LEK_PR),
+                xml_h_lek_pr_date_inj = GetTableItems(TableItemType.XML_H_LEK_PR_DATE_INJ),
+                xml_h_usl = GetTableItems(TableItemType.XML_H_USL),
+                xml_h_mr_usl_n = GetTableItems(TableItemType.XML_H_MR_USL_N),
+                xml_l_zglv = GetTableItems(TableItemType.XML_L_ZGLV),
+                xml_l_pers = GetTableItems(TableItemType.XML_L_PERS)
+            };
+            return setTrans;
+        }
+
+
+
+
+        private string GetTableItems(TableItemType type)
+        {
+            return TableItems.FirstOrDefault(x => x.Type == type)?.TableName ?? "";
+        }
+        private string GetSeqItems(TableItemType type)
+        {
+            return SeqItems.FirstOrDefault(x => x.Type == type)?.TableName ?? "";
+        }
+
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+    }
+    public class CheckParamVM : INotifyPropertyChanged
+    {
+        private CheckingList _checkList= new CheckingList();
+
+        public CheckingList checkList
+        {
+            get => _checkList;
+            set
+            {
+                _checkList = value;
+                RaisePropertyChanged();
+                WriteCheckList();
+            }
+        }
+
+     
+        private void WriteCheckList()
+        {
+            CheckTableName.Clear();
+            CheckTableName.AddRange(checkList.GeTableNames());
+        }
+
+        public ObservableCollection<TableName> CheckTableName { get; set; } = new ObservableCollection<TableName>();
+
+        private TableName _CurrentTableName;
+        public TableName CurrentTableName
+        {
+            get => _CurrentTableName;
+            set
+            {
+                _CurrentTableName = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(Procedures));
+            }
+        }
+        public IEnumerable<OrclProcedure> Procedures
+        {
+            get
+            {
+                foreach (var item in checkList[CurrentTableName])
+                {
+                    yield return item;
+                }
+            }
+        }
+
+        public void AddProcedure(OrclProcedure proc)
+        {
+            checkList.Add(CurrentTableName, proc);
+            RaisePropertyChanged(nameof(Procedures));
+        }
+        public void AddListProcedure(List<OrclProcedure> procs)
+        {
+            checkList.AddList(CurrentTableName, procs);
+            RaisePropertyChanged(nameof(Procedures));
+        }
+
+        public void RemoveProcedure(OrclProcedure proc)
+        {
+            checkList[CurrentTableName].Remove(proc);
+            RaisePropertyChanged(nameof(Procedures));
+        }
+        public void RefreshProcedure()
+        {
+            RaisePropertyChanged(nameof(Procedures));
+        }
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+    }
+
 }

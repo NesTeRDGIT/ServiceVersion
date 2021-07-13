@@ -105,7 +105,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                  new TableInfo { TableName = AppConfig.Property.xml_h_lek_pr, SchemaName = AppConfig.Property.schemaOracle, SeqName = AppConfig.Property.seq_xml_h_lek_pr },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_date_inj, SchemaName = AppConfig.Property.schemaOracle, SeqName = "" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_cons, SchemaName = AppConfig.Property.schemaOracle, SeqName = "" },
-
+                                 new TableInfo { TableName = AppConfig.Property.xml_h_mr_usl_n, SchemaName = AppConfig.Property.schemaOracle, SeqName = "" },
 
                                  new TableInfo { TableName = "", SchemaName = AppConfig.Property.schemaOracle, SeqName = " " },
                                  DateTime.Now);

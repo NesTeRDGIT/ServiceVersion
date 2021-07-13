@@ -19,8 +19,10 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 {
     public  interface IFileCreator
     {
-         FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, bool isTEMP1, string SMO, IProgress<ProgressFileCreator> progress);
-         decimal GetFileXLS(List<V_EXPORT_H_ZGLVRow> List, List<F002> smoList, string path, DateTime D_START_XLS, DateTime D_END_XLS, IProgress<string> progress);
+         FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, bool isTEMP1, string SMO,string ENP, IProgress<ProgressFileCreator> progress);
+     
+
+        decimal GetFileXLS(List<V_EXPORT_H_ZGLVRow> List, List<F002> smoList, string path, DateTime D_START_XLS, DateTime D_END_XLS, IProgress<string> progress);
     }
 
     public class ProgressFileCreator
@@ -55,6 +57,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 
     public class FileCreator: IFileCreator
     {
+        private DateTime DT_2021_08 = new DateTime(2021, 8, 1);
         private IExportFileRepository exportFileRepository;
         public  FileCreator(IExportFileRepository exportFileRepository)
         {
@@ -68,7 +71,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             progress?.Report(new ProgressFileCreator(t, Message));
 
         }
-        public FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, bool isTEMP1, string SMO, IProgress<ProgressFileCreator> progress)
+        public FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, bool isTEMP1, string SMO, string ENP, IProgress<ProgressFileCreator> progress)
         {
             try
             {
@@ -84,6 +87,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 var PATH_XSD = "";
                 CheckXMLValidator CXL = null;
 
+
+                var dtFile = new DateTime(item.YEAR_BASE, item.MONTH_BASE, 1);
                 CXL = new CheckXMLValidator(VersionMP.V3_1);
                 switch (fp.FILE_TYPE.ToFileType())
                 {
@@ -95,7 +100,9 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     case FileType.DS:
                     case FileType.DU:
                     case FileType.DV:
-                        PATH_XSD = Path.Combine(PathSchema, "D31.xsd");
+                    case FileType.DA:
+                    case FileType.DB:
+                        PATH_XSD = Path.Combine(PathSchema, dtFile>= DT_2021_08 ? "D31_2021_08.xsd" : "D31.xsd");
                         break;
                     case FileType.H:
                         PATH_XSD = Path.Combine(PathSchema, "H31.xsd");
@@ -109,12 +116,9 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 }
 
                 var isSMO = !string.IsNullOrEmpty(SMO);
-                var TEMP = isTEMP1 ? "_TEMP1" : "";
-                var PRED = isSMO ? $"SMO = '{SMO}'" : "IsZK = 1";
+             
                 AddLogInvoke(progress, LogType.Info, "Формирование файла");
-                //Заголовок текущего файла
-                var zglvid = item.ZGLV_ID;
-
+            
                 //Запрашиваем заголовки
                 //ZGLV
                 //Запрос
@@ -136,7 +140,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 //----------------------------------------------------
                 AddLogInvoke(progress, LogType.Info, "Запрос записей");
                 //ZAP+PAC+Z_SL-------------------------------------------------
-                var ZAP = exportFileRepository.V_EXPORT_H_ZAP(item.ZGLV_ID, SMO, isTEMP1, conn);
+                var ZAP = exportFileRepository.V_EXPORT_H_ZAP(item.ZGLV_ID, SMO, ENP, isTEMP1, conn);
                 if (ZAP.Rows.Count == 0)
                 {
                     AddLogInvoke(progress, LogType.Info, $"Для файла {item.FILENAME} Вернулось 0 записей. СМО = {SMO}");
@@ -190,6 +194,13 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     DS3.Merge(exportFileRepository.V_EXPORT_H_DS3(items, isTEMP1, conn));
                     CRIT.Merge(exportFileRepository.V_EXPORT_H_CRIT(items, isTEMP1, conn));
                 }
+                var MR_USL = new DataTable();
+                foreach (var us in GetIDFromDataTable(USL, "USL_ID"))
+                {
+                    var items = us.ToList();
+                    MR_USL.Merge(exportFileRepository.V_EXPORT_H_MR_USL(items, isTEMP1, conn));
+                }
+
 
                 //L_ZGLV
                 AddLogInvoke(progress, LogType.Info, "Запрос заголовка перс данных");
@@ -200,12 +211,17 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 }
 
                 //L_PERS
+
                 AddLogInvoke(progress, LogType.Info, "Запрос персональных данных");
-                var PERS = exportFileRepository.V_EXPORT_L_PERS(item.ZGLV_ID, SMO, isTEMP1, conn);
+                var PERS = new DataTable();
+                foreach (var sl in GetIDFromDataTable(ZAP, "PERS_ID"))
+                {
+                    PERS.Merge( exportFileRepository.V_EXPORT_L_PERS(sl, isSMO, isTEMP1, conn));
+                }
                 AddLogInvoke(progress, LogType.Info, "Создание файла L");
                 var fileL = CreateFileL(L_ZGLV, PERS);
                 AddLogInvoke(progress, LogType.Info, "Создание файла H");
-                var file = CreateFile(ZGLV, SCHET, ZAP, SLUCH, USL, NAZR, SANK,EXPERTIZE, SL_KOEF, DS2_N, NAPR, B_PROT, B_DIAG, H_CONS, ONK_USLtbl, LEK_PR, DS2, DS3, CRIT);
+                var file = CreateFile(ZGLV, SCHET, ZAP, SLUCH, USL, NAZR, SANK, isSMO? EXPERTIZE: null, SL_KOEF, DS2_N, NAPR, B_PROT, B_DIAG, H_CONS, ONK_USLtbl, LEK_PR, DS2, DS3, CRIT, MR_USL);
 
                 var month = fp.MM.PadLeft(2, '0');
                 var Year = fp.YY;
@@ -298,31 +314,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         }
         private static IEnumerable<IEnumerable<long>> GetIDFromDataTable(DataTable tbl, string column_name)
         {
-            return GetIDFromDataTable(tbl.Select(), column_name);
-        }
-        private static IEnumerable<IEnumerable<long>> GetIDFromDataTable(IEnumerable<DataRow> rows, string column_name)
-        {
-            const int countList = 500;
-            var rez = new List<IEnumerable<long>>();
-            var rez_sub = new List<long>();
-            var count = 0;
-            foreach (var r in rows)
-            {
-                rez_sub.Add(Convert.ToInt64(r[column_name]));
-                count++;
-                if (count == countList)
-                {
-                    count = 0;
-                    rez.Add(rez_sub);
-                    rez_sub = new List<long>();
-                }
-            }
-            if (count != 0)
-            {
-                rez.Add(rez_sub.ToArray());
-            }
-            return rez;
-
+            var items = tbl.Select().Select(x => Convert.ToInt64(x[column_name])).Distinct().ToList();
+            return items.ToPartition(500);
         }
         private PERS_LIST CreateFileL(DataTable ZGLVtbl, DataTable PERStbl)
         {
@@ -336,7 +329,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         }
         ZL_LIST CreateFile(DataTable ZGLVtbl, DataTable SCHETtbl, DataTable ZAPtbl, DataTable SLUCHtbl, DataTable USLtbl, DataTable NAZRtbl, DataTable SANKtbl,DataTable Expertizetbl, 
             DataTable KOEFtbl, DataTable DS2_Ntbl, DataTable NAPRtbl, DataTable B_PROTtbl, DataTable B_DIAGtbl, DataTable H_CONStbl, DataTable ONK_USLtbl, DataTable LEK_PRtbl,
-            DataTable DS2, DataTable DS3, DataTable CRIT)
+            DataTable DS2, DataTable DS3, DataTable CRIT, DataTable MR_USL)
         {
             var step = 0;
             try
@@ -360,11 +353,16 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         var san = SANK.Get(sank_row);
                         z.Z_SL.SANK.Add(san);
                     }
-                    foreach (var exp_row in Expertizetbl.Select($"SLUCH_Z_ID = {z.Z_SL.SLUCH_Z_ID}"))
+
+                    if (Expertizetbl != null)
                     {
-                        var exp = EXPERTISE.Get(exp_row);
-                        z.Z_SL.EXPERTISE.Add(exp);
+                        foreach (var exp_row in Expertizetbl.Select($"SLUCH_Z_ID = {z.Z_SL.SLUCH_Z_ID}"))
+                        {
+                            var exp = EXPERTISE.Get(exp_row);
+                            z.Z_SL.EXPERTISE.Add(exp);
+                        }
                     }
+                  
                     step = 2;
                     foreach (var sl_row in SLUCHtbl.Select($"SLUCH_Z_ID = {z.Z_SL.SLUCH_Z_ID}"))
                     {
@@ -374,6 +372,10 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         foreach (var usl_row in USLtbl.Select($"SLUCH_ID = {sl.SLUCH_ID}"))
                         {
                             var us = USL.Get(usl_row);
+                            foreach (var mr_row in MR_USL.Select($"USL_ID = {us.USL_ID}"))
+                            {
+                                us.MR_USL_N.Add(MR_USL_N.Get(mr_row));
+                            }
                             sl.USL.Add(us);
                         }
                         step = 4;
@@ -554,7 +556,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     if (currRows == 1048576)
                     {
                         throw new Exception("Не проверенно 2 и более листа");
-                        countSheet++;
+                        /*countSheet++;
                         efm.AddSheet($"Реестр {countSheet}");
                         foreach (var col in baseCOL)
                         {
@@ -563,7 +565,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 
                         efm.CreateRow(1, H1.r.OuterXml);
                         efm.CreateRow(2, H2.r.OuterXml);
-                        currRows = 3;
+                        currRows = 3;*/
                     }
 
 
@@ -653,6 +655,15 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         }
         #endregion
 
+    }
+
+    public static class Ext
+    {
+        public static IEnumerable<List<T>> Partition<T>(this IList<T> source, int size)
+        {
+            for (var i = 0; i < Math.Ceiling(source.Count / (double)size); i++)
+                yield return new List<T>(source.Skip(size * i).Take(size));
+        }
     }
 
 }

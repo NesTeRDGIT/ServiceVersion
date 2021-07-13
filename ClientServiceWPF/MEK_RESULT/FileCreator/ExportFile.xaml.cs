@@ -45,7 +45,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
     
         private void ExportFile_OnLoaded(object sender, RoutedEventArgs e)
         {
-            VM.PARAM.PERIOD = DateTime.Now.AddMonths(-1);
+            VM.PARAM.PERIOD =VM.PARAM.ExportPersPARAM.BEGIN_PERIOD = VM.PARAM.ExportPersPARAM.END_PERIOD = DateTime.Now.AddMonths(-1);
             VM.PARAM.IsSMO = true;
             VM.PARAM.CountTask = 3;
             VM.PARAM.IsTEMP1 = true;
@@ -204,7 +204,13 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             {
                 isProcessing = true;
                 progress1.IsIndeterminate = true;
-                var items = await Task.Run(() => exportFileRepository.V_EXPORT_H_ZGLV(PARAM.IsTEMP1, PARAM.MONTH, PARAM.YEAR));
+                var items = new List<V_EXPORT_H_ZGLVRow>();
+
+                if (!PARAM.ExportPersPARAM.IsPers)
+                    items.AddRange(await Task.Run(() => exportFileRepository.V_EXPORT_H_ZGLV(PARAM.IsTEMP1, PARAM.MONTH, PARAM.YEAR)));
+                else
+                    items.AddRange(await Task.Run(() => exportFileRepository.V_EXPORT_H_ZGLV(PARAM.IsTEMP1, PARAM.ExportPersPARAM.ENP, PARAM.ExportPersPARAM.BEGIN_PERIOD, PARAM.ExportPersPARAM.END_PERIOD)));
+
                 ZGLV_LIST.Clear();
                 ZGLV_LIST.AddRange(items.Select(x => new V_EXPORT_H_ZGLVRowVM(x)).ToArray());
             }
@@ -285,7 +291,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     cts = new CancellationTokenSource();
                     var tasks = new List<Task> {Task.Run(() => { GetFilesXML(items, fbd.SelectedPath, PARAM.IsTEMP1, PARAM.IsSMO, smoList, cts.Token); })};
 
-                    if (PARAM.IsSMO)
+                    if (PARAM.IsSMO && !PARAM.ExportPersPARAM.IsPers)
                     {
                         tasks.Add(Task.Run(() => { GetFilesXLS(items,  fbd.SelectedPath, smoList, PARAM.DATE_1_XLS, PARAM.DATE_2_XLS,  cts.Token); }));
                     }
@@ -349,9 +355,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 {
                     fi.SUM = 0;
                     var tmitem = tm.WaitFreeItem(cancel);
-
                     cancel.ThrowIfCancellationRequested();
-                    tmitem.TSK = CreateFileTask(fi, Folder, IsTemp1, smoList);
+                    tmitem.TSK = CreateFileTask(fi, Folder, IsTemp1, (PARAM.ExportPersPARAM.IsPers ? PARAM.ExportPersPARAM.ENP : ""), smoList);
                     tmitem.Free = false;
                     tmitem.TSK.Start();
                     dispatcher.Invoke(() => { progress1.SetTextValue(index, $"Выгрузка {index} из {count}"); });
@@ -411,7 +416,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
         }
 
-        private Task CreateFileTask(V_EXPORT_H_ZGLVRowVM item, string Folder, bool IsTemp1, List<F002> smoList)
+        private Task CreateFileTask(V_EXPORT_H_ZGLVRowVM item, string Folder, bool IsTemp1, string ENP, List<F002> smoList)
         {
             return new Task(() =>
             {
@@ -431,10 +436,10 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     });
 
                     if (smoList == null)
-                        Result.Add(fileCreator.GetFileXML(item.Item, Folder, IsTemp1, null, pr));
+                        Result.Add(fileCreator.GetFileXML(item.Item, Folder, IsTemp1, null, ENP, pr));
                     else
                     {
-                        Result.AddRange(smoList.Select(smo => fileCreator.GetFileXML(item.Item, Folder, IsTemp1, smo.SMOCOD, pr)));
+                        Result.AddRange(smoList.Select(smo => fileCreator.GetFileXML(item.Item, Folder, IsTemp1, smo.SMOCOD, ENP,pr)));
                     }
 
                     dispatcher.Invoke(() =>
@@ -579,6 +584,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
         }
 
+        public ExportPersPARAM ExportPersPARAM { get; set; } = new ExportPersPARAM();
+
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
 
@@ -589,7 +596,52 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         }
         #endregion
     }
+    public class ExportPersPARAM : INotifyPropertyChanged
+    {
+        private DateTime _BEGIN_PERIOD;
+        public DateTime BEGIN_PERIOD
+        {
+            get => _BEGIN_PERIOD;
+            set
+            {
+                _BEGIN_PERIOD = value;
+                RaisePropertyChanged();
+            }
+        }
+        private DateTime _END_PERIOD;
+        public DateTime END_PERIOD
+        {
+            get => _END_PERIOD;
+            set
+            {
+                _END_PERIOD = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _ENP;
+        public string ENP
+        {
+            get => _ENP;
+            set
+            {
+                _ENP = value;
+                RaisePropertyChanged();
+            }
+        }
 
+        public bool IsPers => !string.IsNullOrEmpty(ENP);
+
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+    }
 
     /// <summary>
     /// Класс который будет выполнять действие не чаще чем раз в MS

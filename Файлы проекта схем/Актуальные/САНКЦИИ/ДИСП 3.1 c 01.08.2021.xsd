@@ -243,11 +243,19 @@
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
-                    <xs:element minOccurs="1" name="NPOLIS">
+                    <xs:element minOccurs="0" name="NPOLIS" nillable="true">
                       <xs:simpleType>
                         <xs:restriction base="xs:string">
                           <xs:maxLength value="20" />
-                          <xs:minLength value="1" />
+                          <xs:minLength value="0" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="ENP" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="16" />
+                          <xs:minLength value="0" />
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
@@ -260,22 +268,6 @@
                       </xs:simpleType>
                     </xs:element>
                     <xs:element minOccurs="0" name="SMO" nillable="true">
-                      <xs:simpleType>
-                        <xs:restriction base="xs:string">
-                          <xs:maxLength value="5" />
-                          <xs:minLength value="0" />
-                        </xs:restriction>
-                      </xs:simpleType>
-                    </xs:element>
-                    <xs:element minOccurs="0" name="SMO_OGRN" nillable="true">
-                      <xs:simpleType>
-                        <xs:restriction base="xs:string">
-                          <xs:maxLength value="15" />
-                          <xs:minLength value="0" />
-                        </xs:restriction>
-                      </xs:simpleType>
-                    </xs:element>
-                    <xs:element minOccurs="0" name="SMO_OK" nillable="true">
                       <xs:simpleType>
                         <xs:restriction base="xs:string">
                           <xs:maxLength value="5" />
@@ -544,12 +536,11 @@
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
-                                <xs:element minOccurs="0" name="NAZ_SP" nillable="true">
+                                <xs:element minOccurs="1" name="NAZ_IDDOKT">
                                   <xs:simpleType>
-                                    <xs:restriction base="xs:decimal">
-                                      <xs:totalDigits value="4" />
-                                      <xs:minInclusive value="0" />
-                                      <xs:maxExclusive value="10000" />
+                                    <xs:restriction base="xs:string">
+                                      <xs:maxLength value="25" />
+                                      <xs:minLength value="1" />
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
@@ -742,22 +733,37 @@
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
-                                <xs:element minOccurs="0" name="PRVS" nillable="true">
-                                  <xs:simpleType>
-                                    <xs:restriction base="xs:decimal">
-                                      <xs:totalDigits value="9" />
-                                      <xs:minInclusive value="0" />
-                                      <xs:maxExclusive value="1000000000" />
-                                    </xs:restriction>
-                                  </xs:simpleType>
-                                </xs:element>
-                                <xs:element minOccurs="0" name="CODE_MD" nillable="true">
-                                  <xs:simpleType>
-                                    <xs:restriction base="xs:string">
-                                      <xs:maxLength value="25" />
-                                      <xs:minLength value="0" />
-                                    </xs:restriction>
-                                  </xs:simpleType>
+                                <xs:element msprop:Orders="10" minOccurs="1" maxOccurs="unbounded" name="MR_USL_N">
+                                  <xs:complexType>
+                                    <xs:sequence>
+                                      <xs:element minOccurs="1" name="MR_N">
+                                        <xs:simpleType>
+                                          <xs:restriction base="xs:decimal">
+                                            <xs:totalDigits value="3" />
+                                            <xs:minInclusive value="0" />
+                                            <xs:maxExclusive value="1000" />
+                                          </xs:restriction>
+                                        </xs:simpleType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" name="PRVS" nillable="true">
+                                        <xs:simpleType>
+                                          <xs:restriction base="xs:decimal">
+                                            <xs:totalDigits value="4" />
+                                            <xs:minInclusive value="0" />
+                                            <xs:maxExclusive value="10000" />
+                                          </xs:restriction>
+                                        </xs:simpleType>
+                                      </xs:element>
+                                      <xs:element minOccurs="0" name="CODE_MD" nillable="true">
+                                        <xs:simpleType>
+                                          <xs:restriction base="xs:string">
+                                            <xs:maxLength value="25" />
+                                            <xs:minLength value="0" />
+                                          </xs:restriction>
+                                        </xs:simpleType>
+                                      </xs:element>
+                                    </xs:sequence>
+                                  </xs:complexType>
                                 </xs:element>
                                 <xs:element minOccurs="0" name="COMENTU" nillable="true">
                                   <xs:simpleType>

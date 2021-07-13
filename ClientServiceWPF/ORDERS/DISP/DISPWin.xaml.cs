@@ -295,7 +295,7 @@ namespace ClientServiceWPF.ORDERS.DISP
 
         private  ZL_LIST CreateFile(List<PERS> persList,string FileName, DateTime DT,CancellationToken cancel)
         {
-            var file = new ZL_LIST {ZGLV = {FILENAME = FileName, DATA = DT}};
+            var file = new ZL_LIST {ZGLV = {FILENAME = Path.GetFileNameWithoutExtension(FileName), DATA = DT}};
             var count = 1;
             var ENP = persList.Select(x => x.ENP).ToList().Distinct().ToList();
             var dic_data = new Dictionary<string, SVOD_DATA>();
@@ -518,7 +518,7 @@ namespace ClientServiceWPF.ORDERS.DISP
         }
       
         public string FILENAME_VIEW => $"{FILENAME}{{{NN}}}";
-        public string FILENAME => $"DISP75{DATE:yyMMdd}";
+        public string FILENAME => $"DISP75_{DATE:yyMMdd}";
 
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;

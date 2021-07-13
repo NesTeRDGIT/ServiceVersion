@@ -211,13 +211,15 @@ namespace MedpomService
                     CheckXSD(item, FileXSD);
                     pack.Comment = $"Обработка пакета: Проверка схемы файла {item.filel.FileName}";
                     CheckXSD(item.filel, LFileXSD);
+                    var IsMainErr = item.Process == StepsProcess.ErrorXMLxsd;
+                    var IsLErr = item.filel.Process == StepsProcess.ErrorXMLxsd;
 
-                    if (item.Process == StepsProcess.ErrorXMLxsd)
+                    if (IsMainErr)
                     {
                         item.filel.Process = StepsProcess.ErrorXMLxsd;
                         item.filel.CommentAndLog = $"Ошибка: Файл владелец({item.FileName}) содержит ошибки в дальнейшей обработке отказано";
                     }
-                    if (item.filel.Process == StepsProcess.ErrorXMLxsd)
+                    if (IsLErr)
                     {
                         item.Process = StepsProcess.ErrorXMLxsd;
                         item.CommentAndLog = $"Ошибка: Файл персональных данных({item.filel.FileName}) содержит ошибки в дальнейшей обработке отказано";
@@ -378,12 +380,14 @@ namespace MedpomService
                     case FileType.DS:
                     case FileType.DU:
                     case FileType.DV:
+                    case FileType.DA:
+                    case FileType.DB:
                     case FileType.H:
-                        findfile = "L" + findfile.Remove(0, 1);
+                        findfile = $"L{findfile.Remove(0, 1)}";
                         break;
                     case FileType.T:
                     case FileType.C:
-                        findfile = "L" + findfile;
+                        findfile = $"L{findfile}";
                         break;
                     default:
                         continue;
@@ -434,6 +438,8 @@ namespace MedpomService
                         case FileType.LH:
                         case FileType.LT:
                         case FileType.LC:
+                        case FileType.LA:
+                        case FileType.LB:
                             F.FileLog.WriteLn("Ошибка: Файл владелец данных отсутствует");
                             F.Comment = ("Ошибка: Файл владелец данных отсутствует");
                             break;

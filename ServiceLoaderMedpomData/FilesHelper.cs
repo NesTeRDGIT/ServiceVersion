@@ -4,6 +4,8 @@ using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using NPOI.SS.Formula.Functions;
 
 
 namespace ServiceLoaderMedpomData
@@ -62,11 +64,14 @@ namespace ServiceLoaderMedpomData
         public static bool MoveFile(FileItemBase item, string catalog, int NOT_FOUND_COUNT = 1, ILogger Logger = null)
         {
             var NOT_FOUND = 0;
+            int step1 = 0;
             while (true)
             {
                 try
                 {
+                    step1++;
                     File.SetAttributes(item.FilePach, FileAttributes.Normal);
+                    step1++;
                     File.Move(item.FilePach, Path.Combine(catalog, item.FileName));
                     break;
                 }
@@ -86,16 +91,23 @@ namespace ServiceLoaderMedpomData
 
                     if (NOT_FOUND == NOT_FOUND_COUNT)
                     {
-                        Logger?.AddLog($"Ошибка переноса файла {item.FileName}({item.FilePach}): {ex.GetType()} {ex.FullError()}", LogType.Error);
+                        Logger?.AddLog($"Ошибка переноса файла {item.FileName}({item.FilePach}): {ex.GetType()} {ex.FullError()}|step={step1}", LogType.Error);
                         item.Comment = $"Обработка пакета: Перенос файла {item.FileName}: {ex.GetType()} {ex.FullError()}";
                         return false;
                     }
-                    Thread.Sleep(5000);
+                    Task.Delay(5000).Wait();
                 }
             }
             return true;
         }
-        public static string MoveFileTo(string From, string Dist)
+        /// <summary>
+        /// Перенос файла
+        /// </summary>
+        /// <param name="From">Источник</param>
+        /// <param name="Dist">Направление</param>
+        /// <param name="Renamed">Переименовать файл, если в направлении уже существует такой файл(FILENAME(n))</param>
+        /// <returns></returns>
+        public static string MoveFileTo(string From, string Dist, bool Renamed=true)
         {
             var prefix = "";
             var x = 1;
@@ -106,10 +118,10 @@ namespace ServiceLoaderMedpomData
 
             if (!Directory.Exists(Path.GetDirectoryName(Dist)))
                 Directory.CreateDirectory(dir_dist);
-
-
             while (File.Exists(path))
             {
+                if (!Renamed)
+                    throw new Exception($"Ошибка переноса файла {From} в {path}. Файл уже присутствует");
                 prefix = $"({x})";
                 x++;
                 path = $"{dir_dist}\\{filename_dist}{prefix}{ext_dist}";
@@ -119,6 +131,35 @@ namespace ServiceLoaderMedpomData
             File.Move(From, path);
             return path;
         }
+
+        /// <summary>
+        /// Удаление директории(с несколькими попытками)
+        /// </summary>
+        /// <param name="dir">Директория</param>
+        /// <param name="Count">Кол-во попыток</param>
+        /// <param name="TimeOut">Время между попытками(МС)</param>
+        /// <returns></returns>
+        public static async Task<bool> DeleteDirectoryAsync(string dir, int Count = 3, int TimeOut = 500)
+        {
+            if (!Directory.Exists(dir)) throw new Exception($"Директория {dir} не существует");
+            var Counttry = 0;
+            while (true)
+                try
+                {
+                    Directory.Delete(dir, true);
+                    return true;
+                }
+                catch (Exception)
+                {
+                    Counttry++;
+                    if (Counttry >= Count)
+                        throw;
+                    await Task.Delay(TimeOut);
+                }
+
+            throw new Exception($"Директория {dir} не существует");
+        }
+
         /// <summary>
         /// Копирование файла с проверкой на совпадение и если совпадает то будет имя_файла(1).. итд
         /// </summary>
@@ -159,13 +200,13 @@ namespace ServiceLoaderMedpomData
             }
 
         }
-        public static BoolResult FilesExtract(string From, string To)
+        public static async Task<BoolResult> FilesExtract(string From, string To)
         {
             var ArchiveName = Path.GetFileName(From);
             var tmppathMain = Path.Combine(To, Path.GetRandomFileName());
             try
             {
-                using (var arc = System.IO.Compression.ZipFile.Open(From, ZipArchiveMode.Read, Encoding.GetEncoding("cp866")))
+                using (var arc = ZipFile.Open(From, ZipArchiveMode.Read, Encoding.GetEncoding("cp866")))
                 {
                     try
                     {
@@ -173,7 +214,6 @@ namespace ServiceLoaderMedpomData
                         {
                             Directory.Delete(tmppathMain, true);
                         }
-
                         Directory.CreateDirectory(tmppathMain);
                     }
                     catch (Exception ex)
@@ -181,7 +221,7 @@ namespace ServiceLoaderMedpomData
                         return new BoolResult
                         {
                             Result = false,
-                            Exception = $"Ошибка при распаковке файла {ArchiveName}: {ex.Message}"
+                            Exception = $"Ошибка создания временной директории при распаковке файла {ArchiveName}: {ex.Message}"
                         };
                     }
                     foreach (var entry in arc.Entries.Where(x => x.CompressedLength != 0))
@@ -192,7 +232,7 @@ namespace ServiceLoaderMedpomData
                         }
                         catch (Exception ex)
                         {
-                            return new BoolResult()
+                            return new BoolResult
                             {
                                 Result = false,
                                 Exception = $"Ошибка при распаковке файла {ArchiveName}: {ex.Message}"
@@ -200,13 +240,14 @@ namespace ServiceLoaderMedpomData
                         }
                     }
                 }
+                
 
                 string[] files;
                 while ((files = Directory.GetFiles(tmppathMain, "*.zip", SearchOption.TopDirectoryOnly)).Length != 0)
                 {
                     foreach (var str in files)
                     {
-                        var t = FilesExtract(str, tmppathMain);
+                        var t =await  FilesExtract(str, tmppathMain);
                         if (t.Result == false)
                             return t;
                         File.Delete(str);
@@ -217,29 +258,28 @@ namespace ServiceLoaderMedpomData
                 try
                 {
                     var filestmp = Directory.GetFiles(tmppathMain, "*.*", SearchOption.TopDirectoryOnly);
-                    foreach (var name in filestmp)
+                    foreach (var name in filestmp.Where(x => Path.GetDirectoryName(x)?.ToUpper() != ".TMP"))
                     {
                         MoveFileTo(name, Path.Combine(To, Path.GetFileName(name)));
                     }
-                    Directory.Delete(tmppathMain, true);
                 }
                 catch (Exception ex)
                 {
-                    Directory.Delete(tmppathMain, true);
-                    return new BoolResult()
+                    return new BoolResult
                     {
                         Result = false,
                         Exception = $"Ошибка при переносе файлов архива {ArchiveName}: {ex.Message}"
                     };
                 }
-                return new BoolResult() { Result = true };
+                finally
+                {
+                    await DeleteDirectoryAsync(tmppathMain);
+                }
+                return new BoolResult { Result = true };
             }
             catch (Exception ex)
             {
-                // WcfInterface.AddLog("Ошибка при извлечении архива " + file.Name + ":" + ex.Message, EventLogEntryType.Error);
-                //return false;
-                return new BoolResult()
-                { Result = false, Exception = $"Ошибка при извлечении архива {ArchiveName}: {ex.Message}" };
+                return new BoolResult { Result = false, Exception = $"Ошибка при извлечении архива {ArchiveName}: {ex.Message}" };
             }
 
         }

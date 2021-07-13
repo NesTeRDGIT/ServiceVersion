@@ -144,14 +144,9 @@ namespace ClientServiceWPF.ORDERS.ORD23
                     item.K_KSG = Convert.ToString(row["K_KSG"]);
                 if (row["KSG_PG"] != DBNull.Value)
                     item.KSG_PG = Convert.ToDecimal(row["KSG_PG"]);
-                int x = 0;
+              
                 foreach (var c in CRIT)
                 {
-                    /*
-                         item.DKK1 = Convert.ToString(c["CRIT"]);
-                     if (x == 1)
-                         item.DKK2 = Convert.ToString(c["CRIT"]);
-                     x++;*/
                     item.CRIT.Add(Convert.ToString(c["CRIT"]));
                 }
 

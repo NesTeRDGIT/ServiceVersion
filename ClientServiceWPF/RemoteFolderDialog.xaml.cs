@@ -105,6 +105,7 @@ namespace ClientServiceWPF
                 case FileItemType.Return: return false;
                 case FileItemType.XML: return true;
                 case FileItemType.ZIP: return true;
+                case FileItemType.XSD: return true;
                 default: return false;
             }
         }

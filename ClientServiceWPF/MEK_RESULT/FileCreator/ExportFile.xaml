@@ -9,7 +9,7 @@
         mc:Ignorable="d"
         Name="this"
         Style="{DynamicResource StyleWindow}"
-        Title="Выгрузка файлов с результатами МЭК" Height="570.61" Width="1102.994" Loaded="ExportFile_OnLoaded" WindowState="Maximized">
+        Title="Выгрузка файлов с результатами МЭК" Height="570.61" Width="1250.327" Loaded="ExportFile_OnLoaded" WindowState="Maximized">
     <Window.Resources>
         <class:BoolInverterConverter x:Key="BoolInverterConverter"/>
         <CollectionViewSource x:Key="CollectionViewSourceFiles" Source="{Binding ZGLV_LIST}" d:DesignSource="{d:DesignInstance {x:Type fileCreator:V_EXPORT_H_ZGLVRowVM}, CreateList=True}" />
@@ -20,14 +20,57 @@
     </Window.DataContext>
     <Grid>
         <Grid>
-            <GroupBox  Header="Период" HorizontalAlignment="Left" Height="96" VerticalAlignment="Top" Width="324" IsEnabled="{Binding isProcessing, Converter={StaticResource BoolInverterConverter}}">
+            <GroupBox  Header="Период" HorizontalAlignment="Left" Height="189" VerticalAlignment="Top" Width="324" IsEnabled="{Binding isProcessing, Converter={StaticResource BoolInverterConverter}}">
                 <Grid>
-                    <DatePicker class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Width="122" SelectedDate="{Binding PARAM.PERIOD}" />
-                    <Button Margin="0,10,10,0" HorizontalAlignment="Right" Width="111" Height="25" VerticalAlignment="Top"  Style="{DynamicResource MainButton}" Command="{Binding RefreshListCommand}">Запрос</Button>
-                    <Button x:Name="buttonSelectAll" Content="Выбор" HorizontalAlignment="Left" Margin="10,48,0,0" VerticalAlignment="Top" Width="75" Style="{DynamicResource MainButton}" Command="{Binding SelectAllListCommand}" />
+                    <Button Margin="0,0,4,8" HorizontalAlignment="Right" Width="111" Height="20" VerticalAlignment="Bottom"  Style="{DynamicResource MainButton}" Command="{Binding RefreshListCommand}">Запрос</Button>
+                    <Button x:Name="buttonSelectAll" Content="Выбор" HorizontalAlignment="Left" Margin="6,0,0,8" VerticalAlignment="Bottom" Width="75" Style="{DynamicResource MainButton}" Command="{Binding SelectAllListCommand}" />
+                    <GroupBox Header="По пациенту" Margin="0,53,4,40">
+                        <GroupBox.Style>
+                            <Style TargetType="{x:Type GroupBox}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=radioButtonToSMO}" Value="True">
+                                        <Setter Property="IsEnabled" Value="True"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=radioButtonToSMO}" Value="False">
+                                        <Setter Property="IsEnabled" Value="False"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </GroupBox.Style>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="143*"/>
+                                <ColumnDefinition Width="147*"/>
+                            </Grid.ColumnDefinitions>
+                            <Label Content="ЕНП" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-1,-2,0,0"/>
+                            <TextBox Text="{Binding PARAM.ExportPersPARAM.ENP}" Margin="34,3,3,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
+                            <DatePicker SelectedDate="{Binding PARAM.ExportPersPARAM.BEGIN_PERIOD}" class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" Margin="0,25,5,1" HorizontalAlignment="Right" Width="104"/>
+                            <DatePicker SelectedDate="{Binding PARAM.ExportPersPARAM.END_PERIOD}" class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" Margin="31,0,3,0" VerticalAlignment="Bottom" Grid.Column="1"/>
+                            <Label Content="С" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="2,0,0,0"/>
+                            <Label Content="По" HorizontalAlignment="Left" VerticalAlignment="Bottom" Grid.Column="1"/>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox Header="По отчетному периоду" Margin="0,0,4,114">
+                        <GroupBox.Style>
+                            <Style TargetType="{x:Type GroupBox}">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=radioButtonToSMO}" Value="True">
+                                        <Setter Property="IsEnabled" Value="True"/>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding IsChecked, ElementName=radioButtonToSMO}" Value="False">
+                                        <Setter Property="IsEnabled" Value="False"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </GroupBox.Style>
+                        <Grid>
+                            <DatePicker class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" HorizontalAlignment="Left" Margin="54,3,0,0" VerticalAlignment="Top" Width="112" SelectedDate="{Binding PARAM.PERIOD}" />
+                            <Label Content="Период" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                        </Grid>
+                    </GroupBox>
                 </Grid>
             </GroupBox>
-            <GroupBox  Header="Список файлов" HorizontalAlignment="Left" Width="324" Margin="0,101,0,65">
+            <GroupBox  Header="Список файлов" HorizontalAlignment="Left" Width="324" Margin="0,190,0,65">
                 <Grid>
                     <ListView x:Name="ListBoxFiles" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CollectionViewSourceFiles}}" Margin="0,0,0,26" IsSynchronizedWithCurrentItem="True" >
                         <ListView.View>
@@ -80,6 +123,8 @@
                                 <GridViewColumn Header="Имя файла" DisplayMemberBinding="{Binding Item.FILENAME}" Width="Auto" />
                                 <GridViewColumn Header="Код МО" DisplayMemberBinding="{Binding Item.CODE_MO}" Width="Auto" />
                                 <GridViewColumn Header="ZGLV__ID" DisplayMemberBinding="{Binding Item.ZGLV_ID}" Width="Auto" />
+                                <GridViewColumn Header="Месяц" DisplayMemberBinding="{Binding Item.MONTH}" ></GridViewColumn>
+                                <GridViewColumn Header="Год" DisplayMemberBinding="{Binding Item.YEAR}" ></GridViewColumn>
                                 <GridViewColumn Header="InWork" DisplayMemberBinding="{Binding InWork}" Width="Auto" />
                                 <GridViewColumn Header="Finish" DisplayMemberBinding="{Binding Finish}" Width="Auto" />
                                 <GridViewColumn Header="IsTypeLog" DisplayMemberBinding="{Binding IsTypeLog}" Width="Auto" />
@@ -142,7 +187,7 @@
                         <TextBlock Text="{Binding progress3.Text}" VerticalAlignment="Center"  Margin="5,0,5,0"></TextBlock>
                     </StackPanel>
                 </StatusBarItem>
-              
+
             </StatusBar>
             <GroupBox  Header="Список файлов" Margin="329,101,0,65">
                 <Grid>

@@ -569,7 +569,7 @@ namespace ClientServiceWPF.ORDERS.ORD260
             }
         }
 
-        public string FILENAME => $"{(С_FILE ? "CT" : "TT")}75{YEAR.ToString().Substring(2)}{MONTH:D2}{NN}";
+        public string FILENAME => $"{(С_FILE ? "CT" : "TT")}75_{YEAR.ToString().Substring(2)}{MONTH:D2}{NN}";
 
 
         #region INotifyPropertyChanged

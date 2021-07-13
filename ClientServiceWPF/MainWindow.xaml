@@ -133,8 +133,6 @@
                             </ListView.Resources>
                             <ListView.View>
                                 <GridView>
-
-
                                     <GridViewColumn Header="Наименование операции"  Width="Auto" >
                                         <GridViewColumn.CellTemplate>
                                             <DataTemplate>

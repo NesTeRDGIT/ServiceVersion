@@ -113,7 +113,8 @@ namespace MedpomService
                     efm.PrintCell(r, 14, "Код врача, закрывшего случай", styleColumn);
                     efm.PrintCell(r, 15, "Дата начала", styleColumn);
                     efm.PrintCell(r, 16, "Дата окончания", styleColumn);
-                    efm.PrintCell(r, 17, "Ошибка", styleColumn);
+                    efm.PrintCell(r, 17, "Исправленный реестр", styleColumn);
+                    efm.PrintCell(r, 18, "Ошибка", styleColumn);
 
                     efm.SetColumnWidth(1, 11);
                     efm.SetColumnWidth(2, 18);
@@ -131,7 +132,8 @@ namespace MedpomService
                     efm.SetColumnWidth(14, 18);
                     efm.SetColumnWidth(15, 12);
                     efm.SetColumnWidth(16, 12);
-                    efm.SetColumnWidth(17, 64);
+                    efm.SetColumnWidth(17, 16);
+                    efm.SetColumnWidth(18, 64);
                     uint RowIndexEx = 2;
                     if (list.Count == 0)
                     {
@@ -190,7 +192,8 @@ namespace MedpomService
                         efm.PrintCell(r, 14, item.IDDOKT, styleCellDefault);
                         efm.PrintCell(r, 15, item.DATE_1, styleCellDefaultDate);
                         efm.PrintCell(r, 16, item.DATE_2, styleCellDefaultDate);
-                        efm.PrintCell(r, 17, item.ERR, tERR);
+                        efm.PrintCell(r, 17, item.DOP? "Да" : "Нет", styleCellDefault);
+                        efm.PrintCell(r, 18, item.ERR, tERR);
                         RowIndexEx++;
                     }
                     efm.Save();

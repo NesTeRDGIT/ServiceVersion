@@ -113,7 +113,7 @@ namespace MedpomService
                 foreach (var item in pack.Files)
                 {
                     pack.Comment = $"Обработка пакета: Ожидание доступности файла {item.FileName} (Файл занят другим процессом)";
-                    if (!FilesHelper.CheckFileAv(item.FilePach, 3))
+                    if (!FilesHelper.CheckFileAv(item.FilePach, 5))
                     {
                         item.Comment = "Файл не доступен";
                         item.Process = StepsProcess.FlkErr;
@@ -126,7 +126,7 @@ namespace MedpomService
                     }
 
                     pack.Comment = $"Обработка пакета: Перенос файла {item.FileName}";
-                    if (!FilesHelper.MoveFile(item, catalog, 3))
+                    if (!FilesHelper.MoveFile(item, catalog, 5, Logger))
                     {
                         item.Process = StepsProcess.FlkErr;
                         continue;
@@ -147,7 +147,7 @@ namespace MedpomService
                         }
 
                         pack.Comment = $"Обработка пакета: Перенос файла {item.filel.FileName}";
-                        if (!FilesHelper.MoveFile(item.filel, catalog, 3))
+                        if (!FilesHelper.MoveFile(item.filel, catalog, 5, Logger))
                         {
                             item.filel.Process = StepsProcess.FlkErr;
                             continue;

@@ -57,6 +57,7 @@ namespace MedpomService
                     var currentpack = PacketQuery.GetHighPriority();
                     if (currentpack != null)
                     {
+                        Task clearTemp100Task = null;
                         try
                         {
                             if (currentpack.Status == StatusFilePack.XMLSchemaOK)
@@ -72,7 +73,7 @@ namespace MedpomService
                                         cancel.ThrowIfCancellationRequested();
                                         mybd.TruncALL();
                                     }
-                                    catch (CancelException)
+                                    catch (OperationCanceledException)
                                     {
                                         throw;
                                     }
@@ -85,12 +86,9 @@ namespace MedpomService
                                     }
 
                                     //Проверка на сбой(т.е. во время переноса что то случилось. И теперь считает что они в БД
-                                    foreach (var fi in currentpack.Files)
+                                    foreach (var fi in currentpack.Files.Where(fi => fi.Process == StepsProcess.FlkOk))
                                     {
-                                        if (fi.Process == StepsProcess.FlkOk)
-                                        {
-                                            fi.Process = StepsProcess.XMLxsd;
-                                        }
+                                        fi.Process = StepsProcess.XMLxsd;
                                     }
 
                                     //Загрузка данных в БД
@@ -116,20 +114,19 @@ namespace MedpomService
                                                 fi.Comment = "Ошибка переноса";
                                                 fi.FileLog.WriteLn(rez1.Exception);
                                             }
-
                                             GC.Collect();
                                         }
-                                        catch (CancelException)
+                                        catch (OperationCanceledException)
                                         {
                                             throw;
                                         }
                                         catch (Exception ex)
                                         {
-                                            Logger.AddLog($"Ошибка при переносе {fi.FileName}: {ex.Message}", LogType.Error);
+                                            Logger.AddLog($"Ошибка при переносе в БД {fi.FileName}: {ex.Message}", LogType.Error);
                                         }
                                     }
 
-                                    Task clearTemp100Task = null;
+                                    
                                     var ProcessList = currentpack.Files.Where(x => x.Process == StepsProcess.FlkOk && x.filel.Process == StepsProcess.FlkOk).ToList();
                                     cancel.ThrowIfCancellationRequested();
                                     //ОЧИСТКА БАЗЫ ПЕРЕНОСА
@@ -205,7 +202,6 @@ namespace MedpomService
                                             currentpack.Comment = $"При очистке базы {AppConfig.Property.xml_h_zglv_transfer} от {currentpack.CodeMO}: {e.Message}";
                                             Logger.AddLog($"При очистке базы {AppConfig.Property.xml_h_zglv_transfer} от {currentpack.CodeMO}: {e.Message}", LogType.Error);
                                         }
-
                                         throw new Exception("Ошибка при очистке TEMP100");
                                     }
 
@@ -216,98 +212,7 @@ namespace MedpomService
                                         cancel.ThrowIfCancellationRequested();
                                         try
                                         {
-                                            foreach (var fi in currentpack.Files)
-                                            {
-                                                if (fi.Process == StepsProcess.FlkOk && fi.Process == StepsProcess.FlkOk)
-                                                {
-                                                    fi.WriteLnFull("Начало переноса");
-                                                }
-                                            }
-
-                                            //L_ZGLV
-                                            currentpack.Comment = "Обработка пакета: Перенос L_ZGLV";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_l_zglv, AppConfig.Property.schemaOracle, AppConfig.Property.xml_l_zglv_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //L_PERS
-                                            currentpack.Comment = "Обработка пакета: Перенос L_PERS";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_l_pers, AppConfig.Property.schemaOracle, AppConfig.Property.xml_l_pers_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //ZGLV
-                                            currentpack.Comment = "Обработка пакета: Перенос ZGLV";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_zglv, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_zglv_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //SCHET
-                                            currentpack.Comment = "Обработка пакета: Перенос SCHET";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_schet, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_schet_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //ZAP
-                                            currentpack.Comment = "Обработка пакета: Перенос ZAP";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_zap, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_zap_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //PAC
-                                            currentpack.Comment = "Обработка пакета: Перенос PACIENT";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_pacient, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_pacient_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //Z_SLUCH
-                                            currentpack.Comment = "Обработка пакета: Перенос Z_SLUCH";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_z_sluch, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_z_sluch_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //SLUCH
-                                            currentpack.Comment = "Обработка пакета: Перенос SLUCH";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_sluch, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_sluch_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //DS2_N
-                                            currentpack.Comment = "Обработка пакета: Перенос DS2_N";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.XML_H_DS2_N, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_ds2_n_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //NAZR
-                                            currentpack.Comment = "Обработка пакета: Перенос NAZR";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.XML_H_NAZR, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_nazr_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //KSLP
-                                            currentpack.Comment = "Обработка пакета: Перенос KOEF";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_kslp, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_kslp_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //USL
-                                            currentpack.Comment = "Обработка пакета: Перенос USL";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_usl, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_usl_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //SANK
-                                            currentpack.Comment = "Обработка пакета: Перенос SANK";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_sank, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_sank_smo_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //B_DIAG
-                                            currentpack.Comment = "Обработка пакета: Перенос B_DIAG";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_b_diag, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_b_diag_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //B_PROT
-                                            currentpack.Comment = "Обработка пакета: Перенос B_PROT";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_b_prot, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_b_prot_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //NAPR
-                                            currentpack.Comment = "Обработка пакета: Перенос NAPR";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_napr, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_napr_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //ONK_USL
-                                            currentpack.Comment = "Обработка пакета: Перенос ONK_USL";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_onk_usl, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_onk_usl_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //LEK_PR
-                                            currentpack.Comment = "Обработка пакета: Перенос LEK_PR";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_lek_pr, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_lek_pr_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //LEK_PR_DATE_INJ
-                                            currentpack.Comment = "Обработка пакета: Перенос LEK_PR_DATE_INJ";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_date_inj, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_date_inj_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //CONS
-                                            currentpack.Comment = "Обработка пакета: Перенос CONS";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_cons, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_cons_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //ds2
-                                            currentpack.Comment = "Обработка пакета: Перенос DS2";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_ds2, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_ds2_transfer, AppConfig.Property.schemaOracle_transfer));
-                                            //ds3
-                                            currentpack.Comment = "Обработка пакета: Перенос DS3";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_ds3, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_ds3_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            //CRIT
-                                            currentpack.Comment = "Обработка пакета: Перенос CRIT";
-                                            TransResult(mybd.TransferTable(AppConfig.Property.xml_h_crit, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_crit_transfer, AppConfig.Property.schemaOracle_transfer));
-
-                                            foreach (var fi in ProcessList)
-                                            {
-                                                fi.WriteLnFull("Перенос завершен");
-                                            }
+                                            TransTemp100(currentpack, ProcessList);
                                         }
                                         catch (Exception ex)
                                         {
@@ -315,12 +220,11 @@ namespace MedpomService
                                             {
                                                 fi.WriteLnFull("Ошибка переноса");
                                             }
-
                                             currentpack.CommentSite = "Что то пошло не так...";
                                             currentpack.Comment = $"Ошибка при переносе в месячную БД: {ex.Message}";
                                             Logger.AddLog($"Ошибка при переносе в месячную БД для {currentpack.CodeMO}: {ex.Message}", LogType.Error);
+                                            throw new Exception("Ошибка при переносе в месячную БД");
                                         }
-
                                     }
                                     else
                                     {
@@ -344,7 +248,7 @@ namespace MedpomService
                                 }
                             }
                         }
-                        catch (CancelException)
+                        catch (OperationCanceledException)
                         {
                             currentpack.Status = StatusFilePack.FLKERR;
                             currentpack.CloserLogFiles();
@@ -358,22 +262,24 @@ namespace MedpomService
                         {
                             currentpack.Status = StatusFilePack.FLKERR;
                             currentpack.CommentSite = "Что то пошло не так...";
-                            currentpack.Comment = "Ошибка при переносе в БД";
-                            Logger.AddLog($"Ошибка при переносе в БД {currentpack.CodeMO} ({ex.Source}:{ex.Message})", LogType.Error);
+                            currentpack.Comment = "Ошибка в процессе обработки БД";
+                            Logger.AddLog($"Ошибка в процессе обработки БД {currentpack.CodeMO} ({ex.Source}:{ex.Message})", LogType.Error);
                             currentpack.CloserLogFiles();
                         }
                         finally
                         {
+                            //Не прерываем ожидание очистки
+                            // ReSharper disable once MethodSupportsCancellation
+                            clearTemp100Task?.Wait();
                             SaveFilesParam();
                         }
                     }
-
                     var delay = Task.Delay(1000, cancel);
                     delay.Wait(cancel);
                     DBinvitePac = null;
                 }
             }
-            catch (CancelException)
+            catch (OperationCanceledException)
             {
 
             }
@@ -385,6 +291,113 @@ namespace MedpomService
             {
                 DBinvitePac = null;
                 SaveFilesParam();
+            }
+        }
+
+        private void TransTemp100(FilePacket currentpack, List<FileItem> ProcessList)
+        {
+            foreach (var fi in ProcessList)
+            {
+                fi.WriteLnFull("Начало переноса");
+            }
+            try
+            {
+                mybd.BeginTransaction();
+                //L_ZGLV
+                currentpack.Comment = "Обработка пакета: Перенос L_ZGLV";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_l_zglv, AppConfig.Property.schemaOracle, AppConfig.Property.xml_l_zglv_transfer, AppConfig.Property.schemaOracle_transfer));
+                //L_PERS
+                currentpack.Comment = "Обработка пакета: Перенос L_PERS";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_l_pers, AppConfig.Property.schemaOracle, AppConfig.Property.xml_l_pers_transfer, AppConfig.Property.schemaOracle_transfer));
+                //ZGLV
+                currentpack.Comment = "Обработка пакета: Перенос ZGLV";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_zglv, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_zglv_transfer, AppConfig.Property.schemaOracle_transfer));
+                //SCHET
+                currentpack.Comment = "Обработка пакета: Перенос SCHET";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_schet, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_schet_transfer, AppConfig.Property.schemaOracle_transfer));
+                //ZAP
+                currentpack.Comment = "Обработка пакета: Перенос ZAP";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_zap, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_zap_transfer, AppConfig.Property.schemaOracle_transfer));
+                //PAC
+                currentpack.Comment = "Обработка пакета: Перенос PACIENT";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_pacient, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_pacient_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //Z_SLUCH
+                currentpack.Comment = "Обработка пакета: Перенос Z_SLUCH";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_z_sluch, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_z_sluch_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //SLUCH
+                currentpack.Comment = "Обработка пакета: Перенос SLUCH";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_sluch, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_sluch_transfer, AppConfig.Property.schemaOracle_transfer));
+                //DS2_N
+                currentpack.Comment = "Обработка пакета: Перенос DS2_N";
+                TransResult(mybd.TransferTable(AppConfig.Property.XML_H_DS2_N, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_ds2_n_transfer, AppConfig.Property.schemaOracle_transfer));
+                //NAZR
+                currentpack.Comment = "Обработка пакета: Перенос NAZR";
+                TransResult(mybd.TransferTable(AppConfig.Property.XML_H_NAZR, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_nazr_transfer, AppConfig.Property.schemaOracle_transfer));
+                //KSLP
+                currentpack.Comment = "Обработка пакета: Перенос KOEF";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_kslp, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_kslp_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //USL
+                currentpack.Comment = "Обработка пакета: Перенос USL";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_usl, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_usl_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //MR_USL
+                currentpack.Comment = "Обработка пакета: Перенос MR_USL";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_mr_usl_n, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_mr_usl_n_transfer, AppConfig.Property.schemaOracle_transfer));
+
+
+                //SANK
+                currentpack.Comment = "Обработка пакета: Перенос SANK";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_sank, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_sank_smo_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //B_DIAG
+                currentpack.Comment = "Обработка пакета: Перенос B_DIAG";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_b_diag, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_b_diag_transfer, AppConfig.Property.schemaOracle_transfer));
+                //B_PROT
+                currentpack.Comment = "Обработка пакета: Перенос B_PROT";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_b_prot, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_b_prot_transfer, AppConfig.Property.schemaOracle_transfer));
+                //NAPR
+                currentpack.Comment = "Обработка пакета: Перенос NAPR";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_napr, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_napr_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //ONK_USL
+                currentpack.Comment = "Обработка пакета: Перенос ONK_USL";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_onk_usl, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_onk_usl_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //LEK_PR
+                currentpack.Comment = "Обработка пакета: Перенос LEK_PR";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_lek_pr, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_lek_pr_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //LEK_PR_DATE_INJ
+                currentpack.Comment = "Обработка пакета: Перенос LEK_PR_DATE_INJ";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_date_inj, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_date_inj_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //CONS
+                currentpack.Comment = "Обработка пакета: Перенос CONS";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_cons, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_cons_transfer, AppConfig.Property.schemaOracle_transfer));
+                //ds2
+                currentpack.Comment = "Обработка пакета: Перенос DS2";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_ds2, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_ds2_transfer, AppConfig.Property.schemaOracle_transfer));
+                //ds3
+                currentpack.Comment = "Обработка пакета: Перенос DS3";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_ds3, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_ds3_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                //CRIT
+                currentpack.Comment = "Обработка пакета: Перенос CRIT";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_crit, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_crit_transfer, AppConfig.Property.schemaOracle_transfer));
+
+                mybd.Commit();
+                foreach (var fi in ProcessList)
+                {
+                    fi.WriteLnFull("Перенос завершен");
+                }
+            }
+            catch
+            {
+                mybd.Rollback();
+                throw;
             }
         }
         string PathEXE = Process.GetCurrentProcess().MainModule?.FileName;
@@ -456,7 +469,7 @@ namespace MedpomService
                                  new TableInfo { TableName = AppConfig.Property.xml_h_lek_pr, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_date_inj, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_cons, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
-
+                                 new TableInfo { TableName = AppConfig.Property.xml_h_mr_usl_n, SchemaName = AppConfig.Property.schemaOracle, SeqName = "" },
                                  new TableInfo { TableName = AppConfig.Property.xml_errors, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  AppConfig.Property.OtchetDate);
 

@@ -125,6 +125,7 @@
   <ItemGroup>
     <Compile Include="AppProperties.cs" />
     <Compile Include="ExcelProtokol.cs" />
+    <Compile Include="Extention.cs" />
     <Compile Include="IFileInviter.cs" />
     <Compile Include="IMessageMO.cs" />
     <Compile Include="Impersonate .cs" />

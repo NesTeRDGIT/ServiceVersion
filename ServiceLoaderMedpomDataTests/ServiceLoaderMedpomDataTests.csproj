@@ -93,6 +93,9 @@
     <None Include="XMLSource\Valid\SCHEMA\FROM_MO_V31\ВМП 3.1.xsd">
       <SubType>Designer</SubType>
     </None>
+    <None Include="XMLSource\Valid\SCHEMA\FROM_MO_V31\ДИСП 3.1 c 01.08.2021.xsd">
+      <SubType>Designer</SubType>
+    </None>
     <None Include="XMLSource\Valid\SCHEMA\FROM_MO_V31\ДИСП 3.1_2 c 01.04.2020.xsd">
       <SubType>Designer</SubType>
     </None>
@@ -111,6 +114,7 @@
       <SubType>Designer</SubType>
     </Content>
     <Content Include="XMLSource\Valid\V3.1\D_VALID.XML" />
+    <Content Include="XMLSource\Valid\V3.1\D_VALID_08_2021.XML" />
     <Content Include="XMLSource\Valid\V3.1\H_VALID.XML" />
     <Content Include="XMLSource\Valid\V3.1\T_VALID.XML" />
   </ItemGroup>

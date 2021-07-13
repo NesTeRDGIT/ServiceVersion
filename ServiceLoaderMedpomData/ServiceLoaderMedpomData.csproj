@@ -81,7 +81,7 @@
     <Compile Include="EntityMP_V2\EntityMP_V2.cs" />
     <Compile Include="EntityMP_V3\EntityMP_V3.cs" />
     <Compile Include="EntityMP_V31\EntityMP_V31.cs" />
-    <Compile Include="Extention.cs" />
+    <Compile Include="Extension.cs" />
     <Compile Include="FileManager.cs" />
     <Compile Include="FilesHelper.cs" />
     <Compile Include="IRepository.cs" />

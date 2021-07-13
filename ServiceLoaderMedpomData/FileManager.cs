@@ -41,7 +41,7 @@ namespace ServiceLoaderMedpomData
 
     public static class ParseFileName
     {
-        private static string patternType = "^(C|T|H|D[D|F|O|P|R|S|U|V]|L[T|D|F|O|P|R|S|U|V|C]|L)";
+        private static string patternType = "^(C|T|H|D[D|F|O|P|R|S|U|V|A|B]|L[T|D|F|O|P|R|S|U|V|C|A|B]|L)";
         private static string patternFROM = "^(M|T|S)";
         private static string patternFROM_N_TF = "^([0-9]{2,2})";
         private static string FirstOT = "M[0-9]{6,6}|T[0-9]{2,2}|S[0-9]{5,5}";
@@ -213,6 +213,10 @@ namespace ServiceLoaderMedpomData
                 case "T": return FileType.T;
                 case "L": return FileType.LH;
                 case "C": return FileType.C;
+                case "DA": return FileType.DA;
+                case "DB": return FileType.DB;
+                case "LA": return FileType.LA;
+                case "LB": return FileType.LB;
             }
 
             throw new Exception($"Не удалось получить тип файла из строки{val}");
@@ -323,7 +327,11 @@ $@"Наименование файла должно быть
         LD = 18,
         LR = 19,
         C = 20,
-        LC = 21
+        LC = 21,
+        DA = 22,
+        DB = 23,
+        LA = 24,
+        LB = 25
     }
 
     /// <summary>
@@ -433,10 +441,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public string FileName
         {
-            get
-            {
-                return _FileName;
-            }
+            get => _FileName;
             set
             {
                 _FileName = value;
@@ -453,10 +458,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public FileType? Type
         {
-            get
-            {
-                return _Type;
-            }
+            get => _Type;
             set
             {
                 _Type = value;
@@ -471,10 +473,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public StepsProcess Process
         {
-            get
-            {
-                return _Process;
-            }
+            get => _Process;
             set
             {
                 _Process = value;
@@ -492,10 +491,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public string Comment
         {
-            get
-            {
-                return _Comment;
-            }
+            get => _Comment;
             set
             {
                 _Comment = value;
@@ -517,10 +513,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public DateTime DateCreate
         {
-            get
-            {
-                return _DateCreate;
-            }
+            get => _DateCreate;
             set
             {
                 _DateCreate = value;
@@ -535,10 +528,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public string FilePach
         {
-            get
-            {
-                return _FilePach;
-            }
+            get => _FilePach;
             set
             {
                 _FilePach = value;
@@ -555,10 +545,7 @@ $@"Наименование файла должно быть
         private VersionMP _Version;
         public VersionMP Version
         {
-            get
-            {
-                return _Version;
-            }
+            get => _Version;
             set
             {
                 _Version = value;
@@ -578,10 +565,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public LogFile FileLog
         {
-            get
-            {
-                return _FileLog;
-            }
+            get => _FileLog;
             set
             {
                 _FileLog = value;
@@ -594,10 +578,7 @@ $@"Наименование файла должно быть
         int? zglv_id;
         public int? ZGLV_ID
         {
-            get
-            {
-                return zglv_id;
-            }
+            get => zglv_id;
 
 
             set
@@ -610,10 +591,7 @@ $@"Наименование файла должно быть
         bool? dop_reestr;
         public bool? DOP_REESTR
         {
-            get
-            {
-                return dop_reestr;
-            }
+            get => dop_reestr;
 
 
             set
@@ -678,10 +656,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public FileL filel
         {
-            get
-            {
-                return FileL;
-            }
+            get => FileL;
             set
             {
                 FileL = value;
@@ -727,10 +702,12 @@ $@"Наименование файла должно быть
     [DataContract]
     public class FilePacket : IComparable<FilePacket>, INotifyPropertyChanged
     {
+        public bool IsErrorFiles => Files.Count(x => x.Process.In(StepsProcess.ErrorXMLxsd, StepsProcess.Invite, StepsProcess.FlkErr, StepsProcess.NotInvite)) != 0;
+
         [DataMember] private Guid _guid { get; set; } = Guid.NewGuid();
         public Guid guid
         {
-            get { return _guid; }
+            get => _guid;
             set
             {
                 _guid = value; OnPropertyChanged();
@@ -743,7 +720,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public decimal? ID
         {
-            get { return _ID; }
+            get => _ID;
             set
             {
                 _ID = value;
@@ -758,7 +735,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public IST IST
         {
-            get { return _IST; }
+            get => _IST;
             set
             {
                 _IST = value;
@@ -773,7 +750,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public string WARNNING
         {
-            get { return warnning; }
+            get => warnning;
             set
             {
                 warnning = value;
@@ -789,7 +766,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public string PATH_STAT
         {
-            get { return _PATH_STAT; }
+            get => _PATH_STAT;
             set
             {
                 _PATH_STAT = value;
@@ -804,7 +781,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public string PATH_ZIP
         {
-            get { return _PATH_ZIP; }
+            get => _PATH_ZIP;
             set
             {
                 _PATH_ZIP = value;
@@ -820,7 +797,7 @@ $@"Наименование файла должно быть
         /// 
         public bool StopTime
         {
-            get { return _StopTime; }
+            get => _StopTime;
             set
             {
                 _StopTime = value;
@@ -880,7 +857,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public int Priory
         {
-            get { return _Priory; }
+            get => _Priory;
             set
             {
                 _Priory = value;
@@ -895,7 +872,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public StatusFilePack Status
         {
-            get { return _Status; }
+            get => _Status;
             set
             {
                 _Status = value;
@@ -911,7 +888,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public string CaptionMO
         {
-            get { return _CaptionMO; }
+            get => _CaptionMO;
             set
             {
                 _CaptionMO = value;
@@ -926,7 +903,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public DateTime Date
         {
-            get { return _Date; }
+            get => _Date;
             set
             {
                 _Date = value;
@@ -945,7 +922,7 @@ $@"Наименование файла должно быть
         public string CodeMO
         {
 
-            get { return _CodeMO; }
+            get => _CodeMO;
             set
             {
                 _CodeMO = value;
@@ -960,7 +937,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public string Comment
         {
-            get { return _Comment; }
+            get => _Comment;
             set
             {
                 _Comment = value;
@@ -976,7 +953,7 @@ $@"Наименование файла должно быть
         /// 
         public string CommentSite
         {
-            get { return _CommentSite; }
+            get => _CommentSite;
             set
             {
                 _CommentSite = value;
@@ -992,7 +969,7 @@ $@"Наименование файла должно быть
         /// </summary>
         public List<FileItem> Files
         {
-            get { return _Files; }
+            get => _Files;
             set
             {
                 _Files = value;
@@ -1111,15 +1088,8 @@ $@"Наименование файла должно быть
         }
         public FilePacket this[int index]
         {
-            get
-            {
-                return Files[index];
-            }
-            set
-            {
-                Files[index] = value;
-            }
-
+            get => Files[index];
+            set => Files[index] = value;
         }
         /// <summary>
         /// Получить список пакетов
@@ -1140,165 +1110,7 @@ $@"Наименование файла должно быть
             CollectionChanged?.Invoke(this, new NotifyCollectionChangedEventArgs(NotifyCollectionChangedAction.Reset));
         }
        
-        /*
-        public static string[] GetFileNameInArchvie(string path)
-        {
-            try
-            {
-                using (var arc = System.IO.Compression.ZipFile.Open(path, ZipArchiveMode.Read, Encoding.GetEncoding("cp866")))
-                {
-                    return arc.Entries.Select(x => x.Name).ToArray();
-                }
-            }
-            catch (Exception)
-            {
-                return new string[0];
-            }
-
-        }
-        public static BoolResult FilesExtract(string From, string To)
-        {
-            var ArchiveName = Path.GetFileName(From);
-            var tmppathMain = Path.Combine(To, Path.GetRandomFileName());
-            try
-            {
-                using (var arc = System.IO.Compression.ZipFile.Open(From, ZipArchiveMode.Read, Encoding.GetEncoding("cp866")))
-                {
-                    try
-                    {
-                        if (Directory.Exists(tmppathMain))
-                        {
-                            Directory.Delete(tmppathMain, true);
-                        }
-
-                        Directory.CreateDirectory(tmppathMain);
-                    }
-                    catch (Exception ex)
-                    {
-                        return new BoolResult
-                        {
-                            Result = false,
-                            Exception = $"Ошибка при распаковке файла {ArchiveName}: {ex.Message}"
-                        };
-                    }
-                    foreach (var entry in arc.Entries.Where(x => x.CompressedLength != 0))
-                    {
-                        try
-                        {
-                            entry.ExtractToFile(Path.Combine(tmppathMain, entry.Name), true);
-                        }
-                        catch (Exception ex)
-                        {
-                            return new BoolResult()
-                            {
-                                Result = false,
-                                Exception = $"Ошибка при распаковке файла {ArchiveName}: {ex.Message}"
-                            };
-                        }
-                    }
-                }
-
-                string[] files;
-                while ((files = Directory.GetFiles(tmppathMain, "*.zip", SearchOption.TopDirectoryOnly)).Length != 0)
-                {
-                    foreach (var str in files)
-                    {
-                        var t = FilesExtract(str, tmppathMain);
-                        if (t.Result == false)
-                            return t;
-                        File.Delete(str);
-                    }
-                }
-
-                //Переносим обратно
-                try
-                {
-                    var filestmp = Directory.GetFiles(tmppathMain, "*.*", SearchOption.TopDirectoryOnly);
-                    foreach (var name in filestmp)
-                    {
-                        ServiceLoaderMedpomData.FilesManager.MoveFileTo(name, Path.Combine(To, Path.GetFileName(name)));
-                    }
-                    Directory.Delete(tmppathMain, true);
-                }
-                catch (Exception ex)
-                {
-                    Directory.Delete(tmppathMain, true);
-                    return new BoolResult()
-                    {
-                        Result = false,
-                        Exception = $"Ошибка при переносе файлов архива {ArchiveName}: {ex.Message}"
-                    };
-                }
-                return new BoolResult() { Result = true };
-            }
-            catch (Exception ex)
-            {
-                // WcfInterface.AddLog("Ошибка при извлечении архива " + file.Name + ":" + ex.Message, EventLogEntryType.Error);
-                //return false;
-                return new BoolResult()
-                { Result = false, Exception = $"Ошибка при извлечении архива {ArchiveName}: {ex.Message}" };
-            }
-
-        }
-        */
-        /*
-        /// <summary>
-        /// Перенос файла с проверкой на совпадение и есл исовпадает то будет имя_файла(1).. итд
-        /// </summary>
-        /// <param name="From">Откуда</param>
-        /// <param name="Dist">Куда</param>        
-        public static string MoveFileTo(string From, string Dist)
-        {
-            var prefix = "";
-            var x = 1;
-            var dir_dist = Path.GetDirectoryName(Dist);
-            var filename_dist = Path.GetFileNameWithoutExtension(Dist);
-            var ext_dist = Path.GetExtension(Dist);
-            var path = $"{dir_dist}\\{filename_dist}{prefix}{ext_dist}";
-
-            if (!Directory.Exists(Path.GetDirectoryName(Dist)))
-                Directory.CreateDirectory(dir_dist);
-
-
-            while (File.Exists(path))
-            {
-                prefix = $"({x})";
-                x++;
-                path = $"{dir_dist}\\{filename_dist}{prefix}{ext_dist}";
-            }
-
-            while (!SchemaChecking.CheckFileAv(From)) { };
-            File.Move(From, path);
-            return path;
-        }
-        */
-        /*
-        /// <summary>
-        /// Копирование файла с проверкой на совпадение и если совпадает то будет имя_файла(1).. итд
-        /// </summary>
-        /// <param name="From">Откуда</param>
-        /// <param name="Dist">Куда</param>        
-        public static string CopyFileTo(string From, string Dist)
-        {
-            if (!Directory.Exists(Path.GetDirectoryName(Dist)))
-                Directory.CreateDirectory(Path.GetDirectoryName(Dist));
-            var prefix = "";
-            var x = 1;
-            var dir_dist = Path.GetDirectoryName(Dist);
-            var filename_dist = Path.GetFileNameWithoutExtension(Dist);
-            var ext_dist = Path.GetExtension(Dist);
-            var path = $"{dir_dist}\\{filename_dist}{prefix}{ext_dist}";
-            while (File.Exists(path))
-            {
-                prefix = $"({x})";
-                x++;
-                path = $"{dir_dist}\\{filename_dist}{prefix}{ext_dist}";
-            }
-            while (!SchemaChecking.CheckFileAv(From)) { };
-            File.Copy(From, path);
-            return path;
-        }*/
-
+    
         public void SaveToFile(string Path)
         {
             using (var sw = new FileStream(Path, FileMode.Create))
@@ -1339,14 +1151,10 @@ $@"Наименование файла должно быть
         {
             var MaxPrior = -1;
             FilePacket result  = null;
-            foreach (var item in Files)
+            foreach (var item in Files.Where(item => item.Status == StatusFilePack.XMLSchemaOK).Where(item => item.Priory > MaxPrior))
             {
-                if(item.Status == StatusFilePack.XMLSchemaOK)
-                {
-                    if (item.Priory <= MaxPrior) continue;
-                    MaxPrior = item.Priory;
-                    result = item;
-                }
+                MaxPrior = item.Priory;
+                result = item;
             }
             return result;
         }
@@ -1357,22 +1165,18 @@ $@"Наименование файла должно быть
             var result = 0;
             var countall = 0;
             result = 0;
-            foreach (var t in Files)
+            foreach (var t in Files.Where(t => t.Status == StatusFilePack.XMLSchemaOK))
             {
-                if (t.Status == StatusFilePack.XMLSchemaOK)
+                if (t.Priory == fp.Priory)
                 {
-
-                    if (t.Priory == fp.Priory)
-                    {
-                        countall++;
-                        if (t == fp)
-                            result = countall;
-                    }
+                    countall++;
+                    if (t == fp)
+                        result = countall;
+                }
                  
-                    if (t.Priory > fp.Priory)
-                    {
-                        MaxPrior++;
-                    }
+                if (t.Priory > fp.Priory)
+                {
+                    MaxPrior++;
                 }
             }
             result = result - 1 + MaxPrior;
@@ -1395,6 +1199,11 @@ $@"Наименование файла должно быть
         public static void InvokeComm(this FileItem item, string COMM, Dispatcher dispatcher)
         {
             dispatcher.Invoke(() => { item.Comment = COMM; });
+        }
+
+        public static bool In(this StepsProcess item,params StepsProcess[] items)
+        {
+            return items.Contains(item);
         }
     }
 

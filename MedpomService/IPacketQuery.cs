@@ -45,10 +45,9 @@ namespace MedpomService
         {
             Task.Run(() =>
             {
-                foreach (var pack in FM.Get())
+                foreach (var pack in FM.Get().Where(pack => Directory.Exists(Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO))))
                 {
-                    if (Directory.Exists(Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO)))
-                        Directory.Delete(Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO), true);
+                    Directory.Delete(Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO), true);
                 }
 
                 foreach (var item in FM.Get())
@@ -117,12 +116,10 @@ namespace MedpomService
             if (item.filel != null)
                 item.filel.PropertyChanged -= Item_PropertyChanged;
         }
-
         public void SaveToFile(string path)
         {
             FM.SaveToFile(path);
         }
-
         public FilePacket GetHighPriority()
         {
             return FM.GetIndexHighPriority();
@@ -135,12 +132,10 @@ namespace MedpomService
         {
             return FM.FindPacket(CODE_MO);
         }
-
         public FilePacket FindPack(Guid guid)
         {
             return FM.FindPacket(guid);
         }
-
         private FilePacket NewPacket(string codeMO, DateTime DateCreate)
         {
             var currentPack = new FilePacket()

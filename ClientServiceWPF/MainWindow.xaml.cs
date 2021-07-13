@@ -379,7 +379,7 @@ namespace ClientServiceWPF
         {
             try
             {
-                var win = new Setting(Active);
+                var win = new Setting(Active || wcf==null);
                 win.ShowDialog();
             }
             catch (Exception ex)

@@ -435,6 +435,8 @@ namespace ServiceLoaderMedpomData
         public string xml_h_crit;
 
         public string schemaOracle;
+
+        public string xml_h_mr_usl_n { get; set; }
     }
 
     public class SettingTransfer
@@ -467,6 +469,8 @@ namespace ServiceLoaderMedpomData
         public string xml_h_ds3;
         public string xml_h_crit;
         public bool Transfer;
+
+        public string xml_h_mr_usl_n { get; set; }
     }
 
 

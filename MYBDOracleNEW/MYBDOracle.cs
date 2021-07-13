@@ -42,6 +42,8 @@ namespace MYBDOracle
         TableInfo H_CRIT;
         TableInfo H_DS2;
         TableInfo H_DS3;
+        TableInfo H_MR_USL_N;
+
         int curr_month;
         int curr_year;
 
@@ -51,7 +53,7 @@ namespace MYBDOracle
         TableInfo _L_PERS,
         TableInfo _H_DS2_N,
         TableInfo _H_NAZR, TableInfo _H_B_DIAG, TableInfo _H_B_PROT, TableInfo _H_NAPR,
-        TableInfo _H_ONK_USL, TableInfo _H_LEK_PR, TableInfo _H_LEK_DATE_INJ, TableInfo _H_CONS,
+        TableInfo _H_ONK_USL, TableInfo _H_LEK_PR, TableInfo _H_LEK_DATE_INJ, TableInfo _H_CONS, TableInfo _H_MR_USL_N,
         TableInfo _xml_errors,
         DateTime curr_month)
         {
@@ -87,6 +89,7 @@ namespace MYBDOracle
             H_DS2 = _H_DS2;
             H_DS3 = _H_DS3;
             H_CRIT = _H_CRIT;
+            H_MR_USL_N = _H_MR_USL_N;
         }
 
         private List<OracleConnection> Cons = new List<OracleConnection>();
@@ -289,6 +292,7 @@ returning  zglv_id into :id", con);
             InsertH_DS3(sluch.SelectMany(x => x.GetDS3()).ToList());
             InsertCRIT(sluch.Where(x => x.KSG_KPG != null).SelectMany(y => y.KSG_KPG.GetCRIT_SLUCH_ID(y.SLUCH_ID)).ToList());
             InsertCODE_EXP(sank.SelectMany(y => y.CODE_EXP).ToList());
+            InsertMR_USL_N(usl.SelectMany(x => x.MR_USL_N).ToList());
         }
         Dictionary<string, decimal?> Insert(PERS_LIST pe)
         {
@@ -474,9 +478,9 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_PAC.FullTableName} (ID_PAC, INV, MSE, NOVOR, NPOLIS, PACIENT_ID, SMO, SMO_NAM,  SMO_OGRN ,SMO_OK, SPOLIS, ST_OKATO,  VNOV_D, VPOLIS, ZAP_ID,SMO_TFOMS,PERS_ID)
+                cmd = NewOracleCommand($@"insert into {H_PAC.FullTableName} (ID_PAC, INV, MSE, NOVOR, NPOLIS, PACIENT_ID, SMO, SMO_NAM,  SMO_OGRN ,SMO_OK, SPOLIS,ENP, ST_OKATO,  VNOV_D, VPOLIS, ZAP_ID,SMO_TFOMS,PERS_ID)
                                                                                   values
-                                                                                  (:ID_PAC, :INV, :MSE, :NOVOR, :NPOLIS, :PACIENT_ID, :SMO, :SMO_NAM,  :SMO_OGRN ,:SMO_OK, :SPOLIS, :ST_OKATO,  :VNOV_D, :VPOLIS, :ZAP_ID,:SMO_TFOMS,:PERS_ID)", con);
+                                                                                  (:ID_PAC, :INV, :MSE, :NOVOR, :NPOLIS, :PACIENT_ID, :SMO, :SMO_NAM,  :SMO_OGRN ,:SMO_OK, :SPOLIS,:ENP, :ST_OKATO,  :VNOV_D, :VPOLIS, :ZAP_ID,:SMO_TFOMS,:PERS_ID)", con);
 
 
                 cmd.ArrayBindCount = Items.Count;
@@ -492,6 +496,7 @@ values
                 cmd.Parameters.Add("SMO_OGRN", Items.Select(x => x.SMO_OGRN).ToArray());
                 cmd.Parameters.Add("SMO_OK", Items.Select(x => x.SMO_OK).ToArray());
                 cmd.Parameters.Add("SPOLIS", Items.Select(x => x.SPOLIS == null ? x.SPOLIS : x.SPOLIS.ToUpper()).ToArray());
+                cmd.Parameters.Add("ENP", Items.Select(x => x.ENP == null ? x.ENP : x.ENP.ToUpper()).ToArray());
                 cmd.Parameters.Add("ST_OKATO", Items.Select(x => x.ST_OKATO).ToArray());
                 cmd.Parameters.Add("VNOV_D", OracleDbType.Decimal, Items.Select(x => x.VNOV_D ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("VPOLIS", Items.Select(x => x.VPOLIS).ToArray());
@@ -716,9 +721,9 @@ values
                 if (!Items.Any()) return;
 
                 cmd = NewOracleCommand($@"insert into {H_NAZR.FullTableName} 
-(NAZ_N, NAZ_PK, NAZ_PMP, NAZ_R, NAZ_SP, NAZ_V, SLUCH_ID, NAZ_USL, NAPR_DATE, NAPR_MO)
+(NAZ_N, NAZ_PK, NAZ_PMP, NAZ_R, NAZ_SP,NAZ_IDDOKT, NAZ_V, SLUCH_ID, NAZ_USL, NAPR_DATE, NAPR_MO)
 values
-(:NAZ_N, :NAZ_PK, :NAZ_PMP, :NAZ_R, :NAZ_SP, :NAZ_V, :SLUCH_ID, :NAZ_USL, :NAPR_DATE, :NAPR_MO)", con);
+(:NAZ_N, :NAZ_PK, :NAZ_PMP, :NAZ_R, :NAZ_SP,:NAZ_IDDOKT, :NAZ_V, :SLUCH_ID, :NAZ_USL, :NAPR_DATE, :NAPR_MO)", con);
 
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
@@ -727,6 +732,7 @@ values
                 cmd.Parameters.Add("NAZ_PMP", OracleDbType.Decimal, Items.Select(x => x.NAZ_PMP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("NAZ_R", Items.Select(x => x.NAZ_R).ToArray());
                 cmd.Parameters.Add("NAZ_SP", OracleDbType.Decimal, Items.Select(x => x.NAZ_SP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NAZ_IDDOKT", OracleDbType.Varchar2, Items.Select(x => x.NAZ_IDDOKT).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("NAZ_V", OracleDbType.Decimal, Items.Select(x => x.NAZ_V ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("NAZ_USL", OracleDbType.Varchar2, Items.Select(x => x.NAZ_USL).ToArray(), ParameterDirection.Input);
@@ -1053,7 +1059,6 @@ values
                 RemoveOracleCommand(cmd);
             }
         }
-
         void InsertH_DS2(List<DS_SLUCH_ID> Items)
         {
             OracleCommand cmd = null;
@@ -1119,6 +1124,34 @@ values
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertCRIT: {ex.Message}", ex);
+            }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
+        }
+        void InsertMR_USL_N(List<MR_USL_N> Items)
+        {
+            OracleCommand cmd = null;
+            try
+            {
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {H_MR_USL_N.FullTableName}  (USL_ID,MR_N,PRVS,CODE_MD) values (:USL_ID,:MR_N, :PRVS, :CODE_MD)", con);
+                cmd.ArrayBindCount = Items.Count;
+                cmd.BindByName = true;
+           
+                cmd.Parameters.Add("USL_ID", OracleDbType.Decimal, Items.Select(x => x.USL_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("MR_N", OracleDbType.Decimal, Items.Select(x => x.MR_N).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("PRVS", OracleDbType.Decimal, Items.Select(x => x.PRVS ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("CODE_MD", OracleDbType.Varchar2, Items.Select(x => x.CODE_MD).ToArray(), ParameterDirection.Input);
+
+                var t = cmd.ExecuteNonQuery();
+                if (t != Items.Count) throw new Exception($"Не полная вставка MR_USL_N вставлено {t} из {Items.Count}");
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка в InsertMR_USL_N: {ex.Message}", ex);
             }
             finally
             {
@@ -2109,6 +2142,9 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
                 case TableName.DS2: table = H_DS2; break;
                 case TableName.DS3: table = H_DS3; break;
                 case TableName.CRIT: table = H_CRIT; break;
+                case TableName.MR_USL_N: table = H_MR_USL_N; break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(nameTBL), nameTBL, null);
             }
 
             var FKlist = new DataTable();
@@ -2174,6 +2210,7 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
             Trunc(TableName.B_PROT);
             Trunc(TableName.B_DIAG);
             Trunc(TableName.NAPR);
+            Trunc(TableName.MR_USL_N);
             Trunc(TableName.USL);
             Trunc(TableName.NAZR);
             Trunc(TableName.DS2_N);
@@ -2395,7 +2432,6 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
         public TransferTableRESULT TransferTable(string tableFrom, string ownerFrom, string tableTo, string ownerTo)
         {
             var tbl = new DataTable();
-
             using (var oda = new OracleDataAdapter($@"select * from {ownerTo}.{tableTo} t where rownum = -1", con))
             {
                 oda.Fill(tbl);
@@ -2406,22 +2442,19 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
             {
                 oda.Fill(tbl);
             }
-
             var ColumnFROM = tbl.Columns.Cast<DataColumn>().Select(x => x.ColumnName).ToList();
-
             var validateCol = ColumnFROM.Where(x => ColumnTo.Contains(x));
             var NOTvalidateCol = ColumnFROM.Where(x => !ColumnTo.Contains(x));
-
             var statement = string.Join(",", validateCol);
             var sql = $@"insert into {ownerTo}.{tableTo} ({statement}) select {statement} from {ownerFrom}.{tableFrom}";
-
-
-
+            
             using (var cmd = NewOracleCommand(sql, con))
             {
-                con.Open();
+                if(!Transaction)
+                    con.Open();
                 cmd.ExecuteScalar();
-                con.Close();
+                if (!Transaction)
+                    con.Close();
                 RemoveOracleCommand(cmd);
             }
             return new TransferTableRESULT { Table = $"{ownerFrom}.{tableFrom}", Colums = NOTvalidateCol.ToList() };

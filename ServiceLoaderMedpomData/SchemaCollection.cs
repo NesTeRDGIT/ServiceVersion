@@ -205,17 +205,14 @@ namespace ServiceLoaderMedpomData
                         Schemas[v].VersionsZGLV = new List<string>();
 
                 }
-                VersionSchemaElement.Check(Schemas[VersionMP.V3_1]);
+                VersionSchemaElement.Check(Schemas[v]);
             }
         }
         public List<VersionMP> Versions => Schemas.Keys.ToList();
         public List<SchemaElementValue> this[VersionMP version, FileType _type]
         {
-            get { return Schemas[version].SchemaElements[_type]; }
-            set
-            {
-                Schemas[version].SchemaElements[_type] = value;
-            }
+            get => Schemas[version].SchemaElements[_type];
+            set => Schemas[version].SchemaElements[_type] = value;
         }
         public VersionSchemaElement this[VersionMP version] => Schemas[version];
         public bool ContainsVersion(VersionMP key)
@@ -282,6 +279,8 @@ namespace ServiceLoaderMedpomData
         public string Comment { get; set; } = "";
         public string Line { get; set; }
         public string column { get; set; }
+        public string ERR_CODE { get; set; }
+
         public ErrorProtocolXML()
         {
         }
@@ -652,7 +651,7 @@ namespace ServiceLoaderMedpomData
             var name = reader != null? reader.Name :  "";
             ErrorAction(e.Severity, e.Exception.LineNumber, e.Exception.LinePosition, e.Message, name);
         }
-        void ErrorAction(XmlSeverityType Severity, int LineNumber, int LinePosition, string Message, string NamePol)
+        void ErrorAction(XmlSeverityType Severity, int LineNumber, int LinePosition, string Message, string NamePol, string ERR_CODE = "")
         {
             if (ShowErrText)
             {
@@ -670,7 +669,7 @@ namespace ServiceLoaderMedpomData
                     break;
             }
 
-            var item = new ErrorProtocolXML {OSHIB = 41, IM_POL = NamePol, Comment = Message, Line =  LineNumber.ToString(),column =  LinePosition.ToString() };
+            var item = new ErrorProtocolXML {OSHIB = 41, IM_POL = NamePol, Comment = Message, Line =  LineNumber.ToString(),column =  LinePosition.ToString(), ERR_CODE = ERR_CODE };
 
             if (fileL) item.Comment += $"ID_PAC = {id_pac}";
             if (listnode.Count >= 2)
@@ -690,7 +689,7 @@ namespace ServiceLoaderMedpomData
 
     }
 
-    delegate void ErrorActionEvent(XmlSeverityType Severity, int LineNumber, int LinePosition, string Message, string NamePol);
+    delegate void ErrorActionEvent(XmlSeverityType Severity, int LineNumber, int LinePosition, string Message, string NamePol, string ERR_CODE = "");
 
     interface IValidatorXML
     {
@@ -1151,7 +1150,32 @@ namespace ServiceLoaderMedpomData
             FIRST_IDCASE.Clear();
         }
     }
+    class XML_Pacient_item
+    {
 
+        public XML_Element<int> VPOLIS { get; set; } = new XML_Element<int>();
+        public XML_Element<string> SPOLIS { get; set; } = new XML_Element<string>();
+        public XML_Element<string> NPOLIS { get; set; } = new XML_Element<string>();
+        public XML_Element<string> ENP { get; set; } = new XML_Element<string>();
+        public void Clear()
+        {
+            VPOLIS.Clear();
+            SPOLIS.Clear();
+            NPOLIS.Clear();
+            ENP.Clear();
+        }
+    }
+    class XML_MR_USL_N_item
+    {
+
+        public XML_Element<int?> PRVS { get; set; } = new XML_Element<int?>();
+        public XML_Element<string> CODE_MD { get; set; } = new XML_Element<string>();
+        public void Clear()
+        {
+            PRVS.Clear();
+            CODE_MD.Clear();
+        }
+    }
     class XML_SL_item
     {
         public XML_Element<string> DS1 { get; set; } = new XML_Element<string>();
@@ -1216,18 +1240,17 @@ namespace ServiceLoaderMedpomData
 
     class MyValidatorV31 : IValidatorXML
     {
-        private bool IsValidateRef { get; set; }
+        private bool IsValidateRef { get;  }
         private readonly DateTime DT_04_2020 = new DateTime(2020, 04, 01);
         private readonly DateTime DT_03_2021 = new DateTime(2021, 03, 01);
-
-      
-
-        private XML_SCHET_item SCHET = new XML_SCHET_item();
-        private XML_Z_SL_item Z_SL = new XML_Z_SL_item();
-        private XML_SL_item SL = new XML_SL_item();
-        private XML_USL_item USL = new XML_USL_item();
-        private XML_SANK_item SANK = new XML_SANK_item();
-
+        private readonly DateTime DT_08_2021 = new DateTime(2021, 08, 01);
+        private XML_SCHET_item SCHET { get;  }= new XML_SCHET_item();
+        private XML_Z_SL_item Z_SL { get;  } = new XML_Z_SL_item();
+        private XML_SL_item SL { get;  } = new XML_SL_item();
+        private XML_USL_item USL { get;  } = new XML_USL_item();
+        private XML_SANK_item SANK { get;  } = new XML_SANK_item();
+        private XML_Pacient_item PACIENT { get;  } = new XML_Pacient_item();
+        private XML_MR_USL_N_item MR_USL_N { get; } = new XML_MR_USL_N_item();
         
 
 
@@ -1291,6 +1314,18 @@ namespace ServiceLoaderMedpomData
                             break;
                         case "ZL_LIST/SCHET/SUMMAV":
                                 SCHET.SUMMAV = CreateDecimalNullXML_Element(reader);
+                            break;
+                        case "ZL_LIST/ZAP/PACIENT/VPOLIS":
+                            PACIENT.VPOLIS = CreateIntXML_Element(reader);
+                            break;
+                        case "ZL_LIST/ZAP/PACIENT/SPOLIS":
+                            PACIENT.SPOLIS = CreateStringXML_Element(reader);
+                            break;
+                        case "ZL_LIST/ZAP/PACIENT/NPOLIS":
+                            PACIENT.NPOLIS = CreateStringXML_Element(reader);
+                            break;
+                        case "ZL_LIST/ZAP/PACIENT/ENP":
+                            PACIENT.ENP = CreateStringXML_Element(reader);
                             break;
                         case "ZL_LIST/ZAP/Z_SL/SUMV":
                                 Z_SL.SUMV = CreateDecimalXML_Element(reader);
@@ -1367,6 +1402,12 @@ namespace ServiceLoaderMedpomData
                         case "ZL_LIST/ZAP/Z_SL/SANK/S_OSN":
                                 SANK.S_OSN = CreateIntXML_Element(reader);
                             break;
+                        case "ZL_LIST/ZAP/Z_SL/SL/USL/MR_USL_N/PRVS":
+                            MR_USL_N.PRVS = CreateIntNullXML_Element(reader);
+                            break;
+                        case "ZL_LIST/ZAP/Z_SL/SL/USL/MR_USL_N/CODE_MD":
+                            MR_USL_N.CODE_MD = CreateStringXML_Element(reader);
+                            break;
                     }
 
                     break;
@@ -1406,6 +1447,14 @@ namespace ServiceLoaderMedpomData
                         case "ZL_LIST/ZAP/Z_SL/SL":
                                 CheckONK();
                                 SL.Clear();
+                            break;
+                        case "ZL_LIST/ZAP/PACIENT":
+                            CheckPACIENT();
+                            PACIENT.Clear();
+                            break;
+                        case "ZL_LIST/ZAP/Z_SL/SL/USL/MR_USL_N":
+                            CheckMR_USL_N();
+                            MR_USL_N.Clear();
                             break;
                     }
                     break;
@@ -1453,7 +1502,7 @@ namespace ServiceLoaderMedpomData
         }
         private void CheckUSL()
         {
-            if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_04_2020)
+            if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_04_2020 && SCHET.DateFile <DT_08_2021)
             {
                 if (USL.P_OTK.value == "0" && string.IsNullOrEmpty(USL.CODE_MD.value))
                     Error(XmlSeverityType.Error, USL.P_OTK.POS.LINE, USL.P_OTK.POS.POS, "Поле CODE_MD обязательно к заполнению при USL\\P_OTK = 0", "CODE_MD");
@@ -1463,6 +1512,54 @@ namespace ServiceLoaderMedpomData
                     Error(XmlSeverityType.Error, USL.P_OTK.POS.LINE, USL.P_OTK.POS.POS, "Поле PRVS обязательно к заполнению при USL\\P_OTK = 0", "PRVS");
                 if (USL.P_OTK.value == "1" && !string.IsNullOrEmpty(USL.PRVS.value))
                     Error(XmlSeverityType.Error, USL.PRVS.POS.LINE, USL.PRVS.POS.POS, "Поле PRVS не подлежит заполнению при USL\\P_OTK = 1", "PRVS");
+            }
+        }
+
+        private void CheckPACIENT()
+        {
+            if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_08_2021)
+            {
+                switch (PACIENT.VPOLIS.value)
+                {
+                    case 3:
+                        if (!string.IsNullOrEmpty(PACIENT.SPOLIS.value))
+                            Error(XmlSeverityType.Error, PACIENT.SPOLIS.POS.LINE, PACIENT.SPOLIS.POS.POS, "Поле SPOLIS не подлежит заполнению при VPOLIS = 3", "SPOLIS", "ERR_PAC_1");
+                        if (!string.IsNullOrEmpty(PACIENT.NPOLIS.value))
+                            Error(XmlSeverityType.Error, PACIENT.NPOLIS.POS.LINE, PACIENT.NPOLIS.POS.POS, "Поле NPOLIS не подлежит заполнению при VPOLIS = 3", "NPOLIS", "ERR_PAC_2");
+                        if (string.IsNullOrEmpty(PACIENT.ENP.value))
+                            Error(XmlSeverityType.Error, PACIENT.VPOLIS.POS.LINE, PACIENT.VPOLIS.POS.POS, "Поле ENP обязательно к заполнению при VPOLIS = 3", "ENP", "ERR_PAC_3");
+                        break;
+                    case 2:
+                        if (!string.IsNullOrEmpty(PACIENT.SPOLIS.value))
+                            Error(XmlSeverityType.Error, PACIENT.SPOLIS.POS.LINE, PACIENT.SPOLIS.POS.POS, "Поле SPOLIS не подлежит заполнению при VPOLIS = 2", "SPOLIS", "ERR_PAC_4");
+                        if (string.IsNullOrEmpty(PACIENT.NPOLIS.value))
+                            Error(XmlSeverityType.Error, PACIENT.VPOLIS.POS.LINE, PACIENT.VPOLIS.POS.POS, "Поле NPOLIS обязательно к заполнению при VPOLIS = 2", "NPOLIS", "ERR_PAC_5");
+                        break;
+                    case 1:
+                        if (string.IsNullOrEmpty(PACIENT.SPOLIS.value))
+                            Error(XmlSeverityType.Error, PACIENT.VPOLIS.POS.LINE, PACIENT.VPOLIS.POS.POS, "Поле SPOLIS обязательно к заполнению при VPOLIS = 1", "SPOLIS", "ERR_PAC_6");
+                        if (string.IsNullOrEmpty(PACIENT.NPOLIS.value))
+                            Error(XmlSeverityType.Error, PACIENT.VPOLIS.POS.LINE, PACIENT.VPOLIS.POS.POS, "Поле NPOLIS обязательно к заполнению при VPOLIS = 1", "NPOLIS", "ERR_PAC_7");
+                        if (!string.IsNullOrEmpty(PACIENT.ENP.value))
+                            Error(XmlSeverityType.Error, PACIENT.ENP.POS.LINE, PACIENT.ENP.POS.POS, "Поле ENP не подлежит заполнению при VPOLIS = 1", "ENP", "ERR_PAC_8");
+                        break;
+
+                }
+
+            }
+        }
+        private void CheckMR_USL_N()
+        {
+            if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_08_2021)
+            {
+                if (USL.P_OTK.value == "0" && string.IsNullOrEmpty(MR_USL_N.CODE_MD.value))
+                    Error(XmlSeverityType.Error, USL.P_OTK.POS.LINE, USL.P_OTK.POS.POS, "Поле CODE_MD обязательно к заполнению при USL\\P_OTK = 0", "CODE_MD", "ERR_MR_USL_N_1");
+                if (USL.P_OTK.value == "1" && !string.IsNullOrEmpty(MR_USL_N.CODE_MD.value))
+                    Error(XmlSeverityType.Error, MR_USL_N.CODE_MD.POS.LINE, MR_USL_N.CODE_MD.POS.POS, "Поле CODE_MD не подлежит заполнению при USL\\P_OTK = 1", "CODE_MD", "ERR_MR_USL_N_2");
+                if (USL.P_OTK.value == "0" && !MR_USL_N.PRVS.value.HasValue)
+                    Error(XmlSeverityType.Error, USL.P_OTK.POS.LINE, USL.P_OTK.POS.POS, "Поле PRVS обязательно к заполнению при USL\\P_OTK = 0", "PRVS", "ERR_MR_USL_N_3");
+                if (USL.P_OTK.value == "1" && MR_USL_N.PRVS.value.HasValue)
+                    Error(XmlSeverityType.Error, MR_USL_N.PRVS.POS.LINE, MR_USL_N.PRVS.POS.POS, "Поле PRVS не подлежит заполнению при USL\\P_OTK = 1", "PRVS", "ERR_MR_USL_N_4");
             }
         }
         private void CheckONK()

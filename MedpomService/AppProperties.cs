@@ -76,7 +76,7 @@ namespace MedpomService
         public string xml_h_ds3_transfer { get; set; } = "xml_h_ds3_v3_temp100";
         public string xml_h_ds2_transfer { get; set; } = "xml_h_ds2_v3_temp100";
         public string xml_h_crit_transfer { get; set; } = "xml_h_crit_v3_temp100";
-
+      
 
         public bool MainTypePriem { get; set; } = false;
         public DateTime OtchetDate { get; set; } = DateTime.Now;
@@ -88,7 +88,8 @@ namespace MedpomService
         public string PROC_STATUS_TRANSFER { get; set; } = "";
         public string PROC_CLEAR { get; set; } = "";
         public string ISP_NAME { get; set; } = "ФИО ДР";
-
+        public string xml_h_mr_usl_n { get; set; }
+        public string xml_h_mr_usl_n_transfer { get; set; }
 
     }
 

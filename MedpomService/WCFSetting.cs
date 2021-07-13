@@ -73,8 +73,11 @@ namespace MedpomService
                 xml_h_sank_code_exp = AppConfig.Property.xml_h_sank_code_exp,
                 xml_h_ds2 = AppConfig.Property.xml_h_ds2,
                 xml_h_ds3 = AppConfig.Property.xml_h_ds3,
-                xml_h_crit = AppConfig.Property.xml_h_crit
+                xml_h_crit = AppConfig.Property.xml_h_crit,
+                xml_h_mr_usl_n = AppConfig.Property.xml_h_mr_usl_n
+
             };
+           
             return sc;
         }
         public void SettingConnect(SettingConnect set)
@@ -106,6 +109,7 @@ namespace MedpomService
             AppConfig.Property.xml_h_ds2 = set.xml_h_ds2;
             AppConfig.Property.xml_h_ds3 = set.xml_h_ds3;
             AppConfig.Property.xml_h_crit = set.xml_h_crit;
+            AppConfig.Property.xml_h_mr_usl_n = set.xml_h_mr_usl_n;
         }
 
         public BoolResult isConnect(string connectionstring)
@@ -365,6 +369,7 @@ namespace MedpomService
             AppConfig.Property.xml_h_ds2_transfer = st.xml_h_ds2;
             AppConfig.Property.xml_h_ds3_transfer = st.xml_h_ds3;
             AppConfig.Property.xml_h_crit_transfer = st.xml_h_crit;
+            AppConfig.Property.xml_h_mr_usl_n_transfer = st.xml_h_mr_usl_n;
         }
 
         public SettingTransfer GetSettingTransfer()
@@ -396,6 +401,7 @@ namespace MedpomService
             st.xml_h_ds2 = AppConfig.Property.xml_h_ds2_transfer;
             st.xml_h_ds3 = AppConfig.Property.xml_h_ds3_transfer;
             st.xml_h_crit = AppConfig.Property.xml_h_crit_transfer;
+            st.xml_h_mr_usl_n = AppConfig.Property.xml_h_mr_usl_n_transfer;
             return st;
         }
     }

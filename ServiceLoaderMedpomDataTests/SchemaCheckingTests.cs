@@ -250,7 +250,6 @@ namespace ServiceLoaderMedpomDataTests
             }
         }
 
-
         private string GetXML(ZL_LIST file)
         {
             using (var ms = new MemoryStream())
@@ -262,6 +261,117 @@ namespace ServiceLoaderMedpomDataTests
 
                     return sr.ReadToEnd();
                 }
+            }
+        }
+    
+     
+        const string D_31_WITH_08_2021_VALID = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\D_VALID_08_2021.XML";
+        const string PATH_XSD_D31_WITH_08_2021 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\ДИСП 3.1 c 01.08.2021.xsd";
+        [TestMethod(), Description("Проверка файлов на схему D c 01.08.2021 правильная XML")]
+        public void CheckXML_D_31_WITH_08_2021()
+        {
+            var sc = new SchemaChecking();
+            var res = sc.CheckXML(D_31_WITH_08_2021_VALID, PATH_XSD_D31_WITH_08_2021, new CheckXMLValidator(VersionMP.V3_1));
+            Assert.IsTrue(res.Count == 0, $"Для правильной XML не верную схему пишет: {string.Join(Environment.NewLine, res.Select(x => x.MessageOUT))}");
+           
+        }
+
+        [TestMethod(), Description("Проверка ошибок ERR_PAC_1-ERR_PAC_3")]
+        public void ERR_PAC_1_3()
+        {
+            var file = ZL_LIST.ReadFromFile(D_31_WITH_08_2021_VALID);
+            var p = file.ZAP.Select(x => x.PACIENT).First();
+            p.VPOLIS = 3;
+            p.ENP = null;
+            p.SPOLIS = "123";
+            p.NPOLIS = "asdasd";
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_D31_WITH_08_2021, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count(x=>x.ERR_CODE == "ERR_PAC_1") == 1 && res.Count(x => x.ERR_CODE == "ERR_PAC_2") == 1 && res.Count(x => x.ERR_CODE == "ERR_PAC_3") == 1 && res.Count==3, $"Не видит ошибок");
+            }
+        }
+
+        [TestMethod(), Description("Проверка ошибок ERR_PAC_4-ERR_PAC_5")]
+        public void ERR_PAC_4_5()
+        {
+            var file = ZL_LIST.ReadFromFile(D_31_WITH_08_2021_VALID);
+            var p = file.ZAP.Select(x => x.PACIENT).First();
+            p.VPOLIS = 2;
+            p.ENP = null;
+            p.SPOLIS = "123";
+            p.NPOLIS = null;
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_D31_WITH_08_2021, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count(x => x.ERR_CODE == "ERR_PAC_4") == 1 && res.Count(x => x.ERR_CODE == "ERR_PAC_5") == 1 && res.Count == 2, $"Не видит ошибок");
+            }
+        }
+
+        [TestMethod(), Description("Проверка ошибок ERR_PAC_6-ERR_PAC_8")]
+        public void ERR_PAC_6_8()
+        {
+            var file = ZL_LIST.ReadFromFile(D_31_WITH_08_2021_VALID);
+            var p = file.ZAP.Select(x => x.PACIENT).First();
+            p.VPOLIS = 1;
+            p.ENP = "75";
+            p.SPOLIS = null;
+            p.NPOLIS = null;
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_D31_WITH_08_2021, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count(x => x.ERR_CODE == "ERR_PAC_6") == 1 && res.Count(x => x.ERR_CODE == "ERR_PAC_7") == 1 && res.Count(x => x.ERR_CODE == "ERR_PAC_8") == 1 && res.Count == 3, $"Не видит ошибок");
+            }
+        }
+        [TestMethod(), Description("Проверка ошибок ERR_MR_USL_N_1-ERR_MR_USL_N_4")]
+        public void ERR_MR_USL_N_1_4()
+        {
+            var file = ZL_LIST.ReadFromFile(D_31_WITH_08_2021_VALID);
+            var us = file.ZAP.SelectMany(x=>x.Z_SL_list).SelectMany(x=>x.SL).SelectMany(x=>x.USL).ToList();
+            us[0].P_OTK = 0;
+            us[0].MR_USL_N[0].PRVS = null;
+            us[0].MR_USL_N[0].CODE_MD = null;
+
+            us[1].P_OTK = 1;
+            us[1].MR_USL_N[0].PRVS = 1;
+            us[1].MR_USL_N[0].CODE_MD = "75";
+
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_D31_WITH_08_2021, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count(x => x.ERR_CODE == "ERR_MR_USL_N_1") == 1 && res.Count(x => x.ERR_CODE == "ERR_MR_USL_N_2") == 1 && res.Count(x => x.ERR_CODE == "ERR_MR_USL_N_3") == 1 && res.Count(x => x.ERR_CODE == "ERR_MR_USL_N_4") == 1 && res.Count == 4, $"Не видит ошибок");
+            }
+        }
+
+
+        [TestMethod(), Description("Проверка дублирования MR_N")]
+        public void ERR_DOUBLE_MR_N()
+        {
+            var file = ZL_LIST.ReadFromFile(D_31_WITH_08_2021_VALID);
+             file.ZAP.SelectMany(x => x.Z_SL_list).SelectMany(x => x.SL).SelectMany(x => x.USL).SelectMany(x=>x.MR_USL_N).ToList().ForEach(x=>
+            {
+                x.MR_N = 1;
+            });
+
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_D31_WITH_08_2021, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count() != 0, $"Не видит ошибок");
             }
         }
 

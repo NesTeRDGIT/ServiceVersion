@@ -36,7 +36,7 @@
     <xs:restriction base="xs:date">
       <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
       <xs:maxExclusive value="2030-12-31" />
-      <xs:minExclusive value="1900-01-01" />
+      <xs:minExclusive value="1899-12-31" />
     </xs:restriction>
   </xs:simpleType>
   <xs:simpleType name="CRIT">
@@ -76,7 +76,7 @@
                   <xs:restriction base="xs:date">
                     <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                     <xs:maxExclusive value="2030-12-31" />
-                    <xs:minExclusive value="1900-01-01" />
+                    <xs:minExclusive value="1899-12-31" />
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>
@@ -151,7 +151,7 @@
                   <xs:restriction base="xs:date">
                     <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                     <xs:maxExclusive value="2030-12-31" />
-                    <xs:minExclusive value="1900-01-01" />
+                    <xs:minExclusive value="1899-12-31" />
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>
@@ -425,7 +425,7 @@
                         <xs:restriction base="xs:date">
                           <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                           <xs:maxExclusive value="2030-12-31" />
-                          <xs:minExclusive value="1900-01-01" />
+                          <xs:minExclusive value="1899-12-31" />
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
@@ -442,7 +442,7 @@
                         <xs:restriction base="xs:date">
                           <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                           <xs:maxExclusive value="2030-12-31" />
-                          <xs:minExclusive value="1900-01-01" />
+                          <xs:minExclusive value="1899-12-31" />
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
@@ -451,7 +451,7 @@
                         <xs:restriction base="xs:date">
                           <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                           <xs:maxExclusive value="2030-12-31" />
-                          <xs:minExclusive value="1900-01-01" />
+                          <xs:minExclusive value="1899-12-31" />
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
@@ -593,7 +593,7 @@
                               <xs:restriction base="xs:date">
                                 <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                                 <xs:maxExclusive value="2030-12-31" />
-                                <xs:minExclusive value="1900-01-01" />
+                                <xs:minExclusive value="1899-12-31" />
                               </xs:restriction>
                             </xs:simpleType>
                           </xs:element>
@@ -602,7 +602,7 @@
                               <xs:restriction base="xs:date">
                                 <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                                 <xs:maxExclusive value="2030-12-31" />
-                                <xs:minExclusive value="1900-01-01" />
+                                <xs:minExclusive value="1899-12-31" />
                               </xs:restriction>
                             </xs:simpleType>
                           </xs:element>
@@ -701,7 +701,7 @@
                                     <xs:restriction base="xs:date">
                                       <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                                       <xs:maxExclusive value="2030-12-31" />
-                                      <xs:minExclusive value="1900-01-01" />
+                                      <xs:minExclusive value="1899-12-31" />
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
@@ -759,7 +759,7 @@
                                     <xs:restriction base="xs:date">
                                       <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                                       <xs:maxExclusive value="2030-12-31" />
-                                      <xs:minExclusive value="1900-01-01" />
+                                      <xs:minExclusive value="1899-12-31" />
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
@@ -880,7 +880,7 @@
                                           <xs:restriction base="xs:date">
                                             <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                                             <xs:maxExclusive value="2030-12-31" />
-                                            <xs:minExclusive value="1900-01-01" />
+                                            <xs:minExclusive value="1899-12-31" />
                                           </xs:restriction>
                                         </xs:simpleType>
                                       </xs:element>
@@ -943,7 +943,7 @@
                                           <xs:restriction base="xs:date">
                                             <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                                             <xs:maxExclusive value="2030-12-31" />
-                                            <xs:minExclusive value="1900-01-01" />
+                                            <xs:minExclusive value="1899-12-31" />
                                           </xs:restriction>
                                         </xs:simpleType>
                                       </xs:element>
@@ -1324,7 +1324,7 @@
                                     <xs:restriction base="xs:date">
                                       <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                                       <xs:maxExclusive value="2030-12-31" />
-                                      <xs:minExclusive value="1900-01-01" />
+                                      <xs:minExclusive value="1899-12-31" />
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
@@ -1333,7 +1333,7 @@
                                     <xs:restriction base="xs:date">
                                       <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                                       <xs:maxExclusive value="2030-12-31" />
-                                      <xs:minExclusive value="1900-01-01" />
+                                      <xs:minExclusive value="1899-12-31" />
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
@@ -1567,7 +1567,7 @@
                               <xs:restriction base="xs:date">
                                 <xs:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" />
                                 <xs:maxExclusive value="2030-12-31" />
-                                <xs:minExclusive value="1900-01-01" />
+                                <xs:minExclusive value="1899-12-31" />
                               </xs:restriction>
                             </xs:simpleType>
                           </xs:element>
@@ -1664,6 +1664,15 @@
                       </xs:simpleType>
                     </xs:element>
                     <xs:element minOccurs="0" name="SLUCH_Z_ID" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:decimal">
+                          <xs:totalDigits value="15" />
+                          <xs:minInclusive value="0" />
+                          <xs:maxExclusive value="1000000000000000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="SLUCH_Z_ID_MAIN" nillable="true">
                       <xs:simpleType>
                         <xs:restriction base="xs:decimal">
                           <xs:totalDigits value="15" />

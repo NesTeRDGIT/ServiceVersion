@@ -5,121 +5,124 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientServiceWPF"
         xmlns:medpom="clr-namespace:ServiceLoaderMedpomData;assembly=ServiceLoaderMedpomData"
+        xmlns:class="clr-namespace:ClientServiceWPF.Class"
         mc:Ignorable="d"
         Name="this"
-        Title="Параметры" Height="594.99" Width="1124.699" Loaded="Window_Loaded" Closing="Window_Closing" Style="{DynamicResource StyleWindow}" Closed="Setting_OnClosed">
+        Title="Параметры" Height="594.99" Width="1124.699" Loaded="Window_Loaded" Style="{DynamicResource StyleWindow}" >
     <Window.Resources>
-        <CollectionViewSource x:Key="CVSSchemaElementValue"  d:DesignSource="{d:DesignInstance {x:Type medpom:SchemaElementValue}, CreateList=True}"></CollectionViewSource>
-        <CollectionViewSource x:Key="CVSTableItems" Source="{Binding ElementName=this, Path=TableItems}"  d:DesignSource="{d:DesignInstance {x:Type local:TableItem}, CreateList=True}"></CollectionViewSource>
-        <CollectionViewSource x:Key="CVSTableItemsTRANS" Source="{Binding ElementName=this, Path=TableItemsTRANS}"  d:DesignSource="{d:DesignInstance {x:Type local:TableItem}, CreateList=True}"></CollectionViewSource>
-        <CollectionViewSource x:Key="CVSCheckTableName" Source="{Binding ElementName=this, Path=CheckTableName}"  d:DesignSource="{d:DesignInstance {x:Type medpom:TableName}, CreateList=True}"></CollectionViewSource>
-        <CollectionViewSource x:Key="CVSOrclProcedure"   d:DesignSource="{d:DesignInstance {x:Type medpom:OrclProcedure}, CreateList=True}"></CollectionViewSource>
-        <CollectionViewSource x:Key="CVSSchemaElementValueLocal"  d:DesignSource="{d:DesignInstance {x:Type medpom:SchemaElementValue}, CreateList=True}"></CollectionViewSource>
-        <CollectionViewSource x:Key="CVSTableItemsLOCAL" Source="{Binding ElementName=this, Path=TableItemsLOCAL}"  d:DesignSource="{d:DesignInstance {x:Type local:TableItem}, CreateList=True}"></CollectionViewSource>
-        <CollectionViewSource x:Key="CVSSeqItemsLOCAL" Source="{Binding ElementName=this, Path=SeqItemsLOCAL}"  d:DesignSource="{d:DesignInstance {x:Type local:TableItem}, CreateList=True}"></CollectionViewSource>
+        <class:BoolInverterConverter x:Key="BoolInverterConverter"></class:BoolInverterConverter>
+        <class:BindingProxy x:Key="SelectedServerVersionZGLV" Data="{Binding ElementName=this, Path=SelectedServerVersionZGLV}"></class:BindingProxy>
+        <class:BindingProxy x:Key="SelectedServerServerFileType" Data="{Binding ElementName=this, Path=SelectedServerServerFileType}"></class:BindingProxy>
+        <class:BindingProxy x:Key="SelectCheck" Data="{Binding ElementName=this, Path=SelectCheck}"></class:BindingProxy>
+
+        <class:BindingProxy x:Key="SelectedLocalVersionZGLV" Data="{Binding ElementName=this, Path=SelectedLocalVersionZGLV}"></class:BindingProxy>
+        <class:BindingProxy x:Key="SelectedLocalFileType" Data="{Binding ElementName=this, Path=SelectedLocalFileType}"></class:BindingProxy>
+
+    
+        <CollectionViewSource x:Key="CVSTableItemsTRANS" Source="{Binding TableTransferParam.TableItems}"  d:DesignSource="{d:DesignInstance {x:Type local:TableItem}, CreateList=True}"></CollectionViewSource>
+        <CollectionViewSource x:Key="CVSCheckTableName" Source="{Binding CheckParam.CheckTableName}"  d:DesignSource="{d:DesignInstance {x:Type medpom:TableName}, CreateList=True}"></CollectionViewSource>
+        <CollectionViewSource x:Key="CVSOrclProcedure"  Source="{Binding CheckParam.Procedures}"  d:DesignSource="{d:DesignInstance {x:Type medpom:OrclProcedure}, CreateList=True}"></CollectionViewSource>
+       
+        <CollectionViewSource x:Key="CVSTableItemsLOCAL" Source="{Binding TableLocalParam.TableItems}" d:DesignSource="{d:DesignInstance {x:Type local:TableItem}, CreateList=True}"></CollectionViewSource>
+        <CollectionViewSource x:Key="CVSSeqItemsLOCAL" Source="{Binding TableLocalParam.SeqItems}"  d:DesignSource="{d:DesignInstance {x:Type local:TableItem}, CreateList=True}"></CollectionViewSource>
     </Window.Resources>
+    <Window.DataContext>
+        <Binding ElementName="this" Path="VM"></Binding>
+    </Window.DataContext>
     <Grid>
         <TabControl Margin="0,0,0,37" Name="TabControl">
-            <TabItem Header="Папки" Name="TabItemFolder">
+            <TabItem Header="Папки" Name="TabItemFolder" IsEnabled="{Binding OnlyLocal, Converter={StaticResource BoolInverterConverter}}">
                 <Grid>
                     <Label Content="Папка входящие" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                    <TextBox x:Name="textBoxIncomingDir" HorizontalAlignment="Left" Height="23" Margin="182,3,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
-                    <Button Name="ButtonIncomingDir" Margin="527,3,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Click="ButtonIncomingDir_Click" Style="{DynamicResource BrouseButton}"></Button>
+                    <TextBox  HorizontalAlignment="Left" Height="23" Margin="182,3,0,0" TextWrapping="Wrap" Text="{Binding ParamFolder.IncomingDir}" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
+                    <Button  Margin="527,3,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Command="{Binding SelectIncomingDir}" Style="{DynamicResource BrouseButton}"></Button>
                     <Label Content="Папка принятые" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,28,0,0"/>
-                    <TextBox x:Name="textBoxInputDir" HorizontalAlignment="Left" Height="23" Margin="182,31,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
-                    <Button Name="ButtonInputDir" Margin="527,31,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Click="ButtonInputDir_Click" Style="{DynamicResource BrouseButton}"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="182,31,0,0" TextWrapping="Wrap" Text="{Binding ParamFolder.InputDir}" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
+                    <Button  Margin="527,31,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Command="{Binding SelectInputDir}" Style="{DynamicResource BrouseButton}"/>
                     <Label Content="Папка ошибочные" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,56,0,0"/>
-                    <TextBox x:Name="textBoxErrorDir" HorizontalAlignment="Left" Height="23" Margin="182,59,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
-                    <Button Name="ButtonErrorDir" Margin="527,59,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Click="ButtonErrorDir_Click" Style="{DynamicResource BrouseButton}"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="182,59,0,0" TextWrapping="Wrap" Text="{Binding ParamFolder.ErrorDir}" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
+                    <Button  Margin="527,59,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Command="{Binding SelectErrorDir}" Style="{DynamicResource BrouseButton}"/>
                     <Label Content="Папка обработки" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,84,0,0"/>
-                    <TextBox x:Name="textBoxProcessDir" HorizontalAlignment="Left" Height="23" Margin="182,87,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
-                    <Button Name="ButtonProcessDir" Margin="527,87,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Click="ButtonProcessDir_Click" Style="{DynamicResource BrouseButton}"/>
+                    <TextBox  HorizontalAlignment="Left" Height="23" Margin="182,87,0,0" TextWrapping="Wrap" Text="{Binding ParamFolder.ProcessDir}" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
+                    <Button  Margin="527,87,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Command="{Binding SelectProcessDir}" Style="{DynamicResource BrouseButton}"/>
                     <Label Content="Папка ошибочных сообщений" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,112,0,0"/>
-                    <TextBox x:Name="textBoxErrorMessageFile" HorizontalAlignment="Left" Height="23" Margin="182,115,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
-                    <Button Name="ButtonErrorMessageFile" Margin="527,115,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Click="ButtonErrorMessageFile_Click" Style="{DynamicResource BrouseButton}"/>
+                    <TextBox  HorizontalAlignment="Left" Height="23" Margin="182,115,0,0" TextWrapping="Wrap" Text="{Binding ParamFolder.ErrorMessageFile}" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
+                    <Button Margin="527,115,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Command="{Binding SelectErrorMessageFile}" Style="{DynamicResource BrouseButton}"/>
                     <Label Content="Папка инструкций в архив" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,140,0,0"/>
-                    <TextBox x:Name="textBoxAddDIRInERROR" HorizontalAlignment="Left" Height="23" Margin="182,143,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
-                    <Button Name="ButtonAddDIRInERROR" Margin="527,143,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Click="ButtonAddDIRInERROR_Click" Style="{DynamicResource BrouseButton}"/>
+                    <TextBox HorizontalAlignment="Left" Height="23" Margin="182,143,0,0" TextWrapping="Wrap" Text="{Binding ParamFolder.AddDIRInERROR}" VerticalAlignment="Top" Width="340" IsReadOnly="True" Foreground="Gray"/>
+                    <Button Margin="527,143,0,0" HorizontalAlignment="Left" Width="20" Height="23" VerticalAlignment="Top" Command="{Binding SelectAddDIRInERROR}" Style="{DynamicResource BrouseButton}"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Схемы(Сервер)" Name="TabItemSchemaServer">
+            <TabItem Header="Схемы(Сервер)" Name="TabItemSchemaServer" IsEnabled="{Binding OnlyLocal, Converter={StaticResource BoolInverterConverter}}">
                 <Grid>
+                    <Label Content="Версия" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" Height="26" Width="68"/>
+                    <ComboBox ItemsSource="{Binding SchemaServerParam.Versions}" SelectedValue="{Binding SchemaServerParam.CurrentVersion}"  HorizontalAlignment="Left" Margin="83,10,0,0" VerticalAlignment="Top" Width="120" />
+                    <ListBox x:Name="ListBoxServerVersionZGLV" ItemsSource="{Binding SchemaServerParam.VersionZGLV}" HorizontalAlignment="Left" Height="60" Margin="223,10,0,0" VerticalAlignment="Top" Width="141" SelectionChanged="ListBoxServerVersionZGLV_OnSelectionChanged"  >
+                        <ListBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Удалить"  CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerVersionZGLV}}" Command="{Binding SchemaServerParam.RemoveVersionZglvCommand}"></MenuItem>
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
+                    </ListBox>
+                    <TextBox x:Name="textBoxNewVersServer" HorizontalAlignment="Left" Height="23" Margin="369,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                    <Button Content="Добавить" HorizontalAlignment="Left" Margin="494,10,0,0" VerticalAlignment="Top" Width="75" Command="{Binding SchemaServerParam.AddVersionZglvCommand}" CommandParameter="{Binding ElementName=textBoxNewVersServer, Path=Text }" Height="23" Style="{DynamicResource MainButton}" />
+
                     <GroupBox Header="Тип файлов" Margin="6,75,10,10">
                         <Grid>
-                            <ListBox HorizontalAlignment="Left" Margin="6,6,0,10" Name="listBoxTypeSchema" Width="182" SelectionChanged="listBoxTypeSchema_SelectionChanged" SelectionMode="Extended">
+                            <ListBox Name="ListBoxServerFileType" HorizontalAlignment="Left" Margin="6,6,0,10" Width="182" SelectionMode="Extended" ItemsSource="{Binding SchemaServerParam.FileTypes}" SelectedItem="{Binding SchemaServerParam.CurrentFileType}" SelectionChanged="ListBoxServerFileType_OnSelectionChanged" >
                                 <ListBox.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Добавить новую" Click="MenuItem_Click_3"></MenuItem>
-                                        <MenuItem Header="Удалить все схемы" Click="MenuItem_Click_4"></MenuItem>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                        <MenuItem Header="Удалить все схемы" Command="{Binding SchemaServerParam.ClearSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
                                     </ContextMenu>
                                 </ListBox.ContextMenu>
                             </ListBox>
-                            <DataGrid x:Name="dataGrid" Margin="193,6,10,10" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSSchemaElementValue}}" IsReadOnly="True" AutoGenerateColumns="False">
+                            <DataGrid  Margin="193,6,10,10" ItemsSource="{Binding SchemaServerParam.Elements}" IsReadOnly="True" AutoGenerateColumns="False">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Binding="{Binding Value}" Header="Путь" ></DataGridTextColumn>
                                     <DataGridTextColumn Binding="{Binding DATE_B,StringFormat=dd.MM.yyyy}" Header="Дата начала" ></DataGridTextColumn>
                                     <DataGridTextColumn Binding="{Binding DATE_E,StringFormat=dd.MM.yyyy}" Header="Дата окончания" ></DataGridTextColumn>
                                 </DataGrid.Columns>
                             </DataGrid>
-
                         </Grid>
                     </GroupBox>
-                    <Label x:Name="label" Content="Версия" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.538" Height="26" Width="68">
-                        <Label.ContextMenu>
-                            <ContextMenu/>
-                        </Label.ContextMenu>
-                    </Label>
-
-                    <ComboBox x:Name="comboBoxVersionSc" HorizontalAlignment="Left" Margin="83,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="comboBoxVersionSc_SelectionChanged"/>
-                    <ListBox x:Name="listBoxVers" HorizontalAlignment="Left" Height="60" Margin="223,10,0,0" VerticalAlignment="Top" Width="141">
-                        <ListBox.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="delete" Click="MenuItem_Click_2" ></MenuItem>
-                            </ContextMenu>
-                        </ListBox.ContextMenu>
-                    </ListBox>
-                    <TextBox x:Name="textBoxNewVers" HorizontalAlignment="Left" Height="23" Margin="369,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                    <Button x:Name="button" Content="Добавить" HorizontalAlignment="Left" Margin="494,10,0,0" VerticalAlignment="Top" Width="75" Click="button_Click" Height="23" Style="{DynamicResource MainButton}" />
 
                 </Grid>
             </TabItem>
             <TabItem Header="Схемы(Локальные)">
                 <Grid>
+                    <Label  Content="Версия" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top"  Width="68"/>
+                    <ComboBox  HorizontalAlignment="Left" Margin="83,10,0,0" VerticalAlignment="Top" Width="120" ItemsSource="{Binding SchemaLocalParam.Versions}" SelectedValue="{Binding SchemaLocalParam.CurrentVersion}"/>
+                    <ListBox x:Name="ListBoxLocalVersionZGLV" ItemsSource="{Binding SchemaLocalParam.VersionZGLV}" HorizontalAlignment="Left" Height="60" Margin="223,10,0,0" VerticalAlignment="Top" Width="141" SelectionChanged="ListBoxLocalVersionZGLV_OnSelectionChanged">
+                        <ListBox.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Удалить" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedLocalVersionZGLV}}" Command="{Binding SchemaLocalParam.RemoveVersionZglvCommand}" ></MenuItem>
+                            </ContextMenu>
+                        </ListBox.ContextMenu>
+                    </ListBox>
+                    <TextBox x:Name="textBoxNewVersLOCAL" HorizontalAlignment="Left" Height="23" Margin="369,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
+                    <Button Content="Добавить" HorizontalAlignment="Left" Margin="494,10,0,0" VerticalAlignment="Top" Width="75"  Height="23" Style="{DynamicResource MainButton}" Command="{Binding SchemaLocalParam.AddVersionZglvCommand}" CommandParameter="{Binding ElementName=textBoxNewVersLOCAL, Path=Text}" />
                     <GroupBox Header="Тип файлов" Margin="6,75,10,10">
                         <Grid>
-                            <ListBox HorizontalAlignment="Left" Margin="6,6,0,10" Name="listBoxTypeSchemaLOCAL" Width="182" SelectionMode="Extended" SelectionChanged="ListBoxTypeSchemaLOCAL_OnSelectionChanged">
+                            <ListBox  Name="ListBoxLocalFileType" HorizontalAlignment="Left" Margin="6,6,0,10" Width="182" SelectionMode="Extended" ItemsSource="{Binding SchemaLocalParam.FileTypes}" SelectedItem="{Binding SchemaLocalParam.CurrentFileType}" SelectionChanged="ListBoxLocalFileType_OnSelectionChanged">
                                 <ListBox.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Добавить новую" Name="MenuItemAddSchemaLocal" Click="MenuItemAddSchemaLocal_OnClick" ></MenuItem>
-                                        <MenuItem Header="Удалить все схемы"  Name="MenuItemClearSchemaLocal" Click="MenuItemClearSchemaLocal_OnClick"></MenuItem>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaLocalParam.AddSchemaElementLocalCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedLocalFileType}}" ></MenuItem>
+                                        <MenuItem Header="Удалить все схемы"  Command="{Binding SchemaLocalParam.ClearSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedLocalFileType}}"></MenuItem>
                                     </ContextMenu>
                                 </ListBox.ContextMenu>
                             </ListBox>
-                            <DataGrid x:Name="dataGridLOCAL" Margin="193,6,10,10" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSSchemaElementValueLocal}}" IsReadOnly="True" AutoGenerateColumns="False">
+                            <DataGrid  Margin="193,6,10,10" ItemsSource="{Binding SchemaLocalParam.Elements}" IsReadOnly="True" AutoGenerateColumns="False">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Binding="{Binding Value}" Header="Путь" ></DataGridTextColumn>
                                     <DataGridTextColumn Binding="{Binding DATE_B,StringFormat=dd.MM.yyyy}" Header="Дата начала" ></DataGridTextColumn>
                                     <DataGridTextColumn Binding="{Binding DATE_E,StringFormat=dd.MM.yyyy}" Header="Дата окончания" ></DataGridTextColumn>
                                 </DataGrid.Columns>
+
                             </DataGrid>
 
                         </Grid>
                     </GroupBox>
-                    <Label  Content="Версия" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top" RenderTransformOrigin="0.5,0.538" Height="26" Width="68">
-
-                    </Label>
-
-                    <ComboBox x:Name="comboBoxVersionScLOCAL" HorizontalAlignment="Left" Margin="83,10,0,0" VerticalAlignment="Top" Width="120" SelectionChanged="ComboBoxVersionScLOCAL_OnSelectionChanged"/>
-                    <ListBox x:Name="listBoxVersLOCAL" HorizontalAlignment="Left" Height="60" Margin="223,10,0,0" VerticalAlignment="Top" Width="141">
-                        <ListBox.ContextMenu>
-                            <ContextMenu>
-                                <MenuItem Header="Удалить" Name="MenuItemDeleteVersLocal" Click="MenuItemDeleteVersLocal_OnClick" ></MenuItem>
-                            </ContextMenu>
-                        </ListBox.ContextMenu>
-                    </ListBox>
-                    <TextBox x:Name="textBoxNewVersLOCAL" HorizontalAlignment="Left" Height="23" Margin="369,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="120"/>
-                    <Button x:Name="buttonLOCAL" Content="Добавить" HorizontalAlignment="Left" Margin="494,10,0,0" VerticalAlignment="Top" Width="75" Click="ButtonLOCAL_OnClick" Height="23" Style="{DynamicResource MainButton}" />
-
                 </Grid>
             </TabItem>
 
@@ -127,75 +130,120 @@
                 <Grid>
                     <GroupBox Header="Сервер ORACLE" Height="267" HorizontalAlignment="Left" Margin="10,10,0,0"  VerticalAlignment="Top" Width="402">
                         <Grid>
-                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,18,0,0" Name="textBoxHOSTORA" VerticalAlignment="Top" Width="240" />
-                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,47,0,0" Name="textBoxBDORA" VerticalAlignment="Top" Width="240" />
-                            <TextBox Height="23" HorizontalAlignment="Left"  Margin="112,76,0,0" Name="textBoxPORTORA"   VerticalAlignment="Top" Width="240" TextChanged="textBoxPORTORA_TextChanged" />
-                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,105,0,0" Name="textBoxLOGORA" VerticalAlignment="Top" Width="240" />
-                            <PasswordBox Height="23" HorizontalAlignment="Left" Margin="112,134,0,0" Name="passwordBoxPASSORA" VerticalAlignment="Top" Width="240" />
-                            <ComboBox Height="23" HorizontalAlignment="Left" Margin="112,163,0,0" Name="comboBoxPRIVORA" SelectedIndex="0" VerticalAlignment="Top" Width="240">
-                                <ComboBoxItem Content="NORMAL" />
-                                <ComboBoxItem Content="SYSDBA" />
-                                <ComboBoxItem Content="SYSOPER" />
-                            </ComboBox>
+                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,18,0,0" Text="{Binding ConnectionLocal.HOST}" VerticalAlignment="Top" Width="240" />
+                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,47,0,0" Text="{Binding ConnectionLocal.DataBase}" VerticalAlignment="Top" Width="240" />
+                            <TextBox Height="23" HorizontalAlignment="Left"  Margin="112,76,0,0" Text="{Binding ConnectionLocal.Port}"  VerticalAlignment="Top" Width="240"  />
+                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,105,0,0" Text="{Binding ConnectionLocal.User}" VerticalAlignment="Top" Width="240" />
+                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,134,0,0" Text="{Binding ConnectionLocal.Password}" VerticalAlignment="Top" Width="240" />
+                            <ComboBox Height="23" HorizontalAlignment="Left" Margin="112,163,0,0" SelectedIndex="0" VerticalAlignment="Top" Width="240" ItemsSource="{Binding ConnectionLocal.DBAPrivilegeList}" Text="{Binding ConnectionLocal.DBAPrivilege}"/>
                             <Label Content="Имя сервера" Height="28" HorizontalAlignment="Left" Margin="14,16,0,0"  VerticalAlignment="Top" />
                             <Label Content="Привилегии" Height="28" HorizontalAlignment="Left" Margin="14,163,0,0"  VerticalAlignment="Top" />
                             <Label Content="Пароль" Height="28" HorizontalAlignment="Left" Margin="14,132,0,0"  VerticalAlignment="Top" />
                             <Label Content="Логин" Height="28" HorizontalAlignment="Left" Margin="14,103,0,0" VerticalAlignment="Top" />
                             <Label Content="Порт" Height="28" HorizontalAlignment="Left" Margin="14,74,0,0" VerticalAlignment="Top" />
                             <Label Content="Имя базы" Height="28" HorizontalAlignment="Left" Margin="14,45,0,0"  VerticalAlignment="Top" />
-                            <Button Content="Принять" Height="23" HorizontalAlignment="Left" Margin="14,205,0,0" Name="buttonORA_OK" VerticalAlignment="Top" Width="152" Style="{DynamicResource MainButton}" Click="buttonORA_OK_Click"  />
-                            <Button  Content="Восстановить" Height="23" HorizontalAlignment="Left" Margin="200,205,0,0" Name="buttonORA_Return" VerticalAlignment="Top" Width="152" Style="{DynamicResource MainButton}" Click="buttonORA_Return_Click"  />
+                            <Button Content="Принять" Height="23" HorizontalAlignment="Left" Margin="14,205,0,0" VerticalAlignment="Top" Width="152" Style="{DynamicResource MainButton}" Command="{Binding SaveConnectionLocal}" />
+                            <Button  Content="Восстановить" Height="23" HorizontalAlignment="Left" Margin="200,205,0,0"  VerticalAlignment="Top" Width="152" Style="{DynamicResource MainButton}" Command="{Binding ResetConnectionLocal}" />
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Проверить подключение" Height="267" HorizontalAlignment="Left" Margin="416,10,0,0" Name="groupBo3" VerticalAlignment="Top" Width="310">
+                    <GroupBox Header="Проверить подключение" Height="267" HorizontalAlignment="Left" Margin="416,10,0,0" VerticalAlignment="Top" Width="310">
                         <Grid>
-                            <Button Click="buttonORATEST_Click" Content="Проверить подключение" Height="23" HorizontalAlignment="Right" Margin="0,219,6,0" Name="buttonORATEST" VerticalAlignment="Top" Width="286" Style="{DynamicResource MainButton}"  />
-                            <Image Height="104" HorizontalAlignment="Left" Margin="90,6,0,0" Name="imageORATEST" Stretch="Fill" VerticalAlignment="Top" Width="105"  />
-                            <TextBlock FontWeight="Bold" Height="97" HorizontalAlignment="Left" Margin="6,116,0,0" Name="textBlockORA" Text="" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top" Width="278" />
+                            <Button Content="Проверить подключение" Height="23" HorizontalAlignment="Right" Margin="0,219,6,0"  VerticalAlignment="Top" Width="286" Style="{DynamicResource MainButton}" Command="{Binding CheckConnectionLocal}"  />
+                            <Image Height="104" HorizontalAlignment="Left" Margin="90,6,0,0"  Stretch="Fill" VerticalAlignment="Top" Width="105" >
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ConnectionLocal.IsTestingOK}" Value="True">
+                                                <Setter Property="Source" Value="../Image/button_ok.png"></Setter>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ConnectionLocal.IsTestingOK}" Value="False">
+                                                <Setter Property="Source" Value="../Image/error.png"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+                            <TextBlock FontWeight="Bold" Height="97" HorizontalAlignment="Left" Margin="6,116,0,0"  Text="{ Binding ConnectionLocal.IsTestingMessage}" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top" Width="278" >
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ConnectionLocal.IsTestingOK}" Value="True">
+                                                <Setter Property="Foreground" Value="LimeGreen"></Setter>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ConnectionLocal.IsTestingOK}" Value="False">
+                                                <Setter Property="Foreground" Value="Red"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </Grid>
                     </GroupBox>
                 </Grid>
             </TabItem>
-            <TabItem Header="Подключение Oracle(Сервер)" Name="TabItemConnectServer">
+            <TabItem Header="Подключение Oracle(Сервер)" Name="TabItemConnectServer" IsEnabled="{Binding OnlyLocal, Converter={StaticResource BoolInverterConverter}}">
                 <Grid>
                     <GroupBox Header="Сервер ORACLE" Height="267" HorizontalAlignment="Left" Margin="10,10,0,0"  VerticalAlignment="Top" Width="402">
                         <Grid>
-                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,18,0,0" Name="textBoxHOSTORA_SERVER" VerticalAlignment="Top" Width="240" />
-                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,47,0,0" Name="textBoxBDORA_SERVER" VerticalAlignment="Top" Width="240" />
-                            <TextBox Height="23" HorizontalAlignment="Left"  Margin="112,76,0,0" Name="textBoxPORTORA_SERVER"   VerticalAlignment="Top" Width="240" TextChanged="textBoxPORTORA_TextChanged" />
-                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,105,0,0" Name="textBoxLOGORA_SERVER" VerticalAlignment="Top" Width="240" />
-                            <PasswordBox Height="23" HorizontalAlignment="Left" Margin="112,134,0,0" Name="passwordBoxPASSORA_SERVER" VerticalAlignment="Top" Width="240" />
-                            <ComboBox Height="23" HorizontalAlignment="Left" Margin="112,163,0,0" Name="comboBoxPRIVORA_SERVER" SelectedIndex="0" VerticalAlignment="Top" Width="240">
-                                <ComboBoxItem Content="NORMAL" />
-                                <ComboBoxItem Content="SYSDBA" />
-                                <ComboBoxItem Content="SYSOPER" />
-                            </ComboBox>
+                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,18,0,0" Text="{Binding ConnectionServer.HOST}" VerticalAlignment="Top" Width="240" />
+                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,47,0,0" Text="{Binding ConnectionServer.DataBase}" VerticalAlignment="Top" Width="240" />
+                            <TextBox Height="23" HorizontalAlignment="Left"  Margin="112,76,0,0" Text="{Binding ConnectionServer.Port}"  VerticalAlignment="Top" Width="240"  />
+                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,105,0,0" Text="{Binding ConnectionServer.User}" VerticalAlignment="Top" Width="240" />
+                            <TextBox Height="23" HorizontalAlignment="Left" Margin="112,134,0,0" Text="{Binding ConnectionServer.Password}" VerticalAlignment="Top" Width="240" />
+                            <ComboBox Height="23" HorizontalAlignment="Left" Margin="112,163,0,0" SelectedIndex="0" VerticalAlignment="Top" Width="240" ItemsSource="{Binding ConnectionServer.DBAPrivilegeList}" Text="{Binding ConnectionServer.DBAPrivilege}"/>
+
                             <Label Content="Имя сервера" Height="28" HorizontalAlignment="Left" Margin="14,16,0,0"  VerticalAlignment="Top" />
                             <Label Content="Привилегии" Height="28" HorizontalAlignment="Left" Margin="14,163,0,0"  VerticalAlignment="Top" />
                             <Label Content="Пароль" Height="28" HorizontalAlignment="Left" Margin="14,132,0,0"  VerticalAlignment="Top" />
                             <Label Content="Логин" Height="28" HorizontalAlignment="Left" Margin="14,103,0,0" VerticalAlignment="Top" />
                             <Label Content="Порт" Height="28" HorizontalAlignment="Left" Margin="14,74,0,0" VerticalAlignment="Top" />
                             <Label Content="Имя базы" Height="28" HorizontalAlignment="Left" Margin="14,45,0,0"  VerticalAlignment="Top" />
-                            <Button Content="Принять" Height="23" HorizontalAlignment="Left" Margin="14,205,0,0" Name="buttonOK_SERVER" VerticalAlignment="Top" Width="152" Style="{DynamicResource MainButton}" Click="buttonOK_SERVER_Click"  />
-                            <Button Content="Восстановить" Height="23" HorizontalAlignment="Left" Margin="200,205,0,0" Name="buttonRestore_SERVER" VerticalAlignment="Top" Width="152" Style="{DynamicResource MainButton}" Click="buttonRestore_SERVER_Click"  />
+                            <Button Content="Принять" Height="23" HorizontalAlignment="Left" Margin="14,0,0,16" VerticalAlignment="Bottom" Width="152" Style="{DynamicResource MainButton}" Command="{Binding SaveConnectionServer}"  />
+                            <Button Content="Восстановить" Height="23" HorizontalAlignment="Left" Margin="200,0,0,16" VerticalAlignment="Bottom" Width="152" Style="{DynamicResource MainButton}" Command="{Binding ResetConnectionServer}" />
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Проверить подключение" Height="267" HorizontalAlignment="Left" Margin="416,10,0,0"  VerticalAlignment="Top" Width="310">
+                    <GroupBox Header="Проверить подключение" Height="267" HorizontalAlignment="Left" Margin="416,10,0,0" VerticalAlignment="Top" Width="310">
                         <Grid>
-                            <Button Content="Проверить подключение" Height="23" HorizontalAlignment="Right" Margin="0,219,6,0" Name="buttonTEST_SERVER" VerticalAlignment="Top" Width="286" Style="{DynamicResource MainButton}" Click="buttonTEST_SERVER_Click"  />
-                            <Image Height="104" HorizontalAlignment="Left" Margin="90,6,0,0" Name="imageTEST_SERVER" Stretch="Fill" VerticalAlignment="Top" Width="105"  />
-                            <TextBlock FontWeight="Bold" Height="97" HorizontalAlignment="Left" Margin="6,116,0,0" Name="textBlockORA_TEST_SERVER" Text="" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top" Width="278" />
+                            <Button Content="Проверить подключение" Height="23" HorizontalAlignment="Right" Margin="0,219,6,0"  VerticalAlignment="Top" Width="286" Style="{DynamicResource MainButton}" Command="{Binding CheckConnectionServer}"  />
+                            <Image Height="104" HorizontalAlignment="Left" Margin="90,6,0,0"  Stretch="Fill" VerticalAlignment="Top" Width="105"  >
+                                <Image.Style>
+                                    <Style TargetType="Image">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ConnectionServer.IsTestingOK}" Value="True">
+                                                <Setter Property="Source" Value="../Image/button_ok.png"></Setter>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ConnectionServer.IsTestingOK}" Value="False">
+                                                <Setter Property="Source" Value="../Image/error.png"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Image.Style>
+                            </Image>
+                            <TextBlock FontWeight="Bold" Height="97" HorizontalAlignment="Left" Margin="6,116,0,0"  Text="{ Binding ConnectionServer.IsTestingMessage}" TextAlignment="Center" TextWrapping="Wrap" VerticalAlignment="Top" Width="278" >
+                                <TextBlock.Style>
+                                    <Style TargetType="TextBlock">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding ConnectionServer.IsTestingOK}" Value="True">
+                                                <Setter Property="Foreground" Value="LimeGreen"></Setter>
+                                            </DataTrigger>
+                                            <DataTrigger Binding="{Binding ConnectionServer.IsTestingOK}" Value="False">
+                                                <Setter Property="Foreground" Value="Red"></Setter>
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBlock.Style>
+                            </TextBlock>
                         </Grid>
                     </GroupBox>
                 </Grid>
             </TabItem>
-            <TabItem Header="Таблицы" Name="TabItemTableServer">
+            <TabItem Header="Таблицы(Сервер)" Name="TabItemTableServer" IsEnabled="{Binding OnlyLocal, Converter={StaticResource BoolInverterConverter}}">
                 <Grid>
                     <GroupBox Header="Таблицы">
                         <Grid>
-                            <TextBox x:Name="textBoxTableOwner" HorizontalAlignment="Left" Height="23" Margin="49,3,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+                            <TextBox  HorizontalAlignment="Left" Height="23" Margin="49,3,0,0" TextWrapping="Wrap" Text="{Binding TableServerParam.Owner}" VerticalAlignment="Top" Width="120"/>
                             <Label Content="Схема" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                            <ListView Margin="0,31" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSTableItems}}">
+                            <ListView Margin="0,31" ItemsSource="{Binding TableServerParam.TableItems}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="" Width="Auto">
@@ -232,7 +280,7 @@
                                     </GridView>
                                 </ListView.View>
                             </ListView>
-                            <Button x:Name="ButtonCheckTable" Content="Проверить" Height="21" Margin="0,0,0,5" VerticalAlignment="Bottom" Click="ButtonCheckTable_Click" Style="{DynamicResource MainButton}"/>
+                            <Button  Content="Проверить" Height="21" Margin="0,0,0,5" VerticalAlignment="Bottom" Command="{Binding CheckTableServerCommand}" Style="{DynamicResource MainButton}"/>
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -246,9 +294,9 @@
                                 <ColumnDefinition Width="551*"/>
                                 <ColumnDefinition Width="548*"/>
                             </Grid.ColumnDefinitions>
-                            <TextBox x:Name="textBoxTableOwnerLOCAL" HorizontalAlignment="Left" Height="23" Margin="49,3,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
-                            <Label Content="Схема" HorizontalAlignment="Left" VerticalAlignment="Top"/>
-                            <ListView Margin="0,31,10,31" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSTableItemsLOCAL}}">
+                            <TextBox  HorizontalAlignment="Left" Height="23" Margin="49,3,0,0" Text="{Binding TableLocalParam.Owner}" VerticalAlignment="Top" Width="120"/>
+                            <Label Grid.Column="0" Content="Схема" HorizontalAlignment="Left" VerticalAlignment="Top"/>
+                            <ListView Grid.Column="0" Margin="0,31,10,31" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSTableItemsLOCAL}}">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="" Width="Auto">
@@ -285,7 +333,7 @@
                                     </GridView>
                                 </ListView.View>
                             </ListView>
-                            <Button x:Name="ButtonCheckTableLOCAL" Content="Проверить" Height="21" Margin="0,0,0,5" VerticalAlignment="Bottom" Click="ButtonCheckTableLOCAL_OnClick" Style="{DynamicResource MainButton}" Grid.ColumnSpan="2"/>
+                            <Button Content="Проверить" Height="21" Margin="0,0,0,5" VerticalAlignment="Bottom" Command="{Binding CheckTableLocalCommand}" Style="{DynamicResource MainButton}" Grid.ColumnSpan="2" Grid.Column="0" />
                             <ListView Margin="10,31" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSSeqItemsLOCAL}}" Grid.Column="1">
                                 <ListView.View>
                                     <GridView>
@@ -324,11 +372,11 @@
                     </GroupBox>
                 </Grid>
             </TabItem>
-            <TabItem Header="Перенос" Name="TabItemTransfer">
+            <TabItem Header="Перенос" Name="TabItemTransfer" IsEnabled="{Binding OnlyLocal, Converter={StaticResource BoolInverterConverter}}">
                 <Grid>
                     <GroupBox Header="Таблицы">
                         <Grid>
-                            <TextBox x:Name="textBoxTRANSOwner" HorizontalAlignment="Left" Height="23" Margin="49,3,0,0" TextWrapping="Wrap" Text="TextBox" VerticalAlignment="Top" Width="120"/>
+                            <TextBox HorizontalAlignment="Left" Height="23" Margin="49,3,0,0" TextWrapping="Wrap" Text="{Binding TableTransferParam.Owner}" VerticalAlignment="Top" Width="120"/>
                             <Label Content="Схема" HorizontalAlignment="Left" VerticalAlignment="Top"/>
                             <ListView Margin="0,31" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSTableItemsTRANS}}">
                                 <ListView.View>
@@ -367,8 +415,8 @@
                                     </GridView>
                                 </ListView.View>
                             </ListView>
-                            <CheckBox x:Name="CheckBoxEnableTRANS" Margin="179,3,0,0" HorizontalAlignment="Left" Width="136" Height="23" VerticalAlignment="Top">Включить перенос</CheckBox>
-                            <Button x:Name="ButtonCheckTRANS" Content="Проверить" Height="21" Margin="0,0,0,5" VerticalAlignment="Bottom" Click="ButtonCheckTRANS_Click" Style="{DynamicResource MainButton}" />
+                            <CheckBox IsChecked="{Binding TableTransferParam.Enabled}" Margin="179,3,0,0" HorizontalAlignment="Left" Width="136" Height="23" VerticalAlignment="Top">Включить перенос</CheckBox>
+                            <Button  Content="Проверить" Height="21" Margin="0,0,0,5" VerticalAlignment="Bottom" Command="{Binding CheckTableTransferCommand}" Style="{DynamicResource MainButton}" />
                         </Grid>
                     </GroupBox>
                 </Grid>
@@ -376,27 +424,27 @@
             <TabItem Header="Система">
                 <Grid>
                     <Label Content="Время ожидания закрытия пакета(секунд)" ToolTip="Время в секундах, когда пакет ждет появления файлов в каталоге приема" Margin="10,10,0,0" Height="26" VerticalAlignment="Top" HorizontalAlignment="Left" Width="246"/>
-                    <TextBox x:Name="textBoxTimeAwait" HorizontalAlignment="Left" Height="26" Margin="261,10,0,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" Width="68" HorizontalContentAlignment="Right" VerticalContentAlignment="Center"/>
+                    <TextBox  HorizontalAlignment="Left" Height="26" Margin="261,10,0,0" Text="{Binding ParamFolder.TimePacketOpen}" VerticalAlignment="Top" Width="68" HorizontalContentAlignment="Right" VerticalContentAlignment="Center" IsEnabled="{Binding OnlyLocal, Converter={StaticResource BoolInverterConverter}}"/>
                     <Label Content="Исполнитель" ToolTip="Будет отображен в протоколе обработки" Margin="10,41,0,0" Height="26" VerticalAlignment="Top" HorizontalAlignment="Left" Width="246"/>
-                    <TextBox x:Name="textBoxISP" Height="26" Margin="261,41,10,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" VerticalContentAlignment="Center"/>
+                    <TextBox  Height="26" Margin="261,41,10,0"  Text="{Binding ParamFolder.ISP}" VerticalAlignment="Top" VerticalContentAlignment="Center" IsEnabled="{Binding OnlyLocal, Converter={StaticResource BoolInverterConverter}}"/>
                     <Label Content="Виртуальный путь" ToolTip="Клиент будет открывать данный каталог при активации кнопки показать файл. Нужно указать путь к каталогу Process" Margin="10,72,0,0" Height="26" VerticalAlignment="Top" HorizontalAlignment="Left" Width="180"/>
-                    <TextBox x:Name="textBoxVirtualPath" Height="26" Margin="261,72,39,0" TextWrapping="Wrap" Text="" VerticalAlignment="Top" VerticalContentAlignment="Center" IsReadOnly="True" Foreground="Gray"/>
-                    <Button x:Name="buttonBrouseVirtualPath" HorizontalAlignment="Right" Margin="0,72,10,0" VerticalAlignment="Top" Width="24" Height="26" Style="{DynamicResource BrouseButton}" Click="buttonBrouseVirtualPath_Click"/>
-                    <CheckBox x:Name="checkBoxIsVirtualPath" HorizontalAlignment="Left" Margin="240,72,0,0" VerticalAlignment="Top" Height="26" VerticalContentAlignment="Center"/>
+                    <TextBox Height="26" Margin="261,72,39,0"  Text="{Binding VIRTUALPATH}" VerticalAlignment="Top" VerticalContentAlignment="Center" IsReadOnly="True" Foreground="Gray"/>
+                    <Button HorizontalAlignment="Right" Margin="0,72,10,0" VerticalAlignment="Top" Width="24" Height="26" Style="{DynamicResource BrouseButton}" Command="{Binding SelectVIRTUALPATH}"/>
+                    <CheckBox IsChecked="{Binding ISVIRTUALPATH}" HorizontalAlignment="Left" Margin="240,72,0,0" VerticalAlignment="Top" Height="26" VerticalContentAlignment="Center"/>
                 </Grid>
             </TabItem>
-            <TabItem Header="Проверки">
+            <TabItem Header="Проверки" IsEnabled="{Binding OnlyLocal, Converter={StaticResource BoolInverterConverter}}">
                 <Grid>
                     <GroupBox Header="">
                         <Grid>
-                            <ListBox HorizontalAlignment="Left" Width="106" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSCheckTableName}}" Name="ListBoxCheckTableName" SelectionChanged="ListBox_SelectionChanged">
+                            <ListBox HorizontalAlignment="Left" Width="106" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSCheckTableName}}" SelectedItem="{Binding CheckParam.CurrentTableName}">
                                 <ListBox.ItemTemplate>
                                     <DataTemplate>
                                         <TextBlock Text="{Binding}"></TextBlock>
                                     </DataTemplate>
                                 </ListBox.ItemTemplate>
                             </ListBox>
-                            <ListView Name="ListViewCheck" Margin="111,0,172,0" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSOrclProcedure}}">
+                            <ListView Name="ListViewCheck" Margin="111,0,172,0" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSOrclProcedure}}" SelectionChanged="ListViewCheck_OnSelectionChanged">
                                 <ListView.View>
                                     <GridView>
                                         <GridViewColumn Header="" Width="Auto">
@@ -432,32 +480,32 @@
                                 </ListView.View>
                                 <ListView.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Добавить" Name="MenuItemCheckAdd" Click="MenuItemCheckAdd_Click"></MenuItem>
-                                        <MenuItem Header="Изменить" Name="MenuItemCheckChange" Click="MenuItemCheckChange_Click"></MenuItem>
+                                        <MenuItem Header="Добавить" Command="{Binding AddProcedureCheckCommand}" CommandParameter="{Binding Source={StaticResource SelectCheck}, Path=Data}"></MenuItem>
+                                        <MenuItem Header="Изменить" Command="{Binding EditProcedureCheckCommand}" CommandParameter="{Binding Source={StaticResource SelectCheck}, Path=Data}" ></MenuItem>
                                         <Separator/>
-                                        <MenuItem Header="Дублировать" Name="MenuItemCheckDouble" Click="MenuItemCheckDouble_Click"></MenuItem>
+                                        <MenuItem Header="Дублировать"  Command="{Binding DuplicateProcedureCheckCommand}" CommandParameter="{Binding Source={StaticResource SelectCheck}, Path=Data}"></MenuItem>
                                         <Separator/>
-                                        <MenuItem Header="Удалить" Name="MenuItemCheckDelete" Click="MenuItemCheckDelete_Click" ></MenuItem>
+                                        <MenuItem Header="Удалить"  Command="{Binding DeleteProcedureCheckCommand}" CommandParameter="{Binding Source={StaticResource SelectCheck}, Path=Data}" ></MenuItem>
                                     </ContextMenu>
                                 </ListView.ContextMenu>
                             </ListView>
                             <GroupBox Header="Добавить пакет" HorizontalAlignment="Right" Height="74" Margin="0,-8,0,0" VerticalAlignment="Top" Width="167">
                                 <Grid>
                                     <TextBox Name="TextBoxAddPack" Height="22" VerticalAlignment="Top"/>
-                                    <Button Margin="0,27,0,0" Height="23" VerticalAlignment="Top" Name="ButtonAddPacket" Content="Добавить пакет" Click="ButtonAddPacket_Click" Style="{DynamicResource MainButton}"></Button>
+                                    <Button Margin="0,27,0,0" Height="23" VerticalAlignment="Top"  Content="Добавить пакет" Style="{DynamicResource MainButton}" Command="{Binding AddPackageCheckCommand}" CommandParameter="{Binding ElementName=TextBoxAddPack, Path=Text}"></Button>
                                 </Grid>
                             </GroupBox>
                             <GroupBox Header="Локальное хранение" HorizontalAlignment="Right" Height="74" Margin="0,71,0,0" VerticalAlignment="Top" Width="167">
                                 <Grid>
-                                    <Button x:Name="ButtonLoadCheckFromFile" Height="22" VerticalAlignment="Top" Content="Загрузить из файла" Click="ButtonLoadCheckFromFile_Click" Style="{DynamicResource MainButton}"/>
-                                    <Button Margin="0,27,0,0" Height="23" VerticalAlignment="Top" x:Name="ButtonSaveCheckInFile" Content="Сохранить в файл" Click="ButtonSaveCheckInFile_Click" Style="{DynamicResource MainButton}"/>
+                                    <Button Height="22" VerticalAlignment="Top" Content="Загрузить из файла" Command="{Binding LoadCheckFromFileCommand}" Style="{DynamicResource MainButton}"/>
+                                    <Button Margin="0,27,0,0" Height="23" VerticalAlignment="Top"  Content="Сохранить в файл" Command="{Binding SaveCheckInFileCommand}" Style="{DynamicResource MainButton}"/>
                                 </Grid>
                             </GroupBox>
                             <GroupBox Header="Работа с сервером" HorizontalAlignment="Right" Height="103" Margin="0,150,0,0" VerticalAlignment="Top" Width="167">
                                 <Grid>
-                                    <Button x:Name="ButtonCheckListCheck" Height="22" VerticalAlignment="Top" Content="Проверка процедур" Style="{DynamicResource MainButton}" Click="ButtonCheckListCheck_Click" />
-                                    <Button Margin="0,27,0,0" Height="23" VerticalAlignment="Top" x:Name="ButtonSaveCheckInServer" Content="Сохранить на сервер" Style="{DynamicResource MainButton}" Click="ButtonSaveCheckInServer_Click" />
-                                    <Button Margin="0,55,0,0" Height="23" VerticalAlignment="Top" x:Name="ButtonLoadCheckFromServer" Content="Загрузить из БД" Style="{DynamicResource MainButton}" Click="ButtonLoadCheckFromServer_Click" />
+                                    <Button  Height="22" VerticalAlignment="Top" Content="Проверка процедур" Style="{DynamicResource MainButton}" Command="{Binding CheckCheckInBDCommand}" />
+                                    <Button Margin="0,27,0,0" Height="23" VerticalAlignment="Top"  Content="Сохранить на сервер" Style="{DynamicResource MainButton}" Command="{Binding SaveCheckInBDCommand}" />
+                                    <Button Margin="0,55,0,0" Height="23" VerticalAlignment="Top" Content="Загрузить из БД" Style="{DynamicResource MainButton}" Command="{Binding LoadCheckFromBDCommand}" />
                                 </Grid>
                             </GroupBox>
                         </Grid>
@@ -465,7 +513,7 @@
                 </Grid>
             </TabItem>
         </TabControl>
-        <Button x:Name="buttonOK" Content="Принять" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="194" Height="23" Style="{DynamicResource MainButton}" Click="buttonOK_Click"/>
-        <Button x:Name="buttonCancel" Content="Отмена" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="194" Height="23" Style="{DynamicResource MainButton}" Click="buttonCancel_Click"/>
+        <Button Content="Принять" HorizontalAlignment="Left" VerticalAlignment="Bottom" Width="194" Height="23" Style="{DynamicResource MainButton}" Command="{Binding SaveParamCommand}" />
+        <Button Content="Отмена" HorizontalAlignment="Right" VerticalAlignment="Bottom" Width="194" Height="23" Style="{DynamicResource MainButton}"  Command="{Binding CancelParamCommand}"/>
     </Grid>
 </Window>

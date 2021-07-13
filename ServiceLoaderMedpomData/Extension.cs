@@ -2,7 +2,7 @@
 
 namespace ServiceLoaderMedpomData
 {
-    public static class Extention
+    public static class Extension
     {
         public static string FullError(this Exception ex)
         {

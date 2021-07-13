@@ -61,6 +61,8 @@ namespace ServiceLoaderMedpomData
 
     public class V_ErrorViewRow
     {
+      
+
         public static V_ErrorViewRow Get(DataRow row)
         {
             try
@@ -97,7 +99,8 @@ namespace ServiceLoaderMedpomData
                 item.SL_ID = Convert.ToString(row["SL_ID"]);
                 item.ID_SERV = Convert.ToString(row["ID_SERV"]);
                 item.OSHIB = Convert.ToInt32(row["OSHIB"]);
-
+                item.DOP = Convert.ToBoolean(row["DOP"]);
+                
                 return item;
             }
             catch (Exception ex)
@@ -130,6 +133,7 @@ namespace ServiceLoaderMedpomData
         public string SL_ID { get; set; }
         public string ID_SERV { get; set; }
         public int OSHIB { get; set; }
+        public bool DOP { get; set; }
     }
 
     public class SVOD_FILE_Row
@@ -404,7 +408,8 @@ namespace ServiceLoaderMedpomData
         EXP,
         DS2,
         DS3,
-        CRIT
+        CRIT,
+        MR_USL_N
     }
     public class TableInfo
     {

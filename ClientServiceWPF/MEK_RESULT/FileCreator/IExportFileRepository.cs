@@ -11,9 +11,10 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
     public interface IExportFileRepository
     {
         List<V_EXPORT_H_ZGLVRow> V_EXPORT_H_ZGLV(bool IsTemp1, int Month, int Year);
+        List<V_EXPORT_H_ZGLVRow> V_EXPORT_H_ZGLV(bool IsTemp1, string ENP_REG, DateTime Start, DateTime End);
         DataTable V_EXPORT_H_ZGLV(int zglvid, bool IsTemp1, OracleConnection conn = null);
         DataTable V_EXPORT_H_SCHET(int zglvid, bool IsTemp1, OracleConnection conn = null);
-        DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, bool IsTemp1, OracleConnection conn = null);
+        DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, string ENP, bool IsTemp1, OracleConnection conn = null);
         DataTable V_EXPORT_H_SLUCH(IEnumerable<long> sl, bool IsTemp1, OracleConnection conn = null);
         DataTable V_EXPORT_H_SANK(IEnumerable<long> sl, bool IsTemp1, OracleConnection conn = null);
         DataTable V_EXPORT_H_NAZR(IEnumerable<long> sl, bool IsTemp1, OracleConnection conn = null);
@@ -30,8 +31,9 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         DataTable V_EXPORT_H_CRIT(IEnumerable<long> sl, bool IsTemp1, OracleConnection conn = null);
         DataTable V_EXPORT_CONS(IEnumerable<long> sl, bool IsTemp1, OracleConnection conn = null);
         DataTable V_EXPORT_L_ZGLV(string FILENAME, bool IsTemp1, OracleConnection conn = null);
-        DataTable V_EXPORT_L_PERS(int zglvid, string SMO, bool IsTemp1, OracleConnection conn = null);
+        DataTable V_EXPORT_L_PERS(IEnumerable<long> pers_id, bool IsNewComment, bool IsTemp1, OracleConnection conn = null);
         DataTable V_EXPORT_H_EXPERTIZE(IEnumerable<long> sl, bool IsTemp1, OracleConnection conn = null);
+        DataTable V_EXPORT_H_MR_USL(IEnumerable<long> us, bool IsTemp1, OracleConnection conn = null);
 
         OracleConnection CreateConnection();
         List<F002> GetF002();
@@ -59,6 +61,21 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 }
             }
         }
+        public List<V_EXPORT_H_ZGLVRow> V_EXPORT_H_ZGLV(bool IsTemp1, string ENP_REG, DateTime Start, DateTime End)
+        {
+            using (var con = new OracleConnection(ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($"select distinct hz.* from V_EXPORT_H_ZGLV{(IsTemp1 ? "_TEMP1" : "")} hz " +
+                                                       $"inner join  V_EXPORT_H_ZAP{(IsTemp1 ? "_TEMP1" : "")} z on z.schet_id = hz.schet_id " +
+                                                       $"where z.ENP_REG = '{ENP_REG}'  and makedate(hz.YEAR,hz.MONTH, 1) between '{new DateTime(Start.Year,Start.Month,1):dd.MM.yyyy}' and '{new DateTime(End.Year, End.Month, 1):dd.MM.yyyy}'", con))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl.Select().Select(V_EXPORT_H_ZGLVRow.Get).ToList();
+                }
+            }
+        }
+
         public DataTable V_EXPORT_H_ZGLV(int zglvid, bool IsTemp1, OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
@@ -78,6 +95,10 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw;
             }
         }
+
+
+   
+
         public DataTable V_EXPORT_H_SCHET(int zglvid, bool IsTemp1, OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
@@ -97,12 +118,12 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw;
             }
         }
-        public DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, bool IsTemp1, OracleConnection conn = null)
+        public DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, string ENP, bool IsTemp1, OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
             try
             {
-                using (var oda = new OracleDataAdapter($@"select * from V_EXPORT_H_ZAP{(IsTemp1 ? "_TEMP1" : "")} t where zglv_id = {zglvid} and {(!string.IsNullOrEmpty(SMO) ? $"SMO = '{SMO}'" : "IsZK = 1")}", conn))
+                using (var oda = new OracleDataAdapter($@"select * from V_EXPORT_H_ZAP{(IsTemp1 ? "_TEMP1" : "")} t where zglv_id = {zglvid} and {(!string.IsNullOrEmpty(SMO) ? $"SMO = '{SMO}'" : "IsZK = 1")}  {(!string.IsNullOrEmpty(ENP) ? $"and ENP_REG = '{ENP}'" : "")}", conn))
                 {
                     var tbl = new DataTable();
                     oda.Fill(tbl);
@@ -116,6 +137,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw;
             }
         }
+
+
         public DataTable V_EXPORT_H_SLUCH(IEnumerable<long> sl, bool IsTemp1,  OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
@@ -173,6 +196,27 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw;
             }
         }
+
+        public DataTable V_EXPORT_H_MR_USL(IEnumerable<long> us, bool IsTemp1, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            try
+            {
+                using (var oda = new OracleDataAdapter($"select * from V_EXPORT_H_MR_USL{(IsTemp1 ? "_TEMP1" : "")}  t where USL_ID in ({string.Join(",", us)})", conn))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+            catch (Exception)
+            {
+                if (conn == null)
+                    con.Dispose();
+                throw;
+            }
+        }
+
         public DataTable V_EXPORT_H_NAZR(IEnumerable<long> sl, bool IsTemp1,  OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
@@ -439,14 +483,12 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw;
             }
         }
-        public DataTable V_EXPORT_L_PERS(int zglvid,string SMO, bool IsTemp1, OracleConnection conn = null)
+        public DataTable V_EXPORT_L_PERS(IEnumerable<long> pers_id, bool IsNewComment, bool IsTemp1, OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
             try
             {
-                var isSMO = !string.IsNullOrEmpty(SMO);
-                var PRED = isSMO ? $"SMO = '{SMO}'" : "IsZK = 1";
-                using (var oda = new OracleDataAdapter($@"select distinct h_zglv_id, filename1, pers_id, zglv_id, id_pac, fam, im, ot, w, dr, fam_p, im_p, ot_p, w_p, dr_p, mr, doctype, docser, docnum, snils, okatog, okatop, dost, dost_p, fam_tfoms, im_tfoms, ot_tfoms, dr_tfoms, rokato, renp, rqogrn, rdbeg, tel, {(isSMO ? "comentp_new comentp" : "comentp")}, docdate, docorg, iszk from V_EXPORT_L_PERS{(IsTemp1 ? "_TEMP1" : "")} t where {PRED}  and H_ZGLV_ID = {zglvid}", conn))
+                using (var oda = new OracleDataAdapter($@"select distinct h_zglv_id, filename1, pers_id, zglv_id, id_pac, fam, im, ot, w, dr, fam_p, im_p, ot_p, w_p, dr_p, mr, doctype, docser, docnum, snils, okatog, okatop, dost, dost_p, fam_tfoms, im_tfoms, ot_tfoms, dr_tfoms, rokato, renp, rqogrn, rdbeg, tel, {(IsNewComment ? "comentp_new comentp" : "comentp")}, docdate, docorg, iszk from V_EXPORT_L_PERS{(IsTemp1 ? "_TEMP1" : "")} t where    PERS_ID in ({string.Join(",", pers_id)})", conn))
                 {
                     var tbl = new DataTable();
                     oda.Fill(tbl);
@@ -506,6 +548,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
         }
 
+       
+    
     }
 
 
@@ -517,6 +561,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         public string FILENAME { get; set; }
         public int YEAR { get; set; }
         public int MONTH { get; set; }
+        public int YEAR_BASE { get; set; }
+        public int MONTH_BASE { get; set; }
         public static List<V_EXPORT_H_ZGLVRow> Get(IEnumerable<DataRow> rows)
         {
             return rows.Select(Get).ToList();
@@ -531,7 +577,9 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     FILENAME = Convert.ToString(row["FILENAME"]),
                     CODE_MO = Convert.ToString(row["CODE_MO"]),
                     YEAR = Convert.ToInt32(row["YEAR"]),
-                    MONTH = Convert.ToInt32(row["MONTH"])
+                    MONTH = Convert.ToInt32(row["MONTH"]),
+                    YEAR_BASE = Convert.ToInt32(row["YEAR_BASE"]),
+                    MONTH_BASE = Convert.ToInt32(row["MONTH_BASE"])
                 };
                 return item;
             }

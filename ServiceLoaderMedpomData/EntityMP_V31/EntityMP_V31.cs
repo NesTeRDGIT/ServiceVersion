@@ -152,9 +152,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             SCHET.ZGLV_ID = zl2.SCHET.ZGLV_ID;
 
 
-            foreach (EntityMP_V3.ZAP z2 in zl2.ZAP)
+            foreach (var z2 in zl2.ZAP)
             {
-                ZAP z = new ZAP();
+                var z = new ZAP();
                 ZAP.Add(z);
 
                 z.N_ZAP = z2.N_ZAP;
@@ -209,7 +209,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     Z_SL.VNOV_M = z_sl_2.VNOV_M;
                     Z_SL.ZAP_ID = z_sl_2.ZAP_ID;
 
-                    foreach (EntityMP_V3.SL sl2 in z_sl_2.SL)
+                    foreach (var sl2 in z_sl_2.SL)
                     {
                         var SL = new SL();
                         Z_SL.SL.Add(SL);
@@ -344,7 +344,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
                         foreach (var us2 in sl2.USL)
                         {
-                            USL us = new USL();
+                            var us = new USL();
                             us.CODE_MD = us2.CODE_MD;
                             us.CODE_USL = us2.CODE_USL;
                             us.COMENTU = us2.COMENTU;
@@ -383,7 +383,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement("ZAP", Form = XmlSchemaForm.Unqualified)]
         public List<ZAP> ZAP { get; set; }
-        public void SetID(decimal ZGLV_ID, decimal SCHET_ID, decimal ZAP_ID, decimal PACIENT_ID, long SLUCH_Z_ID,  decimal SLUCH_ID, decimal USL_ID, decimal SANK_ID, decimal ONK_USL_ID, decimal LEK_PR_ID)
+        public void SetID(long ZGLV_ID, long SCHET_ID, long ZAP_ID, long PACIENT_ID, long SLUCH_Z_ID, long SLUCH_ID, long USL_ID, long SANK_ID, long ONK_USL_ID, long LEK_PR_ID)
         {
             ZGLV.ZGLV_ID = ZGLV_ID;
             SCHET.SCHET_ID = SCHET_ID;
@@ -406,7 +406,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     z_sl.PACIENT_ID = PACIENT_ID;
 
 
-                    foreach (SANK san in z_sl.SANK)
+                    foreach (var san in z_sl.SANK)
                     {
                         san.SLUCH_Z_ID = SLUCH_Z_ID;
                         san.SANK_ID = SANK_ID;
@@ -418,7 +418,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     }
 
 
-                    foreach (SL sl in z_sl.SL)
+                    foreach (var sl in z_sl.SL)
                     {
                         sl.PACIENT_ID = PACIENT_ID;
                         sl.SLUCH_Z_ID = SLUCH_Z_ID;
@@ -434,14 +434,14 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
                         if (sl.KSG_KPG != null)
                         {
-                            foreach (SL_KOEF sl_k in sl.KSG_KPG.SL_KOEF)
+                            foreach (var sl_k in sl.KSG_KPG.SL_KOEF)
                             {
                                 sl_k.SLUCH_ID = SLUCH_ID;
                             }
                         }
 
 
-                        foreach (CONS con in sl.CONS)
+                        foreach (var con in sl.CONS)
                         {
                             con.SLUCH_ID = SLUCH_ID;
                         }
@@ -449,10 +449,11 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
 
 
-                        foreach (USL u in sl.USL)
+                        foreach (var u in sl.USL)
                         {
                             u.USL_ID = USL_ID;
                             u.SLUCH_ID = SLUCH_ID;
+                            u.MR_USL_N.ForEach(x=>x.USL_ID = USL_ID);
                             USL_ID++;
                         }
 
@@ -460,12 +461,12 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                         {
                             sl.ONK_SL.SLUCH_ID = sl.SLUCH_ID;
 
-                            foreach (B_DIAG bd in sl.ONK_SL.B_DIAG)
+                            foreach (var bd in sl.ONK_SL.B_DIAG)
                             {
                                 bd.SLUCH_ID = SLUCH_ID;
 
                             }
-                            foreach (B_PROT bd in sl.ONK_SL.B_PROT)
+                            foreach (var bd in sl.ONK_SL.B_PROT)
                             {
                                 bd.SLUCH_ID = SLUCH_ID;
 
@@ -497,7 +498,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
                         }
 
-                        foreach (NAPR npr in sl.NAPR)
+                        foreach (var npr in sl.NAPR)
                         {
                             npr.SLUCH_ID = SLUCH_ID;
                             var uu = sl.USL.Where(x => x.IDSERV == npr.IDSERV).FirstOrDefault();
@@ -508,13 +509,13 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                         }
 
 
-                        foreach (NAZR N in sl.NAZ)
+                        foreach (var N in sl.NAZ)
                         {
                             N.SLUCH_ID = SLUCH_ID;
                         }
                         if (sl.KSG_KPG != null)
                         {
-                            foreach (SL_KOEF k in sl.KSG_KPG.SL_KOEF)
+                            foreach (var k in sl.KSG_KPG.SL_KOEF)
                             {
                                 k.SLUCH_ID = SLUCH_ID;
                             }
@@ -533,9 +534,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         public Dictionary<decimal, Z_SL> GetHashTable()
         {
-            Dictionary<decimal, Z_SL> table = new Dictionary<decimal, Z_SL>();
+            var table = new Dictionary<decimal, Z_SL>();
            
-            foreach (ZAP z in ZAP)
+            foreach (var z in ZAP)
             {
                 foreach(var sl in z.Z_SL_list)
                 {
@@ -555,7 +556,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                ZGLV item = new ZGLV();
+                var item = new ZGLV();
                 
                 item.DATA = Convert.ToDateTime(row["DATA"]);
                 item.FILENAME = row["FILENAME"].ToString();
@@ -803,7 +804,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                PACIENT item = new PACIENT();
+                var item = new PACIENT();
                 if (row["ID_PAC"] != DBNull.Value)
                     item.ID_PAC = row["ID_PAC"].ToString();
                 if (row["INV"] != DBNull.Value)
@@ -838,6 +839,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     item.ZAP_ID = Convert.ToDecimal(row["ZAP_ID"]);
                 if (row["LPU_REG"] != DBNull.Value)
                     item.LPU_REG = Convert.ToString(row["LPU_REG"]);
+                if (row["ENP"] != DBNull.Value)
+                    item.ENP = Convert.ToString(row["ENP"]);
                 return item;
             }
             catch (Exception ex)
@@ -865,6 +868,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string NPOLIS { get; set; }
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
+        public string ENP { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string ST_OKATO { get; set; }
@@ -880,16 +885,12 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string SMO_NAM { get; set; }
-
-
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? INV { get; set; }
         public bool ShouldSerializeINV()
         {
             return INV.HasValue;
         }
-
-
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? MSE { get; set; }
         public bool ShouldSerializeMSE()
@@ -1181,7 +1182,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                SL item = new SL();
+                var item = new SL();
                 if (row["CODE_MES1"] != DBNull.Value)
                     item.setCODE_MES1(row["CODE_MES1"].ToString());
                 if (row["CODE_MES2"] != DBNull.Value)
@@ -1202,9 +1203,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     item.DS1 = row["DS1"].ToString();
                 if (row["DS1_PR"] != DBNull.Value)
                     item.DS1_PR =  Convert.ToDecimal(row["DS1_PR"]);
-                      
-                
-             
                 if (row["DS_ONK"] != DBNull.Value)
                     item.DS_ONK = Convert.ToDecimal(row["DS_ONK"]);
                 if (row["ED_COL"] != DBNull.Value)
@@ -1279,12 +1277,12 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     item.C_ZAB = Convert.ToDecimal(row["C_ZAB"]);
 
                 item.DS2.Clear();
-                foreach(DataRow ds2 in DS2tbl)
+                foreach(var ds2 in DS2tbl)
                 {
                     item.DS2.Add(ds2["DS2"].ToString());
                 }
                 item.DS3.Clear();
-                foreach (DataRow ds3 in DS3tbl)
+                foreach (var ds3 in DS3tbl)
                 {
                     item.DS3.Add(ds3["DS3"].ToString());
                 }
@@ -1564,7 +1562,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                DS2_N item = new DS2_N();
+                var item = new DS2_N();
                 if (row["DS2"] != DBNull.Value)
                     item.DS2 = row["DS2"].ToString();
                 if (row["DS2_PR"] != DBNull.Value)
@@ -1606,7 +1604,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                NAZR item = new NAZR();
+                var item = new NAZR();
                 if (row["NAZ_N"] != DBNull.Value)
                     item.NAZ_N = Convert.ToDecimal(row["NAZ_N"]);
                 if (row["NAZ_PK"] != DBNull.Value)
@@ -1632,6 +1630,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row["NAPR_MO"] != DBNull.Value)
                     item.NAPR_MO = Convert.ToString(row["NAPR_MO"]);
 
+                if (row["NAZ_IDDOKT"] != DBNull.Value)
+                    item.NAZ_IDDOKT = Convert.ToString(row["NAZ_IDDOKT"]);
+                
                 return item;
             }
             catch (Exception ex)
@@ -1647,10 +1648,14 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public decimal NAZ_R { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? NAZ_SP { get; set; }
+
         public bool ShouldSerializeNAZ_SP()
         {
             return NAZ_SP.HasValue;
         }
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
+        public string NAZ_IDDOKT { get; set; }
+
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? NAZ_V { get; set; }
         public bool ShouldSerializeNAZ_V()
@@ -1695,7 +1700,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                ONK_SL item = new ONK_SL();                
+                var item = new ONK_SL();                
                 if (row["DS1_T"] != DBNull.Value)
                     item.DS1_T = Convert.ToDecimal(row["DS1_T"]);
                 if (row["MTSTZ"] != DBNull.Value)
@@ -1838,7 +1843,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                B_DIAG item = new B_DIAG();
+                var item = new B_DIAG();
 
                 item.DIAG_CODE = Convert.ToDecimal(row["DIAG_CODE"]);
                 if (row["DIAG_RSLT"] != DBNull.Value)
@@ -1891,7 +1896,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                B_PROT item = new B_PROT();
+                var item = new B_PROT();
                 item.PROT = Convert.ToDecimal(row["PROT"]);
                 item.D_PROT = Convert.ToDateTime(row["D_PROT"]);               
                 if (row["SLUCH_ID"] != DBNull.Value)
@@ -1920,7 +1925,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                KSG_KPG item = new KSG_KPG();               
+                var item = new KSG_KPG();               
                 item.BZTSZ = Convert.ToDecimal(row["BZTSZ"]);
 
                 foreach(var cr in CRIT)
@@ -1948,8 +1953,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         public List<CRIT_SLUCH_ID> GetCRIT_SLUCH_ID(decimal? sluch_id)
         {
-            List<CRIT_SLUCH_ID> rez = new List<CRIT_SLUCH_ID>();
-            int i = 0;
+            var rez = new List<CRIT_SLUCH_ID>();
+            var i = 0;
             foreach(var cr in CRIT)
             {
                 rez.Add(new CRIT_SLUCH_ID() { CRIT = cr, ORD = i, SLUCH_ID = sluch_id });
@@ -2014,7 +2019,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                SL_KOEF item = new SL_KOEF();
+                var item = new SL_KOEF();
                 item.IDSL = Convert.ToDecimal(row["IDSL"]);
                 item.Z_SL = Convert.ToDecimal(row["Z_SL"]);
                 if (row["SLUCH_ID"] != DBNull.Value)
@@ -2049,7 +2054,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                SANK item = new SANK();
+                var item = new SANK();
                 if (row["SANK_ID"] != DBNull.Value)
                     item.SANK_ID = Convert.ToDecimal(row["SANK_ID"]);
                 if (row["SLUCH_ID"] != DBNull.Value)
@@ -2075,7 +2080,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row["S_TEM"] != DBNull.Value)
                     item.S_TEM = Convert.ToDecimal(row["S_TEM"]);
                 if (row["S_TIP"] != DBNull.Value)
-                    item.S_TIP = Convert.ToDecimal(row["S_TIP"]);
+                    item.S_TIP = Convert.ToInt32(row["S_TIP"]);
                 if (row["S_YEAR"] != DBNull.Value)
                     item.S_YEAR = Convert.ToDecimal(row["S_YEAR"]);
                 if (row["S_ZGLV_ID"] != DBNull.Value)
@@ -2127,7 +2132,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public decimal S_SUM { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
-        public decimal S_TIP { get; set; }
+        public int S_TIP { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable =false)]
         public List<string> SL_ID { get; set; }
@@ -2250,7 +2255,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                USL item = new USL();
+                var item = new USL();
 
                 if (row["CODE_MD"] != DBNull.Value)
                     item.CODE_MD = row["CODE_MD"].ToString();
@@ -2287,7 +2292,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row["P_OTK"] != DBNull.Value)
                     item.P_OTK = Convert.ToDecimal(row["P_OTK"]);
                 if (row["SLUCH_ID"] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row["SLUCH_ID"]);
+                    item.SLUCH_ID = Convert.ToInt64(row["SLUCH_ID"]);
 
                 if (row["SUMP_USL"] != DBNull.Value)
                     item.SUMP_USL = Convert.ToDecimal(row["SUMP_USL"]);
@@ -2299,7 +2304,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row["TARIF"] != DBNull.Value)
                     item.TARIF = Convert.ToDecimal(row["TARIF"]);
                 if (row["USL_ID"] != DBNull.Value)
-                    item.USL_ID = Convert.ToDecimal(row["USL_ID"]);
+                    item.USL_ID = Convert.ToInt64(row["USL_ID"]);
                 if (row["VID_VME"] != DBNull.Value)
                     item.VID_VME = row["VID_VME"].ToString();
                 if (row["PS_VOLUME"] != DBNull.Value)
@@ -2322,9 +2327,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
         [XmlIgnore]
-        public decimal? USL_ID { get; set; }
+        public long? USL_ID { get; set; }
        
 
         public USL()
@@ -2400,6 +2405,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal SUMV_USL { get; set; }
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
+        public List<MR_USL_N> MR_USL_N { get; set; } = new List<MR_USL_N>();
+
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? SUMP_USL { get; set; }
         public bool ShouldSerializeSUMP_USL()
@@ -2449,6 +2457,48 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             return NOT_VR.HasValue;
         }
     }
+
+    public class MR_USL_N
+    {
+        public static MR_USL_N Get(DataRow row)
+        {
+            try
+            {
+                var item = new MR_USL_N();
+                if (row["CODE_MD"] != DBNull.Value)
+                    item.CODE_MD = row["CODE_MD"].ToString();
+                if (row["MR_N"] != DBNull.Value)
+                    item.MR_N = Convert.ToInt32(row["MR_N"]);
+                if (row["PRVS"] != DBNull.Value)
+                    item.PRVS = Convert.ToInt32(row["PRVS"]);
+                if (row["USL_ID"] != DBNull.Value)
+                    item.USL_ID = Convert.ToInt64(row["USL_ID"]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения MR_USL_N:{ex.Message}");
+            }
+        }
+        [XmlIgnore]
+        public long? USL_ID { get; set; }
+        public MR_USL_N()
+        {
+
+        }
+        [XmlElement]
+        public int MR_N { get; set; }
+        [XmlElement(IsNullable = true)]
+        public int? PRVS { get; set; }
+        public bool ShouldSerializePRVS()
+        {
+            return PRVS.HasValue;
+        }
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
+        public string CODE_MD { get; set; }
+      
+    }
+
     [Serializable]
     public  class NAPR
     {
@@ -2456,7 +2506,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                NAPR item = new NAPR();
+                var item = new NAPR();
                 if (row["MET_ISSL"] != DBNull.Value)
                     item.MET_ISSL = Convert.ToDecimal(row["MET_ISSL"]);
                 item.NAPR_DATE = Convert.ToDateTime(row["NAPR_DATE"]);
@@ -2513,7 +2563,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                CONS item = new CONS();
+                var item = new CONS();
                 if (row["SLUCH_ID"] != DBNull.Value)
                     item.SLUCH_ID = Convert.ToDecimal(row["SLUCH_ID"]);
                 if (row["PR_CONS"] != DBNull.Value)
@@ -2562,7 +2612,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                ONK_USL item = new ONK_USL();
+                var item = new ONK_USL();
                 if (row["HIR_TIP"] != DBNull.Value)
                     item.HIR_TIP = Convert.ToDecimal(row["HIR_TIP"]);
                 if (row["LEK_TIP_L"] != DBNull.Value)
@@ -2647,7 +2697,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                LEK_PR item = new LEK_PR();
+                var item = new LEK_PR();
                 if(row["REGNUM"] !=DBNull.Value)
                     item.REGNUM = row["REGNUM"].ToString();
                 if (row["CODE_SH"] != DBNull.Value)
@@ -2707,7 +2757,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             {
                var ser = new XmlSerializer(typeof(PERS_LIST));
                 st = File.OpenRead(Path);
-                PERS_LIST pe = (PERS_LIST)ser.Deserialize(st);
+                var pe = (PERS_LIST)ser.Deserialize(st);
                 return pe;
             }
             catch(Exception ex)
@@ -2737,7 +2787,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public void SetID(decimal ZGLV_ID, decimal PERS_ID)
         {
             ZGLV.ZGLV_ID = ZGLV_ID;
-            foreach(PERS p in PERS)
+            foreach(var p in PERS)
             {
                 p.ZGLV_ID = ZGLV_ID;
                 p.PERS_ID = PERS_ID;
@@ -2753,7 +2803,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                PERSZGLV item = new PERSZGLV();
+                var item = new PERSZGLV();
 
                 item.DATA = Convert.ToDateTime(row["DATA"]);
                 item.FILENAME = row["FILENAME"].ToString();
@@ -2792,7 +2842,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             try
             {
-                PERS item = new PERS();
+                var item = new PERS();
                 if (row["COMENTP"] != DBNull.Value)
                     item.COMENTP = row["COMENTP"].ToString();
                 if (row["DOCNUM"] != DBNull.Value)
@@ -2961,13 +3011,13 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         public static void WriteXml(this ServiceLoaderMedpomData.EntityMP_V3.ZL_LIST zl, Stream st)
         {
-            XmlSerializer ser = new XmlSerializer(typeof(ServiceLoaderMedpomData.EntityMP_V3.ZL_LIST));
-            XmlWriterSettings set = new XmlWriterSettings();
+            var ser = new XmlSerializer(typeof(ServiceLoaderMedpomData.EntityMP_V3.ZL_LIST));
+            var set = new XmlWriterSettings();
             set.Encoding = System.Text.Encoding.GetEncoding("Windows-1251");
             set.Indent = true;
-            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
-            XmlWriter xml = XmlWriter.Create(st, set);
+            var xml = XmlWriter.Create(st, set);
             ser.Serialize(xml, zl, ns);
            
         }
@@ -2975,25 +3025,25 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     
         public static void WriteXml(this ZL_LIST zl, Stream st)
         {
-            XmlSerializer ser = new XmlSerializer(typeof(ZL_LIST));
-            XmlWriterSettings set = new XmlWriterSettings();
+            var ser = new XmlSerializer(typeof(ZL_LIST));
+            var set = new XmlWriterSettings();
             set.Encoding = System.Text.Encoding.GetEncoding("Windows-1251");
             set.Indent = true;
-            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
-            XmlWriter xml = XmlWriter.Create(st, set);
+            var xml = XmlWriter.Create(st, set);
             ser.Serialize(xml, zl, ns);
         }
 
         public static void WriteXml(this PERS_LIST zl, Stream st)
         {
-            XmlSerializer ser = new XmlSerializer(typeof(PERS_LIST));
-            XmlWriterSettings set = new XmlWriterSettings();
+            var ser = new XmlSerializer(typeof(PERS_LIST));
+            var set = new XmlWriterSettings();
             set.Encoding = System.Text.Encoding.GetEncoding("Windows-1251");
             set.Indent = true;
-            XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
+            var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
-            XmlWriter xml = XmlWriter.Create(st, set);
+            var xml = XmlWriter.Create(st, set);
             ser.Serialize(xml, zl, ns);
         }
 
@@ -3024,8 +3074,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         private static string Concat(List<string> items)
         {
-            string str = "";
-            for (int i = 0; i < items.Count; i++)
+            var str = "";
+            for (var i = 0; i < items.Count; i++)
             {
                 str += items[i];
                 if (i != items.Count - 1)
@@ -3037,8 +3087,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         }
         public static string Concat(this List<decimal> items)
         {
-            string str = "";
-            for (int i = 0; i < items.Count; i++)
+            var str = "";
+            for (var i = 0; i < items.Count; i++)
             {
                 str += items[i];
                 if (i != items.Count - 1)
@@ -3053,7 +3103,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public static void setOS_SLUCH(this Z_SL sl, string OS_SLUCH)
         {
             if (OS_SLUCH == "") return;
-            foreach (string d in OS_SLUCH.Split(';'))
+            foreach (var d in OS_SLUCH.Split(';'))
             {
                 if(d.Trim()!="")
                     sl.OS_SLUCH.Add(d.Trim());
@@ -3063,7 +3113,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public static void setVNOV_M(this Z_SL sl, string VNOV_M)
         {
             if (VNOV_M == "") return;
-            foreach (string d in VNOV_M.Split(';'))
+            foreach (var d in VNOV_M.Split(';'))
             {
                 if (d.Trim() != "")
                     sl.VNOV_M.Add(d.Trim());
@@ -3074,7 +3124,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public static void setDOST(this PERS pac, string DOST)
         {
             if (DOST == "") return;
-            foreach (string d in DOST.Split(';'))
+            foreach (var d in DOST.Split(';'))
             {
                 if(d.Trim()!="")
                     pac.DOST.Add(Convert.ToDecimal(d.Trim()));
@@ -3084,7 +3134,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public static void setDOST_P(this PERS pac, string DOST)
         {
             if (DOST == "") return;
-            foreach (string d in DOST.Split(';'))
+            foreach (var d in DOST.Split(';'))
             {
                 if (d.Trim() != "")
                     pac.DOST_P.Add(Convert.ToDecimal(d.Trim()));
@@ -3099,7 +3149,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public static void setCODE_MES1(this SL sl, string CODE_MES1)
         {
             if (CODE_MES1 == "") return;
-            foreach (string d in CODE_MES1.Split(';'))
+            foreach (var d in CODE_MES1.Split(';'))
             {
                 if (d.Trim() != "")
                     sl.CODE_MES1.Add(d.Trim());
@@ -3109,7 +3159,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         public static EntityMP_V3.ZL_LIST toZL_LISTV2(this ZL_LIST zl31)
         {
-            EntityMP_V3.ZL_LIST l3 = new EntityMP_V3.ZL_LIST();
+            var l3 = new EntityMP_V3.ZL_LIST();
 
             l3.ZGLV.VERSION = zl31.ZGLV.VERSION;
             l3.ZGLV.DATA = zl31.ZGLV.DATA;
@@ -3131,9 +3181,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             l3.SCHET.SUMMAV = zl31.SCHET.SUMMAV;
             l3.SCHET.YEAR = zl31.SCHET.YEAR;
 
-            foreach (EntityMP_V31.ZAP z2 in zl31.ZAP)
+            foreach (var z2 in zl31.ZAP)
             {
-                EntityMP_V3.ZAP z = new EntityMP_V3.ZAP();
+                var z = new EntityMP_V3.ZAP();
                 l3.ZAP.Add(z);
 
                 z.N_ZAP = z2.N_ZAP;
@@ -3315,7 +3365,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                         var onk_napr_c = 0;
                         foreach (var us2 in sl31.USL)
                         {
-                            EntityMP_V3.USL us = new EntityMP_V3.USL();
+                            var us = new EntityMP_V3.USL();
                             us.CODE_MD = us2.CODE_MD;
                             us.CODE_USL = us2.CODE_USL;
                             us.COMENTU = us2.COMENTU;
@@ -3373,7 +3423,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                             throw new Exception(
                                 $"Не полное внесение NAPR при миграции из V31 в V3  для случая {SL.SLUCH_ID} внесено {onk_napr_c} из {sl31.NAPR.Count}");
 
-                        int sank_c = 0;
+                        var sank_c = 0;
                         foreach (var san2 in z_sl2.SANK)
                         {
                             if (san2.SL_ID.Count == 1)

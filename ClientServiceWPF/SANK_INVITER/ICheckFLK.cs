@@ -129,28 +129,22 @@ namespace ClientServiceWPF.SANK_INVITER
                         //  var isCOVID = z_sl.SL.Any(x => x.DS1.In("U07.1", "U07.2"));
                         foreach (var san in z_sl.SANK)
                         {
-                            var S_TIP_1 = san.S_TIP.ToString().Substring(0, 1);
-                            switch (S_TIP_1)
-                            {
-                                case "1":
-                                    SANK_MEK_S += san.S_SUM;
-                                    break;
-                                case "2":
-                                    SANK_MEE_S += san.S_SUM;
-                                    break;
-                                case "3":
-                                case "4":
-                                    SANK_EKMP_S += san.S_SUM;
-                                    break;
-                            }
+                            var isMEK = san.S_TIP.IsMEK();
+                            var IsMEE = san.S_TIP.IsMEE();
+                            var IsEKMP = san.S_TIP.IsEKMP();
 
-
-
+                            if (isMEK)
+                                SANK_MEK_S += san.S_SUM;
+                            if (IsMEE)
+                                SANK_MEE_S += san.S_SUM;
+                            if (IsEKMP)
+                                SANK_EKMP_S += san.S_SUM;
 
                             var ce = san.CODE_EXP ?? new List<CODE_EXP>();
                             var ce_count = 0;
                             foreach (var exp in ce.Where(x => !string.IsNullOrEmpty(x.VALUE)))
                             {
+                                
                                 ce_count++;
                                 if (Experts.Count(x => x.N_EXPERT == exp.VALUE) == 0)
                                 {
@@ -166,7 +160,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                 }
                             }
 
-                            if (san.S_TIP > 30 && ce_count == 0 && san.S_OSN != 43 && YEAR >= 2019)
+                            if (IsEKMP && ce_count == 0 && san.S_OSN != 43 && YEAR >= 2019)
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
@@ -180,14 +174,14 @@ namespace ClientServiceWPF.SANK_INVITER
                             }
 
 
-                            if (san.S_TIP.In(43, 44, 45, 46, 47, 48, 49) && san.CODE_EXP.Count <= 1)
+                            if (san.S_TIP.IsMultiDisp() && san.CODE_EXP.Count <= 1)
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
                                     BAS_EL = "SLUCH",
                                     IDCASE = z_sl.IDCASE.ToString(),
                                     N_ZAP = N_ZAP,
-                                    Comment = $"Для санкций с S_TIP = {{43,44,45,46,47,48,49}} количество CODE_EXP должно быть более 1",
+                                    Comment = "Для санкций мультидисциплиннарных экспертиз количество CODE_EXP должно быть более 1",
                                     IM_POL = "CODE_EXP",
                                     OSHIB = 41
                                 });
@@ -200,7 +194,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                     BAS_EL = "SLUCH",
                                     IDCASE = z_sl.IDCASE.ToString(),
                                     N_ZAP = N_ZAP,
-                                    Comment = "Неверный тип санкции",
+                                    Comment = $"Неверный тип санкции(F006) - {san.S_TIP}",
                                     IM_POL = "S_TIP",
                                     OSHIB = 41
                                 });
@@ -214,13 +208,13 @@ namespace ClientServiceWPF.SANK_INVITER
                                     BAS_EL = "SLUCH",
                                     IDCASE = z_sl.IDCASE.ToString(),
                                     N_ZAP = N_ZAP,
-                                    Comment = $"Неверный код отказа санкции - {san.S_OSN}",
+                                    Comment = $"Неверный код отказа санкции(F014) - {san.S_OSN}",
                                     IM_POL = "S_OSN",
                                     OSHIB = 41
                                 });
                             }
 
-                            if (san.S_IST.ToString() != "1")
+                            if (san.S_IST != 1)
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
@@ -233,34 +227,39 @@ namespace ClientServiceWPF.SANK_INVITER
                                 });
                             }
 
-                            if (!FLAG_MEE && S_TIP_1 != "1")
+                            if (FLAG_MEE)
                             {
-                                ErrList.Add(new ErrorProtocolXML
+                                if (isMEK)
                                 {
-                                    BAS_EL = "SLUCH",
-                                    IDCASE = z_sl.IDCASE.ToString(),
-                                    N_ZAP = N_ZAP,
-                                    Comment = "Наличие санкций МЭЭ\\ЭКМП",
-                                    IM_POL = "S_TIP",
-                                    OSHIB = 41
-                                });
+                                    ErrList.Add(new ErrorProtocolXML
+                                    {
+                                        BAS_EL = "SLUCH",
+                                        IDCASE = z_sl.IDCASE.ToString(),
+                                        N_ZAP = N_ZAP,
+                                        Comment = "Наличие санкций МЭК",
+                                        IM_POL = "S_TIP",
+                                        OSHIB = 41
+                                    });
+                                }
+                            }
+                            else
+                            {
+                                if (!isMEK)
+                                {
+                                    ErrList.Add(new ErrorProtocolXML
+                                    {
+                                        BAS_EL = "SLUCH",
+                                        IDCASE = z_sl.IDCASE.ToString(),
+                                        N_ZAP = N_ZAP,
+                                        Comment = "Наличие санкций МЭЭ\\ЭКМП",
+                                        IM_POL = "S_TIP",
+                                        OSHIB = 41
+                                    });
+                                }
                             }
 
-                            if (FLAG_MEE && !S_TIP_1.In("2", "3", "4"))
-                            {
-                                ErrList.Add(new ErrorProtocolXML
-                                {
-                                    BAS_EL = "SLUCH",
-                                    IDCASE = z_sl.IDCASE.ToString(),
-                                    N_ZAP = N_ZAP,
-                                    Comment = "Наличие санкций МЭК",
-                                    IM_POL = "S_TIP",
-                                    OSHIB = 41
-                                });
-                            }
 
-
-                            if (S_TIP_1 == "1" && san.S_SUM == 0 && z_sl.SUMV != 0)
+                            if (isMEK && san.S_SUM == 0 && z_sl.SUMV != 0)
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
@@ -273,7 +272,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                 });
                             }
 
-                            if (S_TIP_1 == "1" && !san.DATE_ACT.Between(dtSelect, dtNow))
+                            if (isMEK && !san.DATE_ACT.Between(dtSelect, dtNow))
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
@@ -286,7 +285,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                 });
                             }
 
-                            if (S_TIP_1.In("2", "3", "4") && !san.DATE_ACT.Between(dtFile, dtNow))
+                            if (!isMEK && !san.DATE_ACT.Between(dtFile, dtNow))
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
@@ -299,7 +298,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                 });
                             }
 
-                            if (san.S_TIP.In(10, 11, 12, 24, 25, 26, 39, 40, 41))
+                            if (san.S_TIP.IsOnlyTFOMS())
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
@@ -380,10 +379,7 @@ namespace ClientServiceWPF.SANK_INVITER
                         foreach (var sl in z_sl.SL)
                         {
                             SUMP_SL += sl.SUM_MP ?? 0;
-                            foreach (var usl in sl.USL)
-                            {
-                                SUMP_USL += usl.SUMP_USL ?? 0;
-                            }
+                            SUMP_USL += sl.USL.Sum(usl => usl.SUMP_USL ?? 0);
                         }
 
                         if (SUMP_USL != sump && !FLAG_MEE)
@@ -534,20 +530,20 @@ namespace ClientServiceWPF.SANK_INVITER
                                 ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
                             }
 
-                            if (sank.S_TIP == 42 && zl.SCHET.YEAR >= 2021)
+                            if (sank.S_TIP.In(42,75) && zl.SCHET.YEAR >= 2021)
                             {
-                                if (sank_sluch.Count(x => x.S_TIP >= 20 && x.S_TIP < 30 && x.S_OSN != 0) == 0 && zs_sl.SANK.Count(x => x.S_TIP >= 20 && x.S_TIP < 30 && x.S_OSN != 0) == 0)
+                                if (sank_sluch.Count(x => x.S_TIP.IsMEE() && x.S_OSN != 0) == 0 && zs_sl.SANK.Count(x => x.S_TIP.IsMEE() && x.S_OSN != 0) == 0)
                                 {
-                                    var error = "Случай c экспертизой S_TIP=42 не содержит МЭЭ с дефектами";
+                                    var error = "Случай c экспертизой S_TIP={42,75} не содержит МЭЭ с дефектами";
                                     ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
                                 }
                             }
 
-                            if (sank.S_TIP == 37 && zl.SCHET.YEAR >=2021)
+                            if (sank.S_TIP.In(37,73) && zl.SCHET.YEAR >=2021)
                             {
-                                if (sank_sluch.Count(x => x.S_TIP >= 20 && x.S_TIP < 30) == 0 && zs_sl.SANK.Count(x => x.S_TIP >= 20 && x.S_TIP < 30) == 0)
+                                if (sank_sluch.Count(x => x.S_TIP.IsMEE()) == 0 && zs_sl.SANK.Count(x => x.S_TIP.IsMEE()) == 0)
                                 {
-                                    var error = "Случай c экспертизой S_TIP=37 не содержит МЭЭ";
+                                    var error = "Случай c экспертизой S_TIP={37,73} не содержит МЭЭ";
                                     ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
                                 }
                             }
@@ -720,7 +716,10 @@ namespace ClientServiceWPF.SANK_INVITER
         {
             return valuesArray.Contains(value);
         }
-
+        public static bool In(this int value, params int[] valuesArray)
+        {
+            return valuesArray.Contains(value);
+        }
         /// <summary>
         /// Проверить находится ли значение в списке значений
         /// </summary>
@@ -752,18 +751,33 @@ namespace ClientServiceWPF.SANK_INVITER
         }
 
 
-        public static enumTypeEXP ToTypeExp(this decimal val)
+        public static enumTypeEXP ToTypeExp(this int val)
         {
-            switch (val.ToString().Substring(0, 1))
-            {
-                case "1": return enumTypeEXP.MEK;
-                case "2": return enumTypeEXP.MEE;
-                default:
-                    return enumTypeEXP.EKMP;
-            }
+            if (val.IsMEK())
+                return enumTypeEXP.MEK;
+            return val.IsMEE() ? enumTypeEXP.MEE : enumTypeEXP.EKMP;
         }
 
+        public static bool IsMEK(this int val)
+        {
+            return val.ToString().StartsWith("1");
+        }
+        public static bool IsMEE(this int val)
+        {
+            return val.ToString().StartsWith("2") || val.ToString().StartsWith("5");
+        }
+        public static bool IsEKMP(this int val)
+        {
+            return val.ToString().StartsWith("3") || val.ToString().StartsWith("4") || val.ToString().StartsWith("7") || val.ToString().StartsWith("8"); 
+        }
+        public static bool IsMultiDisp(this int val)
+        {
+            return val.In(43, 44, 45, 46, 47, 48, 49, 79, 80, 81, 82, 83, 84);
+        }
 
-
+        public static bool IsOnlyTFOMS(this int val)
+        {
+            return val.In(10, 11, 12, 24, 25, 26, 39, 40, 41,59,86);
+        }
     }
 }

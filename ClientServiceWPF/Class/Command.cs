@@ -13,8 +13,8 @@ namespace ClientServiceWPF.Class
         private Func<object, bool> canExecute;
         public event EventHandler CanExecuteChanged
         {
-            add { CommandManager.RequerySuggested += value; }
-            remove { CommandManager.RequerySuggested -= value; }
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
         }
 
         public Command(Action<object> execute, Func<object, bool> canExecute = null)

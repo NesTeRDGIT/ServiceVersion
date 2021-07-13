@@ -29,7 +29,10 @@ namespace ClientServiceWPF.Class
 
         public static ServerRef ParseDataSource(string connectionString)
         {
+           
             var res = new ServerRef();
+            if (string.IsNullOrEmpty(connectionString))
+                return res;
             var ocsb = new OracleConnectionStringBuilder(connectionString);
             res.UserID = ocsb.UserID;
             res.DBAPrivilege = ocsb.DBAPrivilege==""? "NORMAL" : ocsb.DBAPrivilege;

@@ -11,9 +11,10 @@
         Name="this"
         Title="Просмотр процесса обработки" Height="469" Width="915" Style="{DynamicResource StyleWindow}" Closing="FilesManagerView_OnClosing" Loaded="FilesManagerView_OnLoaded" WindowState="Maximized" >
     <Window.Resources>
-        <local:ArrayParamConverter x:Key="ArrayParamConverter"></local:ArrayParamConverter>
-        <CollectionViewSource x:Key="CVSFiles" Source="{Binding ElementName=this, Path=VM.List}"  d:DesignSource="{d:DesignInstance {x:Type medpom:FilePacket}, CreateList=True}"></CollectionViewSource>
-        <class:BindingProxy x:Key="SelectedFilePacket" Data="{Binding ElementName=this, Path=SelectedFilePacket}"></class:BindingProxy>
+        <class:ConverterBoolToYesNO x:Key="ConverterBoolToYesNO"/>
+        <local:ArrayParamConverter x:Key="ArrayParamConverter"/>
+        <CollectionViewSource x:Key="CVSFiles" Source="{Binding VM.List, ElementName=this}"  d:DesignSource="{d:DesignInstance {x:Type medpom:FilePacket}, CreateList=True}"/>
+        <class:BindingProxy x:Key="SelectedFilePacket" Data="{Binding SelectedFilePacket, ElementName=this}"/>
     </Window.Resources>
     <Window.InputBindings>
         <KeyBinding Gesture="Ctrl+F" Command="{Binding ElementName=this, Path=FocusElementCommand}" CommandParameter="{Binding ElementName=textBoxFindCODE_MO}"></KeyBinding>
@@ -36,6 +37,8 @@
                 <DataGridTextColumn Header="Код МО" Binding="{Binding CodeMO, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Наименование МО" Binding="{Binding CaptionMO, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Статус" Binding="{Binding Status, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
+                <DataGridTextColumn Header="Ошибки в файлах" Binding="{Binding IsErrorFiles, Converter={StaticResource ConverterBoolToYesNO}, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
+                
                 <DataGridTextColumn Header="Дата" Binding="{Binding Date,StringFormat=dd.MM.yyyy HH:mm, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Комментарий" Binding="{Binding Comment, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
                 <DataGridTextColumn Header="Источник" Binding="{Binding IST, Mode=OneWay}" Width="Auto"></DataGridTextColumn>
@@ -62,6 +65,19 @@
             <DataGrid.RowStyle>
                 <Style TargetType="DataGridRow">
                     <EventSetter Event="MouseDoubleClick" Handler="DataGridRow_MouseDoubleClick" ></EventSetter>
+                   
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding IsErrorFiles}" Value="True"></Condition>
+                                <Condition Binding="{Binding Status}" Value="{x:Static medpom:StatusFilePack.FLKOK}"></Condition>
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Background" Value="BurlyWood"></Setter>
+                        </MultiDataTrigger>
+                        <DataTrigger Binding="{Binding Status}" Value="{x:Static medpom:StatusFilePack.FLKERR}">
+                            <Setter Property="Background" Value="Tomato"></Setter>
+                        </DataTrigger>
+                    </Style.Triggers>
                 </Style>
             </DataGrid.RowStyle>
         </DataGrid>
