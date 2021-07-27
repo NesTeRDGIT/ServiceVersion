@@ -131,11 +131,10 @@ namespace ClientServiceWPF.ORDERS.ORD23
                 {
 
 
-                    var KSLP_KOEF = new DataTable();
-                    var oda = new OracleDataAdapter(
-                        @"select distinct to_char(t.lpu) lpu,to_char(t.lpu_1) lpu_1,to_char(t.usl_ok) usl_ok,t.tip_koef,t.koef, to_date('01.'||lpad(t.month_beg,2,0)||'.'||t.year_beg) date_b,case when t.year_end is null or  t.month_end is null then sysdate else  to_date('27.'||lpad(t.month_end,2,0)||'.'||t.year_end) end date_e from nsi.MEDCARE_KOEF t",
+                    /*var KSLP_KOEF = new DataTable();
+                    var oda = new OracleDataAdapter(@"select distinct to_char(t.lpu) lpu,to_char(t.lpu_1) lpu_1,to_char(t.usl_ok) usl_ok,t.tip_koef,t.koef, to_date('01.'||lpad(t.month_beg,2,0)||'.'||t.year_beg) date_b,case when t.year_end is null or  t.month_end is null then sysdate else  to_date('27.'||lpad(t.month_end,2,0)||'.'||t.year_end) end date_e from nsi.MEDCARE_KOEF t",
                         conn);
-                    oda.Fill(KSLP_KOEF);
+                    oda.Fill(KSLP_KOEF);*/
                     AddLogAndProgress(LogType.Info, "Создание ZGLV");
                     var xml = new ISP_OB {ZGLV = {VERSION = "2.0", DATA = DateFile, FILENAME = FILENAME}};
                     if (!string.IsNullOrEmpty(ISPName))
@@ -156,7 +155,7 @@ namespace ClientServiceWPF.ORDERS.ORD23
                     AddLogAndProgress(LogType.Info, "Запрос случаев");
 
                     var tbl = new DataTable();
-                    oda = new OracleDataAdapter($"select * from V_EXPORT_TKR_SLUCH t where t.year = {YEAR} and t.month = {MONTH}", conn);
+                    var oda = new OracleDataAdapter($"select * from V_EXPORT_TKR_SLUCH t where t.year = {YEAR} and t.month = {MONTH}", conn);
                     oda.Fill(tbl);
                     AddLogAndProgress(LogType.Info, "Запрос КСЛП случаев");
                     var tlbkslp = new DataTable();

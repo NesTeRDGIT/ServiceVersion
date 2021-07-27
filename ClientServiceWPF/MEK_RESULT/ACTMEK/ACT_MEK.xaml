@@ -9,7 +9,7 @@
         xmlns:actmek="clr-namespace:ClientServiceWPF.MEK_RESULT.ACTMEK"
         mc:Ignorable="d"
         x:Name="this"
-        Title="Выгрузка актов МЭК" Height="530" Width="938" Loaded="this_Loaded" Style="{DynamicResource StyleWindow}">
+        Title="Выгрузка актов МЭК" Height="530" Width="1259" Loaded="this_Loaded" Style="{DynamicResource StyleWindow}">
     <Window.Resources>
         <class:BoolInverterConverter x:Key="BoolInverterConverter"/>
         <CollectionViewSource x:Key="CollectionViewSourceACT_LIST" Source="{Binding MO_LIST}" d:DesignSource="{d:DesignInstance {x:Type actmek:MO_ITEM}, CreateList=True}" />

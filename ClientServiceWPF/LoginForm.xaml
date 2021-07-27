@@ -3,7 +3,7 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Name="this"
-        Title="Подключение" Height="208" Width="387" WindowStartupLocation="CenterScreen"  WindowStyle="SingleBorderWindow" ResizeMode="NoResize" Style="{DynamicResource StyleWindow}" >
+        Title="Подключение" Height="208" Width="387" WindowStartupLocation="CenterScreen"  WindowStyle="SingleBorderWindow" ResizeMode="NoResize" Style="{DynamicResource StyleWindow}" Loaded="LoginForm_OnLoaded" >
     <Window.DataContext>
         <Binding ElementName="this" Path="VM"></Binding>
     </Window.DataContext>

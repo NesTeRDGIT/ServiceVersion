@@ -9,6 +9,7 @@ using ServiceLoaderMedpomData;
 using MedpomService;
 using System.Windows.Controls;
 using Moq;
+using ServiceLoaderMedpomData.EntityMP_V31;
 
 namespace ServiceLoaderMedpomDataTests
 {
@@ -18,7 +19,9 @@ namespace ServiceLoaderMedpomDataTests
         [TestMethod(), Description("Проверка файлов H на схему - правильное выполнение")]
         public void CheckErrorArchiveName()
         {
-          
+            var lis = new ZL_LIST();
+            lis.ZAP.Add(new ZAP(){Z_SL = new Z_SL()});
+            var t = lis.ZAP.Sum(x => null);
         }
     }
 }

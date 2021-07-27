@@ -1471,7 +1471,7 @@ values
             var sank_tbl = H_SANK.FullTableName;
             var oda = new OracleDataAdapter($@"select san.SANK_ID, san.SLUCH_Z_ID, null SLUCH_Z_ID_MAIN, san.S_SUM, san.S_TIP, san.S_OSN, san.DATE_ACT, san.NUM_ACT, sz.YEAR_SANK, sz.MONTH_SANK, sz.FILENAME, sz.DATE_INVITE from {sank_tbl} san
 inner join xml_h_sank_zglv_v3 sz on (sz.zglv_id = san.s_zglv_id)
-where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", con);
+where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)})", con);
 
             if (!Transaction)
                 oda.SelectCommand.Connection.Open();
@@ -1489,7 +1489,7 @@ where san.SLUCH_Z_ID  in ({string.Join(",", SLUCH_Z_ID)}) and IsNOTFINISH=0", co
             var oda = new OracleDataAdapter($@"select SAN.SANK_ID, san.SLUCH_Z_ID, zs.SLUCH_Z_ID_MAIN, san.S_SUM, san.S_TIP, san.S_OSN, san.DATE_ACT, san.NUM_ACT, sz.YEAR_SANK, sz.MONTH_SANK, sz.FILENAME, sz.DATE_INVITE from {sank_tbl} san
 inner join xml_h_sank_zglv_v3 sz on (sz.zglv_id = san.s_zglv_id)
 inner join {sluch_z_tbl} zs on zs.sluch_z_id = san.sluch_z_id
-where zs.SLUCH_Z_ID_MAIN  in ({string.Join(",", SLUCH_Z_ID_MAIN)}) and IsNOTFINISH=0", con);
+where zs.SLUCH_Z_ID_MAIN  in ({string.Join(",", SLUCH_Z_ID_MAIN)})", con);
 
             if (!Transaction)
                 oda.SelectCommand.Connection.Open();

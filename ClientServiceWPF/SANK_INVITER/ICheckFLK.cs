@@ -40,7 +40,6 @@ namespace ClientServiceWPF.SANK_INVITER
                     IDENT_INFO = repository.Get_IdentInfo(zl, item, dispatcher);
                 flk.AddRange(CheckFLKEx(item, zl, FLAG_MEE, SMO, IDENT_INFO));
             }
-
             return flk;
         }
 
@@ -160,14 +159,14 @@ namespace ClientServiceWPF.SANK_INVITER
                                 }
                             }
 
-                            if (IsEKMP && ce_count == 0 && san.S_OSN != 43 && YEAR >= 2019)
+                            if (IsEKMP && ce_count == 0 && !san.S_OSN.In(43,242)  && YEAR >= 2019)
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
                                     BAS_EL = "SLUCH",
                                     IDCASE = z_sl.IDCASE.ToString(),
                                     N_ZAP = N_ZAP,
-                                    Comment = "Для санкций ЭКМП поле CODE_EXP обязательно к заполнению, кроме S_OSN <> 43",
+                                    Comment = "Для санкций ЭКМП поле CODE_EXP обязательно к заполнению, кроме S_OSN <> 43,242",
                                     IM_POL = "CODE_EXP",
                                     OSHIB = 41
                                 });
@@ -181,7 +180,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                     BAS_EL = "SLUCH",
                                     IDCASE = z_sl.IDCASE.ToString(),
                                     N_ZAP = N_ZAP,
-                                    Comment = "Для санкций мультидисциплиннарных экспертиз количество CODE_EXP должно быть более 1",
+                                    Comment = "Для санкций мультидисциплинарных экспертиз количество CODE_EXP должно быть более 1",
                                     IM_POL = "CODE_EXP",
                                     OSHIB = 41
                                 });
@@ -527,15 +526,15 @@ namespace ClientServiceWPF.SANK_INVITER
                             if (doubleSANK.Count != 0)
                             {
                                 var error = $"Санкция была загружена ранее: {string.Join(Environment.NewLine, doubleSANK.Select(x => $"TYPE={x.Type},S_TIP={x.S_TIP}, S_SUM={x.S_SUM}, DATE_ACT={x.DATE_ACT:dd-MM-yyyy}, NUM_ACT={x.NUM_ACT} загружен {x.DATE_INVITE:dd-MM-yyyy} отчетный период {x.MONTH_SANK} {x.YEAR_SANK}"))}";
-                                ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
+                                ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error, SLUCH_Z_ID = zs_sl.SLUCH_Z_ID.Value });
                             }
 
                             if (sank.S_TIP.In(42,75) && zl.SCHET.YEAR >= 2021)
                             {
                                 if (sank_sluch.Count(x => x.S_TIP.IsMEE() && x.S_OSN != 0) == 0 && zs_sl.SANK.Count(x => x.S_TIP.IsMEE() && x.S_OSN != 0) == 0)
                                 {
-                                    var error = "Случай c экспертизой S_TIP={42,75} не содержит МЭЭ с дефектами";
-                                    ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
+                                    var error = $"Случай c экспертизой S_TIP={{42,75}} не содержит МЭЭ с дефектами";
+                                    ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error, SLUCH_Z_ID = zs_sl.SLUCH_Z_ID.Value });
                                 }
                             }
 
@@ -544,13 +543,13 @@ namespace ClientServiceWPF.SANK_INVITER
                                 if (sank_sluch.Count(x => x.S_TIP.IsMEE()) == 0 && zs_sl.SANK.Count(x => x.S_TIP.IsMEE()) == 0)
                                 {
                                     var error = "Случай c экспертизой S_TIP={37,73} не содержит МЭЭ";
-                                    ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
+                                    ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error, SLUCH_Z_ID = zs_sl.SLUCH_Z_ID.Value });
                                 }
                             }
                             if (sank.S_TIP.In(20, 21, 30, 31, 43, 44, 45, 46) && isMEK)
                             {
                                 var error = "S_TIP{20, 21, 30, 31, 43, 44, 45, 46} не подлежит применению, если случай снят на МЭК";
-                                ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
+                                ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error, SLUCH_Z_ID = zs_sl.SLUCH_Z_ID.Value });
                             }
 
                             if (sank.S_SUM != 0)
@@ -560,7 +559,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                 if (DBerr.Count != 0 || FileErr.Count != 0)
                                 {
                                     var error = $"Не допустимо 2 и более снятия на 1 экспертизе. Источник ошибки: {string.Join(Environment.NewLine, DBerr.Select(x => $"S_TIP={x.S_TIP}, S_OSN={x.S_OSN}, S_SUM=, NUM_ACT={x.NUM_ACT}, DATE_ACT{x.DATE_ACT:dd-MM-yyyy}"))}{(DBerr.Count != 0 ? Environment.NewLine : "")}{string.Join(Environment.NewLine, FileErr.Select(x => $"(ФАЙЛ)S_TIP={x.S_TIP}, S_OSN={x.S_OSN}, S_SUM=, NUM_ACT={x.NUM_ACT}, DATE_ACT{x.DATE_ACT:dd-MM-yyyy}"))}";
-                                    ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error });
+                                    ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error, SLUCH_Z_ID = zs_sl.SLUCH_Z_ID.Value });
                                 }
                             }
 

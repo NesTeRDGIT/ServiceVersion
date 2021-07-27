@@ -678,7 +678,10 @@ namespace ClientServiceWPF.SANK_INVITER
                 SchemaChecking.XMLfileFLK(pathToXml, fi.FileName, ErrList);
                 foreach (var err in ErrList)
                 {
-                    fi.FileLog.WriteLn(string.IsNullOrEmpty(err.IDCASE) ? err.Comment : $"IDCASE ={err.IDCASE}: {err.Comment}");
+                    var IDCASE = !string.IsNullOrEmpty(err.IDCASE) ? $"IDCASE={err.IDCASE}" : "";
+                    var SLUCH_Z_ID = err.SLUCH_Z_ID.HasValue ? $"SLUCH_Z_ID={err.SLUCH_Z_ID.Value}" : "";
+                    var prefix = $"{IDCASE} {SLUCH_Z_ID}".Trim();
+                    fi.FileLog.WriteLn($"{prefix}{(string.IsNullOrEmpty(prefix)? "" : ": ")}{err.Comment}");
                 }
             }
         }
@@ -917,7 +920,25 @@ namespace ClientServiceWPF.SANK_INVITER
                 RefreshStat();
             }
         });
-
+        public ICommand SetValidFLKCommand => new Command(o =>
+        {
+            try
+            {
+                var items = (List<FileItemVM>)o;
+                foreach (var item in items)
+                {
+                    item.Flag.FLK_OK = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+            finally
+            {
+                RefreshStat();
+            }
+        });
 
         #endregion
         #region INotifyPropertyChanged

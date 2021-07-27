@@ -8,7 +8,7 @@
         xmlns:wpfclass="clr-namespace:ClientServiceWPF.Class" xmlns:FileCreator="clr-namespace:ClientServiceWPF.MEK_RESULT.FileCreator" 
         mc:Ignorable="d"
         x:Name="this"
-        Title="Приказ №104 - Заболеваемость\смертность и ЭКМП - летальность" Height="560" Width="1160.5" Style="{DynamicResource StyleWindow}">
+        Title="DISP" Height="560" Width="1160.5" Style="{DynamicResource StyleWindow}">
     <Window.Resources>
         <wpfclass:BoolInverterConverter x:Key="BoolInverterConverter"/>
         <CollectionViewSource x:Key="CollectionViewSourceFilesLOG" Source="{Binding Logs}" d:DesignSource="{d:DesignInstance {x:Type wpfclass:LogItem}, CreateList=True}" />
@@ -50,15 +50,30 @@
                 <Label  Content="{Binding Count, Mode=OneWay, Source={StaticResource CollectionViewSourceFilesLOG}}" HorizontalAlignment="Right" Margin="0,0,0,1" VerticalAlignment="Bottom" Width="126" HorizontalContentAlignment="Right"/>
             </Grid>
         </GroupBox>
-        <GroupBox  Header="Файл" HorizontalAlignment="Left" Height="230" VerticalAlignment="Top" Width="324" Margin="0,10,0,0" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
+        <GroupBox  Header="Файл" HorizontalAlignment="Left" Height="330" VerticalAlignment="Top" Width="324" Margin="0,10,0,0" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
             <Grid>
                 <DatePicker Margin="177,11,0,0" VerticalAlignment="Top" SelectedDate="{Binding PARAM.DATE}" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}" HorizontalAlignment="Left" Width="125"/>
                 <Label Content="Дата файла" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top"/>
                 <TextBox Height="22" Margin="177,40,10,0"  Text="{Binding PARAM.NN, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Top"/>
                 <Label Content="Порядковый номер файла" HorizontalAlignment="Left" Margin="10,36,0,0" VerticalAlignment="Top"/>
-                <Button Content="Сохранить" HorizontalAlignment="Left" Margin="11,177,0,0" VerticalAlignment="Top" Width="291" Style="{StaticResource MainButton}" Command="{Binding SaveFileCommand}" />
+                <Button Content="Сохранить" HorizontalAlignment="Left" Margin="11,0,0,10" VerticalAlignment="Bottom" Width="291" Style="{StaticResource MainButton}" Command="{Binding SaveFileCommand}" />
                 <TextBox Height="22" Margin="177,67,10,0" Text="{Binding PARAM.FILENAME_VIEW, Mode=OneWay}" VerticalAlignment="Top" IsReadOnly="True" Foreground="DimGray"/>
                 <Label Content="Имя файла" HorizontalAlignment="Left" Margin="10,63,0,0" VerticalAlignment="Top"/>
+                <TextBox Height="22" Margin="177,93,10,0" Text="{Binding PARAM.ZAPCount}" VerticalAlignment="Top"/>
+                <Label Content="Кол-во записей в файле" HorizontalAlignment="Left" Margin="10,89,0,0" VerticalAlignment="Top"/>
+                <GroupBox Header="Тип выгрузки" HorizontalAlignment="Left" Height="148" Margin="10,115,0,0" VerticalAlignment="Top" Width="292" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
+                    <Grid>
+                        <RadioButton Content="Основная" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="10,10,0,0" IsChecked="{Binding PARAM.Changed, Converter={StaticResource BoolInverterConverter}}"/>
+                        <RadioButton Content="Изменения" HorizontalAlignment="Left" Margin="145,10,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.Changed}"/>
+                        <DatePicker Margin="145,42,0,0" VerticalAlignment="Top" SelectedDate="{Binding PARAM.Period}"  HorizontalAlignment="Left" Width="100" IsEnabled="{Binding PARAM.Changed, Mode=OneWay, Converter={StaticResource BoolInverterConverter}}" />
+                        <Label Content="Отчетная дата" HorizontalAlignment="Left" Margin="10,41,0,0" VerticalAlignment="Top"/>
+                        <DatePicker Margin="145,71,0,0" VerticalAlignment="Top" SelectedDate="{Binding PARAM.ChangedStart}" IsEnabled="{Binding PARAM.Changed, Mode=OneWay}" HorizontalAlignment="Left" Width="100"/>
+                        <Label Content="С" HorizontalAlignment="Left" Margin="10,72,0,0" VerticalAlignment="Top"/>
+                        <DatePicker Margin="145,100,0,0" VerticalAlignment="Top" SelectedDate="{Binding PARAM.ChangedEnd}" IsEnabled="{Binding PARAM.Changed, Mode=OneWay}" HorizontalAlignment="Left" Width="101"/>
+                        <Label Content="По" HorizontalAlignment="Left" Margin="10,98,0,0" VerticalAlignment="Top"/>
+
+                    </Grid>
+                </GroupBox>
             </Grid>
         </GroupBox>
         <StatusBar Height="30" VerticalAlignment="Bottom">

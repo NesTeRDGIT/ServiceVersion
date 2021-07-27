@@ -79,6 +79,92 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
 
+        public void ClearForFFOMS_DATA()
+        {
+            SCHET.REF = null;
+
+            foreach (var z in ZAP)
+            {
+                z.PACIENT.LPU_REG = null;
+                if (z.PACIENT.VPOLIS != 3 && !string.IsNullOrEmpty(z.PACIENT.SMO_OK) && string.IsNullOrEmpty(z.PACIENT.ST_OKATO))
+                {
+                    z.PACIENT.ST_OKATO = z.PACIENT.SMO_OK;
+                }
+
+                foreach (var z_sl in z.Z_SL_list)
+                {
+                    z_sl.SLUCH_Z_ID = null;
+                    z_sl.SLUCH_Z_ID_MAIN = null;
+                    z_sl.FIRST_IDCASE = null;
+                    if (z_sl.SANK_IT == 0)
+                        z_sl.SANK_IT = null;
+                    z_sl.EXPERTISE.Clear();
+                    foreach (var san in z_sl.SANK)
+                    {
+                        san.S_OSN_TFOMS = null;
+                    }
+                    foreach (var sl in z_sl.SL)
+                    {
+                        sl.SUM_MP = null;
+                        sl.SLUCH_ID = null;
+                        foreach (var us in sl.USL)
+                        {
+                            us.PS_VOLUME = null;
+                            us.BSP = null;
+                            us.NOT_VR = null;
+                            us.SUMP_USL = null;
+                            us.USL_ID = null;
+                        }
+
+                        foreach (var naz in sl.NAZ)
+                        {
+                            if (naz.NAZ_R != 3 || sl.DS_ONK == 0)
+                            {
+                                naz.NAZ_USL = null;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        public void SetENP_REG_IN_NPOLIS()
+        {
+            SCHET.REF = null;
+
+            foreach (var z in ZAP)
+            {
+                z.PACIENT.NPOLIS = z.PACIENT.ENP_REG;
+
+                foreach (var z_sl in z.Z_SL_list)
+                {
+                    z_sl.SLUCH_Z_ID = null;
+                    z_sl.SLUCH_Z_ID_MAIN = null;
+                    z_sl.FIRST_IDCASE = null;
+                    if (z_sl.SANK_IT == 0)
+                        z_sl.SANK_IT = null;
+                    z_sl.EXPERTISE.Clear();
+                    foreach (var san in z_sl.SANK)
+                    {
+                        san.S_OSN_TFOMS = null;
+                    }
+                    foreach (var sl in z_sl.SL)
+                    {
+                        sl.SUM_MP = null;
+                        sl.SLUCH_ID = null;
+                        foreach (var us in sl.USL)
+                        {
+                            us.PS_VOLUME = null;
+                            us.BSP = null;
+                            us.NOT_VR = null;
+                            us.SUMP_USL = null;
+                            us.USL_ID = null;
+                        }
+                    }
+                }
+            }
+        }
+
         public static ZL_LIST GetZL_LIST(VersionMP vers, string filepach)
         {
             ZL_LIST zl = null;
@@ -678,22 +764,22 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public string PLAT { get; set; }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal SUMMAV { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public string COMENTS { get; set; }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? SUMMAP { get; set; }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? SANK_MEK { get; set; }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? SANK_MEE { get; set; }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? SANK_EKMP { get; set; }
 
@@ -784,10 +870,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public Z_SL Z_SL
         {
-            get
-            {
-                return Z_SL_list[0];
-            }
+            get => Z_SL_list[0];
             set
             {
                 if (Z_SL_list.Count == 0) Z_SL_list.Add(new Z_SL());
@@ -841,6 +924,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     item.LPU_REG = Convert.ToString(row["LPU_REG"]);
                 if (row["ENP"] != DBNull.Value)
                     item.ENP = Convert.ToString(row["ENP"]);
+                if (row["ENP_REG"] != DBNull.Value)
+                    item.ENP_REG = Convert.ToString(row["ENP_REG"]);
+                
                 return item;
             }
             catch (Exception ex)
@@ -868,6 +954,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string NPOLIS { get; set; }
+        [XmlIgnore]
+        public string ENP_REG { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string ENP { get; set; }
 
@@ -1114,7 +1202,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal IDSP { get; set; }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal SUMV { get; set; }
 
@@ -1125,7 +1213,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             return OPLATA.HasValue;
         }
 
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? SUMP { get; set; }
         public bool ShouldSerializeSUMP()
@@ -1137,7 +1225,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public List<SANK> SANK { get; set; } = new List<SANK>();
 
 
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? SANK_IT { get; set; }
         public bool ShouldSerializeSANK_IT()
@@ -1522,21 +1610,21 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string IDDOKT { get; set; }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? ED_COL { get; set; }
         public bool ShouldSerializeED_COL()
         {
             return ED_COL.HasValue;
         }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? TARIF { get; set; }
         public bool ShouldSerializeTARIF()
         {
             return TARIF.HasValue;
         }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal SUM_M { get; set; }
 
@@ -2127,7 +2215,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string S_CODE { get; set; }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal S_SUM { get; set; }
 
@@ -2396,13 +2484,14 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             return KOL_USL.HasValue;
         }
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public decimal? TARIF { get; set; }
         public bool ShouldSerializeTARIF()
         {
             return TARIF.HasValue;
         }
-
+        [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal SUMV_USL { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
@@ -3026,15 +3115,21 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public static void WriteXml(this ZL_LIST zl, Stream st)
         {
             var ser = new XmlSerializer(typeof(ZL_LIST));
-            var set = new XmlWriterSettings();
-            set.Encoding = System.Text.Encoding.GetEncoding("Windows-1251");
-            set.Indent = true;
+            var set = new XmlWriterSettings {Encoding = System.Text.Encoding.GetEncoding("Windows-1251"), Indent = true};
             var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
             var xml = XmlWriter.Create(st, set);
             ser.Serialize(xml, zl, ns);
         }
-
+        public static void WriteXmlCustom(this ZL_LIST zl, Stream st)
+        {
+            var ser = new XmlSerializer(typeof(ZL_LIST));
+            var set = new XmlWriterSettings {Encoding = System.Text.Encoding.GetEncoding("Windows-1251"), Indent = true};
+            var ns = new XmlSerializerNamespaces();
+            ns.Add("", "");
+            var xml = XmlWriter.Create(st, set);
+            ser.SerializeWithDecimalFormatting(xml, zl, ns);
+        }
         public static void WriteXml(this PERS_LIST zl, Stream st)
         {
             var ser = new XmlSerializer(typeof(PERS_LIST));

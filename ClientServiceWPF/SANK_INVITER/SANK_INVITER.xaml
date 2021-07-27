@@ -76,6 +76,7 @@
                             <MenuItem Header="Поиск реестра" Command="{Binding FindItemCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}"></MenuItem>
                             <MenuItem Header="Установить\Снять флаг Доп.реестр" Command="{Binding SetDOP_REESTRCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}"></MenuItem>
                             <MenuItem Header="Установить правильную схему" Command="{Binding SetValidXSDCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}" ></MenuItem>
+                            <MenuItem Header="Установить правильный ФЛК" Command="{Binding SetValidFLKCommand}" CommandParameter="{Binding Data, Source={StaticResource selectedFileItems}}" ></MenuItem>
                         </ContextMenu>
                     </DataGrid.ContextMenu>
 

@@ -582,11 +582,16 @@ namespace ExcelManager
             }
             var c = new Column();
             c.Min = c.Max = GetColumnIndex(Addr);
-            c.Width = 10;
+            c.Width = GetSheetFormatProperties().DefaultColumnWidth.Value;
             cols.Append(c);
             var copx = new ColumnOpenXML() { Col = c, AutoFit = false };
             Columns.Add(Addr, copx);
             return copx;
+        }
+
+        private SheetFormatProperties GetSheetFormatProperties()
+        {
+           return worksheetPart.Worksheet.SheetFormatProperties ?? new SheetFormatProperties(){ DefaultColumnWidth = 8.45, DefaultRowHeight = 15 };
         }
         private void ReadColumn()
         {
@@ -603,10 +608,13 @@ namespace ExcelManager
             foreach (var openXmlElement in cols)
             {
                 var col = (Column)openXmlElement;
-                var Addr = GetColumnAddr(col.Min);
-                if (Columns.ContainsKey(Addr)) continue;
-                var copx = new ColumnOpenXML { Col = col, AutoFit = false };
-                Columns.Add(Addr, copx);
+                for(var i=col.Min.Value;i<=col.Max.Value;i++)
+                {
+                    var Addr = GetColumnAddr(i);
+                    if (Columns.ContainsKey(Addr)) continue;
+                    var copx = new ColumnOpenXML { Col = col, AutoFit = false };
+                    Columns.Add(Addr, copx);
+                }
             }
         }
         Dictionary<uint, MRow> rowsDictionary = new Dictionary<uint, MRow>();
@@ -990,8 +998,6 @@ namespace ExcelManager
             col.Col.Width = value;
             col.Col.CustomWidth = true;
         }
-
-
         public void CreateRow(uint rowIndex, string XML)
         {
             if (!rowsDictionary.ContainsKey(rowIndex))
@@ -1002,6 +1008,12 @@ namespace ExcelManager
             }
             rowsDictionary[rowIndex].r.InnerXml = XML;
         }
+
+        public void CalculateHeigth(uint rowIndex, uint ColIndex)
+        {
+            
+        }
+
 
         /// <summary>
         /// Добавить лист
@@ -1108,7 +1120,7 @@ namespace ExcelManager
         /// <param name="isSharedString">Использовать таблицу строк</param>
         public void PrintCell(MRow Row, string Cell, string value, uint? styleid, bool isSharedString = false)
         {
-            var cell = InsertCellInWorksheet(Row.r, Cell + Row.r.RowIndex.ToString());
+            var cell = InsertCellInWorksheet(Row.r, Cell + Row.r.RowIndex);
             if (isSharedString)
             {
                 cell.DataType = CellValues.SharedString;
@@ -1719,6 +1731,92 @@ namespace ExcelManager
             r.Height = SizeRow * Calc(text, CountChar);
             return r.Height;
         }
+        /// <summary>
+        /// Подогнать высоту строки по содержимому
+        /// </summary>
+        /// <param name="row">Строка</param>
+        /// <param name="ColIndex">Ячейка</param>
+        /// <param name="BaseDefaultHeight">Основываться на базовой высоте строки</param>
+        /// <returns>Размер в pt</returns>
+        public double Fit(uint row, uint ColIndex)
+        {
+            return Fit(GetRow(row), ColIndex);
+        }
+
+        /// <summary>
+        /// Подогнать высоту строки по содержимому
+        /// </summary>
+        /// <param name="row">Строка</param>
+        /// <param name="ColIndex">Ячейка</param>
+        /// <param name="BaseDefaultHeight">Основываться на базовой высоте строки</param>
+        /// <returns>Размер в pt</returns>
+        public double Fit(MRow row, uint ColIndex)
+        {
+            var MaxLineWidth = GetColumnWidth(row, ColIndex);
+            var Font = FindFont(row, ColIndex);
+            var SizeRow = CalcFontHeight(Font.FontName.Val.Value, Convert.ToInt32(Font.FontSize.Val.Value));
+            var rowCount = CalcRowCount(GetValue(row, ColIndex), MaxLineWidth, Font.FontName.Val.Value, Convert.ToInt32(Font.FontSize.Val.Value));
+            //Высота строки + по 1pt с каждой стороны строки
+            var Height = SizeRow * rowCount+ rowCount * 2;
+            SetRowHeigth(row.RowIndex, Height);
+            return Height;
+        }
+        private Font FindFont(MRow row, uint ColIndex)
+        {
+            var addr = GetColumnAddr(ColIndex) + row.r.RowIndex;
+            var value = "";
+            var styleId = row.r.Elements<Cell>().First(cell => cell.CellReference.Value == addr).StyleIndex.Value;
+            var FontId = stylesPart.Stylesheet.CellFormats.Elements<CellFormat>().ToList()[Convert.ToInt32(styleId)].FontId.Value;
+           return stylesPart.Stylesheet.Fonts.Elements<Font>().ToList()[Convert.ToInt32(FontId)];
+        }
+
+
+
+        int CalcRowCount(string str, double RowWidth, string FontFamily, int FontSize)
+        {
+            var split = (str ?? "").Split(' ');
+            double sum = 0;
+            var result = 1;
+            var spaceSize = MeasureString.MeasureWidth(" ", FontFamily, FontSize);
+
+            foreach (var s in split)
+            {
+                var size = MeasureString.MeasureWidth(s, FontFamily, FontSize);
+                sum += size;
+                if (sum > RowWidth)
+                {
+                    result++;
+                    sum = size;
+                }
+                else
+                {
+                    sum += spaceSize;
+                }
+            }
+            return result;
+        }
+        double CalcFontHeight( string FontFamily, int FontSize)
+        {
+            return  MeasureString.MeasureHeight("0", FontFamily, FontSize);
+        }
+
+        private double GetColumnWidth(MRow row, uint ColIndex)
+        {
+            var colB = ColIndex;
+            var colE = ColIndex;
+            foreach (var merge in row.MMergeCells.Where(merge => merge.CRA.From.Cell == ColIndex))
+            {
+                colE = merge.CRA.To.Cell;
+            }
+            double result = 0;
+            for (var i = colB; i <= colE; i++)
+            {
+               result += GetColumn(GetColumnAddr(i)).Col.Width.Value;
+            }
+            return result;
+        }
+
+
         public void SetRowHeigth(uint Row, double Heigth)
         {
             var r = GetRow(Row);
@@ -2088,12 +2186,10 @@ namespace ExcelManager
                                     if (cell.CellValue == null) return value = "";
                                     value = cell.CellValue.Text;
                                     break;
-                                   
                         }
                     }
                     else
                     {
-
                         value = cell.CellValue?.Text;
                     }
                    
@@ -2783,8 +2879,13 @@ namespace ExcelManager
             }
         }
 
+      
+
+        
 
       
 
     }
+
+   
 }

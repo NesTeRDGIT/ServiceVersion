@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security;
 using System.ServiceModel;
+using System.ServiceModel.Channels;
 using System.ServiceModel.Description;
 using System.Text;
 using System.Threading;
@@ -22,6 +23,7 @@ using System.Windows.Threading;
 using ClientServiceWPF.Class;
 using ClientServiceWPF.MEK_RESULT;
 using ClientServiceWPF.MEK_RESULT.ACTMEK;
+using ExcelManager;
 using ServiceLoaderMedpomData;
 using ServiceLoaderMedpomData.Annotations;
 
@@ -76,10 +78,10 @@ namespace ClientServiceWPF
             return result;
         }
 
+      
         public LoginForm()
         {
             SecureCard = new List<string>();
-            wcf = null;
             VM = new LoginFormVM(Dispatcher.CurrentDispatcher, OnConnect)
             {
                 Password = ProtectStr.UnprotectString(Properties.Settings.Default.PASSWORD), 
@@ -87,7 +89,7 @@ namespace ClientServiceWPF
                 HOST = Properties.Settings.Default.IP_CONNECT, SaveLogAndPass = Properties.Settings.Default.SAVE_LOG_AND_PASS
             };
             InitializeComponent();
-             PasswordBox.Password = VM.Password;
+            PasswordBox.Password = VM.Password;
         }
 
         public string DIALOG_MESSAGE { get; set; } = null;
@@ -102,6 +104,11 @@ namespace ClientServiceWPF
         private void PasswordBox_OnPasswordChanged(object sender, RoutedEventArgs e)
         {
             VM.Password = PasswordBox.Password;
+        }
+
+        private void LoginForm_OnLoaded(object sender, RoutedEventArgs e)
+        {
+       
         }
     }
 

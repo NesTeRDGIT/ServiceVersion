@@ -74,7 +74,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         public MEK_ITEM OBR_AMB { get; set; } = new MEK_ITEM();
         public MEK_ITEM AMB => POS_AMB + OBR_AMB;
 
-        public MEK_ITEM MP_NOT_VR => DISP2 + DISP_VZR + DISP_DET + PROF_DET + PROF_VZR + VMP + DSTAC + DIAL_STAC + STAC + NEOT + KORON + MOL + GIST + ENDO + USI + MRT + KT + DIAL_AMB + AMB + TROMB + KORON_1213;
+        public MEK_ITEM MP_NOT_VR => DISP2 + DISP_VZR + DISP_DET + PROF_DET + PROF_VZR + VMP + DSTAC + DIAL_STAC + STAC + NEOT + KORON + MOL + GIST + ENDO + USI + MRT + KT + DIAL_AMB + AMB + TROMB + KORON_1213+ UG_DISP2+ UG_DISP1;
 
         public MEK_ITEM TROMB { get; set; } = new MEK_ITEM();
         public MEK_ITEM DIAL_AMB { get; set; } = new MEK_ITEM();
@@ -102,10 +102,14 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         public MEK_ITEM DISP_DET { get; set; } = new MEK_ITEM();
         public MEK_ITEM DISP_VZR { get; set; } = new MEK_ITEM();
         public MEK_ITEM DISP2 { get; set; } = new MEK_ITEM();
+
+        public MEK_ITEM UG_DISP1 { get; set; } = new MEK_ITEM();
+        public MEK_ITEM UG_DISP2 { get; set; } = new MEK_ITEM();
+
         public MEK_ITEM OTHER { get; set; } = new MEK_ITEM();
 
 
-        public MEK_ITEM FULL_AMB => AMB + FOND + NAPR + FAP + PROF_DET + PROF_VZR + DISP_VZR + DISP_DET + DISP2 + OTHER + DIAL_AMB + KT + MRT + USI + ENDO + GIST + MOL + KORON + NEOT + KORON_1213;
+        public MEK_ITEM FULL_AMB => AMB + FOND + NAPR + FAP + PROF_DET + PROF_VZR + DISP_VZR + DISP_DET + DISP2 + OTHER + DIAL_AMB + KT + MRT + USI + ENDO + GIST + MOL + KORON + NEOT + KORON_1213+ UG_DISP1+ UG_DISP2;
 
         public decimal NAPR_FROM_MO { get; set; }
 
@@ -142,6 +146,8 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 PROF_VZR = x1.PROF_VZR + x2.PROF_VZR,
                 DISP_DET = x1.DISP_DET + x2.DISP_DET,
                 DISP_VZR = x1.DISP_VZR + x2.DISP_VZR,
+                UG_DISP2 = x1.UG_DISP2+x2.UG_DISP2,
+                UG_DISP1 = x2.UG_DISP1 +x2.UG_DISP1,
                 DISP2 = x1.DISP2 + x2.DISP2,
                 OTHER = x1.OTHER + x2.OTHER,
                 STAC_1213 = x1.STAC_1213 + x2.STAC_1213,
@@ -522,6 +528,12 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             //Диспансеризация 2 этап
             if (PrintVolume(efm, rowindex, par.DISP2.KOL, par.DISP2.SUM, par.DISP2.KOL_MEK, par.DISP2.SUM_MEK, par.DISP2.KOL_P, par.DISP2.SUM_P))
                 rowindex++;
+            //Углубленная диспансеризация 1 этап																						
+            if (PrintVolume(efm, rowindex, par.UG_DISP1.KOL, par.UG_DISP1.SUM, par.UG_DISP1.KOL_MEK, par.UG_DISP1.SUM_MEK, par.UG_DISP1.KOL_P, par.UG_DISP1.SUM_P))
+                rowindex++;
+            //Углубленная диспансеризация 2 этап
+            if (PrintVolume(efm, rowindex, par.UG_DISP2.KOL, par.UG_DISP2.SUM, par.UG_DISP2.KOL_MEK, par.UG_DISP2.SUM_MEK, par.UG_DISP2.KOL_P, par.UG_DISP2.SUM_P))
+                rowindex++;
 
             //Стационар
             if (PrintVolume(efm, rowindex, par.STAC.KOL, par.STAC.SUM, par.STAC.KOL_MEK, par.STAC.SUM_MEK, par.STAC.KOL_P, par.STAC.SUM_P))
@@ -575,9 +587,11 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     var row = efm.GetRow(rowindex);
                     efm.PrintCell(row, 1, def.Key.OSN, null);
                     efm.PrintCell(row, 5, def.Key.NAME, null);
-                    var size1 = efm.Fit(rowindex, 5, 48, 15);
+                    //var size1 = efm.Fit(rowindex, 5, 48, 15);
+                    var size1 = efm.Fit(row, 5);
                     efm.PrintCell(row, 28, "", null);
-                    var size2 = efm.Fit(rowindex, 28, 48, 15);
+                    //var size2 = efm.Fit(rowindex, 28, 48, 15);
+                    var size2 = efm.Fit(row, 28);
                     efm.PrintCell(row, 51, def.Sum(x => x.S_SUM), null);
                     efm.SetRowHeigth(rowindex, Math.Max(size1, size2));
 
@@ -702,6 +716,14 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             //Диспансеризация 2 этап
             if (PrintVolume(efm, rowIndex, par.DISP2.KOL, par.DISP2.SUM, par.DISP2.KOL_MEK, par.DISP2.SUM_MEK, par.DISP2.KOL_P, par.DISP2.SUM_P))
                 rowIndex++;
+
+            //Углубленная диспансеризация 1 этап
+            if (PrintVolume(efm, rowIndex, par.UG_DISP1.KOL, par.UG_DISP1.SUM, par.UG_DISP1.KOL_MEK, par.UG_DISP1.SUM_MEK, par.UG_DISP1.KOL_P, par.UG_DISP1.SUM_P))
+                rowIndex++;
+            //Углубленная диспансеризация 2 этап
+            if (PrintVolume(efm, rowIndex, par.UG_DISP2.KOL, par.UG_DISP2.SUM, par.UG_DISP2.KOL_MEK, par.UG_DISP2.SUM_MEK, par.UG_DISP2.KOL_P, par.UG_DISP2.SUM_P))
+                rowIndex++;
+
             //Стационар
             if (PrintVolume(efm, rowIndex, par.STAC.KOL, par.STAC.SUM, par.STAC.KOL_MEK, par.STAC.SUM_MEK, par.STAC.KOL_P, par.STAC.SUM_P))
                 rowIndex++;
@@ -781,7 +803,6 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 var last = GDEFECT.Last();
                 foreach (var def in GDEFECT)
                 {
-
                     //Копируем заголовок таблицы
                     if (first != def)
                     {
@@ -791,7 +812,8 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     }
 
                     efm.PrintCell(rowIndex, 1, $"{def.Key.OSN} {def.Key.NAME}({def.Key.COMM})", null);
-                    efm.Fit(rowIndex, 1, 76, 18);
+                    //efm.Fit(rowIndex, 1, 76, 18);
+                    efm.Fit(rowIndex, 1);
                     rowIndex++;
                     rowIndex++;
                     var items = def.OrderBy(x => x.S_SUM).ToList();
@@ -1110,7 +1132,8 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 efm.PrintCell(row, 35, KOL_MEK, null);
                 efm.PrintCell(row, 46, KOL_P, null);
             }
-            efm.Fit(row, 5, 35, 15);
+            //efm.Fit(row, 5, 35, 15);
+            efm.Fit(row, 5);
         }
         public MEK_PARAM ConvertVOLUMEToMEK_PARAM(List<MP_VOLUME_ITEM> Volume, decimal NAPR_FROM_MO)
         {
@@ -1258,6 +1281,14 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     //Диспансеризация взрослого населения 1 этап(Фондодержание)
                     case "3.7.2.1":
                         par.DISP_VZR_FOND.AddKOL(vol);
+                        break;
+                    //Углубленная диспансеризация 1 этап
+                    case "3.8.1.1":
+                        par.UG_DISP1.Add(vol);
+                        break;
+                    //Углубленная диспансеризация 2 этап
+                    case "3.8.2.1":
+                        par.UG_DISP2.Add(vol);
                         break;
                     //Параклиника
                     case "3.1.5.1": /*par.OBR_FOND.AddSUM(vol);*/ break;

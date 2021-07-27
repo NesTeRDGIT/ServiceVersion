@@ -269,6 +269,7 @@ namespace ServiceLoaderMedpomData
     /// </summary>
     public class ErrorProtocolXML
     {
+        public long? SLUCH_Z_ID { get; set; }
         public int OSHIB { get; set; }
         public string IM_POL { get; set; } = "";
         public string BAS_EL { get; set; } = "";
@@ -1471,7 +1472,7 @@ namespace ServiceLoaderMedpomData
         {
             if (SANK.S_SUM.value != 0 && SANK.SL_ID.Count == 0)
                 Error(XmlSeverityType.Error, SANK.S_SUM.POS.LINE, SANK.S_SUM.POS.POS, "Для S_SUM<>0 SL_ID обязательно к заполнению", "SANK");
-            if (SANK.S_TIP.value >= 30 && SANK.CODE_EXP.Count == 0 && SANK.S_OSN.value != 43)
+            if (SANK.S_TIP.value.IsEKMP() && SANK.CODE_EXP.Count == 0 && !SANK.S_OSN.value.In(43,242))
                 Error(XmlSeverityType.Error, SANK.S_OSN.POS.LINE, SANK.S_OSN.POS.POS, @"Для санкций ЭКМП CODE_EXP обязательно к заполнению", "SANK");
          
         }
@@ -1837,6 +1838,22 @@ namespace ServiceLoaderMedpomData
         {
           return string.Compare(val, val1, StringComparison.Ordinal) >= 0 && String.Compare(val, val2, StringComparison.Ordinal) <= 0;
         }
-         
+
+        public static bool IsMEK(this int val)
+        {
+            return val.ToString().StartsWith("1");
+        }
+        public static bool IsMEE(this int val)
+        {
+            return val.ToString().StartsWith("2") || val.ToString().StartsWith("5");
+        }
+        public static bool IsEKMP(this int val)
+        {
+            return val.ToString().StartsWith("3") || val.ToString().StartsWith("4") || val.ToString().StartsWith("7") || val.ToString().StartsWith("8");
+        }
+        public static bool In(this int val, params int[] values)
+        {
+            return values.Contains(val);
+        }
     }
 }

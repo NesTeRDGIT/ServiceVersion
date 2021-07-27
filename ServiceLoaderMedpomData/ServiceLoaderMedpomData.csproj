@@ -99,6 +99,7 @@
     <Compile Include="SchemaCollection.cs" />
     <Compile Include="USER_MODEL.cs" />
     <Compile Include="WCF.cs" />
+    <Compile Include="XmlSerializerExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />

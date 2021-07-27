@@ -1036,6 +1036,8 @@ $@"Наименование файла должно быть
                 f.CopyFrom(x);
                 return f;
             }));
+            OnPropertyChanged(nameof(this.IsErrorFiles));
+            
         }
     }
     public class FilePacketAndOrder

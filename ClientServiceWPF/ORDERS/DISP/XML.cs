@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Serialization;
 using ClientServiceWPF.ORDERS.ORD104;
+using ClientServiceWPF.SANK_INVITER;
 
 namespace ClientServiceWPF.ORDERS.DISP
 {
@@ -48,6 +49,21 @@ namespace ClientServiceWPF.ORDERS.DISP
         public DISP DISP { get; set; }
         [XmlElement]
         public DISP DISP21 { get; set; }
+
+        public bool IsChanged(DateTime dt1, DateTime dt2)
+        {
+            if (PERS.DEDIT.Between(dt1, dt2))
+                return true;
+            if (COV19?.DEDIT.Between(dt1, dt2) == true)
+                return true;
+            if (DISP?.DEDIT.Between(dt1, dt2) == true)
+                return true;
+            if (DISP21?.DEDIT.Between(dt1, dt2) == true)
+                return true;
+            if (Z_SL?.DEDIT.Between(dt1, dt2) == true)
+                return true;
+            return SL.Any(sl => sl.DEDIT.Between(dt1, dt2)) || DISPN.Any(dn => dn.DEDIT.Between(dt1, dt2));
+        }
 
     }
 
@@ -94,6 +110,9 @@ namespace ClientServiceWPF.ORDERS.DISP
                     item.DSTOP = Convert.ToDateTime(reader["DSTOP"]);
                 if (reader["DS"] != DBNull.Value)
                     item.DDEATH = Convert.ToDateTime(reader["DS"]);
+
+                if (reader["DEDIT"] != DBNull.Value)
+                    item.DEDIT = Convert.ToDateTime(reader["DEDIT"]).Date;
                 return item;
             }
             catch (Exception e)
@@ -102,6 +121,9 @@ namespace ClientServiceWPF.ORDERS.DISP
             }
 
         }
+        [XmlIgnore]
+        public DateTime? DEDIT { get; set; }
+
         [XmlElement(IsNullable = false)]
         public string FAM { get; set; }
         [XmlElement(IsNullable = false)]
@@ -160,6 +182,8 @@ namespace ClientServiceWPF.ORDERS.DISP
                     item.DSCDATE = Convert.ToDateTime(row["DSCDATE"]);
                 if (row["SEVERITY"] != DBNull.Value)
                     item.SEVERITY = Convert.ToInt32(row["SEVERITY"]);
+                if (row["DEDIT"] != DBNull.Value)
+                    item.DEDIT = Convert.ToDateTime(row["DEDIT"]);
                 return item;
             }
             catch (Exception e)
@@ -184,6 +208,8 @@ namespace ClientServiceWPF.ORDERS.DISP
         {
             return SEVERITY.HasValue;
         }
+        [XmlIgnore]
+        public DateTime? DEDIT { get; set; }
     }
 
     [XmlRoot]
@@ -198,6 +224,8 @@ namespace ClientServiceWPF.ORDERS.DISP
                     item.ENP_REG = Convert.ToString(row["ENP_REG"]);
                 if (row["DATE_Z_1"] != DBNull.Value)
                     item.DATE_Z_1 = Convert.ToDateTime(row["DATE_Z_1"]);
+                if (row["DEDIT"] != DBNull.Value)
+                    item.DEDIT = Convert.ToDateTime(row["DEDIT"]);
                 return item;
             }
             catch (Exception e)
@@ -209,6 +237,8 @@ namespace ClientServiceWPF.ORDERS.DISP
         public string ENP_REG { get; set; }
         [XmlElement(DataType = "date")]
         public DateTime DATE_Z_1 { get; set; }
+        [XmlIgnore]
+        public DateTime? DEDIT { get; set; }
     }
 
     [XmlRoot]
@@ -229,6 +259,9 @@ namespace ClientServiceWPF.ORDERS.DISP
                     item.DSG = Convert.ToInt32(row["DSG"]);
                 if (row["DS"] != DBNull.Value)
                     item.DS = Convert.ToString(row["DS"]);
+                if (row["DEDIT"] != DBNull.Value)
+                    item.DEDIT = Convert.ToDateTime(row["DEDIT"]);
+                
                 return item;
             }
             catch (Exception e)
@@ -248,6 +281,8 @@ namespace ClientServiceWPF.ORDERS.DISP
         public int DSG { get; set; }
         [XmlElement]
         public string DS { get; set; }
+        [XmlIgnore]
+        public DateTime? DEDIT { get; set; }
     }
 
 
@@ -258,6 +293,8 @@ namespace ClientServiceWPF.ORDERS.DISP
         public int DSG { get; set; }
         [XmlElement]
         public string DS { get; set; }
+        [XmlIgnore]
+        public DateTime? DEDIT { get; set; }
     }
 
     [XmlRoot]
@@ -276,6 +313,9 @@ namespace ClientServiceWPF.ORDERS.DISP
                     item.DISPTYPE = Convert.ToString(row["DISPTYPE"]);
                 if (row["RES"] != DBNull.Value)
                     item.RES = Convert.ToInt32(row["RES"]);
+                if (row["DEDIT"] != DBNull.Value)
+                    item.DEDIT = Convert.ToDateTime(row["DEDIT"]);
+
                 return item;
             }
             catch (Exception e)
@@ -292,6 +332,8 @@ namespace ClientServiceWPF.ORDERS.DISP
         public string DISPTYPE { get; set; }
         [XmlElement]
         public int RES { get; set; }
+        [XmlIgnore]
+        public DateTime? DEDIT { get; set; }
     }
 
     public static class Ex

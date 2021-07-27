@@ -81,6 +81,14 @@ namespace ClientServiceWPF
         private void ConnectWCF(string DIALOG_MESSAGE = null)
         {
             var f = new LoginForm();
+            if (wcf != null)
+            {
+                var t = wcf;
+                LoginForm.wcf = null;
+                ((ICommunicationObject) t)?.Abort();
+                return;
+            }
+
             if (!string.IsNullOrEmpty(DIALOG_MESSAGE))
                 f.DIALOG_MESSAGE = DIALOG_MESSAGE;
             if (f.ShowDialog() == true)
@@ -92,8 +100,13 @@ namespace ClientServiceWPF
                     CloseAPP();
                     return;
                 }
-                ((ICommunicationObject)wcf).Faulted += LoginForm_Faulted;
-                ((ICommunicationObject)wcf).Closed += LoginForm_Faulted;
+
+                if (wcf is ICommunicationObject co)
+                {
+                    co.Faulted += LoginForm_Faulted;
+                    co.Closed += LoginForm_Faulted;
+                }
+              
             }
             VM.SetWCF(wcf).SetCard(LoginForm.SecureCard);
 
@@ -127,6 +140,8 @@ namespace ClientServiceWPF
         private void MenuItemDisconnect_Click(object sender, RoutedEventArgs e)
         {
             ((ICommunicationObject)wcf)?.Abort();
+            LoginForm.wcf = null;
+            VM.SetWCF(wcf).SetCard(new List<string>());
         }
         private void MenuItemCloseApp_Click(object sender, RoutedEventArgs e)
         {

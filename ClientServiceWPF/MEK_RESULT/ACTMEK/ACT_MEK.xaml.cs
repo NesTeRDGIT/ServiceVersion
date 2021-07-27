@@ -28,7 +28,6 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         {
             VM = new ACT_MEKVM(Dispatcher.CurrentDispatcher, new MEKRepository(AppConfig.Property.ConnectionString), SaveParam);
             InitializeComponent();
-        
         }
 
         private void this_Loaded(object sender, RoutedEventArgs e)
