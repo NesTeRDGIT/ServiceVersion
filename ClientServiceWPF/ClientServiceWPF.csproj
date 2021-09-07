@@ -139,6 +139,10 @@
       <DependentUpon>ORD260.xaml</DependentUpon>
     </Compile>
     <Compile Include="ORDERS\ORD260\ZL_LIST.cs" />
+    <Compile Include="ORDERS\SchetPalat\PalatWin.xaml.cs">
+      <DependentUpon>PalatWin.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ORDERS\SchetPalat\XML.cs" />
     <Compile Include="SANK_INVITER\CheckSchema.cs" />
     <Compile Include="SANK_INVITER\ICheckFLK.cs" />
     <Compile Include="SANK_INVITER\ISANK_INVITERRepository.cs" />
@@ -236,6 +240,10 @@
       <Generator>MSBuild:Compile</Generator>
     </Page>
     <Page Include="ORDERS\ORD260\ORD260.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
+    <Page Include="ORDERS\SchetPalat\PalatWin.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

@@ -99,6 +99,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     if (z_sl.SANK_IT == 0)
                         z_sl.SANK_IT = null;
                     z_sl.EXPERTISE.Clear();
+                    z_sl.OS_SLUCH.RemoveAll(x => !(x == "1" && x == "2"));
+                   
                     foreach (var san in z_sl.SANK)
                     {
                         san.S_OSN_TFOMS = null;

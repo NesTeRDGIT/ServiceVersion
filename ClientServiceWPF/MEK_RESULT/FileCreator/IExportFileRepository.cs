@@ -62,7 +62,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         List<V_EXPORT_H_ZGLVRow> V_EXPORT_H_ZGLV(DBSource source, TypeFileCreate tfc, PERIOD_PARAM periodParam, SLUCH_PARAM sluchParam );
         DataTable V_EXPORT_H_ZGLV(int zglvid, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_SCHET(int zglvid, DBSource source, OracleConnection conn = null);
-        DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, long[] SLUCH_Z_ID, DBSource source, OracleConnection conn = null);
+        DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, long[] SLUCH_Z_ID, bool OnlyValidFFOMS, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_SLUCH(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_SANK(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_NAZR(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
@@ -202,12 +202,12 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw;
             }
         }
-        public DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, long[] SLUCH_Z_ID,DBSource source, OracleConnection conn = null)
+        public DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, long[] SLUCH_Z_ID,bool OnlyValidFFOMS,DBSource source, OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
             try
             {
-                using (var oda = new OracleDataAdapter($@"select * from V_EXPORT_H_ZAP{source.ToPrefixBD()} t where zglv_id = {zglvid} and {(!string.IsNullOrEmpty(SMO) ? $"SMO = '{SMO}'" : "IsZK = 1")}  {(SLUCH_Z_ID?.Length>0 ? $"and SLUCH_Z_ID in ({string.Join(",",SLUCH_Z_ID)})" : "")}", conn))
+                using (var oda = new OracleDataAdapter($@"select * from V_EXPORT_H_ZAP{source.ToPrefixBD()} t where zglv_id = {zglvid} and {(!string.IsNullOrEmpty(SMO) ? $"SMO = '{SMO}'" : "IsZK = 1")}  {(SLUCH_Z_ID?.Length>0 ? $"and SLUCH_Z_ID in ({string.Join(",",SLUCH_Z_ID)})" : "")} {(OnlyValidFFOMS? "and ValidFFOMS = 1" : "")}", conn))
                 {
                     var tbl = new DataTable();
                     oda.Fill(tbl);

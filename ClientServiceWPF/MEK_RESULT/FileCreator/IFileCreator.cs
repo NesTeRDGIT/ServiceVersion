@@ -168,7 +168,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 //----------------------------------------------------
                 AddLogInvoke(progress, LogType.Info, "Запрос записей");
                 //ZAP+PAC+Z_SL-------------------------------------------------
-                var ZAP = exportFileRepository.V_EXPORT_H_ZAP(item.ZGLV_ID, SMO, sluchParam.SLUCH_Z_ID, source, conn);
+                var ZAP = exportFileRepository.V_EXPORT_H_ZAP(item.ZGLV_ID, SMO, sluchParam.SLUCH_Z_ID, typeFileCreate==TypeFileCreate.FFOMSDx, source, conn);
                 if (ZAP.Rows.Count == 0)
                 {
                     AddLogInvoke(progress, LogType.Info, $"Для файла {item.FILENAME} Вернулось 0 записей. СМО = {SMO}");

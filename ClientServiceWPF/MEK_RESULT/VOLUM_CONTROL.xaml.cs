@@ -671,13 +671,9 @@ namespace ClientServiceWPF
         {
             switch (CODE)
             {
-                case "1.1":
-                case "1.4": return new PRIL5_Row {CODE = 14, NAME = "Стационар без онкологии"};
-                case "1.2": return new PRIL5_Row {CODE = 15, NAME = "Стационар онкология" };
-                case "1.3":return new PRIL5_Row  {CODE = 17, NAME = "ВМП" };
-                case "2.1": return new PRIL5_Row {CODE = 18, NAME = "Дневной стационар без онкологии" };
-                case "2.2": return new PRIL5_Row {CODE = 19, NAME = "Дневной стационар онкология" };
-                case "2.3": return new PRIL5_Row {CODE = 20, NAME = "Дневной стационар ЭКО" };
+                case "4":
+                case "4.3":
+                    return new PRIL5_Row { CODE = 1, NAME = "Скорая МП" };
                 case "3.1.1":
                 case "3.1.2":
                 case "3.4.1":
@@ -689,12 +685,17 @@ namespace ClientServiceWPF
                 case "3.7.1":
                 case "3.7.2":
                     return new PRIL5_Row { CODE = 2, NAME = "Амбулаторная МП" };
+                case "3.5.3":
+                    return new PRIL5_Row { CODE = 3, NAME = "Диспансеризация 2 этап" };
+                case "5.2":
+                    return new PRIL5_Row { CODE = 4, NAME = "Услуги диализа" };
+                case "3.3.7":
+                case "3.3.8":
+                    return new PRIL5_Row { CODE = 5, NAME = "Определение РНК коронавирусов" };
                 case "3.1.3":
                 case "3.1.4":
                     return new PRIL5_Row { CODE = 6, NAME = "ФП/ФАП" };
-                case "3.2.1":
-                case "3.2.2":
-                    return new PRIL5_Row { CODE = 13, NAME = "Неотложная МП" };
+
                 case "3.3.1":
                     return new PRIL5_Row { CODE = 7, NAME = "КТ" };
                 case "3.3.2":
@@ -707,20 +708,19 @@ namespace ClientServiceWPF
                     return new PRIL5_Row { CODE = 11, NAME = "Патологоанатомические исследования" };
                 case "3.3.6":
                     return new PRIL5_Row { CODE = 12, NAME = "Молекулярно - диагн.исследования" };
-                case "3.3.7":
-                case "3.3.8":
-                    return new PRIL5_Row { CODE = 5, NAME = "Определение РНК коронавирусов" };
-                case "3.5.3":
-                    return new PRIL5_Row { CODE = 3, NAME = "Диспансеризация 2 этап" };
-                case "4":
-                case "4.3":
-                    return new PRIL5_Row { CODE = 1, NAME = "Скорая МП" };
-                case "5.1":
-                    return new PRIL5_Row { CODE = 16, NAME = "Стационар диализ" };
-                case "5.2":
-                    return new PRIL5_Row { CODE = 4, NAME = "Услуги диализа" };
-                case "-":
-                    return new PRIL5_Row { CODE = 21, NAME = "Прочее" };
+                case "3.2.1":
+                case "3.2.2":
+                    return new PRIL5_Row { CODE = 13, NAME = "Неотложная МП" };
+                case "1.1": return new PRIL5_Row { CODE = 14, NAME = "Стационар без онкологии" };
+                case "1.4": return new PRIL5_Row { CODE = 15, NAME = "Стационар без онкологии(МБТ ПП РФ 1213)" };
+                case "1.5": return new PRIL5_Row { CODE = 16, NAME = "Стационар без окнологии(МБТ ПП РФ 1997-р)" };
+                case "1.2": return new PRIL5_Row { CODE = 17, NAME = "Стационар онкология" };
+                case "5.1": return new PRIL5_Row { CODE = 18, NAME = "Стационар диализ" };
+                case "1.3":return new PRIL5_Row  {CODE = 19, NAME = "ВМП" };
+                case "2.1": return new PRIL5_Row {CODE = 20, NAME = "Дневной стационар без онкологии" };
+                case "2.2": return new PRIL5_Row {CODE = 21, NAME = "Дневной стационар онкология" };
+                case "2.3": return new PRIL5_Row {CODE = 22, NAME = "Дневной стационар ЭКО" };
+                case "-": return new PRIL5_Row { CODE = 23, NAME = "Прочее" };
             }
             throw new Exception($"Не найдена строка в приложении 5 для: {CODE}");
         }

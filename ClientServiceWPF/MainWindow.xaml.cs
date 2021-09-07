@@ -31,6 +31,7 @@ using ClientServiceWPF.ORDERS.ORD104;
 using ClientServiceWPF.ORDERS.ORD15;
 using ClientServiceWPF.ORDERS.ORD23;
 using ClientServiceWPF.ORDERS.ORD260;
+using ClientServiceWPF.ORDERS.SchetPalat;
 using ServiceLoaderMedpomData.Annotations;
 
 namespace ClientServiceWPF
@@ -562,6 +563,18 @@ namespace ClientServiceWPF
             try
             {
                 var win = new DISPWin();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+        public ICommand PalatNavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new PalatWin();
                 win.Show();
             }
             catch (Exception ex)

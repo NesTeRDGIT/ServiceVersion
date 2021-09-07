@@ -82,6 +82,7 @@
                 <Separator></Separator>
                 <MenuItem Header="Выгрузка персональных данных" Command="{Binding FSBNavigateCommand}"/>
                 <MenuItem Header="Выгрузка DISP" Command="{Binding DISPNavigateCommand}"/>
+                <MenuItem Header="Выгрузка для счетной палаты" Command="{Binding PalatNavigateCommand}"/>
             </MenuItem>
             <MenuItem Header="Инструменты">
                 <MenuItem Header="Редактор XML схем" x:Name="MenuItemXSDCreator" Command="{Binding XMLshemaNavigateCommand}"/>

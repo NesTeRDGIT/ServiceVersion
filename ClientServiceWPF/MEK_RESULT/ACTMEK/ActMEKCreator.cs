@@ -1223,10 +1223,12 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     //Стационар	
                     case "1.1.1":
                     case "1.2.1":
+               
                         par.STAC.Add(vol);
                         break;
-                    //Стационар 1213	
+                    //Стационар МБТ	
                     case "1.1.1.2":
+                    case "1.1.1.3":
                         par.STAC.Add(vol);
                         break;
                     //Услуги диализа (стационар)		
@@ -1312,7 +1314,6 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     case "4.2":
                         par.TROMB.AddSUM(vol);
                         break;
-
                     case "":
                     case null:
                         par.OTHER.Add(vol);

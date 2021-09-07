@@ -352,18 +352,28 @@ namespace MedpomService
         {
             try
             {
-                var packs = guid.Select(x=>PacketQuery.FindPack(x)).Where(x=>x!=null).ToList();
+                var packs = guid.Select(x => PacketQuery.FindPack(x)).Where(x => x != null).ToList();
                 if (packs.Any(pack => pack.Status != StatusFilePack.FLKOK && pack.Status != StatusFilePack.FLKERR))
                 {
                     throw new FaultException("Повтор возможен только при статусах: FLKOK,FLKERR");
                 }
+
                 Task.Run(() =>
                 {
                     foreach (var pack in packs)
                     {
-                        pack.Status = StatusFilePack.Close;
-                        SchemaCheck.StartReCheck(pack);
+                        try
+                        {
+                            pack.Status = StatusFilePack.Close;
+                            SchemaCheck.StartReCheck(pack);
+                        }
+                        catch (Exception ex)
+                        {
+                            pack.Status = StatusFilePack.FLKERR;
+                            pack.Comment = $"Ошибка повтора проверки: {ex.Message}";
+                        }
                     }
+
                 });
             }
             catch (Exception ex)
