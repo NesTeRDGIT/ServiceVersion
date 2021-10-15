@@ -591,7 +591,14 @@ namespace ExcelManager
 
         private SheetFormatProperties GetSheetFormatProperties()
         {
-           return worksheetPart.Worksheet.SheetFormatProperties ?? new SheetFormatProperties(){ DefaultColumnWidth = 8.45, DefaultRowHeight = 15 };
+            var t = worksheetPart.Worksheet.SheetFormatProperties;
+            if (t == null)
+                return new SheetFormatProperties() { DefaultColumnWidth = 8.45, DefaultRowHeight = 15 };
+            if (t.DefaultColumnWidth == null)
+                t.DefaultColumnWidth = 8.45;
+            if (t.DefaultRowHeight == null)
+                t.DefaultRowHeight =15;
+            return t;
         }
         private void ReadColumn()
         {

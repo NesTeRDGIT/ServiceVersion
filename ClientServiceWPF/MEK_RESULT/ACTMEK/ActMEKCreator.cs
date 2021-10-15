@@ -44,8 +44,8 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             D_ACT = DateTime.Now,
             DATE_INVITE = DateTime.Now,
             IsSelect = true,
-            MONTH = SVOD_LIST.First().MO_ITEM.MONTH,
-            YEAR = SVOD_LIST.First().MO_ITEM.YEAR,
+            MONTH_SANK = SVOD_LIST.First().MO_ITEM.MONTH_SANK,
+            YEAR_SANK = SVOD_LIST.First().MO_ITEM.YEAR_SANK,
             N_ACT = $"На {SVOD_LIST.Select(x => x.MO_ITEM).Count()} актов",
             NAME_MOK = "Сводный акт"
         };
@@ -74,7 +74,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         public MEK_ITEM OBR_AMB { get; set; } = new MEK_ITEM();
         public MEK_ITEM AMB => POS_AMB + OBR_AMB;
 
-        public MEK_ITEM MP_NOT_VR => DISP2 + DISP_VZR + DISP_DET + PROF_DET + PROF_VZR + VMP + DSTAC + DIAL_STAC + STAC + NEOT + KORON + MOL + GIST + ENDO + USI + MRT + KT + DIAL_AMB + AMB + TROMB + KORON_1213+ UG_DISP2+ UG_DISP1;
+        public MEK_ITEM MP_NOT_VR => DISP2 + DISP_VZR + DISP_DET + PROF_DET + PROF_VZR + FULL_STAC + DSTAC + NEOT + KORON + MOL + GIST + ENDO + USI + MRT + KT + DIAL_AMB + AMB + TROMB + KORON_1213 + UG_DISP2 + UG_DISP1;
 
         public MEK_ITEM TROMB { get; set; } = new MEK_ITEM();
         public MEK_ITEM DIAL_AMB { get; set; } = new MEK_ITEM();
@@ -88,8 +88,9 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         public MEK_ITEM KORON_1213 { get; set; } = new MEK_ITEM();
         public MEK_ITEM NEOT { get; set; } = new MEK_ITEM();
         public MEK_ITEM STAC { get; set; } = new MEK_ITEM();
-        public MEK_ITEM STAC_1213 { get; set; } = new MEK_ITEM();
-        public MEK_ITEM FULL_STAC => STAC + VMP + DIAL_STAC + STAC_1213;
+        public MEK_ITEM STAC_MBT_989 { get; set; } = new MEK_ITEM();
+        public MEK_ITEM STAC_MBT_1997 { get; set; } = new MEK_ITEM();
+        public MEK_ITEM FULL_STAC => STAC + VMP + DIAL_STAC + STAC_MBT_989 + STAC_MBT_1997;
         public MEK_ITEM DIAL_STAC { get; set; } = new MEK_ITEM();
 
         public MEK_ITEM DSTAC => DSTAC_WITHOUT_EKO + EKO;
@@ -109,9 +110,9 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         public MEK_ITEM OTHER { get; set; } = new MEK_ITEM();
 
 
-        public MEK_ITEM FULL_AMB => AMB + FOND + NAPR + FAP + PROF_DET + PROF_VZR + DISP_VZR + DISP_DET + DISP2 + OTHER + DIAL_AMB + KT + MRT + USI + ENDO + GIST + MOL + KORON + NEOT + KORON_1213+ UG_DISP1+ UG_DISP2;
+        public MEK_ITEM FULL_AMB => AMB + FOND + NAPR + FAP + PROF_DET + PROF_VZR + DISP_VZR + DISP_DET + DISP2 + OTHER + DIAL_AMB + KT + MRT + USI + ENDO + GIST + MOL + KORON + NEOT + KORON_1213 + UG_DISP1 + UG_DISP2;
 
-        public decimal NAPR_FROM_MO { get; set; }
+       // public decimal NAPR_FROM_MO { get; set; }
 
 
         public static MEK_PARAM operator +(MEK_PARAM x1, MEK_PARAM x2)
@@ -146,17 +147,19 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 PROF_VZR = x1.PROF_VZR + x2.PROF_VZR,
                 DISP_DET = x1.DISP_DET + x2.DISP_DET,
                 DISP_VZR = x1.DISP_VZR + x2.DISP_VZR,
-                UG_DISP2 = x1.UG_DISP2+x2.UG_DISP2,
-                UG_DISP1 = x2.UG_DISP1 +x2.UG_DISP1,
+                UG_DISP2 = x1.UG_DISP2 + x2.UG_DISP2,
+                UG_DISP1 = x1.UG_DISP1 + x2.UG_DISP1,
                 DISP2 = x1.DISP2 + x2.DISP2,
                 OTHER = x1.OTHER + x2.OTHER,
-                STAC_1213 = x1.STAC_1213 + x2.STAC_1213,
-                NAPR_FROM_MO = x1.NAPR_FROM_MO + x2.NAPR_FROM_MO,
+                STAC_MBT_1997 = x1.STAC_MBT_1997 + x2.STAC_MBT_1997,
+                STAC_MBT_989 = x1.STAC_MBT_989 + x2.STAC_MBT_989,
+                //NAPR_FROM_MO = x1.NAPR_FROM_MO + x2.NAPR_FROM_MO,
                 KORON_1213 = x1.KORON_1213 + x2.KORON_1213,
                 PROF_DET_FOND = x1.PROF_DET_FOND + x2.PROF_DET_FOND,
                 PROF_VZR_FOND = x1.PROF_VZR_FOND + x2.PROF_VZR_FOND,
                 DISP_DET_FOND = x1.DISP_DET_FOND + x2.DISP_DET_FOND,
-                DISP_VZR_FOND = x1.DISP_VZR_FOND + x2.DISP_VZR_FOND
+                DISP_VZR_FOND = x1.DISP_VZR_FOND + x2.DISP_VZR_FOND,
+
             };
         }
     }
@@ -167,11 +170,6 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
     }
     public class MEK_ITEM
     {
-        public MEK_ITEM()
-        {
-        }
-
-
         public Dictionary<MEK_PROFIL, MEK_ITEM_VALUE> MEK_PROFIL { get; set; } = new Dictionary<MEK_PROFIL, MEK_ITEM_VALUE>();
 
         public decimal KOL => MEK_PROFIL.Values.Sum(x => x.KOL);
@@ -180,6 +178,13 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         public decimal SUM_P => MEK_PROFIL.Values.Sum(x => x.SUM_P);
         public decimal KOL_MEK => MEK_PROFIL.Values.Sum(x => x.KOL_MEK);
         public decimal SUM_MEK => MEK_PROFIL.Values.Sum(x => x.SUM_MEK);
+
+        public decimal KOL_MEK_P => MEK_PROFIL.Values.Sum(x => x.KOL_MEK_P);
+        public decimal SUM_MEK_P => MEK_PROFIL.Values.Sum(x => x.SUM_MEK_P);
+
+        public decimal KOL_P_ON_MEK_P => MEK_PROFIL.Values.Sum(x => x.KOL_P_ON_MEK_P);
+        public decimal SUM_P_ON_MEK_P => MEK_PROFIL.Values.Sum(x => x.SUM_P_ON_MEK_P);
+
 
         public void Add(MP_VOLUME_ITEM item)
         {
@@ -246,6 +251,10 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         public decimal SUM_P { get; set; }
         public decimal KOL_MEK { get; set; }
         public decimal SUM_MEK { get; set; }
+        public decimal KOL_MEK_P { get; set; }
+        public decimal SUM_MEK_P { get; set; }
+        public decimal KOL_P_ON_MEK_P { get; set; }
+        public decimal SUM_P_ON_MEK_P { get; set; }
 
         public void Add(MP_VOLUME_ITEM item)
         {
@@ -255,6 +264,12 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             SUM_P += item.SUM_P;
             KOL_MEK += item.KOL_MEK;
             SUM_MEK += item.SUM_MEK;
+            KOL_MEK_P += item.KOL_MEK_P;
+            SUM_MEK_P += item.SUM_MEK_P;
+            KOL_P_ON_MEK_P += item.KOL_P_ON_MEK_P;
+            SUM_P_ON_MEK_P += item.SUM_P_ON_MEK_P;
+
+
         }
 
         public void Add(MEK_ITEM_VALUE item)
@@ -265,6 +280,10 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             SUM_P += item.SUM_P;
             KOL_MEK += item.KOL_MEK;
             SUM_MEK += item.SUM_MEK;
+            KOL_MEK_P += item.KOL_MEK_P;
+            SUM_MEK_P += item.SUM_MEK_P;
+            KOL_P_ON_MEK_P += item.KOL_P_ON_MEK_P;
+            SUM_P_ON_MEK_P += item.SUM_P_ON_MEK_P;
         }
 
         public void AddSUM(MP_VOLUME_ITEM item)
@@ -272,6 +291,8 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             SUM += item.SUM;
             SUM_P += item.SUM_P;
             SUM_MEK += item.SUM_MEK;
+            SUM_MEK_P += item.SUM_MEK_P;
+            SUM_P_ON_MEK_P += item.SUM_P_ON_MEK_P;
         }
 
         public MEK_ITEM_VALUE Copy()
@@ -283,7 +304,11 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 KOL_MEK = KOL_MEK,
                 SUM_MEK = SUM_MEK,
                 KOL_P = KOL_P,
-                SUM_P = SUM_P
+                SUM_P = SUM_P,
+                KOL_MEK_P = KOL_MEK_P,
+                SUM_MEK_P = SUM_MEK_P,
+                KOL_P_ON_MEK_P = KOL_P_ON_MEK_P,
+                SUM_P_ON_MEK_P = SUM_P_ON_MEK_P
             };
         }
 
@@ -292,6 +317,8 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             KOL += item.KOL;
             KOL_P += item.KOL_P;
             KOL_MEK += item.KOL_MEK;
+            KOL_MEK_P += item.KOL_MEK_P;
+            KOL_P_ON_MEK_P += item.KOL_P_ON_MEK_P;
         }
     }
     public class ActMEKCreator
@@ -306,7 +333,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             this.dispatcher = dispatcher;
         }
 
-        public void CreateActMEK(MO_ITEM item, string ACT_MEK_PATH,  MO_FOND_INFO FOND_INFO, List<MP_DEFECT_ITEM> DEFECT, MEK_PARAM par, PODPISANT ISP,PODPISANT RUK)
+        public void CreateActMEK(MO_ITEM item, string ACT_MEK_PATH, MO_FOND_INFO FOND_INFO, List<MP_DEFECT_ITEM> DEFECT, MEK_PARAM par, PODPISANT ISP, PODPISANT RUK)
         {
             ExcelOpenXML efm = null;
             try
@@ -315,11 +342,13 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 efm = new ExcelOpenXML();
                 efm.OpenFile(ACT_MEK_PATH, 0);
                 dispatcher.Invoke(() => { progress.Text = "Создание файла:(Акт МЭК)"; });
-                CreateAct(efm, item, FOND_INFO, par, DEFECT,ISP,RUK);
+                CreateAct(efm, item, FOND_INFO, par, DEFECT, ISP, RUK);
                 dispatcher.Invoke(() => { progress.Text = "Создание файла:(Раздел 1)"; });
-                CreateRazdel1(efm, item, FOND_INFO, par, DEFECT, ISP, RUK);
+                CreateRazdel1(efm, item, DEFECT.Where(x => !x.IsDOP).ToList(), ISP, RUK);
+                dispatcher.Invoke(() => { progress.Text = "Создание файла:(Раздел 1.1)"; });
+                CreateRazdel11(efm, item, DEFECT.Where(x => x.IsDOP).ToList(), ISP, RUK);
                 dispatcher.Invoke(() => { progress.Text = "Создание файла:(Раздел 2)"; });
-                CreateRazdel2(efm, item, FOND_INFO, par,  ISP, RUK);
+                CreateRazdel2(efm, item, FOND_INFO, par, ISP, RUK);
                 dispatcher.Invoke(() => { progress.Text = "Создание файла:(Реестр актов)"; });
                 CreateReestrAct(efm, item, FOND_INFO, par, DEFECT, ISP);
                 efm.MarkAsFinal(true);
@@ -354,21 +383,22 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);
             efm.PrintCell(7, 1, item.NAME_MOK, null);
             efm.PrintCell(9, 14, item.NAME_SMOK, null);
-            efm.PrintCell(11, 6, (new DateTime(item.YEAR, item.MONTH, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
+            efm.PrintCell(11, 6, (new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
 
 
 
             uint rowindex = 15;
             //Предъявлено по итоговому реестру на сумму:
-            if (PrintVolume(efm, rowindex, par.ALL_PRED.KOL, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S + par.ALL_PRED.SUM, par.ALL_PRED.KOL_MEK, par.ALL_PRED.SUM_MEK + par.NAPR_FROM_MO, par.ALL_PRED.KOL_P, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S + par.ALL_PRED.SUM_P - par.NAPR_FROM_MO))
+
+            if (PrintVolume(efm, rowindex, par.ALL_PRED.KOL, FOND_INFO.FOND_SUM + par.ALL_PRED.SUM, par.ALL_PRED.KOL_MEK, par.ALL_PRED.SUM_MEK + FOND_INFO.MUR, par.ALL_PRED.KOL_P, FOND_INFO.FOND_SUMP + par.ALL_PRED.SUM_P, par.ALL_PRED.KOL_MEK_P, par.ALL_PRED.SUM_MEK_P-FOND_INFO.MUR_RETURN, par.ALL_PRED.KOL_P_ON_MEK_P, par.ALL_PRED.SUM_P_ON_MEK_P + FOND_INFO.FOND_SUMP_ON_MEK_P))
                 rowindex++;
 
             //Медицинская помощь, оказанная прикрепленным гражданам:
-            if (PrintVolume(efm, rowindex, null, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S, null, par.NAPR_FROM_MO, null, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S - par.NAPR_FROM_MO))
+            if (PrintVolume(efm, rowindex, null, FOND_INFO.FOND_SUM, null, FOND_INFO.MUR, null, FOND_INFO.FOND_SUMP, null, FOND_INFO.MUR_RETURN * -1, null, FOND_INFO.FOND_SUMP_ON_MEK_P))
                 rowindex++;
 
             //Амбулаторная помощь по дифференцированному подушевому нормативу
-            if (PrintVolume(efm, rowindex, null, FOND_INFO.AMB_S, null, par.NAPR_FROM_MO, null, FOND_INFO.AMB_S - par.NAPR_FROM_MO))
+            if (PrintVolume(efm, rowindex, null, FOND_INFO.AMB_S, null, FOND_INFO.MUR, null, FOND_INFO.AMB_S_P, null, FOND_INFO.MUR_RETURN*-1, null, FOND_INFO.AMB_S_P_ON_MEK_P))
                 rowindex++;
             //Прикрепленно
             if (FOND_INFO.AMB_K != 0)
@@ -394,43 +424,43 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 efm.RemoveRow(rowindex);
             }
             //посещений с профилактическими и иными целями
-            if (PrintVolume(efm, rowindex, par.POS_FOND.KOL, null, par.POS_FOND.KOL_MEK, null, par.POS_FOND.KOL_P, null))
+            if (PrintVolume(efm, rowindex, par.POS_FOND.KOL, null, par.POS_FOND.KOL_MEK, null, par.POS_FOND.KOL_P, null, par.POS_FOND.KOL_MEK_P, null, par.POS_FOND.KOL_P_ON_MEK_P, null))
                 rowindex++;
             //обращений по поводу заболевания
-            if (PrintVolume(efm, rowindex, par.OBR_FOND.KOL, null, par.OBR_FOND.KOL_MEK, null, par.OBR_FOND.KOL_P, null))
+            if (PrintVolume(efm, rowindex, par.OBR_FOND.KOL, null, par.OBR_FOND.KOL_MEK, null, par.OBR_FOND.KOL_P, null, par.OBR_FOND.KOL_MEK_P, null, par.OBR_FOND.KOL_P_ON_MEK_P, null))
                 rowindex++;
             //профилактические осмотры несовершеннолетних 1 этап
-            if (PrintVolume(efm, rowindex, par.PROF_DET_FOND.KOL, null, par.PROF_DET_FOND.KOL_MEK, null, par.PROF_DET_FOND.KOL_P, null))
+            if (PrintVolume(efm, rowindex, par.PROF_DET_FOND.KOL, null, par.PROF_DET_FOND.KOL_MEK, null, par.PROF_DET_FOND.KOL_P, null, par.PROF_DET_FOND.KOL_MEK_P, null, par.PROF_DET_FOND.KOL_P_ON_MEK_P, null))
                 rowindex++;
             //профилактические осмотры взрослого населения 1 этап
-            if (PrintVolume(efm, rowindex, par.PROF_VZR_FOND.KOL, null, par.PROF_VZR_FOND.KOL_MEK, null, par.PROF_VZR_FOND.KOL_P, null))
+            if (PrintVolume(efm, rowindex, par.PROF_VZR_FOND.KOL, null, par.PROF_VZR_FOND.KOL_MEK, null, par.PROF_VZR_FOND.KOL_P, null, par.PROF_VZR_FOND.KOL_MEK_P, null, par.PROF_VZR_FOND.KOL_P_ON_MEK_P, null))
                 rowindex++;
             //диспансеризация детского населения 1 этап
-            if (PrintVolume(efm, rowindex, par.DISP_DET_FOND.KOL, null, par.DISP_DET_FOND.KOL_MEK, null, par.DISP_DET_FOND.KOL_P, null))
+            if (PrintVolume(efm, rowindex, par.DISP_DET_FOND.KOL, null, par.DISP_DET_FOND.KOL_MEK, null, par.DISP_DET_FOND.KOL_P, null, par.DISP_DET_FOND.KOL_MEK_P, null, par.DISP_DET_FOND.KOL_P_ON_MEK_P, null))
                 rowindex++;
             //диспансеризация взрослого населения 1 этап
-            if (PrintVolume(efm, rowindex, par.DISP_VZR_FOND.KOL, null, par.DISP_VZR_FOND.KOL_MEK, null, par.DISP_VZR_FOND.KOL_P, null))
+            if (PrintVolume(efm, rowindex, par.DISP_VZR_FOND.KOL, null, par.DISP_VZR_FOND.KOL_MEK, null, par.DISP_VZR_FOND.KOL_P, null, par.DISP_VZR_FOND.KOL_MEK_P, null, par.DISP_VZR_FOND.KOL_P_ON_MEK_P, null))
                 rowindex++;
 
             //Медицинская помощь, оказанная прикрепленным гражданам в других МО
-            if (PrintVolume(efm, rowindex, null, null, null, par.NAPR_FROM_MO, null, null))
+            if (PrintVolume(efm, rowindex, null, null, null, FOND_INFO.MUR, null, null, null, FOND_INFO.MUR_RETURN*-1, null, null))
                 rowindex++;
 
 
             //Финансовое обеспечение ФП/ФАП: 
-            if (PrintVolume(efm, rowindex, null, FOND_INFO.FAP_S, null, 0, null, FOND_INFO.FAP_S))
+            if (PrintVolume(efm, rowindex, null, FOND_INFO.FAP_S, null, 0, null, FOND_INFO.FAP_S, null, null, null, FOND_INFO.FAP_S))
                 rowindex++;
             //посещений с профилактическими и иными целями
-            if (PrintVolume(efm, rowindex, par.POS_FAP.KOL, null, par.POS_FAP.KOL_MEK, null, par.POS_FAP.KOL_P, null))
+            if (PrintVolume(efm, rowindex, par.POS_FAP.KOL, null, par.POS_FAP.KOL_MEK, null, par.POS_FAP.KOL_P, null, par.POS_FAP.KOL_MEK_P, null, par.POS_FAP.KOL_P_ON_MEK_P, null))
                 rowindex++;
             //обращений по поводу заболевания
-            if (PrintVolume(efm, rowindex, par.OBR_FAP.KOL, null, par.OBR_FAP.KOL_MEK, null, par.OBR_FAP.KOL_P, null))
+            if (PrintVolume(efm, rowindex, par.OBR_FAP.KOL, null, par.OBR_FAP.KOL_MEK, null, par.OBR_FAP.KOL_P, null, par.OBR_FAP.KOL_MEK_P, null, par.OBR_FAP.KOL_P_ON_MEK_P, null))
                 rowindex++;
 
 
 
             //Скорая помощь по дифференцированному подушевому нормативу: 
-            if (PrintVolume(efm, rowindex, null, FOND_INFO.SCOR_S, null, 0, null, FOND_INFO.SCOR_S))
+            if (PrintVolume(efm, rowindex, null, FOND_INFO.SCOR_S, null, 0, null, FOND_INFO.SCOR_S, null, null, null, FOND_INFO.SCOR_S))
                 rowindex++;
             //Прикрепленно:
             if (FOND_INFO.SCOR_K != 0)
@@ -453,113 +483,116 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 efm.RemoveRow(rowindex);
             }
             //вызовов
-            if (PrintVolume(efm, rowindex, par.SCOR.KOL, null, par.SCOR.KOL_MEK, null, par.SCOR.KOL_P, null))
+            if (PrintVolume(efm, rowindex, par.SCOR.KOL, null, par.SCOR.KOL_MEK, null, par.SCOR.KOL_P, null, par.SCOR.KOL_MEK_P, null, par.SCOR.KOL_P_ON_MEK_P, null))
                 rowindex++;
             //Медицинская помощь, оказанная неприкрепленным гражданам по направлениям других МО или без направлений, оплачиваемые в бесспорном порядке (внешние услуги):
             //Амбулаторная помощь:
-            if (PrintVolume(efm, rowindex, par.NAPR.KOL, par.NAPR.SUM, par.NAPR.KOL_MEK, par.NAPR.SUM_MEK, par.NAPR.KOL_P, par.NAPR.SUM_P))
+            if (PrintVolume(efm, rowindex, par.NAPR.KOL, par.NAPR.SUM, par.NAPR.KOL_MEK, par.NAPR.SUM_MEK, par.NAPR.KOL_P, par.NAPR.SUM_P, par.NAPR.KOL_MEK_P, par.NAPR.SUM_MEK_P, par.NAPR.KOL_P_ON_MEK_P, par.NAPR.SUM_P_ON_MEK_P))
                 rowindex++;
-            if (PrintVolume(efm, rowindex, par.NAPR.KOL, par.NAPR.SUM, par.NAPR.KOL_MEK, par.NAPR.SUM_MEK, par.NAPR.KOL_P, par.NAPR.SUM_P))
+            if (PrintVolume(efm, rowindex, par.NAPR.KOL, par.NAPR.SUM, par.NAPR.KOL_MEK, par.NAPR.SUM_MEK, par.NAPR.KOL_P, par.NAPR.SUM_P, par.NAPR.KOL_MEK_P, par.NAPR.SUM_MEK_P, par.NAPR.KOL_P_ON_MEK_P, par.NAPR.SUM_P_ON_MEK_P))
                 rowindex++;
             //посещений с профилактическими и иными целями
-            if (PrintVolume(efm, rowindex, par.POS_NAPR.KOL, par.POS_NAPR.SUM, par.POS_NAPR.KOL_MEK, par.POS_NAPR.SUM_MEK, par.POS_NAPR.KOL_P, par.POS_NAPR.SUM_P))
+            if (PrintVolume(efm, rowindex, par.POS_NAPR.KOL, par.POS_NAPR.SUM, par.POS_NAPR.KOL_MEK, par.POS_NAPR.SUM_MEK, par.POS_NAPR.KOL_P, par.POS_NAPR.SUM_P, par.POS_NAPR.KOL_MEK_P, par.POS_NAPR.SUM_MEK_P, par.POS_NAPR.KOL_P_ON_MEK_P, par.POS_NAPR.SUM_P_ON_MEK_P))
                 rowindex++;
             //обращений по поводу заболевания
-            if (PrintVolume(efm, rowindex, par.OBR_NAPR.KOL, par.OBR_NAPR.SUM, par.OBR_NAPR.KOL_MEK, par.OBR_NAPR.SUM_MEK, par.OBR_NAPR.KOL_P, par.OBR_NAPR.SUM_P))
+            if (PrintVolume(efm, rowindex, par.OBR_NAPR.KOL, par.OBR_NAPR.SUM, par.OBR_NAPR.KOL_MEK, par.OBR_NAPR.SUM_MEK, par.OBR_NAPR.KOL_P, par.OBR_NAPR.SUM_P, par.OBR_NAPR.KOL_MEK_P, par.OBR_NAPR.SUM_MEK_P, par.OBR_NAPR.KOL_P_ON_MEK_P, par.OBR_NAPR.SUM_P_ON_MEK_P))
                 rowindex++;
 
 
             //Медицинская помощь, не включенная в систему взаиморасчетов
-            if (PrintVolume(efm, rowindex, par.MP_NOT_VR.KOL, par.MP_NOT_VR.SUM, par.MP_NOT_VR.KOL_MEK, par.MP_NOT_VR.SUM_MEK, par.MP_NOT_VR.KOL_P, par.MP_NOT_VR.SUM_P))
+            if (PrintVolume(efm, rowindex, par.MP_NOT_VR.KOL, par.MP_NOT_VR.SUM, par.MP_NOT_VR.KOL_MEK, par.MP_NOT_VR.SUM_MEK, par.MP_NOT_VR.KOL_P, par.MP_NOT_VR.SUM_P, par.MP_NOT_VR.KOL_MEK_P, par.MP_NOT_VR.SUM_MEK_P, par.MP_NOT_VR.KOL_P_ON_MEK_P, par.MP_NOT_VR.SUM_P_ON_MEK_P))
                 rowindex++;
 
             //Амбулаторная помощь:
-            if (PrintVolume(efm, rowindex, par.AMB.KOL, par.AMB.SUM, par.AMB.KOL_MEK, par.AMB.SUM_MEK, par.AMB.KOL_P, par.AMB.SUM_P))
+            if (PrintVolume(efm, rowindex, par.AMB.KOL, par.AMB.SUM, par.AMB.KOL_MEK, par.AMB.SUM_MEK, par.AMB.KOL_P, par.AMB.SUM_P, par.AMB.KOL_MEK_P, par.AMB.SUM_MEK_P, par.AMB.KOL_P_ON_MEK_P, par.AMB.SUM_P_ON_MEK_P))
                 rowindex++;
             //посещений с профилактическими и иными целями
-            if (PrintVolume(efm, rowindex, par.POS_AMB.KOL, par.POS_AMB.SUM, par.POS_AMB.KOL_MEK, par.POS_AMB.SUM_MEK, par.POS_AMB.KOL_P, par.POS_AMB.SUM_P))
+            if (PrintVolume(efm, rowindex, par.POS_AMB.KOL, par.POS_AMB.SUM, par.POS_AMB.KOL_MEK, par.POS_AMB.SUM_MEK, par.POS_AMB.KOL_P, par.POS_AMB.SUM_P, par.POS_AMB.KOL_MEK_P, par.POS_AMB.SUM_MEK_P, par.POS_AMB.KOL_P_ON_MEK_P, par.POS_AMB.SUM_P_ON_MEK_P))
                 rowindex++;
             //обращений по поводу заболевания
-            if (PrintVolume(efm, rowindex, par.OBR_AMB.KOL, par.OBR_AMB.SUM, par.OBR_AMB.KOL_MEK, par.OBR_AMB.SUM_MEK, par.OBR_AMB.KOL_P, par.OBR_AMB.SUM_P))
+            if (PrintVolume(efm, rowindex, par.OBR_AMB.KOL, par.OBR_AMB.SUM, par.OBR_AMB.KOL_MEK, par.OBR_AMB.SUM_MEK, par.OBR_AMB.KOL_P, par.OBR_AMB.SUM_P, par.OBR_AMB.KOL_MEK_P, par.OBR_AMB.SUM_MEK_P, par.OBR_AMB.KOL_P_ON_MEK_P, par.OBR_AMB.SUM_P_ON_MEK_P))
                 rowindex++;
 
             //Услуги диализа
-            if (PrintVolume(efm, rowindex, par.DIAL_AMB.KOL, par.DIAL_AMB.SUM, par.DIAL_AMB.KOL_MEK, par.DIAL_AMB.SUM_MEK, par.DIAL_AMB.KOL_P, par.DIAL_AMB.SUM_P))
+            if (PrintVolume(efm, rowindex, par.DIAL_AMB.KOL, par.DIAL_AMB.SUM, par.DIAL_AMB.KOL_MEK, par.DIAL_AMB.SUM_MEK, par.DIAL_AMB.KOL_P, par.DIAL_AMB.SUM_P, par.DIAL_AMB.KOL_MEK_P, par.DIAL_AMB.SUM_MEK_P, par.DIAL_AMB.KOL_P_ON_MEK_P, par.DIAL_AMB.SUM_P_ON_MEK_P))
                 rowindex++;
             //Компьютерная томография
-            if (PrintVolume(efm, rowindex, par.KT.KOL, par.KT.SUM, par.KT.KOL_MEK, par.KT.SUM_MEK, par.KT.KOL_P, par.KT.SUM_P))
+            if (PrintVolume(efm, rowindex, par.KT.KOL, par.KT.SUM, par.KT.KOL_MEK, par.KT.SUM_MEK, par.KT.KOL_P, par.KT.SUM_P, par.KT.KOL_MEK_P, par.KT.SUM_MEK_P, par.KT.KOL_P_ON_MEK_P, par.KT.SUM_P_ON_MEK_P))
                 rowindex++;
             //Магнитно-резонансная томография
-            if (PrintVolume(efm, rowindex, par.MRT.KOL, par.MRT.SUM, par.MRT.KOL_MEK, par.MRT.SUM_MEK, par.MRT.KOL_P, par.MRT.SUM_P))
+            if (PrintVolume(efm, rowindex, par.MRT.KOL, par.MRT.SUM, par.MRT.KOL_MEK, par.MRT.SUM_MEK, par.MRT.KOL_P, par.MRT.SUM_P, par.MRT.KOL_MEK_P, par.MRT.SUM_MEK_P, par.MRT.KOL_P_ON_MEK_P, par.MRT.SUM_P_ON_MEK_P))
                 rowindex++;
             //УЗИ сердечно сосудистой системы
-            if (PrintVolume(efm, rowindex, par.USI.KOL, par.USI.SUM, par.USI.KOL_MEK, par.USI.SUM_MEK, par.USI.KOL_P, par.USI.SUM_P))
+            if (PrintVolume(efm, rowindex, par.USI.KOL, par.USI.SUM, par.USI.KOL_MEK, par.USI.SUM_MEK, par.USI.KOL_P, par.USI.SUM_P, par.USI.KOL_MEK_P, par.USI.SUM_MEK_P, par.USI.KOL_P_ON_MEK_P, par.USI.SUM_P_ON_MEK_P))
                 rowindex++;
             //Эндоскопические диагностические исследования
-            if (PrintVolume(efm, rowindex, par.ENDO.KOL, par.ENDO.SUM, par.ENDO.KOL_MEK, par.ENDO.SUM_MEK, par.ENDO.KOL_P, par.ENDO.SUM_P))
+            if (PrintVolume(efm, rowindex, par.ENDO.KOL, par.ENDO.SUM, par.ENDO.KOL_MEK, par.ENDO.SUM_MEK, par.ENDO.KOL_P, par.ENDO.SUM_P, par.ENDO.KOL_MEK_P, par.ENDO.SUM_MEK_P, par.ENDO.KOL_P_ON_MEK_P, par.ENDO.SUM_P_ON_MEK_P))
                 rowindex++;
             //Гистологические исследования
-            if (PrintVolume(efm, rowindex, par.GIST.KOL, par.GIST.SUM, par.GIST.KOL_MEK, par.GIST.SUM_MEK, par.GIST.KOL_P, par.GIST.SUM_P))
+            if (PrintVolume(efm, rowindex, par.GIST.KOL, par.GIST.SUM, par.GIST.KOL_MEK, par.GIST.SUM_MEK, par.GIST.KOL_P, par.GIST.SUM_P, par.GIST.KOL_MEK_P, par.GIST.SUM_MEK_P, par.GIST.KOL_P_ON_MEK_P, par.GIST.SUM_P_ON_MEK_P))
                 rowindex++;
             //Молекулярно-диагностические исследования
-            if (PrintVolume(efm, rowindex, par.MOL.KOL, par.MOL.SUM, par.MOL.KOL_MEK, par.MOL.SUM_MEK, par.MOL.KOL_P, par.MOL.SUM_P))
+            if (PrintVolume(efm, rowindex, par.MOL.KOL, par.MOL.SUM, par.MOL.KOL_MEK, par.MOL.SUM_MEK, par.MOL.KOL_P, par.MOL.SUM_P, par.MOL.KOL_MEK_P, par.MOL.SUM_MEK_P, par.MOL.KOL_P_ON_MEK_P, par.MOL.SUM_P_ON_MEK_P))
                 rowindex++;
             //Определение РНК коронавирусов
-            if (PrintVolume(efm, rowindex, par.KORON.KOL, par.KORON.SUM, par.KORON.KOL_MEK, par.KORON.SUM_MEK, par.KORON.KOL_P, par.KORON.SUM_P))
+            if (PrintVolume(efm, rowindex, par.KORON.KOL, par.KORON.SUM, par.KORON.KOL_MEK, par.KORON.SUM_MEK, par.KORON.KOL_P, par.KORON.SUM_P, par.KORON.KOL_MEK_P, par.KORON.SUM_MEK_P, par.KORON.KOL_P_ON_MEK_P, par.KORON.SUM_P_ON_MEK_P))
                 rowindex++;
             //Определение РНК коронавирусов(1213)
-            if (PrintVolume(efm, rowindex, par.KORON_1213.KOL, par.KORON_1213.SUM, par.KORON_1213.KOL_MEK, par.KORON_1213.SUM_MEK, par.KORON_1213.KOL_P, par.KORON_1213.SUM_P))
+            if (PrintVolume(efm, rowindex, par.KORON_1213.KOL, par.KORON_1213.SUM, par.KORON_1213.KOL_MEK, par.KORON_1213.SUM_MEK, par.KORON_1213.KOL_P, par.KORON_1213.SUM_P, par.KORON_1213.KOL_MEK_P, par.KORON_1213.SUM_MEK_P, par.KORON_1213.KOL_P_ON_MEK_P, par.KORON_1213.SUM_P_ON_MEK_P))
                 rowindex++;
             //Неотложная МП
-            if (PrintVolume(efm, rowindex, par.NEOT.KOL, par.NEOT.SUM, par.NEOT.KOL_MEK, par.NEOT.SUM_MEK, par.NEOT.KOL_P, par.NEOT.SUM_P))
+            if (PrintVolume(efm, rowindex, par.NEOT.KOL, par.NEOT.SUM, par.NEOT.KOL_MEK, par.NEOT.SUM_MEK, par.NEOT.KOL_P, par.NEOT.SUM_P, par.NEOT.KOL_MEK_P, par.NEOT.SUM_MEK_P, par.NEOT.KOL_P_ON_MEK_P, par.NEOT.SUM_P_ON_MEK_P))
                 rowindex++;
             //Профилактические осмотры несовершеннолетних 1 этап
-            if (PrintVolume(efm, rowindex, par.PROF_DET.KOL, par.PROF_DET.SUM, par.PROF_DET.KOL_MEK, par.PROF_DET.SUM_MEK, par.PROF_DET.KOL_P, par.PROF_DET.SUM_P))
+            if (PrintVolume(efm, rowindex, par.PROF_DET.KOL, par.PROF_DET.SUM, par.PROF_DET.KOL_MEK, par.PROF_DET.SUM_MEK, par.PROF_DET.KOL_P, par.PROF_DET.SUM_P, par.PROF_DET.KOL_MEK_P, par.PROF_DET.SUM_MEK_P, par.PROF_DET.KOL_P_ON_MEK_P, par.PROF_DET.SUM_P_ON_MEK_P))
                 rowindex++;
             //Профилактические осмотры взрослого населения 1 этап
-            if (PrintVolume(efm, rowindex, par.PROF_VZR.KOL, par.PROF_VZR.SUM, par.PROF_VZR.KOL_MEK, par.PROF_VZR.SUM_MEK, par.PROF_VZR.KOL_P, par.PROF_VZR.SUM_P))
+            if (PrintVolume(efm, rowindex, par.PROF_VZR.KOL, par.PROF_VZR.SUM, par.PROF_VZR.KOL_MEK, par.PROF_VZR.SUM_MEK, par.PROF_VZR.KOL_P, par.PROF_VZR.SUM_P, par.PROF_VZR.KOL_MEK_P, par.PROF_VZR.SUM_MEK_P, par.PROF_VZR.KOL_P_ON_MEK_P, par.PROF_VZR.SUM_P_ON_MEK_P))
                 rowindex++;
             //Диспансеризация детского населения 1 этап
-            if (PrintVolume(efm, rowindex, par.DISP_DET.KOL, par.DISP_DET.SUM, par.DISP_DET.KOL_MEK, par.DISP_DET.SUM_MEK, par.DISP_DET.KOL_P, par.DISP_DET.SUM_P))
+            if (PrintVolume(efm, rowindex, par.DISP_DET.KOL, par.DISP_DET.SUM, par.DISP_DET.KOL_MEK, par.DISP_DET.SUM_MEK, par.DISP_DET.KOL_P, par.DISP_DET.SUM_P, par.DISP_DET.KOL_MEK_P, par.DISP_DET.SUM_MEK_P, par.DISP_DET.KOL_P_ON_MEK_P, par.DISP_DET.SUM_P_ON_MEK_P))
                 rowindex++;
             //Диспансеризация взрослого населения 1 этап
-            if (PrintVolume(efm, rowindex, par.DISP_VZR.KOL, par.DISP_VZR.SUM, par.DISP_VZR.KOL_MEK, par.DISP_VZR.SUM_MEK, par.DISP_VZR.KOL_P, par.DISP_VZR.SUM_P))
+            if (PrintVolume(efm, rowindex, par.DISP_VZR.KOL, par.DISP_VZR.SUM, par.DISP_VZR.KOL_MEK, par.DISP_VZR.SUM_MEK, par.DISP_VZR.KOL_P, par.DISP_VZR.SUM_P, par.DISP_VZR.KOL_MEK_P, par.DISP_VZR.SUM_MEK_P, par.DISP_VZR.KOL_P_ON_MEK_P, par.DISP_VZR.SUM_P_ON_MEK_P))
                 rowindex++;
             //Диспансеризация 2 этап
-            if (PrintVolume(efm, rowindex, par.DISP2.KOL, par.DISP2.SUM, par.DISP2.KOL_MEK, par.DISP2.SUM_MEK, par.DISP2.KOL_P, par.DISP2.SUM_P))
+            if (PrintVolume(efm, rowindex, par.DISP2.KOL, par.DISP2.SUM, par.DISP2.KOL_MEK, par.DISP2.SUM_MEK, par.DISP2.KOL_P, par.DISP2.SUM_P, par.DISP2.KOL_MEK_P, par.DISP2.SUM_MEK_P, par.DISP2.KOL_P_ON_MEK_P, par.DISP2.SUM_P_ON_MEK_P))
                 rowindex++;
             //Углубленная диспансеризация 1 этап																						
-            if (PrintVolume(efm, rowindex, par.UG_DISP1.KOL, par.UG_DISP1.SUM, par.UG_DISP1.KOL_MEK, par.UG_DISP1.SUM_MEK, par.UG_DISP1.KOL_P, par.UG_DISP1.SUM_P))
+            if (PrintVolume(efm, rowindex, par.UG_DISP1.KOL, par.UG_DISP1.SUM, par.UG_DISP1.KOL_MEK, par.UG_DISP1.SUM_MEK, par.UG_DISP1.KOL_P, par.UG_DISP1.SUM_P, par.UG_DISP1.KOL_MEK_P, par.UG_DISP1.SUM_MEK_P, par.UG_DISP1.KOL_P_ON_MEK_P, par.UG_DISP1.SUM_P_ON_MEK_P))
                 rowindex++;
             //Углубленная диспансеризация 2 этап
-            if (PrintVolume(efm, rowindex, par.UG_DISP2.KOL, par.UG_DISP2.SUM, par.UG_DISP2.KOL_MEK, par.UG_DISP2.SUM_MEK, par.UG_DISP2.KOL_P, par.UG_DISP2.SUM_P))
+            if (PrintVolume(efm, rowindex, par.UG_DISP2.KOL, par.UG_DISP2.SUM, par.UG_DISP2.KOL_MEK, par.UG_DISP2.SUM_MEK, par.UG_DISP2.KOL_P, par.UG_DISP2.SUM_P, par.UG_DISP2.KOL_MEK_P, par.UG_DISP2.SUM_MEK_P, par.UG_DISP2.KOL_P_ON_MEK_P, par.UG_DISP2.SUM_P_ON_MEK_P))
                 rowindex++;
 
             //Стационар
-            if (PrintVolume(efm, rowindex, par.STAC.KOL, par.STAC.SUM, par.STAC.KOL_MEK, par.STAC.SUM_MEK, par.STAC.KOL_P, par.STAC.SUM_P))
+            if (PrintVolume(efm, rowindex, par.STAC.KOL, par.STAC.SUM, par.STAC.KOL_MEK, par.STAC.SUM_MEK, par.STAC.KOL_P, par.STAC.SUM_P, par.STAC.KOL_MEK_P, par.STAC.SUM_MEK_P, par.STAC.KOL_P_ON_MEK_P, par.STAC.SUM_P_ON_MEK_P))
                 rowindex++;
-            //Стационар 1213
-            if (PrintVolume(efm, rowindex, par.STAC_1213.KOL, par.STAC_1213.SUM, par.STAC_1213.KOL_MEK, par.STAC_1213.SUM_MEK, par.STAC_1213.KOL_P, par.STAC_1213.SUM_P))
+            //Стационар РП РФ 989
+            if (PrintVolume(efm, rowindex, par.STAC_MBT_989.KOL, par.STAC_MBT_989.SUM, par.STAC_MBT_989.KOL_MEK, par.STAC_MBT_989.SUM_MEK, par.STAC_MBT_989.KOL_P, par.STAC_MBT_989.SUM_P, par.STAC_MBT_989.KOL_MEK_P, par.STAC_MBT_989.SUM_MEK_P, par.STAC_MBT_989.KOL_P_ON_MEK_P, par.STAC_MBT_989.SUM_P_ON_MEK_P))
+                rowindex++;
+            //Стационар РП РФ 1997
+            if (PrintVolume(efm, rowindex, par.STAC_MBT_1997.KOL, par.STAC_MBT_1997.SUM, par.STAC_MBT_1997.KOL_MEK, par.STAC_MBT_1997.SUM_MEK, par.STAC_MBT_1997.KOL_P, par.STAC_MBT_1997.SUM_P, par.STAC_MBT_1997.KOL_MEK_P, par.STAC_MBT_1997.SUM_MEK_P, par.STAC_MBT_1997.KOL_P_ON_MEK_P, par.STAC_MBT_1997.SUM_P_ON_MEK_P))
                 rowindex++;
             //Услуги диализа (стационар)
-            if (PrintVolume(efm, rowindex, par.DIAL_STAC.KOL, par.DIAL_STAC.SUM, par.DIAL_STAC.KOL_MEK, par.DIAL_STAC.SUM_MEK, par.DIAL_STAC.KOL_P, par.DIAL_STAC.SUM_P))
+            if (PrintVolume(efm, rowindex, par.DIAL_STAC.KOL, par.DIAL_STAC.SUM, par.DIAL_STAC.KOL_MEK, par.DIAL_STAC.SUM_MEK, par.DIAL_STAC.KOL_P, par.DIAL_STAC.SUM_P, par.DIAL_STAC.KOL_MEK_P, par.DIAL_STAC.SUM_MEK_P, par.DIAL_STAC.KOL_P_ON_MEK_P, par.DIAL_STAC.SUM_P_ON_MEK_P))
                 rowindex++;
             //Дневной стационар
-            if (PrintVolume(efm, rowindex, par.DSTAC.KOL, par.DSTAC.SUM, par.DSTAC.KOL_MEK, par.DSTAC.SUM_MEK, par.DSTAC.KOL_P, par.DSTAC.SUM_P))
+            if (PrintVolume(efm, rowindex, par.DSTAC.KOL, par.DSTAC.SUM, par.DSTAC.KOL_MEK, par.DSTAC.SUM_MEK, par.DSTAC.KOL_P, par.DSTAC.SUM_P, par.DSTAC.KOL_MEK_P, par.DSTAC.SUM_MEK_P, par.DSTAC.KOL_P_ON_MEK_P, par.DSTAC.SUM_P_ON_MEK_P))
                 rowindex++;
             //   в т.ч. ЭКО
-            if (PrintVolume(efm, rowindex, par.EKO.KOL, par.EKO.SUM, par.EKO.KOL_MEK, par.EKO.SUM_MEK, par.EKO.KOL_P, par.EKO.SUM_P))
+            if (PrintVolume(efm, rowindex, par.EKO.KOL, par.EKO.SUM, par.EKO.KOL_MEK, par.EKO.SUM_MEK, par.EKO.KOL_P, par.EKO.SUM_P, par.EKO.KOL_MEK_P, par.EKO.SUM_MEK_P, par.EKO.KOL_P_ON_MEK_P, par.EKO.SUM_P_ON_MEK_P))
                 rowindex++;
             //ВМП
-            if (PrintVolume(efm, rowindex, par.VMP.KOL, par.VMP.SUM, par.VMP.KOL_MEK, par.VMP.SUM_MEK, par.VMP.KOL_P, par.VMP.SUM_P))
+            if (PrintVolume(efm, rowindex, par.VMP.KOL, par.VMP.SUM, par.VMP.KOL_MEK, par.VMP.SUM_MEK, par.VMP.KOL_P, par.VMP.SUM_P, par.VMP.KOL_MEK_P, par.VMP.SUM_MEK_P, par.VMP.KOL_P_ON_MEK_P, par.VMP.SUM_P_ON_MEK_P))
                 rowindex++;
 
             //Тромболизис
-            if (PrintVolume(efm, rowindex, null, par.TROMB.SUM, null, par.TROMB.SUM_MEK, null, par.TROMB.SUM_P))
+            if (PrintVolume(efm, rowindex, null, par.TROMB.SUM, null, par.TROMB.SUM_MEK, null, par.TROMB.SUM_P, null, par.TROMB.SUM_MEK_P, null, par.TROMB.SUM_P_ON_MEK_P))
                 rowindex++;
 
             //Прочее
-            if (PrintVolume(efm, rowindex, par.OTHER.KOL, par.OTHER.SUM, par.OTHER.KOL_MEK, par.OTHER.SUM_MEK, par.OTHER.KOL_P, par.OTHER.SUM_P))
+            if (PrintVolume(efm, rowindex, par.OTHER.KOL, par.OTHER.SUM, par.OTHER.KOL_MEK, par.OTHER.SUM_MEK, par.OTHER.KOL_P, par.OTHER.SUM_P, par.OTHER.KOL_MEK_P, par.OTHER.SUM_MEK_P, par.OTHER.KOL_P_ON_MEK_P, par.OTHER.SUM_P_ON_MEK_P))
                 rowindex++;
 
             rowindex += 4;
@@ -587,12 +620,13 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     var row = efm.GetRow(rowindex);
                     efm.PrintCell(row, 1, def.Key.OSN, null);
                     efm.PrintCell(row, 5, def.Key.NAME, null);
-                    //var size1 = efm.Fit(rowindex, 5, 48, 15);
+
                     var size1 = efm.Fit(row, 5);
                     efm.PrintCell(row, 28, "", null);
-                    //var size2 = efm.Fit(rowindex, 28, 48, 15);
+
                     var size2 = efm.Fit(row, 28);
-                    efm.PrintCell(row, 51, def.Sum(x => x.S_SUM), null);
+                    efm.PrintCell(row, 51, def.Where(x => !x.IsDOP).Sum(x => x.S_SUM), null);
+                    efm.PrintCell(row, 57, def.Where(x => x.IsDOP).Sum(x => x.S_SUM), null);
                     efm.SetRowHeigth(rowindex, Math.Max(size1, size2));
 
                     rowindex++;
@@ -608,178 +642,14 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             rowindex++;
             efm.PrintCell(rowindex, 20, $"/{item.D_ACT:dd.MM.yyyy}", null);
         }
-        private void CreateRazdel2(ExcelOpenXML efm, MO_ITEM item, MO_FOND_INFO FOND_INFO, MEK_PARAM par,  PODPISANT ISP, PODPISANT RUK)
-        {
-            efm.SetCurrentSchet(2);
-            efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);
-            efm.PrintCell(7, 1, item.NAME_MOK, null);
-            efm.PrintCell(9, 14, item.NAME_SMOK, null);
-            efm.PrintCell(10, 6, (new DateTime(item.YEAR, item.MONTH, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
-            uint rowIndex = 14;
 
-
-            //Предъявлено по итоговому реестру на сумму:
-            if (PrintVolume(efm, rowIndex, par.ALL_PRED.KOL, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S + par.ALL_PRED.SUM, par.ALL_PRED.KOL_MEK, par.ALL_PRED.SUM_MEK + par.NAPR_FROM_MO, par.ALL_PRED.KOL_P, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S + par.ALL_PRED.SUM_P - par.NAPR_FROM_MO))
-                rowIndex++;
-
-            //Медицинская помощь, оказанная прикрепленным гражданам:
-            if (PrintVolume(efm, rowIndex, null, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S, null, par.NAPR_FROM_MO, null, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S - par.NAPR_FROM_MO))
-                rowIndex++;
-            //Амбулаторная помощь по дифференцированному подушевому нормативу
-            if (PrintVolume(efm, rowIndex, null, FOND_INFO.AMB_S, null, par.NAPR_FROM_MO, null, FOND_INFO.AMB_S - par.NAPR_FROM_MO))
-                rowIndex++;
-
-            //Финансовое обеспечение ФП/ФАП: 
-            if (PrintVolume(efm, rowIndex, null, FOND_INFO.FAP_S, null, 0, null, FOND_INFO.FAP_S))
-                rowIndex++;
-
-            //Скорая помощь по дифференцированному подушевому нормативу: 
-            if (PrintVolume(efm, rowIndex, null, FOND_INFO.SCOR_S, null, null, null, FOND_INFO.SCOR_S))
-                rowIndex++;
-            //Медицинская помощь, оказанная прикрепленным гражданам в других МО
-            if (PrintVolume(efm, rowIndex, null, null, null, par.NAPR_FROM_MO, null, null))
-                rowIndex++;
-            //Медицинская помощь, оказанная неприкрепленным гражданам по направлениям других МО или без направлений, оплачиваемые в бесспорном порядке (внешние услуги):
-            //Амбулаторная помощь:
-            if (PrintVolume(efm, rowIndex, par.NAPR.KOL, par.NAPR.SUM, par.NAPR.KOL_MEK, par.NAPR.SUM_MEK, par.NAPR.KOL_P, par.NAPR.SUM_P))
-                rowIndex++;
-            if (PrintVolume(efm, rowIndex, par.NAPR.KOL, par.NAPR.SUM, par.NAPR.KOL_MEK, par.NAPR.SUM_MEK, par.NAPR.KOL_P, par.NAPR.SUM_P))
-                rowIndex++;
-
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.NAPR);
-            //Медицинская помощь, не включенная в систему взаиморасчетов
-            if (PrintVolume(efm, rowIndex, par.MP_NOT_VR.KOL, par.MP_NOT_VR.SUM, par.MP_NOT_VR.KOL_MEK, par.MP_NOT_VR.SUM_MEK, par.MP_NOT_VR.KOL_P, par.MP_NOT_VR.SUM_P))
-                rowIndex++;
-            //Амбулаторная помощь:
-            if (PrintVolume(efm, rowIndex, par.AMB.KOL, par.AMB.SUM, par.AMB.KOL_MEK, par.AMB.SUM_MEK, par.AMB.KOL_P, par.AMB.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.AMB);
-
-
-            //Услуги диализа
-            if (PrintVolume(efm, rowIndex, par.DIAL_AMB.KOL, par.DIAL_AMB.SUM, par.DIAL_AMB.KOL_MEK, par.DIAL_AMB.SUM_MEK, par.DIAL_AMB.KOL_P, par.DIAL_AMB.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.DIAL_AMB);
-            //Компьютерная томография
-            if (PrintVolume(efm, rowIndex, par.KT.KOL, par.KT.SUM, par.KT.KOL_MEK, par.KT.SUM_MEK, par.KT.KOL_P, par.KT.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.KT);
-            //Магнитно-резонансная томография
-            if (PrintVolume(efm, rowIndex, par.MRT.KOL, par.MRT.SUM, par.MRT.KOL_MEK, par.MRT.SUM_MEK, par.MRT.KOL_P, par.MRT.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.MRT);
-            //УЗИ сердечно сосудистой системы
-            if (PrintVolume(efm, rowIndex, par.USI.KOL, par.USI.SUM, par.USI.KOL_MEK, par.USI.SUM_MEK, par.USI.KOL_P, par.USI.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.USI);
-            //Эндоскопические диагностические исследования
-            if (PrintVolume(efm, rowIndex, par.ENDO.KOL, par.ENDO.SUM, par.ENDO.KOL_MEK, par.ENDO.SUM_MEK, par.ENDO.KOL_P, par.ENDO.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.ENDO);
-
-            //Гистологические исследования
-            if (PrintVolume(efm, rowIndex, par.GIST.KOL, par.GIST.SUM, par.GIST.KOL_MEK, par.GIST.SUM_MEK, par.GIST.KOL_P, par.GIST.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.GIST);
-            //Молекулярно-диагностические исследования
-            if (PrintVolume(efm, rowIndex, par.MOL.KOL, par.MOL.SUM, par.MOL.KOL_MEK, par.MOL.SUM_MEK, par.MOL.KOL_P, par.MOL.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.MOL);
-            //Определение РНК коронавирусов
-            if (PrintVolume(efm, rowIndex, par.KORON.KOL, par.KORON.SUM, par.KORON.KOL_MEK, par.KORON.SUM_MEK, par.KORON.KOL_P, par.KORON.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.KORON);
-            //Определение РНК коронавирусов(1213)
-            if (PrintVolume(efm, rowIndex, par.KORON_1213.KOL, par.KORON_1213.SUM, par.KORON_1213.KOL_MEK, par.KORON_1213.SUM_MEK, par.KORON_1213.KOL_P, par.KORON_1213.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.KORON_1213);
-
-            //Неотложная МП
-            if (PrintVolume(efm, rowIndex, par.NEOT.KOL, par.NEOT.SUM, par.NEOT.KOL_MEK, par.NEOT.SUM_MEK, par.NEOT.KOL_P, par.NEOT.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.NEOT);
-            //Профилактические осмотры несовершеннолетних 1 этап
-            if (PrintVolume(efm, rowIndex, par.PROF_DET.KOL, par.PROF_DET.SUM, par.PROF_DET.KOL_MEK, par.PROF_DET.SUM_MEK, par.PROF_DET.KOL_P, par.PROF_DET.SUM_P))
-                rowIndex++;
-
-            //Профилактические осмотры взрослого населения 1 этап
-            if (PrintVolume(efm, rowIndex, par.PROF_VZR.KOL, par.PROF_VZR.SUM, par.PROF_VZR.KOL_MEK, par.PROF_VZR.SUM_MEK, par.PROF_VZR.KOL_P, par.PROF_VZR.SUM_P))
-                rowIndex++;
-            //Диспансеризация детского населения 1 этап
-            if (PrintVolume(efm, rowIndex, par.DISP_DET.KOL, par.DISP_DET.SUM, par.DISP_DET.KOL_MEK, par.DISP_DET.SUM_MEK, par.DISP_DET.KOL_P, par.DISP_DET.SUM_P))
-                rowIndex++;
-
-            //Диспансеризация взрослого населения 1 этап
-            if (PrintVolume(efm, rowIndex, par.DISP_VZR.KOL, par.DISP_VZR.SUM, par.DISP_VZR.KOL_MEK, par.DISP_VZR.SUM_MEK, par.DISP_VZR.KOL_P, par.DISP_VZR.SUM_P))
-                rowIndex++;
-
-            //Диспансеризация 2 этап
-            if (PrintVolume(efm, rowIndex, par.DISP2.KOL, par.DISP2.SUM, par.DISP2.KOL_MEK, par.DISP2.SUM_MEK, par.DISP2.KOL_P, par.DISP2.SUM_P))
-                rowIndex++;
-
-            //Углубленная диспансеризация 1 этап
-            if (PrintVolume(efm, rowIndex, par.UG_DISP1.KOL, par.UG_DISP1.SUM, par.UG_DISP1.KOL_MEK, par.UG_DISP1.SUM_MEK, par.UG_DISP1.KOL_P, par.UG_DISP1.SUM_P))
-                rowIndex++;
-            //Углубленная диспансеризация 2 этап
-            if (PrintVolume(efm, rowIndex, par.UG_DISP2.KOL, par.UG_DISP2.SUM, par.UG_DISP2.KOL_MEK, par.UG_DISP2.SUM_MEK, par.UG_DISP2.KOL_P, par.UG_DISP2.SUM_P))
-                rowIndex++;
-
-            //Стационар
-            if (PrintVolume(efm, rowIndex, par.STAC.KOL, par.STAC.SUM, par.STAC.KOL_MEK, par.STAC.SUM_MEK, par.STAC.KOL_P, par.STAC.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.STAC);
-
-            //Стационар(1213)
-            if (PrintVolume(efm, rowIndex, par.STAC_1213.KOL, par.STAC_1213.SUM, par.STAC_1213.KOL_MEK, par.STAC_1213.SUM_MEK, par.STAC_1213.KOL_P, par.STAC_1213.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.STAC_1213);
-
-            //Услуги диализа (стационар)
-            if (PrintVolume(efm, rowIndex, par.DIAL_STAC.KOL, par.DIAL_STAC.SUM, par.DIAL_STAC.KOL_MEK, par.DIAL_STAC.SUM_MEK, par.DIAL_STAC.KOL_P, par.DIAL_STAC.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.DIAL_STAC);
-
-            //Дневной стационар
-            if (PrintVolume(efm, rowIndex, par.DSTAC.KOL, par.DSTAC.SUM, par.DSTAC.KOL_MEK, par.DSTAC.SUM_MEK, par.DSTAC.KOL_P, par.DSTAC.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.DSTAC);
-
-            //   в т.ч. ЭКО
-            if (PrintVolume(efm, rowIndex, par.EKO.KOL, par.EKO.SUM, par.EKO.KOL_MEK, par.EKO.SUM_MEK, par.EKO.KOL_P, par.EKO.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.EKO);
-
-            //ВМП
-            if (PrintVolume(efm, rowIndex, par.VMP.KOL, par.VMP.SUM, par.VMP.KOL_MEK, par.VMP.SUM_MEK, par.VMP.KOL_P, par.VMP.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.VMP);
-            //Тромболизис
-            if (PrintVolume(efm, rowIndex, null, par.TROMB.SUM, null, par.TROMB.SUM_MEK, null, par.TROMB.SUM_P))
-                rowIndex++;
-            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.TROMB, true);
-            //Прочее
-            if (PrintVolume(efm, rowIndex, par.OTHER.KOL, par.OTHER.SUM, par.OTHER.KOL_MEK, par.OTHER.SUM_MEK, par.OTHER.KOL_P, par.OTHER.SUM_P))
-                rowIndex++;
-
-
-            rowIndex++;
-            efm.PrintCell(rowIndex, 1, ISP.DOLG, null);
-            efm.PrintCell(rowIndex, 26, ISP.FIO, null);
-            rowIndex++; rowIndex++;
-            efm.PrintCell(rowIndex, 15, RUK.DOLG, null); rowIndex++;
-            efm.PrintCell(rowIndex, 15, RUK.FIO, null);
-            rowIndex++;
-            rowIndex++;
-            efm.PrintCell(rowIndex, 20, $"/{item.D_ACT:dd.MM.yyyy}", null);
-
-        }
-        private void CreateRazdel1(ExcelOpenXML efm, MO_ITEM item, MO_FOND_INFO FOND_INFO, MEK_PARAM par, List<MP_DEFECT_ITEM> DEFECT, PODPISANT ISP, PODPISANT RUK)
+        private void CreateRazdel1(ExcelOpenXML efm, MO_ITEM item, List<MP_DEFECT_ITEM> DEFECT, PODPISANT ISP, PODPISANT RUK)
         {
             efm.SetCurrentSchet(1);
             efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);
             efm.PrintCell(7, 1, item.NAME_MOK, null);
             efm.PrintCell(10, 14, item.NAME_SMOK, null);
-            efm.PrintCell(11, 6, (new DateTime(item.YEAR, item.MONTH, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
+            efm.PrintCell(11, 6, (new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
 
             const uint KOD_INDEX = 14;
             const uint ZGLV_INDEX = 15;
@@ -864,12 +734,276 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             efm.PrintCell(rowIndex, 20, $"/{item.D_ACT:dd.MM.yyyy}", null);
 
         }
-        private void CreateReestrAct(ExcelOpenXML efm, MO_ITEM item, MO_FOND_INFO FOND_INFO, MEK_PARAM par, List<MP_DEFECT_ITEM> DEFECT, PODPISANT ISP)
+        private void CreateRazdel11(ExcelOpenXML efm, MO_ITEM item, List<MP_DEFECT_ITEM> DEFECT, PODPISANT ISP, PODPISANT RUK)
+        {
+            efm.SetCurrentSchet(2);
+            efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);
+            efm.PrintCell(7, 1, item.NAME_MOK, null);
+            efm.PrintCell(10, 14, item.NAME_SMOK, null);
+            efm.PrintCell(11, 6, new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1).ToString("MMMMMMMMMMMM yyyy"), null);
+
+            const uint KOD_INDEX = 14;
+            const uint ZGLV_INDEX = 15;
+            const uint ROWZGLV_INDEX = 16;
+            uint rowIndex = 14;
+
+            var StyleITOG_TEXT = efm.CreateType(new FontOpenXML() { VerticalAlignment = VerticalAlignmentV.Center, HorizontalAlignment = HorizontalAlignmentV.Right, Bold = true, fontname = "Times New Roman", size = 12 }, null, null);
+            var StyleITOG_SUM = efm.CreateType(new FontOpenXML() { VerticalAlignment = VerticalAlignmentV.Center, HorizontalAlignment = HorizontalAlignmentV.Center, Bold = true, fontname = "Times New Roman", size = 12, Format = (uint)DefaultNumFormat.F4 }, null, null);
+
+            if (DEFECT.Count == 0)
+            {
+                efm.PrintCell(rowIndex, 1, "Нет отказов", null);
+                efm.RemoveRow(rowIndex + 2);
+                rowIndex++;
+                rowIndex++;
+            }
+            else
+            {
+                var GDEFECT = DEFECT.GroupBy(x => new { x.OSN, x.NAME, x.COMM }).OrderBy(x => x.Key.OSN).ToList();
+                var first = GDEFECT.First();
+                var last = GDEFECT.Last();
+                foreach (var def in GDEFECT)
+                {
+                    //Копируем заголовок таблицы
+                    if (first != def)
+                    {
+                        efm.CopyRow(KOD_INDEX, rowIndex);
+                        efm.CopyRow(ZGLV_INDEX, rowIndex + 1);
+                        efm.CopyRow(ROWZGLV_INDEX, rowIndex + 2);
+                    }
+
+                    efm.PrintCell(rowIndex, 1, $"{def.Key.OSN} {def.Key.NAME}({def.Key.COMM})", null);
+                    //efm.Fit(rowIndex, 1, 76, 18);
+                    efm.Fit(rowIndex, 1);
+                    rowIndex++;
+                    rowIndex++;
+                    var items = def.OrderBy(x => x.S_SUM).ToList();
+                    if (items.Count > 1)
+                    {
+                        efm.CopyRow(rowIndex, rowIndex + 1, items.Count - 1);
+                    }
+
+                    decimal SUM_S = 0;
+                    foreach (var def_item in items)
+                    {
+                        var MRow = efm.GetRow(rowIndex);
+                        efm.PrintCell(MRow, 1, def_item.IDCASE, null);
+                        efm.PrintCell(MRow, 16, def_item.YEAR, null);
+                        efm.PrintCell(MRow, 22, def_item.MONTH, null);
+                        efm.PrintCell(MRow, 28, def_item.PODR, null);
+                        efm.PrintCell(MRow, 34, def_item.POLIS, null);
+                        efm.PrintCell(MRow, 44, def_item.MKB, null);
+                        efm.PrintCell(MRow, 49, def_item.DATE_1, null);
+                        efm.PrintCell(MRow, 55, def_item.DATE_2, null);
+                        efm.PrintCell(MRow, 62, def_item.S_SUM, null);
+                        SUM_S += def_item.S_SUM;
+                        rowIndex++;
+                    }
+
+                    efm.InsertRow(rowIndex, 1);
+                    efm.AddMergedRegion(new CellRangeAddress(rowIndex, 1, rowIndex, 54));
+                    efm.AddMergedRegion(new CellRangeAddress(rowIndex, 55, rowIndex, 68));
+                    efm.PrintCell(rowIndex, 1, "Итого по коду дефекта/нарушения: ", StyleITOG_TEXT);
+                    efm.PrintCell(rowIndex, 55, SUM_S, StyleITOG_SUM);
+                    rowIndex++;
+                    if (def != last)
+                    {
+                        efm.InsertRow(rowIndex, 1);
+                        rowIndex++;
+                    }
+
+
+                }
+            }
+
+            rowIndex++;
+            efm.PrintCell(rowIndex, 1, ISP.DOLG, null);
+            efm.PrintCell(rowIndex, 38, ISP.FIO, null);
+            rowIndex++; rowIndex++;
+            efm.PrintCell(rowIndex, 15, RUK.DOLG, null); rowIndex++;
+            efm.PrintCell(rowIndex, 15, RUK.FIO, null);
+            rowIndex++;
+            rowIndex++;
+            efm.PrintCell(rowIndex, 20, $"/{item.D_ACT:dd.MM.yyyy}", null);
+
+        }
+        private void CreateRazdel2(ExcelOpenXML efm, MO_ITEM item, MO_FOND_INFO FOND_INFO, MEK_PARAM par, PODPISANT ISP, PODPISANT RUK)
         {
             efm.SetCurrentSchet(3);
             efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);
+            efm.PrintCell(7, 1, item.NAME_MOK, null);
+            efm.PrintCell(9, 14, item.NAME_SMOK, null);
+            efm.PrintCell(10, 6, new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1).ToString("MMMMMMMMMMMM yyyy"), null);
+            uint rowIndex = 14;
+
+
+            //Предъявлено по итоговому реестру на сумму:
+            if (PrintVolume(efm, rowIndex, par.ALL_PRED.KOL, FOND_INFO.FOND_SUM + par.ALL_PRED.SUM, par.ALL_PRED.KOL_MEK, par.ALL_PRED.SUM_MEK + FOND_INFO.MUR, par.ALL_PRED.KOL_P, FOND_INFO.FOND_SUMP + par.ALL_PRED.SUM_P, par.ALL_PRED.KOL_MEK_P, par.ALL_PRED.SUM_MEK_P - FOND_INFO.MUR_RETURN, par.ALL_PRED.KOL_P_ON_MEK_P, par.ALL_PRED.SUM_P_ON_MEK_P + FOND_INFO.FOND_SUMP_ON_MEK_P))
+                rowIndex++;
+
+            //Медицинская помощь, оказанная прикрепленным гражданам:
+            if (PrintVolume(efm, rowIndex, null, FOND_INFO.FOND_SUM, null, FOND_INFO.MUR, null, FOND_INFO.FOND_SUMP, null, FOND_INFO.MUR_RETURN*-1, null, FOND_INFO.FOND_SUMP_ON_MEK_P))
+                rowIndex++;
+            //Амбулаторная помощь по дифференцированному подушевому нормативу
+            if (PrintVolume(efm, rowIndex, null, FOND_INFO.AMB_S, null, FOND_INFO.MUR, null, FOND_INFO.AMB_S_P, null, FOND_INFO.MUR_RETURN*-1, null, FOND_INFO.AMB_S_P_ON_MEK_P))
+                rowIndex++;
+
+            //Финансовое обеспечение ФП/ФАП: 
+            if (PrintVolume(efm, rowIndex, null, FOND_INFO.FAP_S, null, 0, null, FOND_INFO.FAP_S, null, null, null, FOND_INFO.FAP_S))
+                rowIndex++;
+
+            //Скорая помощь по дифференцированному подушевому нормативу: 
+            if (PrintVolume(efm, rowIndex, null, FOND_INFO.SCOR_S, null, null, null, FOND_INFO.SCOR_S, null, null, null, FOND_INFO.SCOR_S))
+                rowIndex++;
+            //Медицинская помощь, оказанная прикрепленным гражданам в других МО
+            if (PrintVolume(efm, rowIndex, null, null, null, FOND_INFO.MUR, null, null, null, FOND_INFO.MUR_RETURN*-1, null, null))
+                rowIndex++;
+            //Медицинская помощь, оказанная неприкрепленным гражданам по направлениям других МО или без направлений, оплачиваемые в бесспорном порядке (внешние услуги):
+            //Амбулаторная помощь:
+            if (PrintVolume(efm, rowIndex, par.NAPR.KOL, par.NAPR.SUM, par.NAPR.KOL_MEK, par.NAPR.SUM_MEK, par.NAPR.KOL_P, par.NAPR.SUM_P, par.NAPR.KOL_MEK_P, par.NAPR.SUM_MEK_P, par.NAPR.KOL_P_ON_MEK_P, par.NAPR.SUM_P_ON_MEK_P))
+                rowIndex++;
+            if (PrintVolume(efm, rowIndex, par.NAPR.KOL, par.NAPR.SUM, par.NAPR.KOL_MEK, par.NAPR.SUM_MEK, par.NAPR.KOL_P, par.NAPR.SUM_P, par.NAPR.KOL_MEK_P, par.NAPR.SUM_MEK_P, par.NAPR.KOL_P_ON_MEK_P, par.NAPR.SUM_P_ON_MEK_P))
+                rowIndex++;
+
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.NAPR);
+            //Медицинская помощь, не включенная в систему взаиморасчетов
+            if (PrintVolume(efm, rowIndex, par.MP_NOT_VR.KOL, par.MP_NOT_VR.SUM, par.MP_NOT_VR.KOL_MEK, par.MP_NOT_VR.SUM_MEK, par.MP_NOT_VR.KOL_P, par.MP_NOT_VR.SUM_P, par.MP_NOT_VR.KOL_MEK_P, par.MP_NOT_VR.SUM_MEK_P, par.MP_NOT_VR.KOL_P_ON_MEK_P, par.MP_NOT_VR.SUM_P_ON_MEK_P))
+                rowIndex++;
+            //Амбулаторная помощь:
+            if (PrintVolume(efm, rowIndex, par.AMB.KOL, par.AMB.SUM, par.AMB.KOL_MEK, par.AMB.SUM_MEK, par.AMB.KOL_P, par.AMB.SUM_P, par.AMB.KOL_MEK_P, par.AMB.SUM_MEK_P, par.AMB.KOL_P_ON_MEK_P, par.AMB.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.AMB);
+
+
+            //Услуги диализа
+            if (PrintVolume(efm, rowIndex, par.DIAL_AMB.KOL, par.DIAL_AMB.SUM, par.DIAL_AMB.KOL_MEK, par.DIAL_AMB.SUM_MEK, par.DIAL_AMB.KOL_P, par.DIAL_AMB.SUM_P, par.DIAL_AMB.KOL_MEK_P, par.DIAL_AMB.SUM_MEK_P, par.DIAL_AMB.KOL_P_ON_MEK_P, par.DIAL_AMB.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.DIAL_AMB);
+            //Компьютерная томография
+            if (PrintVolume(efm, rowIndex, par.KT.KOL, par.KT.SUM, par.KT.KOL_MEK, par.KT.SUM_MEK, par.KT.KOL_P, par.KT.SUM_P, par.KT.KOL_MEK_P, par.KT.SUM_MEK_P, par.KT.KOL_P_ON_MEK_P, par.KT.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.KT);
+            //Магнитно-резонансная томография
+            if (PrintVolume(efm, rowIndex, par.MRT.KOL, par.MRT.SUM, par.MRT.KOL_MEK, par.MRT.SUM_MEK, par.MRT.KOL_P, par.MRT.SUM_P, par.MRT.KOL_MEK_P, par.MRT.SUM_MEK_P, par.MRT.KOL_P_ON_MEK_P, par.MRT.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.MRT);
+            //УЗИ сердечно сосудистой системы
+            if (PrintVolume(efm, rowIndex, par.USI.KOL, par.USI.SUM, par.USI.KOL_MEK, par.USI.SUM_MEK, par.USI.KOL_P, par.USI.SUM_P, par.USI.KOL_MEK_P, par.USI.SUM_MEK_P, par.USI.KOL_P_ON_MEK_P, par.USI.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.USI);
+            //Эндоскопические диагностические исследования
+            if (PrintVolume(efm, rowIndex, par.ENDO.KOL, par.ENDO.SUM, par.ENDO.KOL_MEK, par.ENDO.SUM_MEK, par.ENDO.KOL_P, par.ENDO.SUM_P, par.ENDO.KOL_MEK_P, par.ENDO.SUM_MEK_P, par.ENDO.KOL_P_ON_MEK_P, par.ENDO.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.ENDO);
+
+            //Гистологические исследования
+            if (PrintVolume(efm, rowIndex, par.GIST.KOL, par.GIST.SUM, par.GIST.KOL_MEK, par.GIST.SUM_MEK, par.GIST.KOL_P, par.GIST.SUM_P, par.GIST.KOL_MEK_P, par.GIST.SUM_MEK_P, par.GIST.KOL_P_ON_MEK_P, par.GIST.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.GIST);
+            //Молекулярно-диагностические исследования
+            if (PrintVolume(efm, rowIndex, par.MOL.KOL, par.MOL.SUM, par.MOL.KOL_MEK, par.MOL.SUM_MEK, par.MOL.KOL_P, par.MOL.SUM_P, par.MOL.KOL_MEK_P, par.MOL.SUM_MEK_P, par.MOL.KOL_P_ON_MEK_P, par.MOL.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.MOL);
+            //Определение РНК коронавирусов
+            if (PrintVolume(efm, rowIndex, par.KORON.KOL, par.KORON.SUM, par.KORON.KOL_MEK, par.KORON.SUM_MEK, par.KORON.KOL_P, par.KORON.SUM_P, par.KORON.KOL_MEK_P, par.KORON.SUM_MEK_P, par.KORON.KOL_P_ON_MEK_P, par.KORON.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.KORON);
+            //Определение РНК коронавирусов(1213)
+            if (PrintVolume(efm, rowIndex, par.KORON_1213.KOL, par.KORON_1213.SUM, par.KORON_1213.KOL_MEK, par.KORON_1213.SUM_MEK, par.KORON_1213.KOL_P, par.KORON_1213.SUM_P, par.KORON_1213.KOL_MEK_P, par.KORON_1213.SUM_MEK_P, par.KORON_1213.KOL_P_ON_MEK_P, par.KORON_1213.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.KORON_1213);
+
+            //Неотложная МП
+            if (PrintVolume(efm, rowIndex, par.NEOT.KOL, par.NEOT.SUM, par.NEOT.KOL_MEK, par.NEOT.SUM_MEK, par.NEOT.KOL_P, par.NEOT.SUM_P, par.NEOT.KOL_MEK_P, par.NEOT.SUM_MEK_P, par.NEOT.KOL_P_ON_MEK_P, par.NEOT.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.NEOT);
+            //Профилактические осмотры несовершеннолетних 1 этап
+            if (PrintVolume(efm, rowIndex, par.PROF_DET.KOL, par.PROF_DET.SUM, par.PROF_DET.KOL_MEK, par.PROF_DET.SUM_MEK, par.PROF_DET.KOL_P, par.PROF_DET.SUM_P, par.PROF_DET.KOL_MEK_P, par.PROF_DET.SUM_MEK_P, par.PROF_DET.KOL_P_ON_MEK_P, par.PROF_DET.SUM_P_ON_MEK_P))
+                rowIndex++;
+
+            //Профилактические осмотры взрослого населения 1 этап
+            if (PrintVolume(efm, rowIndex, par.PROF_VZR.KOL, par.PROF_VZR.SUM, par.PROF_VZR.KOL_MEK, par.PROF_VZR.SUM_MEK, par.PROF_VZR.KOL_P, par.PROF_VZR.SUM_P, par.PROF_VZR.KOL_MEK_P, par.PROF_VZR.SUM_MEK_P, par.PROF_VZR.KOL_P_ON_MEK_P, par.PROF_VZR.SUM_P_ON_MEK_P))
+                rowIndex++;
+            //Диспансеризация детского населения 1 этап
+            if (PrintVolume(efm, rowIndex, par.DISP_DET.KOL, par.DISP_DET.SUM, par.DISP_DET.KOL_MEK, par.DISP_DET.SUM_MEK, par.DISP_DET.KOL_P, par.DISP_DET.SUM_P, par.DISP_DET.KOL_MEK_P, par.DISP_DET.SUM_MEK_P, par.DISP_DET.KOL_P_ON_MEK_P, par.DISP_DET.SUM_P_ON_MEK_P))
+                rowIndex++;
+
+            //Диспансеризация взрослого населения 1 этап
+            if (PrintVolume(efm, rowIndex, par.DISP_VZR.KOL, par.DISP_VZR.SUM, par.DISP_VZR.KOL_MEK, par.DISP_VZR.SUM_MEK, par.DISP_VZR.KOL_P, par.DISP_VZR.SUM_P, par.DISP_VZR.KOL_MEK_P, par.DISP_VZR.SUM_MEK_P, par.DISP_VZR.KOL_P_ON_MEK_P, par.DISP_VZR.SUM_P_ON_MEK_P))
+                rowIndex++;
+
+            //Диспансеризация 2 этап
+            if (PrintVolume(efm, rowIndex, par.DISP2.KOL, par.DISP2.SUM, par.DISP2.KOL_MEK, par.DISP2.SUM_MEK, par.DISP2.KOL_P, par.DISP2.SUM_P, par.DISP2.KOL_MEK_P, par.DISP2.SUM_MEK_P, par.DISP2.KOL_P_ON_MEK_P, par.DISP2.SUM_P_ON_MEK_P))
+                rowIndex++;
+
+            //Углубленная диспансеризация 1 этап
+            if (PrintVolume(efm, rowIndex, par.UG_DISP1.KOL, par.UG_DISP1.SUM, par.UG_DISP1.KOL_MEK, par.UG_DISP1.SUM_MEK, par.UG_DISP1.KOL_P, par.UG_DISP1.SUM_P, par.UG_DISP1.KOL_MEK_P, par.UG_DISP1.SUM_MEK_P, par.UG_DISP1.KOL_P_ON_MEK_P, par.UG_DISP1.SUM_P_ON_MEK_P))
+                rowIndex++;
+            //Углубленная диспансеризация 2 этап
+            if (PrintVolume(efm, rowIndex, par.UG_DISP2.KOL, par.UG_DISP2.SUM, par.UG_DISP2.KOL_MEK, par.UG_DISP2.SUM_MEK, par.UG_DISP2.KOL_P, par.UG_DISP2.SUM_P, par.UG_DISP2.KOL_MEK_P, par.UG_DISP2.SUM_MEK_P, par.UG_DISP2.KOL_P_ON_MEK_P, par.UG_DISP2.SUM_P_ON_MEK_P))
+                rowIndex++;
+
+            //Стационар
+            if (PrintVolume(efm, rowIndex, par.STAC.KOL, par.STAC.SUM, par.STAC.KOL_MEK, par.STAC.SUM_MEK, par.STAC.KOL_P, par.STAC.SUM_P, par.STAC.KOL_MEK_P, par.STAC.SUM_MEK_P, par.STAC.KOL_P_ON_MEK_P, par.STAC.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.STAC);
+
+            //Стационар(МБТ РП РФ 989)	
+            if (PrintVolume(efm, rowIndex, par.STAC_MBT_989.KOL, par.STAC_MBT_989.SUM, par.STAC_MBT_989.KOL_MEK, par.STAC_MBT_989.SUM_MEK, par.STAC_MBT_989.KOL_P, par.STAC_MBT_989.SUM_P, par.STAC_MBT_989.KOL_MEK_P, par.STAC_MBT_989.SUM_MEK_P, par.STAC_MBT_989.KOL_P_ON_MEK_P, par.STAC_MBT_989.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.STAC_MBT_989);
+
+            //Стационар(МБТ РП РФ 1997)		
+            if (PrintVolume(efm, rowIndex, par.STAC_MBT_1997.KOL, par.STAC_MBT_1997.SUM, par.STAC_MBT_1997.KOL_MEK, par.STAC_MBT_1997.SUM_MEK, par.STAC_MBT_1997.KOL_P, par.STAC_MBT_1997.SUM_P, par.STAC_MBT_1997.KOL_MEK_P, par.STAC_MBT_1997.SUM_MEK_P, par.STAC_MBT_1997.KOL_P_ON_MEK_P, par.STAC_MBT_1997.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.STAC_MBT_1997);
+
+
+            //Услуги диализа (стационар)
+            if (PrintVolume(efm, rowIndex, par.DIAL_STAC.KOL, par.DIAL_STAC.SUM, par.DIAL_STAC.KOL_MEK, par.DIAL_STAC.SUM_MEK, par.DIAL_STAC.KOL_P, par.DIAL_STAC.SUM_P, par.DIAL_STAC.KOL_MEK_P, par.DIAL_STAC.SUM_MEK_P, par.DIAL_STAC.KOL_P_ON_MEK_P, par.DIAL_STAC.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.DIAL_STAC);
+
+            //Дневной стационар
+            if (PrintVolume(efm, rowIndex, par.DSTAC.KOL, par.DSTAC.SUM, par.DSTAC.KOL_MEK, par.DSTAC.SUM_MEK, par.DSTAC.KOL_P, par.DSTAC.SUM_P, par.DSTAC.KOL_MEK_P, par.DSTAC.SUM_MEK_P, par.DSTAC.KOL_P_ON_MEK_P, par.DSTAC.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.DSTAC);
+
+            //   в т.ч. ЭКО
+            if (PrintVolume(efm, rowIndex, par.EKO.KOL, par.EKO.SUM, par.EKO.KOL_MEK, par.EKO.SUM_MEK, par.EKO.KOL_P, par.EKO.SUM_P, par.EKO.KOL_MEK_P, par.EKO.SUM_MEK_P, par.EKO.KOL_P_ON_MEK_P, par.EKO.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.EKO);
+
+            //ВМП
+            if (PrintVolume(efm, rowIndex, par.VMP.KOL, par.VMP.SUM, par.VMP.KOL_MEK, par.VMP.SUM_MEK, par.VMP.KOL_P, par.VMP.SUM_P, par.VMP.KOL_MEK_P, par.VMP.SUM_MEK_P, par.VMP.KOL_P_ON_MEK_P, par.VMP.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.VMP);
+            //Тромболизис
+            if (PrintVolume(efm, rowIndex, null, par.TROMB.SUM, null, par.TROMB.SUM_MEK, null, par.TROMB.SUM_P, par.TROMB.KOL_MEK_P, par.TROMB.SUM_MEK_P, par.TROMB.KOL_P_ON_MEK_P, par.TROMB.SUM_P_ON_MEK_P))
+                rowIndex++;
+            rowIndex = PrintRazdel2Profil(efm, rowIndex, par.TROMB, true);
+            //Прочее
+            if (PrintVolume(efm, rowIndex, par.OTHER.KOL, par.OTHER.SUM, par.OTHER.KOL_MEK, par.OTHER.SUM_MEK, par.OTHER.KOL_P, par.OTHER.SUM_P, par.OTHER.KOL_MEK_P, par.OTHER.SUM_MEK_P, par.OTHER.KOL_P_ON_MEK_P, par.OTHER.SUM_P_ON_MEK_P))
+                rowIndex++;
+
+
+            rowIndex++;
+            efm.PrintCell(rowIndex, 1, ISP.DOLG, null);
+            efm.PrintCell(rowIndex, 26, ISP.FIO, null);
+            rowIndex++; rowIndex++;
+            efm.PrintCell(rowIndex, 15, RUK.DOLG, null); rowIndex++;
+            efm.PrintCell(rowIndex, 15, RUK.FIO, null);
+            rowIndex++;
+            rowIndex++;
+            efm.PrintCell(rowIndex, 20, $"/{item.D_ACT:dd.MM.yyyy}", null);
+
+        }
+        private void CreateReestrAct(ExcelOpenXML efm, MO_ITEM item, MO_FOND_INFO FOND_INFO, MEK_PARAM par, List<MP_DEFECT_ITEM> DEFECT, PODPISANT ISP)
+        {
+            efm.SetCurrentSchet(4);
+            efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);
             efm.PrintCell(4, 14, item.NAME_SMOK, null);
-            efm.PrintCell(5, 6, (new DateTime(item.YEAR, item.MONTH, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
+            efm.PrintCell(5, 6, (new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
             efm.PrintCell(11, 1, $"{item.CODE_MO} {item.NAME_MOK}", null);
             uint RowIndex = 14;
 
@@ -889,24 +1023,26 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             RowIndex += 3;
 
             //1. Согласовано к оплате всего:
-            efm.PrintCell(RowIndex, 10, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S + par.ALL_PRED.SUM_P - par.NAPR_FROM_MO, null); efm.PrintCell(RowIndex, 27, par.ALL_PRED.KOL_P, null); RowIndex += 3;
+            efm.PrintCell(RowIndex, 10, FOND_INFO.FOND_SUMP_ON_MEK_P + par.ALL_PRED.SUM_P, null); efm.PrintCell(RowIndex, 27, par.ALL_PRED.KOL_P, null); RowIndex += 3;
             //За медицинскую помощь, оказанную стационарно:
-            efm.PrintCell(RowIndex, 10, par.FULL_STAC.SUM_P, null); efm.PrintCell(RowIndex, 27, par.FULL_STAC.KOL_P, null); RowIndex += 2;
+            efm.PrintCell(RowIndex, 10, par.FULL_STAC.SUM_P_ON_MEK_P, null); efm.PrintCell(RowIndex, 27, par.FULL_STAC.KOL_P, null); RowIndex += 2;
             //За медицинскую помощь, оказанную в дневном стационаре:
-            efm.PrintCell(RowIndex, 10, par.DSTAC.SUM_P, null); efm.PrintCell(RowIndex, 27, par.DSTAC.KOL_P, null); RowIndex += 2;
+            efm.PrintCell(RowIndex, 10, par.DSTAC.SUM_P_ON_MEK_P, null); efm.PrintCell(RowIndex, 27, par.DSTAC.KOL_P, null); RowIndex += 2;
             //За медицинскую помощь, оказанную амбулаторно
-            efm.PrintCell(RowIndex, 10, par.FULL_AMB.SUM_P + FOND_INFO.AMB_S + FOND_INFO.FAP_S - par.NAPR_FROM_MO, null); efm.PrintCell(RowIndex, 27, par.FULL_AMB.KOL_P, null); RowIndex += 2;
+            efm.PrintCell(RowIndex, 10, par.FULL_AMB.SUM_P_ON_MEK_P + FOND_INFO.AMB_S_P_ON_MEK_P + FOND_INFO.FAP_S, null); efm.PrintCell(RowIndex, 27, par.FULL_AMB.KOL_P, null); RowIndex += 2;
             //За медицинскую помощь, оказанную вне медицинской организации
-            efm.PrintCell(RowIndex, 10, par.FULL_SCOR.SUM_P + FOND_INFO.SCOR_S, null); efm.PrintCell(RowIndex, 27, par.FULL_SCOR.KOL_P, null); RowIndex += 3;
+            efm.PrintCell(RowIndex, 10, par.FULL_SCOR.SUM_P_ON_MEK_P + FOND_INFO.SCOR_S, null); efm.PrintCell(RowIndex, 27, par.FULL_SCOR.KOL_P, null); RowIndex += 3;
 
-            var sankSTAC = DEFECT.Where(x => x.USL_OK == 1 && !x.isPVOL).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
-            var sankDSTAC = DEFECT.Where(x => x.USL_OK == 2 && !x.isPVOL).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
-            var sankAMB = DEFECT.Where(x => x.USL_OK == 3 && !x.isPVOL).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
-            var sankSCOR = DEFECT.Where(x => x.USL_OK == 4 && !x.isPVOL).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
-            var sankVOLUME = DEFECT.Where(x => x.isPVOL).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
+            var sankSTAC = DEFECT.Where(x => x.USL_OK == 1 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
+            var sankDSTAC = DEFECT.Where(x => x.USL_OK == 2 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
+            var sankAMB = DEFECT.Where(x => x.USL_OK == 3 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
+            var sankSCOR = DEFECT.Where(x => x.USL_OK == 4 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
+            var sankVOLUME = DEFECT.Where(x => x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
+            var sankDOP = DEFECT.Where(x => x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
+
 
             //2. Не согласовано к оплате реестров: 
-            efm.PrintCell(RowIndex, 10, sankSTAC.Sum(x => x.S_SUM) + sankDSTAC.Sum(x => x.S_SUM) + sankAMB.Sum(x => x.S_SUM) + sankSCOR.Sum(x => x.S_SUM) + sankVOLUME.Sum(x => x.S_SUM) + par.NAPR_FROM_MO, null); efm.PrintCell(RowIndex, 27, sankSTAC.Count + sankDSTAC.Count + sankAMB.Count + sankSCOR.Count + sankVOLUME.Count, null); RowIndex += 3;
+            efm.PrintCell(RowIndex, 10, sankSTAC.Sum(x => x.S_SUM) + sankDSTAC.Sum(x => x.S_SUM) + sankAMB.Sum(x => x.S_SUM) + sankSCOR.Sum(x => x.S_SUM) + sankVOLUME.Sum(x => x.S_SUM) +FOND_INFO.MUR-FOND_INFO.MUR_RETURN, null); efm.PrintCell(RowIndex, 27, sankSTAC.Count + sankDSTAC.Count + sankAMB.Count + sankSCOR.Count + sankVOLUME.Count, null); RowIndex += 3;
             //За медицинскую помощь, оказанную стационарно:
             efm.PrintCell(RowIndex, 10, sankSTAC.Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankSTAC.Count, null); RowIndex += 2;
             //За медицинскую помощь, оказанную в дневном стационаре:
@@ -918,10 +1054,10 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             //за превышение  согласованных объемов   медицинской помощи:
             efm.PrintCell(RowIndex, 10, sankVOLUME.Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankVOLUME.Count, null); RowIndex += 2;
             //за медицинская помощь, отказанная прикрепленным гражданам в других МО:
-            efm.PrintCell(RowIndex, 10, par.NAPR_FROM_MO, null); efm.PrintCell(RowIndex, 27, "", null);
+            efm.PrintCell(RowIndex, 10, FOND_INFO.MUR-FOND_INFO.MUR_RETURN, null); efm.PrintCell(RowIndex, 27, "", null);
 
             RowIndex += 3;
-            efm.PrintCell(RowIndex, 10, DEFECT.Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankSTAC.Count, null);
+            efm.PrintCell(RowIndex, 10, sankSTAC.Sum(x => x.S_SUM) + sankDSTAC.Sum(x => x.S_SUM) + sankAMB.Sum(x => x.S_SUM) + sankSCOR.Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankSTAC.Count + sankDSTAC.Count + sankAMB.Count + sankSCOR.Count, null);
             RowIndex += 2;
             //2.1.1. за стационарную медицинскую помощь:
             efm.PrintCell(RowIndex, 10, sankSTAC.Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankSTAC.Count, null);
@@ -940,7 +1076,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     efm.PrintCell(RowIndex, 1, san.PODR, null);
                     efm.PrintCell(RowIndex, 9, san.OTD, null);
                     efm.PrintCell(RowIndex, 15, san.IDCASE, null);
-                    efm.PrintCell(RowIndex, 24, item.MONTH, null);
+                    efm.PrintCell(RowIndex, 24, san.MONTH, null);
                     efm.PrintCell(RowIndex, 28, san.POLIS, null);
                     efm.PrintCell(RowIndex, 40, 75, null);
                     efm.PrintCell(RowIndex, 46, san.OSN, null);
@@ -968,7 +1104,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     efm.PrintCell(RowIndex, 1, san.PODR, null);
                     efm.PrintCell(RowIndex, 9, san.OTD, null);
                     efm.PrintCell(RowIndex, 15, san.IDCASE, null);
-                    efm.PrintCell(RowIndex, 24, item.MONTH, null);
+                    efm.PrintCell(RowIndex, 24, san.MONTH, null);
                     efm.PrintCell(RowIndex, 28, san.POLIS, null);
                     efm.PrintCell(RowIndex, 40, 75, null);
                     efm.PrintCell(RowIndex, 46, san.OSN, null);
@@ -996,7 +1132,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     efm.PrintCell(RowIndex, 1, san.PODR, null);
                     efm.PrintCell(RowIndex, 9, san.OTD, null);
                     efm.PrintCell(RowIndex, 15, san.IDCASE, null);
-                    efm.PrintCell(RowIndex, 24, item.MONTH, null);
+                    efm.PrintCell(RowIndex, 24, san.MONTH, null);
                     efm.PrintCell(RowIndex, 28, san.POLIS, null);
                     efm.PrintCell(RowIndex, 40, 75, null);
                     efm.PrintCell(RowIndex, 46, san.OSN, null);
@@ -1024,7 +1160,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     efm.PrintCell(RowIndex, 1, san.PODR, null);
                     efm.PrintCell(RowIndex, 9, san.OTD, null);
                     efm.PrintCell(RowIndex, 15, san.IDCASE, null);
-                    efm.PrintCell(RowIndex, 24, item.MONTH, null);
+                    efm.PrintCell(RowIndex, 24, san.MONTH, null);
                     efm.PrintCell(RowIndex, 28, san.POLIS, null);
                     efm.PrintCell(RowIndex, 40, 75, null);
                     efm.PrintCell(RowIndex, 46, san.OSN, null);
@@ -1033,7 +1169,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 }
             }
             RowIndex += 2;
-            //2. Не принято к оплате в связи с превышением установленных комиссией по разработке территориальной программы обязательного медицинского страхования объемов медицинской помощи:
+            //2.2 Не принято к оплате в связи с превышением установленных комиссией по разработке территориальной программы обязательного медицинского страхования объемов медицинской помощи:
             efm.PrintCell(RowIndex, 10, sankVOLUME.Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankVOLUME.Count, null); RowIndex += 3;
             //За медицинскую помощь, оказанную стационарно:
             efm.PrintCell(RowIndex, 10, sankVOLUME.Where(x => x.USL_OK == 1).Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankVOLUME.Count(x => x.USL_OK == 1), null); RowIndex += 2;
@@ -1057,7 +1193,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 {
                     efm.PrintCell(RowIndex, 1, san.PODR, null);
                     efm.PrintCell(RowIndex, 8, san.OTD, null);
-                    efm.PrintCell(RowIndex, 14, item.MONTH, null);
+                    efm.PrintCell(RowIndex, 14, san.MONTH, null);
                     efm.PrintCell(RowIndex, 21, san.S_SUM, null);
                     efm.PrintCell(RowIndex, 27, san.S_SUM, null);
                     efm.PrintCell(RowIndex, 33, san.S_SUM, null);
@@ -1067,6 +1203,42 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     RowIndex++;
                 }
             }
+
+            RowIndex += 2;
+            //3 Подлежит удержанию за прошлые периоды:		
+            efm.PrintCell(RowIndex, 10, sankDOP.Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankDOP.Count, null); RowIndex += 3;
+            //За медицинскую помощь, оказанную стационарно:
+            efm.PrintCell(RowIndex, 10, sankDOP.Where(x => x.USL_OK == 1).Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankDOP.Count(x => x.USL_OK == 1), null); RowIndex += 2;
+            //За медицинскую помощь, оказанную в дневном стационаре:
+            efm.PrintCell(RowIndex, 10, sankDOP.Where(x => x.USL_OK == 2).Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankDOP.Count(x => x.USL_OK == 2), null); RowIndex += 2;
+            //За медицинскую помощь, оказанную амбулаторно:
+            efm.PrintCell(RowIndex, 10, sankDOP.Where(x => x.USL_OK == 3).Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankDOP.Count(x => x.USL_OK == 3), null); RowIndex += 2;
+            //За медицинскую помощь, оказанную вне медицинской организации
+            efm.PrintCell(RowIndex, 10, sankDOP.Where(x => x.USL_OK == 4).Sum(x => x.S_SUM), null); efm.PrintCell(RowIndex, 27, sankDOP.Count(x => x.USL_OK == 4), null); RowIndex += 3;
+
+            if (sankDOP.Count == 0)
+            {
+                efm.RemoveRow(RowIndex);
+            }
+            else
+            {
+                if (sankDOP.Count > 1)
+                    efm.CopyRow(RowIndex, RowIndex + 1, sankDOP.Count - 1);
+
+                foreach (var san in sankDOP)
+                {
+                    efm.PrintCell(RowIndex, 1, san.PODR, null);
+                    efm.PrintCell(RowIndex, 9, san.OTD, null);
+                    efm.PrintCell(RowIndex, 15, san.IDCASE, null);
+                    efm.PrintCell(RowIndex, 24, san.MONTH, null);
+                    efm.PrintCell(RowIndex, 28, san.POLIS, null);
+                    efm.PrintCell(RowIndex, 40, 75, null);
+                    efm.PrintCell(RowIndex, 46, san.OSN, null);
+                    efm.PrintCell(RowIndex, 51, san.S_SUM, null);
+                    RowIndex++;
+                }
+            }
+
 
             RowIndex++;
             var Mrow = efm.GetRow(RowIndex);
@@ -1093,17 +1265,17 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
 
                 foreach (var mek in values)
                 {
-                    PrintProfil(efm, RowIndex, mek.Key.PROFIL, mek.Key.NAME, mek.Value.KOL, mek.Value.SUM, mek.Value.KOL_MEK, mek.Value.SUM_MEK, mek.Value.KOL_P, mek.Value.SUM_P, hideKOL);
+                    PrintProfil(efm, RowIndex, mek.Key.PROFIL, mek.Key.NAME, mek.Value.KOL, mek.Value.SUM, mek.Value.KOL_MEK, mek.Value.SUM_MEK, mek.Value.KOL_P, mek.Value.SUM_P, mek.Value.KOL_MEK_P, mek.Value.SUM_MEK_P, mek.Value.KOL_P_ON_MEK_P, mek.Value.SUM_P_ON_MEK_P, hideKOL);
                     RowIndex++;
                 }
             }
 
             return RowIndex;
         }
-        private bool PrintVolume(ExcelOpenXML efm, uint RowIndex, decimal? KOL, decimal? SUM, decimal? KOL_MEK, decimal? SUM_MEK, decimal? KOL_P, decimal? SUM_P)
+        private bool PrintVolume(ExcelOpenXML efm, uint RowIndex, decimal? KOL, decimal? SUM, decimal? KOL_MEK, decimal? SUM_MEK, decimal? KOL_P, decimal? SUM_P, decimal? KOL_MEK_P, decimal? SUM_MEK_P, decimal? KOL_P_ON_MEK_P, decimal? SUM_P_ON_MEK_P)
         {
             var row = efm.GetRow(RowIndex);
-            if ((KOL ?? 0) == 0 && (SUM ?? 0) == 0 && (KOL_MEK ?? 0) == 0 && (SUM_MEK ?? 0) == 0 && (KOL_P ?? 0) == 0 && (SUM_P ?? 0) == 0)
+            if ((KOL ?? 0) == 0 && (SUM ?? 0) == 0 && (KOL_MEK ?? 0) == 0 && (SUM_MEK ?? 0) == 0 && (KOL_P ?? 0) == 0 && (SUM_P ?? 0) == 0 && (KOL_MEK_P ?? 0) == 0 && (SUM_MEK_P ?? 0) == 0 && (KOL_P_ON_MEK_P ?? 0) == 0 && (SUM_P_ON_MEK_P ?? 0) == 0)
             {
                 efm.RemoveRow(RowIndex);
                 return false;
@@ -1115,9 +1287,17 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             efm.PrintCell(row, 40, SUM_MEK, null);
             efm.PrintCell(row, 46, KOL_P, null);
             efm.PrintCell(row, 51, SUM_P, null);
+
+            efm.PrintCell(row, 57, KOL_MEK_P, null);
+            efm.PrintCell(row, 62, SUM_MEK_P, null);
+            efm.PrintCell(row, 68, KOL_P_ON_MEK_P, null);
+            efm.PrintCell(row, 73, SUM_P_ON_MEK_P, null);
+
+
+
             return true;
         }
-        private void PrintProfil(ExcelOpenXML efm, uint RowIndex, int? PROFIL, string PROFIL_NAME, decimal? KOL, decimal? SUM, decimal? KOL_MEK, decimal? SUM_MEK, decimal? KOL_P, decimal? SUM_P, bool hideKOL)
+        private void PrintProfil(ExcelOpenXML efm, uint RowIndex, int? PROFIL, string PROFIL_NAME, decimal? KOL, decimal? SUM, decimal? KOL_MEK, decimal? SUM_MEK, decimal? KOL_P, decimal? SUM_P, decimal? KOL_MEK_P, decimal? SUM_MEK_P, decimal? KOL_P_ON_MEK_P, decimal? SUM_P_ON_MEK_P, bool hideKOL)
         {
             var row = efm.GetRow(RowIndex);
             efm.PrintCell(row, 1, PROFIL, null);
@@ -1125,17 +1305,22 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             efm.PrintCell(row, 29, SUM, null);
             efm.PrintCell(row, 40, SUM_MEK, null);
             efm.PrintCell(row, 51, SUM_P, null);
+            efm.PrintCell(row, 62, SUM_MEK_P, null);
+            efm.PrintCell(row, 73, SUM_P_ON_MEK_P, null);
+
 
             if (!hideKOL)
             {
                 efm.PrintCell(row, 24, KOL, null);
                 efm.PrintCell(row, 35, KOL_MEK, null);
                 efm.PrintCell(row, 46, KOL_P, null);
+                efm.PrintCell(row, 57, KOL_MEK_P, null);
+                efm.PrintCell(row, 68, KOL_P_ON_MEK_P, null);
             }
             //efm.Fit(row, 5, 35, 15);
             efm.Fit(row, 5);
         }
-        public MEK_PARAM ConvertVOLUMEToMEK_PARAM(List<MP_VOLUME_ITEM> Volume, decimal NAPR_FROM_MO)
+        public MEK_PARAM ConvertVOLUMEToMEK_PARAM(List<MP_VOLUME_ITEM> Volume)
         {
             var par = new MEK_PARAM();
             var err = new List<MP_VOLUME_ITEM>();
@@ -1223,13 +1408,14 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     //Стационар	
                     case "1.1.1":
                     case "1.2.1":
-               
                         par.STAC.Add(vol);
                         break;
                     //Стационар МБТ	
                     case "1.1.1.2":
+                        par.STAC_MBT_989.Add(vol);
+                        break;
                     case "1.1.1.3":
-                        par.STAC.Add(vol);
+                        par.STAC_MBT_1997.Add(vol);
                         break;
                     //Услуги диализа (стационар)		
                     case "5.1.1":
@@ -1324,9 +1510,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                         break;
                 }
             }
-
-            par.NAPR_FROM_MO = NAPR_FROM_MO;
-
+          
             if (err.Count != 0)
                 throw new Exception($"Показатели не участвуют в расчетах: {string.Join(",", err.Select(x => $"{x.VOLUME_VALUE_ID}({x.NAME})"))}");
 
@@ -1420,4 +1604,10 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             }
         }
     }
+
+
+    
+
+
+
 }

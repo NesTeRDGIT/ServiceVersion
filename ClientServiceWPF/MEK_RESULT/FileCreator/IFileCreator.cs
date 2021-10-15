@@ -19,7 +19,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 {
     public  interface IFileCreator
     {
-         FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, DBSource source, TypeFileCreate typeFileCreate, string SMO, SLUCH_PARAM sluchParam, string NN_FFOMS_DX, IProgress<ProgressFileCreator> progress);
+        FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, DBSource source, TypeFileCreate typeFileCreate, string SMO, SLUCH_PARAM sluchParam, string NN_FFOMS_DX,string sufix, IProgress<ProgressFileCreator> progress);
         decimal GetFileXLS(List<V_EXPORT_H_ZGLVRow> List, List<F002> smoList, string path, DateTime D_START_XLS, DateTime D_END_XLS, IProgress<string> progress);
     }
 
@@ -82,15 +82,25 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             progress?.Report(new ProgressFileCreator(t, Message));
 
         }
-        public FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, DBSource source, TypeFileCreate typeFileCreate, string SMO, SLUCH_PARAM sluchParam, string NN_FFOMS_DX, IProgress<ProgressFileCreator> progress)
+        public FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, DBSource source, TypeFileCreate typeFileCreate, string SMO, SLUCH_PARAM sluchParam, string NN_FFOMS_DX, string sufix, IProgress<ProgressFileCreator> progress)
         {
             try
             {
-                string PathSchema = "";
+                var PathSchema = "";
                 switch (typeFileCreate)
                 {
                     case TypeFileCreate.SMO:
                         PathSchema = Path.Combine(LocalFolder, "EXPORT_SMO_XSD");
+                        break;
+                    case TypeFileCreate.MEK_P_P_SMO:
+                        if(item.S_ZGLV_ID.Length==0)
+                            throw new Exception("Не найден указатель на акт");
+                        PathSchema = Path.Combine(LocalFolder, "EXPORT_SMO_XSD");
+                        break;
+                    case TypeFileCreate.MEK_P_P_MO:
+                        if (item.S_ZGLV_ID.Length==0)
+                            throw new Exception("Не найден указатель на акт");
+                        PathSchema = Path.Combine(LocalFolder, "EXPORT_MO_XSD");
                         break;
                     case TypeFileCreate.SLUCH:
                         PathSchema = Path.Combine(LocalFolder, sluchParam.isSMO ? "EXPORT_SMO_XSD" : "EXPORT_FFOMS_XSD");
@@ -101,6 +111,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     case TypeFileCreate.FFOMSDx:
                         PathSchema = Path.Combine(LocalFolder, "EXPORT_FFOMS_XSD");
                         break;
+                
                     default:
                         throw new ArgumentOutOfRangeException(nameof(typeFileCreate), typeFileCreate, null);
                 }
@@ -168,7 +179,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 //----------------------------------------------------
                 AddLogInvoke(progress, LogType.Info, "Запрос записей");
                 //ZAP+PAC+Z_SL-------------------------------------------------
-                var ZAP = exportFileRepository.V_EXPORT_H_ZAP(item.ZGLV_ID, SMO, sluchParam.SLUCH_Z_ID, typeFileCreate==TypeFileCreate.FFOMSDx, source, conn);
+                var ZAP = exportFileRepository.V_EXPORT_H_ZAP(typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO, TypeFileCreate.MEK_P_P_MO) ? item.S_ZGLV_ID:new[]{item.ZGLV_ID}, SMO, sluchParam.SLUCH_Z_ID, typeFileCreate==TypeFileCreate.FFOMSDx, typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO,TypeFileCreate.MEK_P_P_MO), source, conn);
                 if (ZAP.Rows.Count == 0)
                 {
                     AddLogInvoke(progress, LogType.Info, $"Для файла {item.FILENAME} Вернулось 0 записей. СМО = {SMO}");
@@ -254,8 +265,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 var month = fp.MM.PadLeft(2, '0');
                 var Year = fp.YY;
 
-                var newnameH = GetFileName(fp, Year, month, false, typeFileCreate == TypeFileCreate.SMO? SMO:null, typeFileCreate== TypeFileCreate.FFOMSDx? NN_FFOMS_DX : null);
-                var newnameL = GetFileName(fp, Year, month, true, typeFileCreate == TypeFileCreate.SMO ? SMO : null, typeFileCreate == TypeFileCreate.FFOMSDx ? NN_FFOMS_DX : null);
+                var newnameH = GetFileName(fp, Year, month, false, typeFileCreate.In(TypeFileCreate.SMO,TypeFileCreate.MEK_P_P_SMO)? SMO:null, typeFileCreate== TypeFileCreate.FFOMSDx? NN_FFOMS_DX : null);
+                var newnameL = GetFileName(fp, Year, month, true, typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO) ? SMO : null, typeFileCreate == TypeFileCreate.FFOMSDx ? NN_FFOMS_DX : null);
 
                 ModernFileH(file, newnameH, SMO, typeFileCreate,sluchParam);
                 ModernFileL(fileL, newnameL, newnameH);
@@ -303,10 +314,26 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     AddLogInvoke(progress, LogType.Error, err.Select(x => x.MessageOUT).ToArray());
 
                 var PATH_ARCIVE = Path.Combine(ExportFolder, $"{newnameH}.ZIP");
-                if (typeFileCreate == TypeFileCreate.SMO && !string.IsNullOrEmpty(SMO))
+                if (typeFileCreate.In(TypeFileCreate.SMO,  TypeFileCreate.MEK_P_P_SMO) && !string.IsNullOrEmpty(SMO))
                     PATH_ARCIVE = Path.Combine(ExportFolder, SMO, newnameH[0].ToString(), $"{newnameH}.ZIP");
-                if (!Directory.Exists(Path.GetDirectoryName(PATH_ARCIVE)))
-                    Directory.CreateDirectory(Path.GetDirectoryName(PATH_ARCIVE));
+
+                if (typeFileCreate.In(TypeFileCreate.FFOMSDx))
+                {
+                    if (!string.IsNullOrEmpty(sufix))
+                    {
+                        PATH_ARCIVE = Path.Combine(ExportFolder, newnameH.StartsWith("DP") || newnameH.StartsWith("DA") ? "1 этап" : "прочее", sufix, $"{newnameH}.ZIP");
+                    }
+
+                    else
+                    {
+                        PATH_ARCIVE = Path.Combine(ExportFolder, newnameH.StartsWith("DP") || newnameH.StartsWith("DA") ? "1 этап" : "прочее", $"{newnameH}.ZIP");
+                    }
+                }
+                   
+
+                var dir = Path.GetDirectoryName(PATH_ARCIVE);
+                if (!Directory.Exists(dir))
+                    Directory.CreateDirectory(dir);
                 AddLogInvoke(progress, LogType.Info, $"Упаковка архива: {PATH_ARCIVE}");
                 if (File.Exists(PATH_ARCIVE))
                 {
@@ -338,10 +365,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             switch (typeFileCreate)
             {
                 case TypeFileCreate.SMO:
+                case TypeFileCreate.MEK_P_P_SMO:
                     file.SCHET.PLAT = SMO;
-
                     break;
                 case TypeFileCreate.MO:
+                case TypeFileCreate.MEK_P_P_MO:
                     file.SCHET.PLAT = "75";
                     file.ClearSMO_DATA();
                     break;
@@ -358,6 +386,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     break;
                 case TypeFileCreate.FFOMSDx:
                     file.SCHET.PLAT = SMO;
+                    file.ZGLV.DATA = DateTime.Now.Date;
                     file.ClearForFFOMS_DATA();
                     break;
                 default:

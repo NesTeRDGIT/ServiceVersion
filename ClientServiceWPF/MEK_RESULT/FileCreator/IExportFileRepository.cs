@@ -20,7 +20,9 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         SMO,
         MO,
         SLUCH,
-        FFOMSDx
+        FFOMSDx,
+        MEK_P_P_SMO,
+        MEK_P_P_MO
     }
 
     public class PERIOD_PARAM
@@ -62,7 +64,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         List<V_EXPORT_H_ZGLVRow> V_EXPORT_H_ZGLV(DBSource source, TypeFileCreate tfc, PERIOD_PARAM periodParam, SLUCH_PARAM sluchParam );
         DataTable V_EXPORT_H_ZGLV(int zglvid, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_SCHET(int zglvid, DBSource source, OracleConnection conn = null);
-        DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, long[] SLUCH_Z_ID, bool OnlyValidFFOMS, DBSource source, OracleConnection conn = null);
+        DataTable V_EXPORT_H_ZAP(int[] zglvid, string SMO, long[] SLUCH_Z_ID, bool OnlyValidFFOMS,bool OnlyDOP, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_SLUCH(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_SANK(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_NAZR(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
@@ -115,7 +117,15 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     if (periodParam == null)
                         throw new Exception("Не указаны параметры периода");
                     return V_EXPORT_H_ZGLVOnlyDx(source, periodParam);
-                 
+                case TypeFileCreate.MEK_P_P_SMO:
+                    if (periodParam == null)
+                        throw new Exception("Не указаны параметры периода");
+                    return V_EXPORT_H_DOP_SMO(periodParam);
+                case TypeFileCreate.MEK_P_P_MO:
+                    if (periodParam == null)
+                        throw new Exception("Не указаны параметры периода");
+                    return V_EXPORT_H_DOP_MO(periodParam);
+
                 default:
                     throw new ArgumentOutOfRangeException(nameof(tfc), tfc, null);
             }
@@ -152,6 +162,33 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 using (var oda = new OracleDataAdapter($"select distinct hz.* from V_EXPORT_H_ZGLV{source.ToPrefixBD()} hz " +
                                                        $"inner join  V_EXPORT_H_ZAP{source.ToPrefixBD()} z on z.schet_id = hz.schet_id " +
                                                        $"where z.SLUCH_Z_ID in ({string.Join(",",sluchParam.SLUCH_Z_ID)})", con))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl.Select().Select(V_EXPORT_H_ZGLVRow.Get).ToList();
+                }
+            }
+        }
+
+        private List<V_EXPORT_H_ZGLVRow> V_EXPORT_H_DOP_SMO(PERIOD_PARAM periodParam)
+        {
+            using (var con = new OracleConnection(ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($"select  hz.* from V_EXPORT_H_ZGLV_DOP hz where DOP = 1 and month_sank = {periodParam.Month}  and  year_sank = {periodParam.Year} ", con))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl.Select().Select(V_EXPORT_H_ZGLVRow.Get).ToList();
+                }
+            }
+        }
+
+        private List<V_EXPORT_H_ZGLVRow> V_EXPORT_H_DOP_MO(PERIOD_PARAM periodParam)
+        {
+            using (var con = new OracleConnection(ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($"select zglv_id, VERSION, DATA, FILENAME, SD_Z, COMMENT_ZGLV,MONTH_SANK MONTH,YEAR_SANK YEAR, CODE_MO, SCHET_ID, YEAR_BASE, MONTH_BASE, DOP, YEAR_SANK, MONTH_SANK, null SMO, wm_concat(S_ZGLV_ID) S_ZGLV_ID from V_EXPORT_H_ZGLV_DOP hz where DOP = 1 and month_sank = {periodParam.Month}  and  year_sank = {periodParam.Year} " +
+                                                       $"group by zglv_id, VERSION, DATA, FILENAME, SD_Z, COMMENT_ZGLV, MONTH, YEAR, CODE_MO, SCHET_ID, YEAR_BASE, MONTH_BASE, DOP, YEAR_SANK, MONTH_SANK", con))
                 {
                     var tbl = new DataTable();
                     oda.Fill(tbl);
@@ -202,12 +239,18 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw;
             }
         }
-        public DataTable V_EXPORT_H_ZAP(int zglvid, string SMO, long[] SLUCH_Z_ID,bool OnlyValidFFOMS,DBSource source, OracleConnection conn = null)
+        public DataTable V_EXPORT_H_ZAP(int[] zglvid, string SMO, long[] SLUCH_Z_ID, bool OnlyValidFFOMS, bool OnlyDOP, DBSource source, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            return OnlyDOP ? V_EXPORT_H_ZAP_ONLY_DOP(zglvid, SMO, conn) : V_EXPORT_H_ZAP_MAIN(zglvid, SMO, SLUCH_Z_ID, OnlyValidFFOMS, source, conn);
+        }
+
+        private DataTable V_EXPORT_H_ZAP_MAIN(int[] zglvid, string SMO, long[] SLUCH_Z_ID,bool OnlyValidFFOMS,DBSource source, OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
             try
             {
-                using (var oda = new OracleDataAdapter($@"select * from V_EXPORT_H_ZAP{source.ToPrefixBD()} t where zglv_id = {zglvid} and {(!string.IsNullOrEmpty(SMO) ? $"SMO = '{SMO}'" : "IsZK = 1")}  {(SLUCH_Z_ID?.Length>0 ? $"and SLUCH_Z_ID in ({string.Join(",",SLUCH_Z_ID)})" : "")} {(OnlyValidFFOMS? "and ValidFFOMS = 1" : "")}", conn))
+                using (var oda = new OracleDataAdapter($@"select * from V_EXPORT_H_ZAP{source.ToPrefixBD()} t where zglv_id in ({string.Join(",", zglvid)}) and {(!string.IsNullOrEmpty(SMO) ? $"SMO = '{SMO}'" : "IsZK = 1")}  {(SLUCH_Z_ID?.Length>0 ? $"and SLUCH_Z_ID in ({string.Join(",",SLUCH_Z_ID)})" : "")} {(OnlyValidFFOMS? "and ValidFFOMS = 1" : "")}", conn))
                 {
                     var tbl = new DataTable();
                     oda.Fill(tbl);
@@ -222,6 +265,28 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
         }
 
+        public DataTable V_EXPORT_H_ZAP_ONLY_DOP(int[] S_ZGLV_ID, string SMO, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            try
+            {
+                using (var oda = new OracleDataAdapter($@"select distinct z.* from xml_h_sank_zglv_v3 sz
+inner join xml_h_sank_v3 san on san.s_zglv_id = sz.zglv_id
+inner join V_EXPORT_H_ZAP z on z.sluch_z_id = san.sluch_z_id
+where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(SMO) ? $"z.SMO = '{SMO}'" : "z.IsZK = 1")}", conn))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+            catch (Exception)
+            {
+                if (conn == null)
+                    con.Dispose();
+                throw;
+            }
+        }
 
         public DataTable V_EXPORT_H_SLUCH(IEnumerable<long> sl, DBSource source,  OracleConnection conn = null)
         {
@@ -643,12 +708,16 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
     {
         
         public int ZGLV_ID { get; set; }
+        public int[] S_ZGLV_ID { get; set; }
         public string CODE_MO { get; set; }
         public string FILENAME { get; set; }
         public int YEAR { get; set; }
         public int MONTH { get; set; }
         public int YEAR_BASE { get; set; }
         public int MONTH_BASE { get; set; }
+        public bool DOP { get; set; }
+        public string SMO { get; set; } = null;
+
         public static List<V_EXPORT_H_ZGLVRow> Get(IEnumerable<DataRow> rows)
         {
             return rows.Select(Get).ToList();
@@ -665,8 +734,13 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     YEAR = Convert.ToInt32(row["YEAR"]),
                     MONTH = Convert.ToInt32(row["MONTH"]),
                     YEAR_BASE = Convert.ToInt32(row["YEAR_BASE"]),
-                    MONTH_BASE = Convert.ToInt32(row["MONTH_BASE"])
+                    MONTH_BASE = Convert.ToInt32(row["MONTH_BASE"]),
+                    DOP = Convert.ToBoolean(row[nameof(DOP)])
+                   
                 };
+                item.S_ZGLV_ID = row[nameof(S_ZGLV_ID)].ToString().Split(',').Where(x=>!string.IsNullOrEmpty(x)).Select(x=>Convert.ToInt32(x)).ToArray();
+                if (row[nameof(SMO)] != DBNull.Value)
+                    item.SMO = Convert.ToString(row[nameof(SMO)]);
                 return item;
             }
             catch (Exception ex)

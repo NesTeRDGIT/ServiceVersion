@@ -159,28 +159,28 @@ namespace ClientServiceWPF.SANK_INVITER
                                 }
                             }
 
-                            if (IsEKMP && ce_count == 0 && !san.S_OSN.In(43,242)  && YEAR >= 2019)
+                            if (IsEKMP && ce_count == 0 && !san.S_OSN.IsNotDOC() && YEAR >= 2019)
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
                                     BAS_EL = "SLUCH",
                                     IDCASE = z_sl.IDCASE.ToString(),
                                     N_ZAP = N_ZAP,
-                                    Comment = "Для санкций ЭКМП поле CODE_EXP обязательно к заполнению, кроме S_OSN <> 43,242",
+                                    Comment = "Для санкций ЭКМП поле CODE_EXP обязательно к заполнению, кроме S_OSN=43,242",
                                     IM_POL = "CODE_EXP",
                                     OSHIB = 41
                                 });
                             }
 
 
-                            if (san.S_TIP.IsMultiDisp() && san.CODE_EXP.Count <= 1)
+                            if (san.S_TIP.IsMultiDisp() && san.CODE_EXP.Count <= 1 && !san.S_OSN.IsNotDOC())
                             {
                                 ErrList.Add(new ErrorProtocolXML
                                 {
                                     BAS_EL = "SLUCH",
                                     IDCASE = z_sl.IDCASE.ToString(),
                                     N_ZAP = N_ZAP,
-                                    Comment = "Для санкций мультидисциплинарных экспертиз количество CODE_EXP должно быть более 1",
+                                    Comment = "Для санкций мультидисциплинарных экспертиз количество CODE_EXP должно быть более 1, кроме S_OSN=43,242",
                                     IM_POL = "CODE_EXP",
                                     OSHIB = 41
                                 });
@@ -773,6 +773,12 @@ namespace ClientServiceWPF.SANK_INVITER
         {
             return val.In(43, 44, 45, 46, 47, 48, 49, 79, 80, 81, 82, 83, 84);
         }
+
+        public static bool IsNotDOC(this decimal val)
+        {
+            return val.In(43, 242);
+        }
+
 
         public static bool IsOnlyTFOMS(this int val)
         {

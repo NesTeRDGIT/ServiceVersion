@@ -288,9 +288,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     Directory.CreateDirectory(pathSVOD);
                 var selectItem = MO_LIST.Where(x=>x.IsSelect).ToList();
                 var i = 1;
-                var svod = new Dictionary<string, SVOD_MEK>(); ;
-                dispatcher.Invoke(() => { Progress1.IsIndeterminate = true; Progress1.Text = "Запрос суммы МП по выданным направлениям по всем МО"; });
-                var NAPR_FROM_MO = repository.FindNAPR_FROM_MO(selectItem.First().YEAR, selectItem.First().MONTH);
+                var svod = new Dictionary<string, SVOD_MEK>();
                 dispatcher.Invoke(() => { Progress1.IsIndeterminate = false; Progress1.Text = ""; Progress1.Maximum = selectItem.Count; Progress1.Value = 0; });
                 foreach (var item in selectItem)
                 {
@@ -300,8 +298,8 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                         Progress1.Value = i;
                         Progress1.Text = $"Выгрузка акта для: {item.NAME_MOK}";
                     });
-                    var pathFile = CorrectFileName($"Заключение МЭК за {new DateTime(item.YEAR, item.MONTH, 1):yyyy_MM} для {item.CODE_MO}_{item.SMO} №{item.N_ACT} от {item.D_ACT:dd.MM.yyyy} .xlsx");
-                    CreateActMEK(item, System.IO.Path.Combine(path, pathFile), svod, NAPR_FROM_MO);
+                    var pathFile = CorrectFileName($"Заключение МЭК за {new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1):yyyy_MM} для {item.CODE_MO}_{item.SMO} №{item.N_ACT} от {item.D_ACT:dd.MM.yyyy} .xlsx");
+                    CreateActMEK(item, System.IO.Path.Combine(path, pathFile), svod);
                     i++;
                 }
                 foreach (var sv in svod)
@@ -326,10 +324,10 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         }
         private string CorrectFileName(string path)
         {
-            var invalidChar = System.IO.Path.GetInvalidFileNameChars();
+            var invalidChar = Path.GetInvalidFileNameChars();
             return invalidChar.Aggregate(path, (current, c) => current.Replace(c, '$'));
         }
-        private void CreateActMEK(MO_ITEM item, string ACT_MEK_PATH, Dictionary<string, SVOD_MEK> SVOD_MEK, Dictionary<MO_SMO, decimal> FindNAPR_FROM_MO)
+        private void CreateActMEK(MO_ITEM item, string ACT_MEK_PATH, Dictionary<string, SVOD_MEK> SVOD_MEK)
         {
             dispatcher.Invoke(() =>
             {
@@ -357,12 +355,10 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 Progress2.Text = "Создание файла";
             });
 
-            var fnfm = FindNAPR_FROM_MO.Keys.FirstOrDefault(x => x.MO == item.CODE_MO && x.SMO == item.SMO);
-            var NAPR_FROM_MO = fnfm != null ? FindNAPR_FROM_MO[fnfm] : 0;
-
+          
             var creator = new ActMEKCreator(ACT_MEK_TEMPLATE, Progress2, dispatcher);
 
-            var param_mek = creator.ConvertVOLUMEToMEK_PARAM(VOLUME, NAPR_FROM_MO);
+            var param_mek = creator.ConvertVOLUMEToMEK_PARAM(VOLUME);
             creator.CreateActMEK(item, ACT_MEK_PATH, FOND_INFO, DEFECT, param_mek, ISP, RUK);
             if (!SVOD_MEK.ContainsKey(item.SMO))
                 SVOD_MEK.Add(item.SMO, new SVOD_MEK());

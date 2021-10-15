@@ -137,6 +137,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         }
 
         private bool _Finish;
+      
 
         public bool Finish
         {
@@ -387,7 +388,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 progress1.Text = "";
             });
 
-            if (typeFileCreate==TypeFileCreate.MO)
+            if (typeFileCreate.In(TypeFileCreate.MO, TypeFileCreate.MEK_P_P_MO))
             {
                 var GLIST = Items.Where(x => x.PathArc.Count != 0).GroupBy(x => new {x.Item.YEAR, x.Item.MONTH, x.Item.CODE_MO});
                 var countGR = GLIST.Count();
@@ -396,7 +397,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 foreach (var gr in GLIST)
                 {
                     cancel.ThrowIfCancellationRequested();
-                    var name_arc = $"Результаты МЭК {gr.Key.CODE_MO} за {gr.Key.MONTH:D2}.{gr.Key.YEAR}.ZIP";
+                    var name_arc = $"{(typeFileCreate == TypeFileCreate.MO? "Результаты МЭК" : "МЭК прошлых периодов")} {gr.Key.CODE_MO} за {gr.Key.MONTH:D2}.{gr.Key.YEAR}.ZIP";
                     var NAME_ARC = Path.Combine(Folder, name_arc);
 
                     dispatcher.Invoke(() => { progress1.SetTextValue(i, $"Сбор файлов в архив: {name_arc}"); });
@@ -417,12 +418,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 }
                 dispatcher.Invoke(() => { progress2.Text = ""; });
             }
-
             if (typeFileCreate == TypeFileCreate.SLUCH && PARAM.SluchParam.OneFile)
             {
-                var file = new ZL_LIST()
+                var file = new ZL_LIST
                 {
-                    SCHET = new SCHET()
+                    SCHET = new SCHET
                     {
                         CODE = 0,
                         CODE_MO = "0",
@@ -487,20 +487,18 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     });
 
                     if (smoList == null)
-                        Result.Add(fileCreator.GetFileXML(item.Item, Folder, source, typeFileCreate,null, sluchParam, null, pr));
+                        Result.Add(fileCreator.GetFileXML(item.Item, Folder, source, typeFileCreate, item.Item.SMO, sluchParam, null,"", pr));
                     else
                     {
                         var i = 1;
                         foreach (var smo in smoList)
                         {
-                            var r = fileCreator.GetFileXML(item.Item, Folder, source, typeFileCreate, smo.SMOCOD, sluchParam, $"{OrderInMonth}{Order}{i}", pr);
+                            var r = fileCreator.GetFileXML(item.Item, Folder, source, typeFileCreate, smo.SMOCOD, sluchParam, $"{OrderInMonth}{Order}{i}",Order!=1 || i!=1? $"ПОРЯДОК{Order}":"" ,pr);
                             Result.Add(r);
                             if(r.Result)
                                 i++;
                         }
-
                     }
-
                     dispatcher.Invoke(() =>
                     {
                         var validResult = Result.Where(x => x.Result).ToList();
@@ -688,6 +686,35 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 RaisePropertyChanged();
             }
         }
+        private bool _IsMEK_P_P_SMO;
+        public bool IsMEK_P_P_SMO
+        {
+            get => _IsMEK_P_P_SMO;
+            set
+            {
+                _IsMEK_P_P_SMO = value;
+                RaisePropertyChanged();
+                if (_IsMEK_P_P_SMO)
+                {
+                    IsMainBD = true;
+                }
+            }
+        }
+
+        private bool _IsMEK_P_P_MO;
+        public bool IsMEK_P_P_MO
+        {
+            get => _IsMEK_P_P_MO;
+            set
+            {
+                _IsMEK_P_P_MO = value;
+                RaisePropertyChanged();
+                if (_IsMEK_P_P_MO)
+                {
+                    IsMainBD = true;
+                }
+            }
+        }
 
         private string _SLUCH_Z_ID;
         public string SLUCH_Z_ID
@@ -770,6 +797,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 if (IsSMO) return TypeFileCreate.SMO;
                 if (IsMO) return TypeFileCreate.MO;
                 if (IsFFOMSDx) return TypeFileCreate.FFOMSDx;
+                if (IsMEK_P_P_SMO) return TypeFileCreate.MEK_P_P_SMO;
+                if (IsMEK_P_P_MO) return TypeFileCreate.MEK_P_P_MO;
                 throw new Exception("Не удалось определить тип выгрузки");
             }
         }

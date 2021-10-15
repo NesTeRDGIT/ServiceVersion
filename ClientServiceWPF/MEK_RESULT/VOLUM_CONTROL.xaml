@@ -38,27 +38,27 @@
                 <Grid>
                     <GroupBox Header="Фильтрация" Height="112" VerticalAlignment="Top">
                         <Grid>
-                            <CheckBox x:Name="CheckBoxMEK_KOL" Content="Количественные показатели" HorizontalAlignment="Left" Margin="4,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_KOL}"/>
-                            <CheckBox x:Name="CheckBoxMEK_SUM" Content="Стоимостные показатели" HorizontalAlignment="Left" Margin="197,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_SUM}"/>
-                            <ComboBox x:Name="comboBoxVOL_MO" HorizontalAlignment="Left" Margin="65,30,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Path=MO_SPR}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME"/>
+                            <CheckBox Content="Количественные показатели" HorizontalAlignment="Left" Margin="4,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_KOL}"/>
+                            <CheckBox  Content="Стоимостные показатели" HorizontalAlignment="Left" Margin="197,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_SUM}"/>
+                            <ComboBox  HorizontalAlignment="Left" Margin="65,30,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Path=MO_SPR}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.CODE_MO}"/>
                             <Label Content="МО" HorizontalAlignment="Left" Margin="4,26,0,0" VerticalAlignment="Top"/>
-                            <ComboBox x:Name="comboBoxVOL_SMO" HorizontalAlignment="Left" Margin="403,30,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Path=SMO_SPR}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME"/>
+                            <ComboBox  HorizontalAlignment="Left" Margin="403,30,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Path=SMO_SPR}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME"  SelectedValue="{Binding Filter.SMO}"/>
                             <Label Content="СМО" HorizontalAlignment="Left" Margin="361,26,0,0" VerticalAlignment="Top"/>
-                            <ComboBox x:Name="comboBoxVOL_RUB" HorizontalAlignment="Left" Margin="65,61,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Path=RUBRIC_SPR}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME"/>
+                            <ComboBox  HorizontalAlignment="Left" Margin="65,61,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Path=RUBRIC_SPR}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME"  SelectedValue="{Binding Filter.RUB}"/>
                             <Label Content="Рубрика" HorizontalAlignment="Left" Margin="4,57,0,0" VerticalAlignment="Top"/>
-                            <Button x:Name="buttonFilter" Content="Применить" HorizontalAlignment="Right" Margin="0,6,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Command="{Binding FilterCommand}"/>
+                            <Button  Content="Применить" HorizontalAlignment="Right" Margin="0,6,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Command="{Binding FilterCommand}"/>
 
                         </Grid>
                     </GroupBox>
-                    <DataGrid x:Name="dataGrid" Margin="0,117,0,32" AutoGenerateColumns="True" ItemsSource="{Binding Mode=OneWay, Path= LIST_FILTER}"  IsReadOnly="True" SelectionUnit="CellOrRowHeader"   >
+                    <DataGrid Name="DataGrid"  Margin="0,117,0,32" AutoGenerateColumns="True" ItemsSource="{Binding Mode=OneWay, Path= LIST_FILTER}"  IsReadOnly="True" SelectionUnit="CellOrRowHeader"   >
                       
                         
 
                     </DataGrid>
-                    <Button x:Name="buttonGetVolumGetData" Content="Запрос данных" HorizontalAlignment="Left" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="302" Style="{DynamicResource MainButton}" Command="{Binding RefreshCommand}"/>
-                    <ProgressBar Name="ProgressBarVolumView" HorizontalAlignment="Left" Height="20" Margin="312,0,0,7" VerticalAlignment="Bottom" Width="313" IsIndeterminate="{Binding Progress1}" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}"/>
-                    <Label x:Name="LabelProgress" Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="630,0,67,7" VerticalAlignment="Bottom" Height="20" />
-                    <Label Padding="0" VerticalContentAlignment="Center" Content="{Binding Items.Count, ElementName=dataGrid, Mode=OneWay, StringFormat=\{0:N\}}" Margin="0,0,0,7" VerticalAlignment="Bottom" Height="20" HorizontalAlignment="Right" Width="62" HorizontalContentAlignment="Right"/>
+                    <Button  Content="Запрос данных" HorizontalAlignment="Left" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="302" Style="{DynamicResource MainButton}" Command="{Binding RefreshCommand}"/>
+                    <ProgressBar  HorizontalAlignment="Left" Height="20" Margin="312,0,0,7" VerticalAlignment="Bottom" Width="313" IsIndeterminate="{Binding Progress1.IsIndeterminate}" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}"/>
+                    <Label  Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="630,0,67,7" VerticalAlignment="Bottom" Height="20" />
+                    <Label Padding="0" VerticalContentAlignment="Center" Content="{Binding ElementName=DataGrid, Path=Items.Count, StringFormat=\{0:N\}}" Margin="0,0,0,7" VerticalAlignment="Bottom" Height="20" HorizontalAlignment="Right" Width="62" HorizontalContentAlignment="Right"/>
                 </Grid>
             </TabItem>
             <TabItem Header="Лимиты">
@@ -209,6 +209,10 @@
                             <DataGridTextColumn Header="Принято Сумма" Binding="{Binding SUM_P, StringFormat=\{0:N\}}" Width="Auto"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
                             <DataGridTextColumn Header="Принято Сумма(%)" Binding="{Binding ProcSUM_P, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
                             <DataGridTextColumn Header="Принято(Всего)" Binding="{Binding SUM_P_ALL, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+
+                            
+                            <DataGridTextColumn Header="МЭК прошлых периодов(Кол-во)" Binding="{Binding KOL_MEK_P, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="МЭК прошлых периодов(Сумма)" Binding="{Binding SUM_MEK_P, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
 
                             <DataGridTextColumn Header="Наличие акта МЭК" Binding="{Binding IsACT_MEK, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"></DataGridTextColumn>
                         </DataGrid.Columns>

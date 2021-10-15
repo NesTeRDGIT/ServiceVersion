@@ -125,31 +125,46 @@
                                 <GridViewColumn Header="InWork" DisplayMemberBinding="{Binding InWork}" Width="Auto" />
                                 <GridViewColumn Header="Finish" DisplayMemberBinding="{Binding Finish}" Width="Auto" />
                                 <GridViewColumn Header="IsTypeLog" DisplayMemberBinding="{Binding IsTypeLog}" Width="Auto" />
+                                <GridViewColumn Header="IsDop" DisplayMemberBinding="{Binding Item.DOP}" Width="Auto" />
                             </GridView>
                         </ListView.View>
                     </ListView>
                     <Label  Content="{Binding Count, Mode=OneWay, Source={StaticResource CollectionViewSourceFiles}}" HorizontalAlignment="Right" Margin="0,0,0,1" VerticalAlignment="Bottom" Width="126" HorizontalContentAlignment="Right"/>
                 </Grid>
             </GroupBox>
-            <GroupBox  Header="Параметры выгрузки" Margin="329,0,10,0" VerticalAlignment="Top" Height="115" IsEnabled="{Binding isProcessing, Converter={StaticResource BoolInverterConverter}}">
+            <GroupBox  Header="Параметры выгрузки" Margin="329,0,10,0" VerticalAlignment="Top" Height="165" IsEnabled="{Binding isProcessing, Converter={StaticResource BoolInverterConverter}}">
                 <Grid>
                     <Label Content="Кол-во потоков для выгрузки" HorizontalAlignment="Left" Margin="10,7,0,0" VerticalAlignment="Top" Width="174"/>
                     <TextBox  Height="23" Margin="189,10,0,0" TextWrapping="Wrap" Text="{Binding PARAM.CountTask}" VerticalAlignment="Top" HorizontalAlignment="Left" Width="31" VerticalContentAlignment="Center" HorizontalContentAlignment="Right" />
-                    <GroupBox Header="Источник данных" Margin="235,2,0,0" HorizontalAlignment="Left" Width="120" Height="80" VerticalAlignment="Top">
+                    <GroupBox Header="Источник данных" Margin="235,2,0,0" HorizontalAlignment="Left" Width="120" Height="130" VerticalAlignment="Top">
                         <Grid>
                             <RadioButton  Content="TEMP100" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsTEMP100}"/>
                             <RadioButton  Content="TEMP1" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsTEMP1}"/>
                             <RadioButton  Content="Основная БД" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsMainBD}"/>
                         </Grid>
+                        <GroupBox.Style>
+                            <Style TargetType="GroupBox">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding PARAM.IsMEK_P_P_MO}" Value="True">
+                                        <Setter Property="IsEnabled" Value="False"></Setter>
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding PARAM.IsMEK_P_P_SMO}" Value="True">
+                                        <Setter Property="IsEnabled" Value="False"></Setter>
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </GroupBox.Style>
                     </GroupBox>
-                    <GroupBox Header="Формат данных" Margin="360,2,0,0" HorizontalAlignment="Left" Width="130" Height="80" VerticalAlignment="Top">
+                    <GroupBox Header="Формат данных" Margin="360,2,0,0" HorizontalAlignment="Left" Width="235" Height="130" VerticalAlignment="Top">
                         <Grid>
                             <RadioButton Content="Для СМО" HorizontalAlignment="Left" Margin="10,10,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsSMO}"/>
                             <RadioButton Content="Для МО" HorizontalAlignment="Left" Margin="10,25,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsMO}"/>
                             <RadioButton Content="Для ФФОМС(Dx)" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsFFOMSDx}"/>
+                            <RadioButton Content="МЭК прошлых периодов(в СМО)" HorizontalAlignment="Left" Margin="10,55,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsMEK_P_P_SMO}"/>
+                            <RadioButton Content="МЭК прошлых периодов(в МО)" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsMEK_P_P_MO}"/>
                         </Grid>
                     </GroupBox>
-                    <GroupBox Header="Параметры файлов XLS" Margin="495,2,0,0" HorizontalAlignment="Left" Width="163" Height="80" VerticalAlignment="Top">
+                    <GroupBox Header="Параметры файлов XLS" Margin="653,2,0,0" HorizontalAlignment="Left" Width="228" Height="80" VerticalAlignment="Top">
                         <Grid>
                             <DatePicker SelectedDate="{Binding PARAM.DATE_1_XLS}" HorizontalAlignment="Right" Margin="0,0,5,0" VerticalAlignment="Top"/>
                             <DatePicker SelectedDate="{Binding PARAM.DATE_2_XLS}"  HorizontalAlignment="Right" Margin="0,29,5,0" VerticalAlignment="Top"/>
@@ -169,7 +184,7 @@
                             </Style>
                         </GroupBox.Style>
                     </GroupBox>
-                    <GroupBox Header="Параметры выгрузки ФФОМС(Dx)" Margin="663,2,0,0" HorizontalAlignment="Left" Width="228" Height="80" VerticalAlignment="Top">
+                    <GroupBox Header="Параметры выгрузки ФФОМС(Dx)" Margin="653,87,0,0" HorizontalAlignment="Left" Width="228" Height="55" VerticalAlignment="Top">
                         <GroupBox.Style>
                             <Style TargetType="GroupBox">
                                 <Style.Triggers>
@@ -207,7 +222,7 @@
                 </StatusBarItem>
 
             </StatusBar>
-            <GroupBox  Header="Журнал выгрузки" Margin="329,115,0,65">
+            <GroupBox  Header="Журнал выгрузки" Margin="329,165,0,65">
                 <Grid>
                     <ListView x:Name="ListBoxLogs" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CollectionViewSourceFilesLOG}}" Margin="0,0,0,26"  >
                         <ListView.View>

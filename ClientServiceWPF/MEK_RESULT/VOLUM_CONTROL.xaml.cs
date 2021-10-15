@@ -35,48 +35,6 @@ namespace ClientServiceWPF
     {
         public ControlProcedureVM ControlProcedureVM { get; } = new ControlProcedureVM();
 
-        public VOLUME_DATA VOL_DATA { get; set; } = new VOLUME_DATA();
-        public class VOLUME_DATA
-        {
-            public List<VOLUME_CONTROLRow> LIST { get; set; } = new List<VOLUME_CONTROLRow>();
-            public List<MO_SPRRow> MO_SPR { get; set; } = new List<MO_SPRRow>();
-            public List<SMO_SPRRow> SMO_SPR { get; set; } = new List<SMO_SPRRow>();
-            public List<RUBRIC_SPRRow> RUBRIC_SPR { get; set; } = new List<RUBRIC_SPRRow>();
-            public void CreateSPR()
-            {
-
-                var DIC_MO = new Dictionary<string, string>();
-                foreach (var row in LIST)
-                {
-                    if (!DIC_MO.ContainsKey(row.CODE_MO))
-                        DIC_MO.Add(row.CODE_MO, row.NAM_MOK);
-                }
-                var DIC_SMO = new Dictionary<string, string>();
-                foreach (var row in LIST)
-                {
-                    if (!DIC_SMO.ContainsKey(row.SMO))
-                        DIC_SMO.Add(row.SMO, row.NAM_SMOK);
-                }
-                var DIC_RUB = new Dictionary<string, string>();
-                foreach (var row in LIST)
-                {
-                    if (!DIC_RUB.ContainsKey(row.RUBRIC_ID))
-                        DIC_RUB.Add(row.RUBRIC_ID, row.NAME_RUB);
-                }
-                MO_SPR.Clear();
-                MO_SPR.Insert(0, new MO_SPRRow());
-                MO_SPR.AddRange(DIC_MO.Select(x => new MO_SPRRow { CODE_MO = x.Key, NAM_OK = x.Value }).OrderBy(x => x.CODE_MO));
-
-                SMO_SPR.Clear();
-                SMO_SPR.Insert(0, new SMO_SPRRow());
-                SMO_SPR.AddRange(DIC_SMO.Select(x => new SMO_SPRRow { SMOCOD = x.Key, NAM_SMOK = x.Value }).OrderBy(x => x.SMOCOD));
-
-                RUBRIC_SPR.Clear();
-                RUBRIC_SPR.Insert(0, new RUBRIC_SPRRow());
-                RUBRIC_SPR.AddRange(DIC_RUB.Select(x => new RUBRIC_SPRRow { VOLUM_RUBRIC_ID = x.Key, NAME = x.Value }).OrderBy(x => x.VOLUM_RUBRIC_ID));
-            }
-        }
-
         public LIMIT_DATA LIM_DATA { get; set; } = new LIMIT_DATA();
      
         public class LIMIT_DATA
@@ -167,11 +125,7 @@ namespace ClientServiceWPF
 
 
 
-        private CollectionViewSource CVSVolumView;
-        private CollectionViewSource CVSVolumMO;
-        private CollectionViewSource CVSVolumSMO;
-        private CollectionViewSource CVSVolumRUB;
-
+      
         private CollectionViewSource CVSLIMITs;
         private CollectionViewSource CVSLIMMO;
         private CollectionViewSource CVSLIMSMO;
@@ -197,11 +151,7 @@ namespace ClientServiceWPF
         public VOLUM_CONTROL()
         {
             InitializeComponent();
-            CVSVolumView = (CollectionViewSource) FindResource("CVSVolumView");
-            CVSVolumMO = (CollectionViewSource) FindResource("CVSVolumMO");
-            CVSVolumSMO = (CollectionViewSource) FindResource("CVSVolumSMO");
-            CVSVolumRUB = (CollectionViewSource) FindResource("CVSVolumRUB");
-
+        
             CVSLIMITs = (CollectionViewSource) FindResource("CVSLIMITs");
             CVSLIMMO = (CollectionViewSource) FindResource("CVSLIMMO");
             CVSLIMSMO = (CollectionViewSource) FindResource("CVSLIMSMO");
@@ -214,129 +164,9 @@ namespace ClientServiceWPF
             CVSVolumResultRUB = (CollectionViewSource) FindResource("CVSVolumResultRUB");
         }
 
-        private void buttonGetVolumGetData_Click(object sender, RoutedEventArgs e)
-        {
-            var th = new Thread(GetVolumViewData) {IsBackground = true};
-            th.Start();
-        }
+     
 
-        void GetVolumViewData()
-        {
-            try
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    buttonGetVolumGetData.IsEnabled = false;
-                    ProgressBarVolumView.IsIndeterminate = true;
-                    LabelProgress.Content = "Запрос данных";
-                });
-                var oda = new OracleDataAdapter("select * from table(volum_control.GET_VOLUME)", AppConfig.Property.ConnectionString);
-                var tbl = new DataTable();
-                oda.Fill(tbl);
-                VOL_DATA.LIST.Clear();
-                VOL_DATA.LIST.AddRange(VOLUME_CONTROLRow.Get(tbl.Select()));
-                VOL_DATA.CreateSPR();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-            finally
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    buttonGetVolumGetData.IsEnabled = true;
-                    ProgressBarVolumView.IsIndeterminate = false;
-                    LabelProgress.Content = "";
-                    CVSVolumView.View.Refresh();
-                    CVSVolumMO.View.Refresh();
-                    CVSVolumSMO.View.Refresh();
-                    CVSVolumRUB.View.Refresh();
-                });
-
-            }
-           
-
-        }
-
-        public class FilterParam
-        {
-            public string CODE_MO { get; set; }
-            public string SMO { get; set; }
-            public string RUB { get; set; }
-            public bool? IsMEK_SUM { get; set; }
-            public bool? IsMEK_KOL { get; set; }
-        }
-
-        private FilterParam ReadFilterParam()
-        {
-            var fp = new FilterParam();
-            fp.CODE_MO = (comboBoxVOL_MO.SelectedItem as MO_SPRRow)?.CODE_MO;
-            fp.SMO = (comboBoxVOL_SMO.SelectedItem as SMO_SPRRow)?.SMOCOD;
-            fp.RUB = (comboBoxVOL_RUB.SelectedItem as RUBRIC_SPRRow)?.VOLUM_RUBRIC_ID;
-            fp.IsMEK_KOL = CheckBoxMEK_KOL.IsChecked;
-            fp.IsMEK_SUM = CheckBoxMEK_SUM.IsChecked;
-            return fp;
-        }
-
-        private void buttonFilter_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var fp = ReadFilterParam();
-                var th = new Thread(FiltringList) {IsBackground = true};
-                th.Start(fp);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-        private void FiltringList(object obj)
-        {
-            var fp = (FilterParam) obj;
-            Dispatcher.Invoke(() =>
-            {
-                ProgressBarVolumView.IsIndeterminate = true;
-                LabelProgress.Content = "Фильтрация...";
-            });
-            foreach (var item in VOL_DATA.LIST)
-            {
-                item.IsSHOW = true;
-                if (fp.IsMEK_KOL.HasValue)
-                {
-                    item.IsSHOW &= fp.IsMEK_KOL.Value == item.MEK_KOL;
-                }
-                if (fp.IsMEK_SUM.HasValue)
-                {
-                    item.IsSHOW &= fp.IsMEK_SUM.Value == item.MEK_KOL;
-                }
-                if (!string.IsNullOrEmpty(fp.CODE_MO))
-                {
-                    item.IsSHOW &= fp.CODE_MO == item.CODE_MO;
-                }
-                if (!string.IsNullOrEmpty(fp.SMO))
-                {
-                    item.IsSHOW &= fp.SMO == item.SMO;
-                }
-                if (!string.IsNullOrEmpty(fp.RUB))
-                {
-                    item.IsSHOW &= fp.RUB == item.RUBRIC_ID;
-                }
-            }
-
-            Dispatcher.Invoke(() =>
-            {
-                ProgressBarVolumView.IsIndeterminate = false;
-                LabelProgress.Content = "";
-                CVSVolumView.View.Refresh();
-            });
-        }
-
-        private void CVSVolumView_OnFilter(object sender, FilterEventArgs e)
-        {
-            e.Accepted = ((VOLUME_CONTROLRow) e.Item).IsSHOW;
-        }
+   
 
         class LimitsParam
         {
@@ -663,6 +493,7 @@ namespace ClientServiceWPF
             public decimal SUM_VOLUM { get; set; }
             public decimal SUM_MUR { get; set; }
             public decimal SUM_P { get; set; }
+            public decimal SUM_MEK_P { get; set; }
 
         }
 
@@ -687,40 +518,46 @@ namespace ClientServiceWPF
                     return new PRIL5_Row { CODE = 2, NAME = "Амбулаторная МП" };
                 case "3.5.3":
                     return new PRIL5_Row { CODE = 3, NAME = "Диспансеризация 2 этап" };
+                case "3.8.1":
+                    return new PRIL5_Row { CODE = 4, NAME = "Углубленная диспансеризация" };
+                case "3.8.2":
+                    return new PRIL5_Row { CODE = 5, NAME = "Углубленная диспансеризация 2 этап" };
                 case "5.2":
-                    return new PRIL5_Row { CODE = 4, NAME = "Услуги диализа" };
+                    return new PRIL5_Row { CODE = 6, NAME = "Услуги диализа" };
                 case "3.3.7":
                 case "3.3.8":
-                    return new PRIL5_Row { CODE = 5, NAME = "Определение РНК коронавирусов" };
+                    return new PRIL5_Row { CODE = 7, NAME = "Определение РНК коронавирусов" };
                 case "3.1.3":
                 case "3.1.4":
-                    return new PRIL5_Row { CODE = 6, NAME = "ФП/ФАП" };
+                    return new PRIL5_Row { CODE = 8, NAME = "ФП/ФАП" };
 
                 case "3.3.1":
-                    return new PRIL5_Row { CODE = 7, NAME = "КТ" };
+                    return new PRIL5_Row { CODE = 9, NAME = "КТ" };
                 case "3.3.2":
-                    return new PRIL5_Row { CODE = 8, NAME = "МРТ" };
+                    return new PRIL5_Row { CODE = 10, NAME = "МРТ" };
                 case "3.3.3":
-                    return new PRIL5_Row { CODE = 9, NAME = "УЗИ сердечно-сосуд.системы" };
+                    return new PRIL5_Row { CODE = 11, NAME = "УЗИ сердечно-сосуд.системы" };
                 case "3.3.4":
-                    return new PRIL5_Row { CODE = 10, NAME = "Эндоскопические диагн. исследования" };
+                    return new PRIL5_Row { CODE = 12, NAME = "Эндоскопические диагн. исследования" };
                 case "3.3.5":
-                    return new PRIL5_Row { CODE = 11, NAME = "Патологоанатомические исследования" };
+                    return new PRIL5_Row { CODE = 13, NAME = "Патологоанатомические исследования" };
                 case "3.3.6":
-                    return new PRIL5_Row { CODE = 12, NAME = "Молекулярно - диагн.исследования" };
+                    return new PRIL5_Row { CODE = 14, NAME = "Молекулярно - диагн.исследования" };
                 case "3.2.1":
                 case "3.2.2":
-                    return new PRIL5_Row { CODE = 13, NAME = "Неотложная МП" };
-                case "1.1": return new PRIL5_Row { CODE = 14, NAME = "Стационар без онкологии" };
-                case "1.4": return new PRIL5_Row { CODE = 15, NAME = "Стационар без онкологии(МБТ ПП РФ 1213)" };
-                case "1.5": return new PRIL5_Row { CODE = 16, NAME = "Стационар без окнологии(МБТ ПП РФ 1997-р)" };
-                case "1.2": return new PRIL5_Row { CODE = 17, NAME = "Стационар онкология" };
-                case "5.1": return new PRIL5_Row { CODE = 18, NAME = "Стационар диализ" };
-                case "1.3":return new PRIL5_Row  {CODE = 19, NAME = "ВМП" };
-                case "2.1": return new PRIL5_Row {CODE = 20, NAME = "Дневной стационар без онкологии" };
-                case "2.2": return new PRIL5_Row {CODE = 21, NAME = "Дневной стационар онкология" };
-                case "2.3": return new PRIL5_Row {CODE = 22, NAME = "Дневной стационар ЭКО" };
-                case "-": return new PRIL5_Row { CODE = 23, NAME = "Прочее" };
+                    return new PRIL5_Row { CODE = 15, NAME = "Неотложная МП" };
+           
+              
+                case "1.1": return new PRIL5_Row { CODE = 16, NAME = "Стационар без онкологии" };
+                case "1.4": return new PRIL5_Row { CODE = 17, NAME = "Стационар без онкологии(МБТ ПП РФ 1213)" };
+                case "1.5": return new PRIL5_Row { CODE = 18, NAME = "Стационар без онкологии(МБТ ПП РФ 1997-р)" };
+                case "1.2": return new PRIL5_Row { CODE = 19, NAME = "Стационар онкология" };
+                case "5.1": return new PRIL5_Row { CODE = 20, NAME = "Стационар диализ" };
+                case "1.3":return new PRIL5_Row  {CODE = 21, NAME = "ВМП" };
+                case "2.1": return new PRIL5_Row {CODE = 22, NAME = "Дневной стационар без онкологии" };
+                case "2.2": return new PRIL5_Row {CODE = 23, NAME = "Дневной стационар онкология" };
+                case "2.3": return new PRIL5_Row {CODE = 24, NAME = "Дневной стационар ЭКО" };
+                case "-": return new PRIL5_Row { CODE = 25, NAME = "Прочее" };
             }
             throw new Exception($"Не найдена строка в приложении 5 для: {CODE}");
         }
@@ -747,6 +584,7 @@ namespace ClientServiceWPF
                 pr_row.SUM_VOLUM += item.S_MEK_VS+item.S_MEK_VK;
                 pr_row.SUM_MUR += item.MUR;
                 pr_row.SUM_P += item.SUM_P_ALL;
+                pr_row.SUM_MEK_P += item.SUM_MEK_P;
             }
             return pril5;
         }
@@ -767,12 +605,13 @@ namespace ClientServiceWPF
                 efm.SetColumnWidth("H", 10.57);
                 efm.SetColumnWidth("I", 10.57);
                 efm.SetColumnWidth("J", 15.29);
-                
+                efm.SetColumnWidth("K", 15.29);
+
 
                 var stringPRIL5Style = efm.CreateType(new FontOpenXML() { Bold = false, fontname = "Calibri", size = 11,HorizontalAlignment = HorizontalAlignmentV.Right, VerticalAlignment = VerticalAlignmentV.Center, wordwrap = true }, new BorderOpenXML(), null);
                 var mrow = efm.GetRow(RowI);
                 mrow.Height = 66;
-                efm.PrintCell(mrow, ColI, "Приложение № 5 к Положению о порядке оплаты медицинской помощи в системе ОМС Забайкальского края", stringPRIL5Style); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI+4));
+                efm.PrintCell(mrow, ColI, "Приложение № 5 к Положению о порядке оплаты медицинской помощи в системе ОМС Забайкальского края", stringPRIL5Style); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI+5));
                 RowI++;
                 ColI = 2;
                 var HeadStyle = efm.CreateType(new FontOpenXML() { Bold = true, fontname = "Calibri", size = 10, HorizontalAlignment = HorizontalAlignmentV.Center, VerticalAlignment = VerticalAlignmentV.Center, wordwrap = true }, new BorderOpenXML(), null);
@@ -787,6 +626,7 @@ namespace ClientServiceWPF
                 efm.PrintCell(mrow, ColI, "МЭК превышение объемов", HeadStyle); ColI++;
                 efm.PrintCell(mrow, ColI, "Снято по МУР", HeadStyle); ColI++;
                 efm.PrintCell(mrow, ColI, "Принято реестров", HeadStyle); ColI++;
+                efm.PrintCell(mrow, ColI, "МЭК прошлых периодов", HeadStyle); ColI++;
 
                 RowI++;
                 ColI = 2;
@@ -801,12 +641,12 @@ namespace ClientServiceWPF
                 efm.PrintCell(mrow, ColI, "7", HeadStyle); ColI++;
                 efm.PrintCell(mrow, ColI, "8", HeadStyle); ColI++;
                 efm.PrintCell(mrow, ColI, "9", HeadStyle); ColI++;
+                efm.PrintCell(mrow, ColI, "10", HeadStyle); ColI++;
 
 
 
 
-              
-               
+
                 var TextStyle = efm.CreateType(new FontOpenXML() { HorizontalAlignment = HorizontalAlignmentV.Left, fontname = "Calibri", size = 11 }, new BorderOpenXML(), null);
                 var TextStyleBOLD = efm.CreateType(new FontOpenXML() { HorizontalAlignment = HorizontalAlignmentV.Left, Bold = true, fontname = "Calibri", size = 11 }, new BorderOpenXML(), null);
 
@@ -834,6 +674,7 @@ namespace ClientServiceWPF
                     efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x => x.SUM_VOLUM), NumberStyleBold); ColI++;
                     efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x => x.SUM_MUR), NumberStyleBold); ColI++;
                     efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x => x.SUM_P), NumberStyleBold); ColI++;
+                    efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x => x.SUM_MEK_P), NumberStyleBold); ColI++;
 
 
                     foreach (var row in pr5.Rows.OrderBy(x=>x.CODE))
@@ -850,6 +691,7 @@ namespace ClientServiceWPF
                         efm.PrintCell(mrow, ColI, row.SUM_VOLUM, NumberStyle); ColI++;
                         efm.PrintCell(mrow, ColI, row.SUM_MUR, NumberStyle); ColI++;
                         efm.PrintCell(mrow, ColI, row.SUM_P, NumberStyle); ColI++;
+                        efm.PrintCell(mrow, ColI, row.SUM_MEK_P, NumberStyle); ColI++;
                     }
                 }
                 efm.Save();
@@ -896,6 +738,9 @@ namespace ClientServiceWPF
                 efm.PrintCell(mrow2, ColI, "%", HeadStyle);ColI++;
 
                 efm.PrintCell(mrow, ColI, "Принято к оплате(всего)", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
+                efm.PrintCell(mrow, ColI, "МЭК прошлых периодов", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle); ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
+
+
                 efm.PrintCell(mrow, ColI, "Наличие акта МЭК", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
                 RowI +=2;
                 mrow = efm.GetRow(RowI);
@@ -961,6 +806,8 @@ namespace ClientServiceWPF
                     efm.PrintCell(mrow, ColI, row.SUM_P, NumberStyle); ColI++;
                     efm.PrintCell(mrow, ColI, row.ProcSUM_P, NumberStyle); ColI++;
                     efm.PrintCell(mrow, ColI, row.SUM_P_ALL, NumberStyle); ColI++;
+                    efm.PrintCell(mrow, ColI, row.KOL_MEK_P, NumberStyle); ColI++;
+                    efm.PrintCell(mrow, ColI, row.SUM_MEK_P, NumberStyle); ColI++;
                     efm.PrintCell(mrow, ColI, row.IsACT_MEK?"Да" : "Нет", TextStyle); ColI++;
                 }
                 efm.Save();
@@ -1714,38 +1561,40 @@ namespace ClientServiceWPF
             try
             {
                 var item = new LIMIT_RESULTRow();
-                item.YEAR = Convert.ToInt32(row["YEAR"]);
-                item.MONTH = Convert.ToInt32(row["MONTH"]);
-                item.CODE_MO = Convert.ToString(row["CODE_MO"]);
-                item.NAM_MOK = Convert.ToString(row["NAM_MOK"]);
-                item.SMO = Convert.ToString(row["SMO"]);
-                item.NAM_SMOK = Convert.ToString(row["NAM_SMOK"]);
-                item.RUBRIC = Convert.ToString(row["RUBRIC"]);
-                item.RUBRIC_NAME = Convert.ToString(row["RUBRIC_NAME"]);
-                item.KOL = Convert.ToDecimal(row["KOL"]);
-                item.SUM = Convert.ToDecimal(row["SUM"]);
+                item.YEAR = Convert.ToInt32(row[nameof(YEAR)]);
+                item.MONTH = Convert.ToInt32(row[nameof(MONTH)]);
+                item.CODE_MO = Convert.ToString(row[nameof(CODE_MO)]);
+                item.NAM_MOK = Convert.ToString(row[nameof(NAM_MOK)]);
+                item.SMO = Convert.ToString(row[nameof(SMO)]);
+                item.NAM_SMOK = Convert.ToString(row[nameof(NAM_SMOK)]);
+                item.RUBRIC = Convert.ToString(row[nameof(RUBRIC)]);
+                item.RUBRIC_NAME = Convert.ToString(row[nameof(RUBRIC_NAME)]);
+                item.KOL = Convert.ToDecimal(row[nameof(KOL)]);
+                item.SUM = Convert.ToDecimal(row[nameof(SUM)]);
 
 
-                item.K_MEK_NOT_V = Convert.ToDecimal(row["K_MEK_NOT_V"]);
-                item.S_MEK_NOT_V = Convert.ToDecimal(row["S_MEK_NOT_V"]);
-                item.K_P_NOT_V = Convert.ToDecimal(row["K_P_NOT_V"]);
-                item.S_P_NOT_V = Convert.ToDecimal(row["S_P_NOT_V"]);
+                item.K_MEK_NOT_V = Convert.ToDecimal(row[nameof(K_MEK_NOT_V)]);
+                item.S_MEK_NOT_V = Convert.ToDecimal(row[nameof(S_MEK_NOT_V)]);
+                item.K_P_NOT_V = Convert.ToDecimal(row[nameof(K_P_NOT_V)]);
+                item.S_P_NOT_V = Convert.ToDecimal(row[nameof(S_P_NOT_V)]);
 
-                item.FOND = Convert.ToDecimal(row["FOND"]);
-                item.MUR = Convert.ToDecimal(row["MUR"]);
-                item.FAP = Convert.ToDecimal(row["FAP"]);
-                item.KOL_LIMIT = Convert.ToDecimal(row["KOL_LIMIT"]);
-                item.SUM_LIMIT = Convert.ToDecimal(row["SUM_LIMIT"]);
-                item.K_MEK_VK = Convert.ToDecimal(row["K_MEK_VK"]);
-                item.S_MEK_VK = Convert.ToDecimal(row["S_MEK_VK"]);
-                item.K_MEK_VK_RUB = Convert.ToDecimal(row["K_MEK_VK_RUB"]);
-                item.S_MEK_VK_RUB = Convert.ToDecimal(row["S_MEK_VK_RUB"]);
-                item.K_MEK_VS = Convert.ToDecimal(row["K_MEK_VS"]);
-                item.S_MEK_VS = Convert.ToDecimal(row["S_MEK_VS"]);
-                item.K_MEK_VS_RUB = Convert.ToDecimal(row["K_MEK_VS_RUB"]);
-                item.S_MEK_VS_RUB = Convert.ToDecimal(row["S_MEK_VS_RUB"]);
-                item.KOL_P = Convert.ToDecimal(row["KOL_P"]);
-                item.SUM_P = Convert.ToDecimal(row["SUM_P"]);
+                item.FOND = Convert.ToDecimal(row[nameof(FOND)]);
+                item.MUR = Convert.ToDecimal(row[nameof(MUR)]);
+                item.FAP = Convert.ToDecimal(row[nameof(FAP)]);
+                item.KOL_LIMIT = Convert.ToDecimal(row[nameof(KOL_LIMIT)]);
+                item.SUM_LIMIT = Convert.ToDecimal(row[nameof(SUM_LIMIT)]);
+                item.K_MEK_VK = Convert.ToDecimal(row[nameof(K_MEK_VK)]);
+                item.S_MEK_VK = Convert.ToDecimal(row[nameof(S_MEK_VK)]);
+                item.K_MEK_VK_RUB = Convert.ToDecimal(row[nameof(K_MEK_VK_RUB)]);
+                item.S_MEK_VK_RUB = Convert.ToDecimal(row[nameof(S_MEK_VK_RUB)]);
+                item.K_MEK_VS = Convert.ToDecimal(row[nameof(K_MEK_VS)]);
+                item.S_MEK_VS = Convert.ToDecimal(row[nameof(S_MEK_VS)]);
+                item.K_MEK_VS_RUB = Convert.ToDecimal(row[nameof(K_MEK_VS_RUB)]);
+                item.S_MEK_VS_RUB = Convert.ToDecimal(row[nameof(S_MEK_VS_RUB)]);
+                item.KOL_P = Convert.ToDecimal(row[nameof(KOL_P)]);
+                item.SUM_P = Convert.ToDecimal(row[nameof(SUM_P)]);
+                item.SUM_MEK_P = Convert.ToDecimal(row[nameof(SUM_MEK_P)]);
+                item.KOL_MEK_P = Convert.ToDecimal(row[nameof(KOL_MEK_P)]);
                 return item;
             }
             catch (Exception e)
@@ -1870,6 +1719,14 @@ namespace ClientServiceWPF
         ///  Принято Сумма
         /// </summary>
         public decimal SUM_P { get; set; }
+        /// <summary>
+        /// МЭК прошлого периода сумма
+        /// </summary>
+        public decimal SUM_MEK_P { get; set; }
+        /// <summary>
+        ///  МЭК прошлого периода сумма количество
+        /// </summary>
+        public decimal KOL_MEK_P { get; set; }
 
         /// <summary>
         /// Сумма всего
