@@ -528,7 +528,8 @@ namespace ClientServiceWPF.SANK_INVITER
                                 var error = $"Санкция была загружена ранее: {string.Join(Environment.NewLine, doubleSANK.Select(x => $"TYPE={x.Type},S_TIP={x.S_TIP}, S_SUM={x.S_SUM}, DATE_ACT={x.DATE_ACT:dd-MM-yyyy}, NUM_ACT={x.NUM_ACT} загружен {x.DATE_INVITE:dd-MM-yyyy} отчетный период {x.MONTH_SANK} {x.YEAR_SANK}"))}";
                                 ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error, SLUCH_Z_ID = zs_sl.SLUCH_Z_ID.Value });
                             }
-
+                            /*
+                             Причина в незавершенных санкциях
                             if (sank.S_TIP.In(42,75) && zl.SCHET.YEAR >= 2021)
                             {
                                 if (sank_sluch.Count(x => x.S_TIP.IsMEE() && x.S_OSN != 0) == 0 && zs_sl.SANK.Count(x => x.S_TIP.IsMEE() && x.S_OSN != 0) == 0)
@@ -536,8 +537,9 @@ namespace ClientServiceWPF.SANK_INVITER
                                     var error = $"Случай c экспертизой S_TIP={{42,75}} не содержит МЭЭ с дефектами";
                                     ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error, SLUCH_Z_ID = zs_sl.SLUCH_Z_ID.Value });
                                 }
-                            }
-
+                            }*/
+                            /*
+                               Причина в незавершенных санкциях
                             if (sank.S_TIP.In(37,73) && zl.SCHET.YEAR >=2021)
                             {
                                 if (sank_sluch.Count(x => x.S_TIP.IsMEE()) == 0 && zs_sl.SANK.Count(x => x.S_TIP.IsMEE()) == 0)
@@ -545,7 +547,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                     var error = "Случай c экспертизой S_TIP={37,73} не содержит МЭЭ";
                                     ErrList.Add(new ErrorProtocolXML { BAS_EL = "Z_SL", IDCASE = zs_sl.IDCASE.ToString(), IM_POL = "SANK", Comment = error, SLUCH_Z_ID = zs_sl.SLUCH_Z_ID.Value });
                                 }
-                            }
+                            }*/
                             if (sank.S_TIP.In(20, 21, 30, 31, 43, 44, 45, 46) && isMEK)
                             {
                                 var error = "S_TIP{20, 21, 30, 31, 43, 44, 45, 46} не подлежит применению, если случай снят на МЭК";

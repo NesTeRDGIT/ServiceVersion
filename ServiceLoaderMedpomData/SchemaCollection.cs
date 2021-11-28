@@ -1563,6 +1563,8 @@ namespace ServiceLoaderMedpomData
                     Error(XmlSeverityType.Error, MR_USL_N.PRVS.POS.LINE, MR_USL_N.PRVS.POS.POS, "Поле PRVS не подлежит заполнению при USL\\P_OTK = 1", "PRVS", "ERR_MR_USL_N_4");
             }
         }
+
+        private DateTime DT_10_2021 = new DateTime(2021, 10, 1);
         private void CheckONK()
         {
             var tf = SCHET.TypeFile;
@@ -1573,6 +1575,8 @@ namespace ServiceLoaderMedpomData
                 
                 var DS1likeZ = SL.DS1.value.StartsWith("Z");
                 var DS1likeC = SL.DS1.value.StartsWith("C");
+
+                var DS1U11 = SL.DS1.value == "U11" || SL.DS1.value == "U11.9";
 
                 var DS1likeD70_C97C00_C80 = SL.DS1.value.StartsWith("D70") && SL.DS2.Count(x => x.value.StartsWith("C97") || x.value.Substring(0, 3).Between("C00", "C80")) != 0 && DateFile < DT_04_2020;
                 var DS1likeD00D09 = SL.DS1.value.Substring(0, 3).Between("D00","D09");
@@ -1588,9 +1592,13 @@ namespace ServiceLoaderMedpomData
                         Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Основной диагноз D45-D47 для файла H", "DS1");
                     if (DS1likeD00D09)
                         Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Основной диагноз D00-D09 для файла H", "DS1");
-                    if (!DS1likeZ && Z_SL.USL_OK.value == "3" && SL.C_ZAB.value == "" && !(SCHET.YEAR.value==2018 && SCHET.MONTH.value ==9))
+                    if (!DS1likeZ && Z_SL.USL_OK.value == "3" && string.IsNullOrEmpty(SL.C_ZAB.value) && !(SCHET.YEAR.value==2018 && SCHET.MONTH.value ==9) && DateFile< DT_10_2021)
                     {
                         Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при оказании амбулаторной помощи, если DS1 не входит в рубрику Z", "C_ZAB");
+                    }
+                    if (!DS1likeZ && !DS1U11 && Z_SL.USL_OK.value == "3" && string.IsNullOrEmpty(SL.C_ZAB.value)  && DateFile >= DT_10_2021)
+                    {
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при оказании амбулаторной помощи, если DS1 не входит в рубрику Z  и не соответствует кодам диагноза U11 и U11.9", "C_ZAB");
                     }
                 }
                 if (tf == XML_FileType.T)
@@ -1606,9 +1614,11 @@ namespace ServiceLoaderMedpomData
                         Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Сведения о случае лечения онк.заболевания(ONK_SL) обязательно к заполнению при C00.0<= DS1<D10 или D45<=DS1<D48", "ONK_SL");
                     if (!needONK_SL && SL.IsONK_SL)
                         Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Сведения о случае лечения онк.заболевания(ONK_SL) не подлежат к заполнению при DS1<C00 или D10<= DS1<D45 или DS1>=D48", "ONK_SL");
+
                     var needC_ZAB = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47;
                     if (needC_ZAB && string.IsNullOrEmpty(SL.C_ZAB.value))
                         Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "C_ZAB");
+
                     var needTARIF = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47;
                     if (needTARIF && string.IsNullOrEmpty(SL.TARIF.value))
                         Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Тариф(TARIF) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "TARIF");

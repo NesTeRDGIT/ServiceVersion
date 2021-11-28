@@ -467,7 +467,71 @@ namespace ExcelManager
             }
         }
 
-      
+
+        /// <summary>
+        /// Ширина count страниц
+        /// </summary>
+        public void FitToWidth(uint count )
+        {var pageSetup = worksheetPart.Worksheet.GetFirstChild<PageSetup>();
+            if (pageSetup == null)
+            {
+                pageSetup = new PageSetup();
+                worksheetPart.Worksheet.Append(pageSetup);
+            }
+
+            pageSetup.Orientation = new EnumValue<OrientationValues>(OrientationValues.Portrait);
+            pageSetup.FitToWidth = count;
+
+
+
+        }
+        /// <summary>
+        /// Поля узкие
+        /// </summary>
+        public void MarginMini()
+        {
+            var pageMargin = worksheetPart.Worksheet.GetFirstChild<PageMargins>();
+            if (pageMargin == null)
+            {
+                pageMargin = new PageMargins();
+                worksheetPart.Worksheet.Append(pageMargin);
+            }
+
+            pageMargin.Left = 0.25;
+            pageMargin.Right = 0.25;
+            pageMargin.Top = 0.75;
+            pageMargin.Bottom = 0.75;
+            pageMargin.Header = 0.3;
+            pageMargin.Footer = 0.3;
+        }
+
+
+        /// <summary>
+        /// Печать на 1 странице по ширине
+        /// </summary>
+        public void FitToPage(uint count)
+        {
+            if (worksheetPart.Worksheet.SheetProperties == null)
+                worksheetPart.Worksheet.SheetProperties = new SheetProperties();
+            if (worksheetPart.Worksheet.SheetProperties.PageSetupProperties == null)
+                worksheetPart.Worksheet.SheetProperties.PageSetupProperties = new PageSetupProperties();
+
+            worksheetPart.Worksheet.SheetProperties.PageSetupProperties.FitToPage= BooleanValue.FromBoolean(true);
+            
+            var pageSetup = worksheetPart.Worksheet.GetFirstChild<PageSetup>();
+            if (pageSetup == null)
+            {
+                pageSetup = new PageSetup();
+                worksheetPart.Worksheet.Append(pageSetup);
+            }
+
+            pageSetup.PaperSize = 9;
+            pageSetup.Orientation = new EnumValue<OrientationValues>(OrientationValues.Portrait);
+            pageSetup.FitToWidth = UInt32Value.FromUInt32(count);
+            pageSetup.FitToHeight = UInt32Value.FromUInt32(0);
+
+
+        }
 
         /// <summary>
         /// Валидация документа WORD

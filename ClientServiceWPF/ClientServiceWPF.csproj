@@ -115,6 +115,8 @@
     <Compile Include="MEK_RESULT\FileCreator\IFileCreator.cs" />
     <Compile Include="Class\LogItem.cs" />
     <Compile Include="MEK_RESULT\FileCreator\TaskManager.cs" />
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL\Repository.cs" />
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL\VCExcelManager.cs" />
     <Compile Include="ORDERS\DISP\DISPWin.xaml.cs">
       <DependentUpon>DISPWin.xaml</DependentUpon>
     </Compile>
@@ -211,7 +213,7 @@
     <Compile Include="USER_EDIT\USER_ROLE.xaml.cs">
       <DependentUpon>USER_ROLE.xaml</DependentUpon>
     </Compile>
-    <Compile Include="MEK_RESULT\VOLUM_CONTROL.xaml.cs">
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL\VOLUM_CONTROL.xaml.cs">
       <DependentUpon>VOLUM_CONTROL.xaml</DependentUpon>
     </Compile>
     <Compile Include="wpf\Behaviours.cs" />
@@ -353,7 +355,7 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
-    <Page Include="MEK_RESULT\VOLUM_CONTROL.xaml">
+    <Page Include="MEK_RESULT\VOLUM_CONTROL\VOLUM_CONTROL.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

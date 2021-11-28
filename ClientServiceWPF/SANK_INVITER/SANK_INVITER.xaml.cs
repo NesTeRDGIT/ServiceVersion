@@ -382,6 +382,8 @@ namespace ClientServiceWPF.SANK_INVITER
                 var findfile = fi.FileName;
                 switch (fi.Type)
                 {
+                    case FileType.DA:
+                    case FileType.DB:
                     case FileType.DD:
                     case FileType.DF:
                     case FileType.DO:

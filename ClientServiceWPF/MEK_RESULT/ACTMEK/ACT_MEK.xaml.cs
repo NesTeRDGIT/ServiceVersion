@@ -222,6 +222,18 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 RaisePropertyChanged();
             }
         }
+        private bool _isFULL_SVOD = false;
+        public bool isFULL_SVOD
+        {
+            get => _isFULL_SVOD;
+            set
+            {
+                _isFULL_SVOD = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        
         private FolderBrowserDialog fbd = new FolderBrowserDialog();
 
         private  CancellationTokenSource cts { get; set; }
@@ -239,7 +251,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                         SaveParam();
                         if (IsMEK)
                         {
-                            tasks.Add(Task.Run(() => { ExportFileMEK(fbd.SelectedPath, cts.Token); }));
+                            tasks.Add(Task.Run(() => { ExportFileMEK(fbd.SelectedPath,isFULL_SVOD, cts.Token); }));
                         }
                         if (isDopMEK)
                         {
@@ -276,7 +288,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         }, o => IsOperationRun);
 
       
-        private void ExportFileMEK(string folder, CancellationToken cancel)
+        private void ExportFileMEK(string folder,bool IsFULL_SVOD, CancellationToken cancel)
         {
             try
             {
@@ -305,8 +317,11 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 foreach (var sv in svod)
                 {
                     dispatcher.Invoke(() => { Progress1.Text = $"Выгрузка сводного акта для {sv.Key}"; });
-                    CreateActSVOD(sv.Value, System.IO.Path.Combine(pathSVOD, $"Заключение МЭК СВОД для {sv.Key}.xlsx"));
                     CreateActSVOD_SHORT(sv.Value, System.IO.Path.Combine(pathSVOD, $"Заключение МЭК СВОД_КРАТКИЙ для {sv.Key}.xlsx"));
+                    if (IsFULL_SVOD)
+                    {
+                        CreateActSVOD(sv.Value, System.IO.Path.Combine(pathSVOD, $"Заключение МЭК СВОД для {sv.Key}.xlsx"));
+                    }
                 }
             }
             catch (Exception ex)
@@ -339,7 +354,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             dispatcher.Invoke(() =>
             {
                 Progress2.Value = 2;
-                Progress2.Text = "Запрос выполненных объёмов";
+                Progress2.Text = "Запрос выполненных объемов";
             });
             var VOLUME = repository.FindVOLUME(item);
             dispatcher.Invoke(() =>

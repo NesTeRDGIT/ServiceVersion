@@ -67,7 +67,7 @@
                                 <GridViewColumn.CellTemplate>
                                     <DataTemplate>
                                         <Expander IsExpanded="False">
-                                            <ListBox ItemsSource="{Binding S_ZGLV_ID}">
+                                            <ListBox ItemsSource="{Binding S_ZGLV_ID}" SelectionMode="Multiple">
                                                 <ListBox.ItemTemplate>
                                                     <DataTemplate>
                                                         <TextBlock Text="{Binding}"></TextBlock>
@@ -90,7 +90,7 @@
                 <Label  Content="{Binding Count, Mode=OneWay, Source={StaticResource CollectionViewSourceACT_LIST}}" HorizontalAlignment="Right" Margin="0,0,0,1" VerticalAlignment="Bottom" Width="126" HorizontalContentAlignment="Right"/>
             </Grid>
         </GroupBox>
-        <GroupBox  Header="Параметры выгрузки" Margin="329,0,10,0" VerticalAlignment="Top" Height="189" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
+        <GroupBox  Header="Параметры выгрузки" Margin="329,0,10,0" VerticalAlignment="Top" Height="210" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="290*"/>
@@ -115,6 +115,7 @@
                 </GroupBox>
                 <CheckBox Grid.Column="0"  Content="Выгружать акты МЭК" HorizontalAlignment="Left" Margin="0,119,0,0" VerticalAlignment="Top"  IsChecked="{Binding IsMEK}"/>
                 <CheckBox Grid.Column="0" x:Name="checkBoxDopMekThread" Content="Выгружать дополнение к акту МЭК" HorizontalAlignment="Left" Margin="0,139,0,0" VerticalAlignment="Top" IsChecked="{Binding isDopMEK}"/>
+                <CheckBox Grid.Column="0" x:Name="checkBoxCreateFullSVOD" Content="Выгружать полный свод" HorizontalAlignment="Left" Margin="0,159,0,0" VerticalAlignment="Top" IsChecked="{Binding isFULL_SVOD}"/>
             </Grid>
         </GroupBox>
         <Button x:Name="buttonSave" Content="Сохранить" HorizontalAlignment="Right" Margin="0,0,10,43" VerticalAlignment="Bottom" Width="192" Height="26" Command="{Binding SaveCommand}" Style="{DynamicResource MainButton}"/>

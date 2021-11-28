@@ -5,20 +5,14 @@ using System.ComponentModel;
 using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 using ClientServiceWPF.Class;
-using ExcelManager;
-using Microsoft.Office.Interop.Excel;
+using ClientServiceWPF.MEK_RESULT.ACTMEK;
 using Microsoft.Win32;
 using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData.Annotations;
@@ -26,7 +20,7 @@ using DataTable = System.Data.DataTable;
 using Path = System.IO.Path;
 using Window = System.Windows.Window;
 
-namespace ClientServiceWPF
+namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
 {
     /// <summary>
     /// Логика взаимодействия для VOLUM_CONTROL.xaml
@@ -34,6 +28,20 @@ namespace ClientServiceWPF
     public partial class VOLUM_CONTROL : Window,INotifyPropertyChanged
     {
         public ControlProcedureVM ControlProcedureVM { get; } = new ControlProcedureVM();
+        public ResultControl ResultControlVM { get; }
+
+        public VOLUM_CONTROL()
+        {
+            ResultControlVM  = new ResultControl(new RepositoryVolumeControl(), new VCExcelManager(), SaveParam);
+            InitializeComponent();
+
+            CVSLIMITs = (CollectionViewSource)FindResource("CVSLIMITs");
+            CVSLIMMO = (CollectionViewSource)FindResource("CVSLIMMO");
+            CVSLIMSMO = (CollectionViewSource)FindResource("CVSLIMSMO");
+            CVSLIMRUB = (CollectionViewSource)FindResource("CVSLIMRUB");
+            DefaultValue();
+        }
+
 
         public LIMIT_DATA LIM_DATA { get; set; } = new LIMIT_DATA();
      
@@ -77,48 +85,7 @@ namespace ClientServiceWPF
                 RUBRIC_SPR.AddRange(DIC_RUB.Select(x => new RUBRIC_SPRRow { VOLUM_RUBRIC_ID = x.Key, NAME = x.Value }).OrderBy(x => x.VOLUM_RUBRIC_ID));
             }
         }
-        public VOL_RESULT_DATA VR_DATA { get; set; } = new VOL_RESULT_DATA();
-        public class VOL_RESULT_DATA
-        {
-            public List<LIMIT_RESULTRow> LIST { get; set; } = new List<LIMIT_RESULTRow>();
-            public List<MO_SPRRow> MO_SPR { get; set; } = new List<MO_SPRRow>();
-            public List<SMO_SPRRow> SMO_SPR { get; set; } = new List<SMO_SPRRow>();
-            public List<RUBRIC_SPRRow> RUBRIC_SPR { get; set; } = new List<RUBRIC_SPRRow>();
-
-            public void CreateSPR()
-            {
-             
-                var DIC_MO = new Dictionary<string,string>();
-                foreach (var row in LIST)
-                {
-                    if(!DIC_MO.ContainsKey(row.CODE_MO))
-                        DIC_MO.Add(row.CODE_MO, row.NAM_MOK);
-                }
-                var DIC_SMO = new Dictionary<string, string>();
-                foreach (var row in LIST)
-                {
-                    if (!DIC_SMO.ContainsKey(row.SMO))
-                        DIC_SMO.Add(row.SMO, row.NAM_SMOK);
-                }
-                var DIC_RUB = new Dictionary<string, string>();
-                foreach (var row in LIST)
-                {
-                    if (!DIC_RUB.ContainsKey(row.RUBRIC))
-                        DIC_RUB.Add(row.RUBRIC, row.RUBRIC_NAME);
-                }
-                MO_SPR.Clear();
-                MO_SPR.Insert(0, new MO_SPRRow());
-                MO_SPR.AddRange(DIC_MO.Select(x=>new MO_SPRRow { CODE_MO =  x.Key, NAM_OK = x.Value}).OrderBy(x=>x.CODE_MO));
-
-                SMO_SPR.Clear();
-                SMO_SPR.Insert(0, new SMO_SPRRow());
-                SMO_SPR.AddRange(DIC_SMO.Select(x => new SMO_SPRRow { SMOCOD = x.Key, NAM_SMOK = x.Value }).OrderBy(x => x.SMOCOD));
-
-                RUBRIC_SPR.Clear();
-                RUBRIC_SPR.Insert(0, new RUBRIC_SPRRow());
-                RUBRIC_SPR.AddRange(DIC_RUB.Select(x => new RUBRIC_SPRRow { VOLUM_RUBRIC_ID = x.Key, NAME = x.Value }).OrderBy(x => x.VOLUM_RUBRIC_ID));
-            }
-        }
+      
 
 
 
@@ -132,10 +99,6 @@ namespace ClientServiceWPF
         private CollectionViewSource CVSLIMRUB;
 
 
-        private CollectionViewSource CVSVolumResult;
-        private CollectionViewSource CVSVolumResultMO;
-        private CollectionViewSource CVSVolumResultSMO;
-        private CollectionViewSource CVSVolumResultRUB;
 
 
 
@@ -148,25 +111,22 @@ namespace ClientServiceWPF
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(Name));
         }
 
-        public VOLUM_CONTROL()
+   
+
+        public void DefaultValue()
         {
-            InitializeComponent();
-        
-            CVSLIMITs = (CollectionViewSource) FindResource("CVSLIMITs");
-            CVSLIMMO = (CollectionViewSource) FindResource("CVSLIMMO");
-            CVSLIMSMO = (CollectionViewSource) FindResource("CVSLIMSMO");
-            CVSLIMRUB = (CollectionViewSource) FindResource("CVSLIMRUB");
-
-
-            CVSVolumResult = (CollectionViewSource) FindResource("CVSVolumResult");
-            CVSVolumResultMO = (CollectionViewSource) FindResource("CVSVolumResultMO");
-            CVSVolumResultSMO = (CollectionViewSource) FindResource("CVSVolumResultSMO");
-            CVSVolumResultRUB = (CollectionViewSource) FindResource("CVSVolumResultRUB");
+            ResultControlVM.Param.IsTemp1 = true;
+            ResultControlVM.Param.Period = DateTime.Now.AddMonths(-1);
+            ResultControlVM.Param.DOLG = Properties.Settings.Default.PRIL5_DOLG;
+            ResultControlVM.Param.FIO = Properties.Settings.Default.PRIL5_FIO;
         }
 
-     
-
-   
+        void SaveParam()
+        {
+            Properties.Settings.Default.PRIL5_DOLG = ResultControlVM.Param.DOLG;
+            Properties.Settings.Default.PRIL5_FIO = ResultControlVM.Param.FIO;
+            Properties.Settings.Default.Save();
+        }
 
         class LimitsParam
         {
@@ -319,501 +279,6 @@ namespace ClientServiceWPF
         private void DataGridLimit_OnSelectedCellsChanged(object sender, SelectedCellsChangedEventArgs e)
         {
             RaisePropertyChanged("SUM_SELECT_LIM");
-        }
-
-        private void ButtonVOL_RESGetData_OnClick(object sender, RoutedEventArgs e)
-        {
-            var th = new Thread(GetVR_DATA) { IsBackground = true };
-            th.Start();
-        }
-
-        void GetVR_DATA()
-        {
-            try
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    buttonVOL_RESGetData.IsEnabled = false;
-                    ProgressBarVOL_RES.IsIndeterminate = true;
-                    LabelProgressVOL_RES.Content = "Запрос данных";
-                });
-                var oda = new OracleDataAdapter("select * from table(volum_control.GET_VR)", AppConfig.Property.ConnectionString);
-                var tbl = new DataTable();
-                oda.Fill(tbl);
-                VR_DATA.LIST.Clear();
-                VR_DATA.LIST.AddRange(LIMIT_RESULTRow.Get(tbl.Select()));
-                var DicMO = new HashSet<string>(VR_DATA.LIST.Where(x=>x.KOL!=0 || x.SUM!=0).Select(x=>x.CODE_MO+x.SMO).Distinct());
-                foreach (var item in VR_DATA.LIST)
-                {
-                    item.IsACT_MEK = DicMO.Contains(item.CODE_MO + item.SMO);
-                }
-                VR_DATA.CreateSPR();
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-            finally
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    buttonVOL_RESGetData.IsEnabled = true;
-                    ProgressBarVOL_RES.IsIndeterminate = false;
-                    LabelProgressVOL_RES.Content = "";
-                    CVSVolumResult.View.Refresh();
-                    CVSVolumResultMO.View.Refresh();
-                    CVSVolumResultSMO.View.Refresh();
-                    CVSVolumResultRUB.View.Refresh();
-                });
-            }
-        }
-
-        private void ButtonFilterVOL_RES_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                var fp = ReadFilterVRParam();
-                var th = new Thread(FiltringVRList) { IsBackground = true };
-                th.Start(fp);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-        public class FilterVRParam
-        {
-            public string CODE_MO { get; set; }
-            public string SMO { get; set; }
-            public string RUB { get; set; }
-            public bool? IsMEK_SUM { get; set; }
-            public bool? IsMEK_KOL { get; set; }
-        }
-
-        private FilterVRParam ReadFilterVRParam()
-        {
-            var fp = new FilterVRParam();
-            fp.CODE_MO = (comboBoxVOL_RES_MO.SelectedItem as MO_SPRRow)?.CODE_MO;
-            fp.SMO = (comboBoxVOL_RES_SMO.SelectedItem as SMO_SPRRow)?.SMOCOD;
-            fp.RUB = (comboBoxVOL_RES_RUB.SelectedItem as RUBRIC_SPRRow)?.VOLUM_RUBRIC_ID;
-            fp.IsMEK_KOL = CheckBoxVOL_RES_KOL.IsChecked;
-            fp.IsMEK_SUM = CheckBoxVOL_RES_SUM.IsChecked;
-            return fp;
-        }
-
-        private void FiltringVRList(object obj)
-        {
-            var fp = (FilterVRParam)obj;
-            Dispatcher.Invoke(() =>
-            {
-                ProgressBarVOL_RES.IsIndeterminate = true;
-                LabelProgressVOL_RES.Content = "Фильтрация...";
-            });
-            foreach (var item in VR_DATA.LIST)
-            {
-                item.IsShow = true;
-
-                if (fp.IsMEK_KOL.HasValue)
-                {
-                    item.IsShow &= fp.IsMEK_KOL.Value == item.IsMEK_KOL;
-                }
-                if (fp.IsMEK_SUM.HasValue)
-                {
-                    item.IsShow &= fp.IsMEK_SUM.Value == item.IsMEK_SUM;
-                }
-                if (!string.IsNullOrEmpty(fp.CODE_MO))
-                {
-                    item.IsShow &= fp.CODE_MO == item.CODE_MO;
-                }
-                if (!string.IsNullOrEmpty(fp.SMO))
-                {
-                    item.IsShow &= fp.SMO == item.SMO;
-                }
-                if (!string.IsNullOrEmpty(fp.RUB))
-                {
-                    item.IsShow &= fp.RUB == item.RUBRIC;
-                }
-            }
-
-            Dispatcher.Invoke(() =>
-            {
-                ProgressBarVOL_RES.IsIndeterminate = false;
-                LabelProgressVOL_RES.Content = "";
-                CVSVolumResult.View.Refresh();
-            });
-        }
-
-        private void CVSVolumResult_OnFilter(object sender, FilterEventArgs e)
-        {
-            e.Accepted = ((LIMIT_RESULTRow)e.Item).IsShow;
-        }
-
-        private SaveFileDialog sfd = new SaveFileDialog() {Filter = "Файлы Excel(*.xlsx)|*.xlsx"};
-        private void ButtonXLSVOL_RES_OnClick(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                if (VR_DATA.LIST.Count != 0)
-                {
-                    var f = VR_DATA.LIST.First();
-                    sfd.FileName = $"Отчет по оплате за {new DateTime(f.YEAR, f.MONTH, 1):yyyy_MM} от {DateTime.Now:dd.MM.yyyy}";
-                    if (sfd.ShowDialog() == true)
-                    {
-
-                        VR_TO_XLS(sfd.FileName);
-                        if (MessageBox.Show("Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                        {
-                            ShowSelectedInExplorer.FileOrFolder(sfd.FileName);
-                        }
-                    }
-                }
-               
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
-
-
-        class PRIL5
-        {
-            public string CODE_MO { get; set; }
-            public string NAME_MOK { get; set; }
-            public List<PRIL5_Row> Rows { get; set; } = new List<PRIL5_Row>();
-        }
-
-        class  PRIL5_Row
-        {
-            public int CODE { get; set; }
-            public string NAME { get; set; }
-            public decimal SUMV { get; set; }
-            public decimal SUM_MEK { get; set; }
-            public decimal SUM_VOLUM { get; set; }
-            public decimal SUM_MUR { get; set; }
-            public decimal SUM_P { get; set; }
-            public decimal SUM_MEK_P { get; set; }
-
-        }
-
-    
-        private PRIL5_Row GetPril5NameRow(string CODE)
-        {
-            switch (CODE)
-            {
-                case "4":
-                case "4.3":
-                    return new PRIL5_Row { CODE = 1, NAME = "Скорая МП" };
-                case "3.1.1":
-                case "3.1.2":
-                case "3.4.1":
-                case "3.4.2":
-                case "3.5.1":
-                case "3.5.2":
-                case "3.6.1":
-                case "3.6.2":
-                case "3.7.1":
-                case "3.7.2":
-                    return new PRIL5_Row { CODE = 2, NAME = "Амбулаторная МП" };
-                case "3.5.3":
-                    return new PRIL5_Row { CODE = 3, NAME = "Диспансеризация 2 этап" };
-                case "3.8.1":
-                    return new PRIL5_Row { CODE = 4, NAME = "Углубленная диспансеризация" };
-                case "3.8.2":
-                    return new PRIL5_Row { CODE = 5, NAME = "Углубленная диспансеризация 2 этап" };
-                case "5.2":
-                    return new PRIL5_Row { CODE = 6, NAME = "Услуги диализа" };
-                case "3.3.7":
-                case "3.3.8":
-                    return new PRIL5_Row { CODE = 7, NAME = "Определение РНК коронавирусов" };
-                case "3.1.3":
-                case "3.1.4":
-                    return new PRIL5_Row { CODE = 8, NAME = "ФП/ФАП" };
-
-                case "3.3.1":
-                    return new PRIL5_Row { CODE = 9, NAME = "КТ" };
-                case "3.3.2":
-                    return new PRIL5_Row { CODE = 10, NAME = "МРТ" };
-                case "3.3.3":
-                    return new PRIL5_Row { CODE = 11, NAME = "УЗИ сердечно-сосуд.системы" };
-                case "3.3.4":
-                    return new PRIL5_Row { CODE = 12, NAME = "Эндоскопические диагн. исследования" };
-                case "3.3.5":
-                    return new PRIL5_Row { CODE = 13, NAME = "Патологоанатомические исследования" };
-                case "3.3.6":
-                    return new PRIL5_Row { CODE = 14, NAME = "Молекулярно - диагн.исследования" };
-                case "3.2.1":
-                case "3.2.2":
-                    return new PRIL5_Row { CODE = 15, NAME = "Неотложная МП" };
-           
-              
-                case "1.1": return new PRIL5_Row { CODE = 16, NAME = "Стационар без онкологии" };
-                case "1.4": return new PRIL5_Row { CODE = 17, NAME = "Стационар без онкологии(МБТ ПП РФ 1213)" };
-                case "1.5": return new PRIL5_Row { CODE = 18, NAME = "Стационар без онкологии(МБТ ПП РФ 1997-р)" };
-                case "1.2": return new PRIL5_Row { CODE = 19, NAME = "Стационар онкология" };
-                case "5.1": return new PRIL5_Row { CODE = 20, NAME = "Стационар диализ" };
-                case "1.3":return new PRIL5_Row  {CODE = 21, NAME = "ВМП" };
-                case "2.1": return new PRIL5_Row {CODE = 22, NAME = "Дневной стационар без онкологии" };
-                case "2.2": return new PRIL5_Row {CODE = 23, NAME = "Дневной стационар онкология" };
-                case "2.3": return new PRIL5_Row {CODE = 24, NAME = "Дневной стационар ЭКО" };
-                case "-": return new PRIL5_Row { CODE = 25, NAME = "Прочее" };
-            }
-            throw new Exception($"Не найдена строка в приложении 5 для: {CODE}");
-        }
-
-
-        Dictionary<string, PRIL5> ConvertToPril5(IEnumerable<LIMIT_RESULTRow> list)
-        {
-            var pril5 = new Dictionary<string, PRIL5>();
-            foreach (var item in list)
-            {
-                if(!pril5.ContainsKey(item.CODE_MO))
-                    pril5.Add(item.CODE_MO, new PRIL5() {CODE_MO = item.CODE_MO, NAME_MOK =  item.NAM_MOK});
-                var pr = pril5[item.CODE_MO];
-                var st = GetPril5NameRow(item.RUBRIC);
-                var pr_row = pr.Rows.FirstOrDefault(x => x.CODE == st.CODE);
-                if (pr_row == null)
-                {
-                    pr.Rows.Add(st);
-                    pr_row = st;
-                }
-
-                pr_row.SUMV += item.SUM_ALL;
-                pr_row.SUM_MEK += item.S_MEK_NOT_V;
-                pr_row.SUM_VOLUM += item.S_MEK_VS+item.S_MEK_VK;
-                pr_row.SUM_MUR += item.MUR;
-                pr_row.SUM_P += item.SUM_P_ALL;
-                pr_row.SUM_MEK_P += item.SUM_MEK_P;
-            }
-            return pril5;
-        }
-
-        private void VR_TO_PRIL5(string Path, IEnumerable<LIMIT_RESULTRow> list)
-        {
-             
-            using (var efm = new ExcelOpenXML(Path, "Приложение 5"))
-            {
-                uint ColI = 6;uint RowI = 1;
-                efm.SetColumnWidth("A", 8.43);
-                efm.SetColumnWidth("B", 4.71);
-                efm.SetColumnWidth("C", 25);
-                efm.SetColumnWidth("D", 20.14);
-                efm.SetColumnWidth("E", 33.29);
-                efm.SetColumnWidth("F", 13.71);
-                efm.SetColumnWidth("G", 10.43);
-                efm.SetColumnWidth("H", 10.57);
-                efm.SetColumnWidth("I", 10.57);
-                efm.SetColumnWidth("J", 15.29);
-                efm.SetColumnWidth("K", 15.29);
-
-
-                var stringPRIL5Style = efm.CreateType(new FontOpenXML() { Bold = false, fontname = "Calibri", size = 11,HorizontalAlignment = HorizontalAlignmentV.Right, VerticalAlignment = VerticalAlignmentV.Center, wordwrap = true }, new BorderOpenXML(), null);
-                var mrow = efm.GetRow(RowI);
-                mrow.Height = 66;
-                efm.PrintCell(mrow, ColI, "Приложение № 5 к Положению о порядке оплаты медицинской помощи в системе ОМС Забайкальского края", stringPRIL5Style); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI+5));
-                RowI++;
-                ColI = 2;
-                var HeadStyle = efm.CreateType(new FontOpenXML() { Bold = true, fontname = "Calibri", size = 10, HorizontalAlignment = HorizontalAlignmentV.Center, VerticalAlignment = VerticalAlignmentV.Center, wordwrap = true }, new BorderOpenXML(), null);
-                mrow = efm.GetRow(RowI);
-                mrow.Height = 38.25;
-                efm.PrintCell(mrow, ColI, "№", HeadStyle);ColI++;
-                efm.PrintCell(mrow, ColI, "Наименование МО", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Код", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "вид мед.помощи", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Представлено по реестру", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "МЭК без превышения объемов", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "МЭК превышение объемов", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Снято по МУР", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Принято реестров", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "МЭК прошлых периодов", HeadStyle); ColI++;
-
-                RowI++;
-                ColI = 2;
-                mrow = efm.GetRow(RowI);
-
-                efm.PrintCell(mrow, ColI, "1", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "2", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "3", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "4", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "5", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "6", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "7", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "8", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "9", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "10", HeadStyle); ColI++;
-
-
-
-
-
-                var TextStyle = efm.CreateType(new FontOpenXML() { HorizontalAlignment = HorizontalAlignmentV.Left, fontname = "Calibri", size = 11 }, new BorderOpenXML(), null);
-                var TextStyleBOLD = efm.CreateType(new FontOpenXML() { HorizontalAlignment = HorizontalAlignmentV.Left, Bold = true, fontname = "Calibri", size = 11 }, new BorderOpenXML(), null);
-
-
-                var NumberStyle = efm.CreateType(new FontOpenXML() { HorizontalAlignment = HorizontalAlignmentV.Right, Format = (uint)DefaultNumFormat.F4 , fontname = "Calibri", size = 11}, new BorderOpenXML(), null);
-                var NumberStyleBold = efm.CreateType(new FontOpenXML() { HorizontalAlignment = HorizontalAlignmentV.Right, Format = (uint)DefaultNumFormat.F4 , fontname = "Calibri", size = 11 , Bold = true}, new BorderOpenXML(), null);
-
-
-                var PRIL5 = ConvertToPril5(list);
-                int i = 0;
-               
-                foreach (var dic_item in PRIL5)
-                {
-                    RowI++;
-                    var pr5 = dic_item.Value;
-                    i++;
-                    ColI = 2;
-                    mrow = efm.GetRow(RowI);
-                    efm.PrintCell(mrow, ColI, i.ToString(), TextStyleBOLD); ColI++;
-                    efm.PrintCell(mrow, ColI, pr5.NAME_MOK, TextStyleBOLD); ColI++;
-                    efm.PrintCell(mrow, ColI, pr5.CODE_MO, TextStyleBOLD); ColI++;
-                    efm.PrintCell(mrow, ColI, "Итого", TextStyleBOLD); ColI++;
-                    efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x=>x.SUMV), NumberStyleBold); ColI++;
-                    efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x => x.SUM_MEK), NumberStyleBold); ColI++;
-                    efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x => x.SUM_VOLUM), NumberStyleBold); ColI++;
-                    efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x => x.SUM_MUR), NumberStyleBold); ColI++;
-                    efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x => x.SUM_P), NumberStyleBold); ColI++;
-                    efm.PrintCell(mrow, ColI, pr5.Rows.Sum(x => x.SUM_MEK_P), NumberStyleBold); ColI++;
-
-
-                    foreach (var row in pr5.Rows.OrderBy(x=>x.CODE))
-                    {
-                        RowI++;
-                        ColI = 2;
-                        mrow = efm.GetRow(RowI);
-                        efm.PrintCell(mrow, ColI, "", TextStyleBOLD); ColI++;
-                        efm.PrintCell(mrow, ColI, "", TextStyleBOLD); ColI++;
-                        efm.PrintCell(mrow, ColI, "", TextStyleBOLD); ColI++;
-                        efm.PrintCell(mrow, ColI, row.NAME, TextStyle); ColI++;
-                        efm.PrintCell(mrow, ColI, row.SUMV, NumberStyle); ColI++;
-                        efm.PrintCell(mrow, ColI, row.SUM_MEK, NumberStyle); ColI++;
-                        efm.PrintCell(mrow, ColI, row.SUM_VOLUM, NumberStyle); ColI++;
-                        efm.PrintCell(mrow, ColI, row.SUM_MUR, NumberStyle); ColI++;
-                        efm.PrintCell(mrow, ColI, row.SUM_P, NumberStyle); ColI++;
-                        efm.PrintCell(mrow, ColI, row.SUM_MEK_P, NumberStyle); ColI++;
-                    }
-                }
-                efm.Save();
-            }
-        }
-
-
-        private void VR_TO_XLS(string Path)
-        {
-            using (var efm = new ExcelOpenXML(Path, "Лист1"))
-            {
-                uint ColI = 1;
-                uint RowI = 1;
-                var mrow = efm.GetRow(RowI);
-                mrow.Height = 50;
-                var mrow2 = efm.GetRow(RowI+1);
-                var HeadStyle = efm.CreateType(new FontOpenXML() {Bold = true, HorizontalAlignment = HorizontalAlignmentV.Center, VerticalAlignment = VerticalAlignmentV.Center,wordwrap = true}, new BorderOpenXML(), null);
-                var TextStyle = efm.CreateType(new FontOpenXML() {  HorizontalAlignment = HorizontalAlignmentV.Left}, new BorderOpenXML(), null);
-                var NumberStyle = efm.CreateType(new FontOpenXML() { HorizontalAlignment = HorizontalAlignmentV.Right, Format = (uint)DefaultNumFormat.F4}, new BorderOpenXML(), null);
-
-                efm.PrintCell(mrow, ColI, "СМО", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI,RowI+1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "Код МО", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "Наименование МО", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "Рубрика", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "Наименование", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "Предъявлено", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI , ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle);ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Предъявлено(всего)", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "МЭК без учета контроля объемов", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle); ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Принято без учета контроля объемов", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle); ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Фондодержание", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "МУР", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "ФАП", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "Месячный лимит", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle); ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Превышение объемов(количественные показатели)", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle); ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Превышение объемов(количественные показатели)(в рамках рубрики)", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle); ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Превышение объемов(стоимостные показатели)", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle); ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-                efm.PrintCell(mrow, ColI, "Превышение объемов(стоимостные показатели)(в рамках рубрики)", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle); ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-
-                efm.PrintCell(mrow, ColI, "Принято к оплате(реестры)", HeadStyle);
-                efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle);
-                efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 3)); ColI++;
-                efm.PrintCell(mrow2, ColI, "%", HeadStyle); ColI++;
-                efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-                efm.PrintCell(mrow2, ColI, "%", HeadStyle);ColI++;
-
-                efm.PrintCell(mrow, ColI, "Принято к оплате(всего)", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                efm.PrintCell(mrow, ColI, "МЭК прошлых периодов", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI, ColI + 1)); efm.PrintCell(mrow2, ColI, "Кол-во", HeadStyle); ColI++; efm.PrintCell(mrow2, ColI, "Сумма", HeadStyle); ColI++;
-
-
-                efm.PrintCell(mrow, ColI, "Наличие акта МЭК", HeadStyle); efm.AddMergedRegion(new CellRangeAddress(RowI, ColI, RowI + 1, ColI)); ColI++;
-                RowI +=2;
-                mrow = efm.GetRow(RowI);
-                for (uint i = 1; i < ColI; i++)
-                {
-                    efm.PrintCell(mrow,i, i.ToString(), HeadStyle);
-                    var width = 20;
-                    switch (i)
-                    {
-                        case 1:
-                        case 2:
-                            width = 8;
-                            break;
-                        case 3:
-                            width = 37;
-                            break;
-                        case 4:
-                            width = 9;
-                            break;
-                        case 5:
-                            width = 62;
-                            break;
-                        default:
-                            width = 14;
-                            break;
-                    }
-
-                    efm.SetColumnWidth(i, width);
-                }
-                RowI++;
-                foreach (var row in VR_DATA.LIST)
-                {
-                    mrow = efm.GetRow(RowI);
-                    RowI++;
-                    ColI = 1;
-                    efm.PrintCell(mrow, ColI, row.SMO, TextStyle);ColI++;
-                    efm.PrintCell(mrow, ColI, row.CODE_MO, TextStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.NAM_MOK, TextStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.RUBRIC, TextStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.RUBRIC_NAME, TextStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.KOL, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.SUM, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.SUM_ALL, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.K_MEK_NOT_V, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.S_MEK_NOT_V, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.K_P_NOT_V, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.S_P_NOT_V, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.FOND, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.MUR, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.FAP, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.KOL_LIMIT, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.SUM_LIMIT, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.K_MEK_VK, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.S_MEK_VK, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.K_MEK_VK_RUB, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.S_MEK_VK_RUB, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.K_MEK_VS, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.S_MEK_VS, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.K_MEK_VS_RUB, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.S_MEK_VS_RUB, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.KOL_P, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.ProcKOL_P, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.SUM_P, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.ProcSUM_P, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.SUM_P_ALL, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.KOL_MEK_P, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.SUM_MEK_P, NumberStyle); ColI++;
-                    efm.PrintCell(mrow, ColI, row.IsACT_MEK?"Да" : "Нет", TextStyle); ColI++;
-                }
-                efm.Save();
-            }
-         
-
         }
 
         private void buttonRefreshVOLUM_Click(object sender, RoutedEventArgs e)
@@ -1046,33 +511,7 @@ namespace ClientServiceWPF
             }
         }
 
-        private void buttonXLSPRIL5_Click(object sender, RoutedEventArgs e)
-        {
-            try
-            {
-                sfd.FileName = "Приложение 5";
-                if (sfd.ShowDialog() == true)
-                {
-                    var SMO_LIST = VR_DATA.LIST.Select(x => x.SMO).Distinct();
-                    List<string> Files = new List<string>();
-                    foreach (var SMO in SMO_LIST)
-                    {
-                        var path = Path.Combine(Path.GetDirectoryName(sfd.FileName), $"{Path.GetFileNameWithoutExtension(sfd.FileName)} для {SMO}{Path.GetExtension(sfd.FileName)}");
-                        Files.Add(path);
-                        VR_TO_PRIL5(path, VR_DATA.LIST.Where(x=>x.SMO == SMO));
-                    }
-
-                    if (MessageBox.Show("Показать файлы?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
-                    {
-                        ShowSelectedInExplorer.FilesOrFolders(Files);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show(ex.Message);
-            }
-        }
+      
     }
     public class VOLUME_CONTROLRow
     {
@@ -1595,6 +1034,7 @@ namespace ClientServiceWPF
                 item.SUM_P = Convert.ToDecimal(row[nameof(SUM_P)]);
                 item.SUM_MEK_P = Convert.ToDecimal(row[nameof(SUM_MEK_P)]);
                 item.KOL_MEK_P = Convert.ToDecimal(row[nameof(KOL_MEK_P)]);
+                item.MUR_RETURN = Convert.ToDecimal(row[nameof(MUR_RETURN)]);
                 return item;
             }
             catch (Exception e)
@@ -1602,7 +1042,7 @@ namespace ClientServiceWPF
                 throw new Exception($"Ошибка получения LIMIT_RESULTRow: {e.Message}");
             }
         }
-        public bool IsShow { get; set; } = true;
+        public bool IsSHOW { get; set; } = true;
         /// <summary>
         /// Год
         /// </summary>
@@ -1727,6 +1167,10 @@ namespace ClientServiceWPF
         ///  МЭК прошлого периода сумма количество
         /// </summary>
         public decimal KOL_MEK_P { get; set; }
+        /// <summary>
+        ///  Возврат муров
+        /// </summary>
+        public decimal MUR_RETURN { get; set; }
 
         /// <summary>
         /// Сумма всего
@@ -1735,13 +1179,11 @@ namespace ClientServiceWPF
         /// <summary>
         /// Сумма принято всего
         /// </summary>
-        public decimal SUM_P_ALL => SUM_P + FOND + FAP-MUR;
+        public decimal SUM_P_ALL => SUM_P + FOND + FAP-MUR+ MUR_RETURN;
         /// <summary>
         /// Признак формирование акта МЭК
         /// </summary>
         public bool IsACT_MEK { get; set; }
-   
-
         public bool IsMEK_KOL => K_MEK_VK != 0 || S_MEK_VK!=0;
         public bool IsMEK_SUM => K_MEK_VS != 0 || S_MEK_VS != 0;
 
@@ -1868,7 +1310,7 @@ namespace ClientServiceWPF
                 }
                 if (Filter.IsMEK_SUM.HasValue)
                 {
-                    item.IsSHOW &= Filter.IsMEK_SUM.Value == item.MEK_KOL;
+                    item.IsSHOW &= Filter.IsMEK_SUM.Value == item.MEK_SUM;
                 }
                 if (!string.IsNullOrEmpty(Filter.CODE_MO))
                 {
@@ -1934,6 +1376,7 @@ namespace ClientServiceWPF
     }
 
 
+
     public class FilterParam : INotifyPropertyChanged
     {
         private string _CODE_MO;
@@ -1983,6 +1426,302 @@ namespace ClientServiceWPF
             set
             {
                 _IsMEK_KOL = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+    }
+
+
+    public class ResultControl : INotifyPropertyChanged
+    {
+
+        
+        private IRepositoryVolumeControl repository;
+        private IVCExcelManager VcExcelManager;
+        private Action SaveParam;
+        public ResultControl(IRepositoryVolumeControl repository, IVCExcelManager VcExcelManager, Action SaveParam)
+        {
+            this.repository = repository;
+            this.VcExcelManager = VcExcelManager;
+            this.SaveParam = SaveParam;
+
+        }
+
+        public Param Param { get; } = new Param();
+        public ProgressItem Progress1 { get; } = new ProgressItem();
+        public ObservableCollection<LIMIT_RESULTRow> LIST { get; set; } = new ObservableCollection<LIMIT_RESULTRow>();
+        public ObservableCollection<MO_SPRRow> MO_SPR { get; set; } = new ObservableCollection<MO_SPRRow>();
+        public ObservableCollection<SMO_SPRRow> SMO_SPR { get; set; } = new ObservableCollection<SMO_SPRRow>();
+        public ObservableCollection<RUBRIC_SPRRow> RUBRIC_SPR { get; set; } = new ObservableCollection<RUBRIC_SPRRow>();
+        private bool _IsOperationRun;
+        public bool IsOperationRun
+        {
+            get => _IsOperationRun;
+            set
+            {
+                _IsOperationRun = value;
+                RaisePropertyChanged();
+                CommandManager.InvalidateRequerySuggested();
+            }
+        }
+
+
+        private void Clear()
+        {
+            LIST.Clear();
+            MO_SPR.Clear();
+            SMO_SPR.Clear();
+            RUBRIC_SPR.Clear();
+        }
+        public ICommand RefreshCommand => new Command(async obj =>
+        {
+            try
+            {
+                IsOperationRun = true;
+                Clear();
+                Progress1.IsIndeterminate = true;
+                Progress1.Text = "Запрос данных";
+                var list = Param.IsTemp1? await repository.GET_VRAsync() : await repository.GET_VRAsync(Param.Period.Year, Param.Period.Month);
+                SetLIST(list);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                Progress1.Clear("");
+                IsOperationRun = false;
+            }
+
+        }, o => !IsOperationRun);
+
+        private void SetLIST(List<LIMIT_RESULTRow> List)
+        {
+            LIST.AddRange(List);
+            var DIC_MO = new Dictionary<string, string>();
+            var DIC_SMO = new Dictionary<string, string>();
+            var DIC_RUB = new Dictionary<string, string>();
+            foreach (var row in LIST)
+            {
+                if (!DIC_MO.ContainsKey(row.CODE_MO))
+                    DIC_MO.Add(row.CODE_MO, row.NAM_MOK);
+
+                if (!DIC_SMO.ContainsKey(row.SMO))
+                    DIC_SMO.Add(row.SMO, row.NAM_SMOK);
+
+                if (!DIC_RUB.ContainsKey(row.RUBRIC))
+                    DIC_RUB.Add(row.RUBRIC, row.RUBRIC_NAME);
+
+            }
+            MO_SPR.Clear();
+            MO_SPR.Insert(0, new MO_SPRRow());
+            MO_SPR.AddRange(DIC_MO.Select(x => new MO_SPRRow { CODE_MO = x.Key, NAM_OK = x.Value }).OrderBy(x => x.CODE_MO));
+
+            SMO_SPR.Clear();
+            SMO_SPR.Insert(0, new SMO_SPRRow());
+            SMO_SPR.AddRange(DIC_SMO.Select(x => new SMO_SPRRow { SMOCOD = x.Key, NAM_SMOK = x.Value }).OrderBy(x => x.SMOCOD));
+
+            RUBRIC_SPR.Clear();
+            RUBRIC_SPR.Insert(0, new RUBRIC_SPRRow());
+            RUBRIC_SPR.AddRange(DIC_RUB.Select(x => new RUBRIC_SPRRow { VOLUM_RUBRIC_ID = x.Key, NAME = x.Value }).OrderBy(x => x.VOLUM_RUBRIC_ID));
+
+            RaisePropertyChanged(nameof(LIST_FILTER));
+        }
+
+        public ICommand FilterCommand => new Command(async obj =>
+        {
+            try
+            {
+                IsOperationRun = true;
+                Progress1.IsIndeterminate = true;
+                Progress1.Text = "Фильтрация...";
+                await Task.Run(FilteringList);
+                RaisePropertyChanged(nameof(LIST_FILTER));
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                Progress1.Clear("");
+                IsOperationRun = false;
+            }
+
+        }, o => !IsOperationRun);
+
+        private SaveFileDialog sfd = new SaveFileDialog() { Filter = "Файлы Excel(*.xlsx)|*.xlsx" };
+        public ICommand SavePril5Command => new Command(async obj =>
+        {
+            try
+            {
+                sfd.FileName = "Приложение 5";
+                if (sfd.ShowDialog() == true)
+                {
+                    var SMO_LIST = LIST.Select(x => x.SMO).Distinct();
+                    List<string> Files = new List<string>();
+                    foreach (var SMO in SMO_LIST)
+                    {
+                        var items = LIST.Where(x => x.SMO == SMO).ToList();
+                        if (items.Count != 0)
+                        {
+                            var year = items[0].YEAR;
+                            var month = items[0].MONTH;
+
+                            var path = Path.Combine(Path.GetDirectoryName(sfd.FileName), $"{Path.GetFileNameWithoutExtension(sfd.FileName)} для {SMO} за {year}_{month:D2}{Path.GetExtension(sfd.FileName)}");
+                            Files.Add(path);
+
+                           VcExcelManager.VR_TO_PRIL5(path,Param.FIO,Param.DOLG, LIST.Where(x => x.SMO == SMO).ToList());
+                        }
+                    }
+                    if (MessageBox.Show("Показать файлы?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        ShowSelectedInExplorer.FilesOrFolders(Files);
+                    }
+                    SaveParam?.Invoke();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }, o => !IsOperationRun);
+        public ICommand SaveVRCommand => new Command(async obj =>
+        {
+            try
+            {
+                if (LIST.Count != 0)
+                {
+                    var f = LIST.First();
+                    sfd.FileName = $"Отчет по оплате за {new DateTime(f.YEAR, f.MONTH, 1):yyyy_MM} от {DateTime.Now:dd.MM.yyyy}";
+                    if (sfd.ShowDialog() == true)
+                    {
+                        VcExcelManager.VR_TO_XLS(sfd.FileName, LIST);
+                        if (MessageBox.Show("Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                        {
+                            ShowSelectedInExplorer.FileOrFolder(sfd.FileName);
+                        }
+                    }
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }, o => !IsOperationRun);
+
+
+            
+
+        private void FilteringList()
+        {
+            foreach (var item in LIST)
+            {
+                item.IsSHOW = true;
+                if (Filter.IsMEK_KOL.HasValue)
+                {
+                    item.IsSHOW &= Filter.IsMEK_KOL.Value == item.IsMEK_KOL;
+                }
+                if (Filter.IsMEK_SUM.HasValue)
+                {
+                    item.IsSHOW &= Filter.IsMEK_SUM.Value == item.IsMEK_SUM;
+                }
+                if (!string.IsNullOrEmpty(Filter.CODE_MO))
+                {
+                    item.IsSHOW &= Filter.CODE_MO == item.CODE_MO;
+                }
+                if (!string.IsNullOrEmpty(Filter.SMO))
+                {
+                    item.IsSHOW &= Filter.SMO == item.SMO;
+                }
+                if (!string.IsNullOrEmpty(Filter.RUB))
+                {
+                    item.IsSHOW &= Filter.RUB == item.RUBRIC;
+                }
+            }
+        }
+
+
+       
+      
+
+        public IEnumerable<LIMIT_RESULTRow> LIST_FILTER
+        {
+            get
+            {
+                foreach (var item in LIST)
+                {
+                    if (item.IsSHOW)
+                        yield return item;
+                }
+            }
+        }
+
+
+
+        public FilterParam Filter { get; } = new FilterParam();
+
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
+    }
+
+    public class Param : INotifyPropertyChanged
+    {
+        private bool _IsTemp1;
+        public bool IsTemp1
+        {
+            get => _IsTemp1;
+            set
+            {
+                _IsTemp1 = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private DateTime _Period;
+        public DateTime Period
+        {
+            get => _Period;
+            set
+            {
+                _Period = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _DOLG;
+        public string DOLG
+        {
+            get => _DOLG;
+            set
+            {
+                _DOLG = value;
+                RaisePropertyChanged();
+            }
+        }
+        private string _FIO;
+        public string FIO
+        {
+            get => _FIO;
+            set
+            {
+                _FIO = value;
                 RaisePropertyChanged();
             }
         }
