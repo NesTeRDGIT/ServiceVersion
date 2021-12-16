@@ -5,6 +5,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Input;
 using ServiceLoaderMedpomData.Annotations;
 
 namespace ClientServiceWPF.Class
@@ -64,12 +65,26 @@ namespace ClientServiceWPF.Class
             this.Text = TextP;
         }
 
-        public void Clear(string TextP)
+        public void Clear(string TextP = "")
         {
             this.Maximum = 1;
             this.Value = 0;
             this.Text = TextP;
             this.IsIndeterminate = false;
+            IsOperationRun = false;
+        }
+
+        private bool _IsOperationRun;
+
+        public bool IsOperationRun
+        {
+            get => _IsOperationRun;
+            set
+            {
+                _IsOperationRun = value;
+                RaisePropertyChanged();
+                CommandManager.InvalidateRequerySuggested();
+            }
         }
 
         public event PropertyChangedEventHandler PropertyChanged;

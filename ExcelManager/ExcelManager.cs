@@ -405,6 +405,17 @@ namespace ExcelManager
         /// </summary>
         F70 = 70
     }
+
+
+    public static class NumFormat
+    {
+       // public static string  IntAndSpace { get; }= "# ##0";
+//        public static string FloatAndSpace { get; } = "# ##0.00";
+
+        public static uint IntAndSpace { get; } = (uint)DefaultNumFormat.F3;
+        public static uint FloatAndSpace { get; } = (uint)DefaultNumFormat.F4;
+    }
+
     /// <summary>
     /// Колонка
     /// </summary>
@@ -1772,7 +1783,7 @@ namespace ExcelManager
                 return curr.NumberFormatId;
             }
 
-            fmt.NumberFormatId = LAST!=null ? LAST.NumberFormatId: 165;
+            fmt.NumberFormatId = LAST!=null ? LAST.NumberFormatId+1: 165;
             stylesPart.Stylesheet.NumberingFormats.AppendChild(fmt);
             return fmt.NumberFormatId;
         }
@@ -2392,7 +2403,7 @@ namespace ExcelManager
     /// <summary>
     /// Создание файла Excel в поток
     /// </summary>
-    public class ExcelOpenXMLSAX
+    public class ExcelOpenXMLSAX:IDisposable
     {
         //Sheet sheet;
         WorkbookPart workbookPart;
@@ -2422,10 +2433,6 @@ namespace ExcelManager
             workbookPart.Workbook = new Workbook();
             // Создаем лист
             worksheetPart = workbookPart.AddNewPart<WorksheetPart>();
-
-
-
-
             //Список листов
             var sheets = workbookPart.Workbook.AppendChild(new Sheets());
             //Лист
@@ -2435,23 +2442,17 @@ namespace ExcelManager
             stream = worksheetPart.GetStream();
             wr = OpenXmlWriter.Create(stream);
             wr.WriteStartElement(new Worksheet());
-
-
             //Колонки
             cols = new DocumentFormat.OpenXml.Spreadsheet.Columns();
-
-
-            //Добавляем колонки и ячейки
-            //   worksheetPart.Worksheet.Append(cols);
-
-
+           
             //Таблица стилей
             stylesPart = workbookPart.AddNewPart<WorkbookStylesPart>();
             stylesPart.Stylesheet = GenerateDefaultStyleSheet();
             Columns = new Dictionary<string, ColumnOpenXML>();
-
-
         }
+
+
+  
 
         /// <summary>
         /// Вставить колнку
@@ -2603,8 +2604,29 @@ namespace ExcelManager
             cell.CellValue = new CellValue() { Text = value.ToString().Replace(",", ".") };
             WriteCell(cell);
         }
+        public void PrintCell(MRow Row, string Cell, decimal value, uint? styleid)
+        {
 
+            var cell = CreateCell(Row.r, Cell + Row.r.RowIndex.ToString());
 
+            cell.DataType = new EnumValue<CellValues>(CellValues.Number);
+            if (styleid.HasValue)
+                cell.StyleIndex = styleid.Value;
+            cell.CellValue = new CellValue() { Text = value.ToString().Replace(",", ".") };
+            WriteCell(cell);
+        }
+
+        public void PrintCell(MRow Row, string Cell, int value, uint? styleid)
+        {
+
+            var cell = CreateCell(Row.r, Cell + Row.r.RowIndex.ToString());
+
+            cell.DataType = new EnumValue<CellValues>(CellValues.Number);
+            if (styleid.HasValue)
+                cell.StyleIndex = styleid.Value;
+            cell.CellValue = new CellValue() { Text = value.ToString() };
+            WriteCell(cell);
+        }
 
 
         private static double GetWidth(string font, float fontSize, string text)
@@ -2896,6 +2918,13 @@ namespace ExcelManager
         {
             var cellResult = new Cell {CellReference = address};
             return cellResult;
+        }
+
+        public void Dispose()
+        {
+            document?.Dispose();
+            wr?.Dispose();
+            stream?.Dispose();
         }
     }
     /// <summary>

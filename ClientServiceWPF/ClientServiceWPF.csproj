@@ -90,6 +90,9 @@
     <Reference Include="System.Xaml">
       <RequiredTargetFramework>4.0</RequiredTargetFramework>
     </Reference>
+    <Reference Include="TFOMSCustomControl">
+      <HintPath>..\..\TFOMSCustomControl\TFOMSCustomControl\bin\Debug\TFOMSCustomControl.dll</HintPath>
+    </Reference>
     <Reference Include="WindowsBase" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
@@ -115,7 +118,10 @@
     <Compile Include="MEK_RESULT\FileCreator\IFileCreator.cs" />
     <Compile Include="Class\LogItem.cs" />
     <Compile Include="MEK_RESULT\FileCreator\TaskManager.cs" />
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL\ControlProcedureVM.cs" />
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL\LimitViewVM.cs" />
     <Compile Include="MEK_RESULT\VOLUM_CONTROL\Repository.cs" />
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL\ResultControlVM.cs" />
     <Compile Include="MEK_RESULT\VOLUM_CONTROL\VCExcelManager.cs" />
     <Compile Include="ORDERS\DISP\DISPWin.xaml.cs">
       <DependentUpon>DISPWin.xaml</DependentUpon>

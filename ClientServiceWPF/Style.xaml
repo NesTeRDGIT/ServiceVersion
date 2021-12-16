@@ -108,6 +108,23 @@
             </Setter>
         </Style.Setters>
     </Style>
+    <Style x:Key="WrappedColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
+        <Setter Property="ContentTemplate">
+            <Setter.Value>
+                <DataTemplate>
+                    <TextBlock  TextWrapping="Wrap" ToolTip="{Binding}" Text="{Binding}" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
+                </DataTemplate>
+            </Setter.Value>
+        </Setter>
+        <Setter Property="HorizontalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style x:Key="MergedHeader" TargetType="DataGridColumnHeader" BasedOn="{StaticResource WrappedColumnHeaderStyle}">
+        <Setter Property="HorizontalContentAlignment" Value="Center"></Setter>
+        <Setter Property="VerticalContentAlignment" Value="Center"></Setter>
+    </Style>
+
+  
 
     <Style x:Key="ButtonFind" TargetType ="Button" BasedOn="{StaticResource MainButton}"  >
         <Style.Setters>

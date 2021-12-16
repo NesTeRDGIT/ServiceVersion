@@ -5,19 +5,22 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL"
         xmlns:class="clr-namespace:ClientServiceWPF.Class"
+        xmlns:mr="clr-namespace:TFOMSCustomControl.MultiRowHeader;assembly=TFOMSCustomControl"
         xmlns:volumControl="clr-namespace:ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL"
         mc:Ignorable="d"
         Name="this"
-        Title="Контроль объемов" Height="592" Width="1077.661" Style="{DynamicResource StyleWindow}">
+        Title="Контроль объемов" Height="592" Width="1198.998" Style="{DynamicResource StyleWindow}">
     <Window.Resources>
 
         <class:BoolInverterConverter x:Key="BoolInverterConverter"/>
 
-        <CollectionViewSource x:Key="CVSLIMITs" Source="{Binding LIM_DATA.LIST, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type volumControl:LIMITRow}, CreateList=True}" Filter="CVSLIMITs_OnFilter" />
-        <CollectionViewSource x:Key="CVSLIMMO" Source="{Binding LIM_DATA.MO_SPR, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type volumControl:MO_SPRRow}, CreateList=True}"  />
-        <CollectionViewSource x:Key="CVSLIMSMO"  Source="{Binding LIM_DATA.SMO_SPR, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type volumControl:SMO_SPRRow}, CreateList=True}"  />
-        <CollectionViewSource x:Key="CVSLIMRUB"  Source="{Binding LIM_DATA.RUBRIC_SPR, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type volumControl:RUBRIC_SPRRow}, CreateList=True}"/>
+        <CollectionViewSource x:Key="CVSLIMITs" Source="{Binding LimitViewVM.LIST_FILTER, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type volumControl:LIMITRow}, CreateList=True}" Filter="CVSLIMITs_OnFilter" />
+        <CollectionViewSource x:Key="CVSLIMMO" Source="{Binding LimitViewVM.MO_SPR, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type volumControl:MO_SPRRow}, CreateList=True}"  />
+        <CollectionViewSource x:Key="CVSLIMSMO"  Source="{Binding LimitViewVM.SMO_SPR, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type volumControl:SMO_SPRRow}, CreateList=True}"  />
+        <CollectionViewSource x:Key="CVSLIMRUB"  Source="{Binding LimitViewVM.RUBRIC_SPR, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type volumControl:RUBRIC_SPRRow}, CreateList=True}"/>
 
+
+        <CollectionViewSource x:Key="CVSResultControl"  Source="{Binding ResultControlVM.LIST_FILTER, ElementName=this}" d:DesignSource="{d:DesignInstance {x:Type volumControl:LIMIT_RESULTRow}, CreateList=True}"/>
     </Window.Resources>
     <Grid>
         <TabControl>
@@ -53,30 +56,50 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Лимиты">
+                <TabItem.DataContext>
+                    <Binding ElementName="this" Path="LimitViewVM"></Binding>
+                </TabItem.DataContext>
                 <Grid>
                     <GroupBox Header="Выборка" Height="51" VerticalAlignment="Top" Grid.ColumnSpan="3">
                         <Grid>
                             <Label Content="Период выборки" HorizontalAlignment="Left" Margin="2,0,0,0" VerticalAlignment="Top" Width="108"/>
-                            <DatePicker Name="DatePickerLimit" HorizontalAlignment="Left" Margin="115,1,0,0" VerticalAlignment="Top"  class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy"/>
-                            <Button x:Name="buttonRefreshLimit" Content="Button" HorizontalAlignment="Left" Margin="220,1,0,0" VerticalAlignment="Top" Width="25" Height="24" Style="{DynamicResource ButtonUpd}" Click="buttonRefreshLimit_Click"/>
-                            <ProgressBar Name="ProgressBarLimitRefresh" HorizontalAlignment="Left" Height="24" Margin="250,1,0,0" VerticalAlignment="Top" Width="259"/>
+                            <DatePicker  HorizontalAlignment="Left" Margin="115,1,0,0"  class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" SelectedDate="{Binding Param.Period }" Height="24" VerticalAlignment="Top" Width="100"/>
+                            <Button Content="Button" HorizontalAlignment="Left" Margin="220,1,0,0" VerticalAlignment="Top" Width="25" Height="24" Style="{DynamicResource ButtonUpd}" Command="{Binding RefreshCommand}"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="Фильтрация" Margin="0,56,0,0"  Grid.Column="0" Height="95" VerticalAlignment="Top" >
                         <Grid>
                             <Label Content="МО" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top"/>
-                            <ComboBox x:Name="comboBoxLIM_MO" HorizontalAlignment="Left" Margin="61,9,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMMO}}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME"/>
-                            <ComboBox x:Name="comboBoxLIM_SMO" HorizontalAlignment="Left" Margin="399,9,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMSMO}}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME"/>
+                            <ComboBox HorizontalAlignment="Left" Margin="61,9,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMMO}}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.CODE_MO}"/>
                             <Label Content="СМО" HorizontalAlignment="Left" Margin="357,5,0,0" VerticalAlignment="Top"/>
-                            <ComboBox x:Name="comboBoxLIM_RUB" HorizontalAlignment="Left" Margin="61,41,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMRUB}}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME"/>
+                            <ComboBox HorizontalAlignment="Left" Margin="399,9,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMSMO}}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.SMO}"/>
                             <Label Content="Рубрика" HorizontalAlignment="Left" Margin="0,37,0,0" VerticalAlignment="Top"/>
-                            <Button x:Name="buttonLIM_FILTER" Content="Применить" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="106" Style="{DynamicResource MainButton}" Click="buttonLIM_FILTER_Click"/>
-                            <CheckBox x:Name="checkBoxLIM_ERR" Content="Ошибки лимитов" HorizontalAlignment="Left" Margin="399,41,0,0" VerticalAlignment="Top" Height="22" IsThreeState="True" IsChecked="{x:Null}"/>
+                            <ComboBox  HorizontalAlignment="Left" Margin="61,41,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMRUB}}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.RUB}"/>
+
+                            <CheckBox  Content="Ошибки лимитов" HorizontalAlignment="Left" Margin="399,41,0,0" VerticalAlignment="Top" Height="22" IsThreeState="True" IsChecked="{Binding Filter.IsErr}"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="Текущий лимит" Margin="0,151,0,0" Grid.Column="0">
                         <Grid>
-                            <DataGrid Name="DataGridLimit" IsReadOnly="True" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMITs}}" Margin="0,0,0,29" SelectionUnit="CellOrRowHeader" SelectedCellsChanged="DataGridLimit_OnSelectedCellsChanged" AutoGenerateColumns="False">
+                            <mr:MultiRowHeader DataGrid="{Binding ElementName=DataGridLimit}" RowCount="2" VerticalAlignment="Top" Height="87">
+                                <mr:MultiRowHeader.HeaderColumns>
+                                    <mr:MergeDataGridColumn Column="1" ColSpan="12" Row="0"  HeaderText="Фактические показатели"  HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="1" ColSpan="2" Row="1"  HeaderText="Период" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="3" ColSpan="2" Row="1"  HeaderText="МО" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="5" ColSpan="2" Row="1"  HeaderText="СМО" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="7" ColSpan="2" Row="1"  HeaderText="Рубрика" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="9" ColSpan="2" Row="1"  HeaderText="Исполнено" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="11" ColSpan="2" Row="1"  HeaderText="Месячный лимит" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="13" ColSpan="10" Row="0"  HeaderText="Плановые показатели" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="13" ColSpan="2" Row="1"  HeaderText="1 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="15" ColSpan="2" Row="1"  HeaderText="2 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="17" ColSpan="2" Row="1"  HeaderText="3 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="19" ColSpan="2" Row="1"  HeaderText="4 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="21" ColSpan="2" Row="1"  HeaderText="Год" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="23" ColSpan="2" Row="0" RowSpan="2"  HeaderText="Прочее" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                </mr:MultiRowHeader.HeaderColumns>
+                            </mr:MultiRowHeader>
+                            <DataGrid Name="DataGridLimit" IsReadOnly="True" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMITs}}" Margin="0,87,0,29" SelectionUnit="CellOrRowHeader" SelectedCellsChanged="DataGridLimit_OnSelectedCellsChanged" AutoGenerateColumns="False" ColumnHeaderStyle="{StaticResource MergedHeader}">
                                 <DataGrid.Resources>
                                     <Style x:Key="RightGridTextColumn" TargetType="TextBlock" >
                                         <Setter Property="HorizontalAlignment" Value="Right"></Setter>
@@ -85,26 +108,26 @@
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Год" Binding="{Binding YEAR}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Месяц" Binding="{Binding MONTH}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Код МО" Binding="{Binding CODE_MO}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Наименование МО" Binding="{Binding NAM_MOK}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="СМО" Binding="{Binding SMO}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Наименование СМО" Binding="{Binding NAM_SMOK}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Код" Binding="{Binding CODE_MO}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_MOK}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Код" Binding="{Binding SMO}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_SMOK}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Рубрика" Binding="{Binding VOLUM_RUBRIC_ID}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Наименование" Binding="{Binding NAME_RUB}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во(исполнено)" Binding="{Binding KOL_ISP, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма(исполнено)" Binding="{Binding SUM_ISP, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во(Месяц)" Binding="{Binding KOL_M, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма(Месяц)" Binding="{Binding SUM_M, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во(1кв)" Binding="{Binding KOL_Q1, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма(1кв)" Binding="{Binding SUM_Q1, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во(2кв)" Binding="{Binding KOL_Q2, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма(2кв)" Binding="{Binding SUM_Q2, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во(3кв)" Binding="{Binding KOL_Q3, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма(3кв)" Binding="{Binding SUM_Q3, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во(4кв)" Binding="{Binding KOL_Q4, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма(4кв)" Binding="{Binding SUM_Q4, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во(год)" Binding="{Binding KOL_Y, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма(год)" Binding="{Binding SUM_Y, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_ISP, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_ISP, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_M, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_M, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q1, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q1, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q2, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q2, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q3, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q3, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q4, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q4, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Y, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Y, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Тип контроля" Binding="{Binding VID_STR}"></DataGridTextColumn>
                                     <DataGridTextColumn Header="Последний лимит" Binding="{Binding IsLast}"></DataGridTextColumn>
                                 </DataGrid.Columns>
@@ -123,8 +146,8 @@
                                 </DataGrid.RowHeaderTemplate>
 
                             </DataGrid>
-                            <ProgressBar Name="ProgressBarLimits" HorizontalAlignment="Left" Height="20" Margin="2,0,0,4" VerticalAlignment="Bottom" Width="313"/>
-                            <Label x:Name="LabelLimits" Padding="0" VerticalContentAlignment="Center" Content="" Margin="320,0,377,4" VerticalAlignment="Bottom" Height="20"/>
+                            <ProgressBar  HorizontalAlignment="Left" Height="20" Margin="2,0,0,4" VerticalAlignment="Bottom" Width="313" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}" IsIndeterminate="{Binding Progress1.IsIndeterminate}"/>
+                            <Label  Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="320,0,377,4" VerticalAlignment="Bottom" Height="20" />
 
                             <Label Content="{Binding Items.Count, ElementName=DataGridLimit, Mode=OneWay}"  ContentStringFormat="{}{N}" HorizontalAlignment="Right" Margin="0,0,0,3" VerticalAlignment="Bottom" Width="62" HorizontalContentAlignment="Right"/>
                             <Label Content="{Binding SUM_SELECT_LIM, ElementName=this, Mode=OneWay}"  ContentStringFormat="{}{0:N}" HorizontalAlignment="Right" Margin="0,0,99,4" VerticalAlignment="Bottom" Width="143" HorizontalContentAlignment="Right" Height="25" VerticalContentAlignment="Center"/>
@@ -163,63 +186,78 @@
                         </TabItem>
                     </TabControl>
 
-                    <DataGrid  Margin="0,117,0,32" ItemsSource="{Binding LIST_FILTER}" IsReadOnly="True" SelectionUnit="CellOrRowHeader" AutoGenerateColumns="False">
+                    <mr:MultiRowHeader DataGrid="{Binding ElementName=DataGridResult}" RowCount="2" Margin="0,112,0,0" VerticalAlignment="Top">
+                        <mr:MultiRowHeader.HeaderColumns>
+                            <mr:MergeDataGridColumn Column="1" ColSpan="2" Row="0" RowSpan="2"  HeaderText="Период" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="3" ColSpan="2" Row="0" RowSpan="2"  HeaderText="МО" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="5" ColSpan="2" Row="0" RowSpan="2"   HeaderText="СМО" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="7" ColSpan="2" Row="0" RowSpan="2"   HeaderText="Рубрика" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="9" ColSpan="3" Row="0" RowSpan="2"   HeaderText="Предъявлено" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="12" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снятых на МЭК без учета контроля объемов" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="14" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Принятых к оплате без учета контроля объемов" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="16" ColSpan="3" Row="0"  RowSpan="2"  HeaderText="Фондодержание" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="19" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Лимит" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="21" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(количественные показатели)" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="23" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(количественные показатели)(в рамках рубрики)" HeaderStyle="{StaticResource MergedHeader}"/>
+
+
+                            <mr:MergeDataGridColumn Column="25" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(стоимостные показатели)" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="27" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(стоимостные показатели)(в рамках рубрики)" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="29" ColSpan="5" Row="0"  RowSpan="2"  HeaderText="Принято" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="34" ColSpan="3" Row="0"  RowSpan="2"  HeaderText="МЭК прошлых периодов" HeaderStyle="{StaticResource MergedHeader}"/>
+                            <mr:MergeDataGridColumn Column="37" ColSpan="1" Row="0"  RowSpan="2"  HeaderText="Прочее" HeaderStyle="{StaticResource MergedHeader}"/>
+                        </mr:MultiRowHeader.HeaderColumns>
+                    </mr:MultiRowHeader>
+                    <DataGrid Name="DataGridResult"  CanUserReorderColumns="False" Margin="0,167,0,32" IsReadOnly="True" SelectionUnit="CellOrRowHeader" AutoGenerateColumns="False" ColumnHeaderStyle="{StaticResource WrappedColumnHeaderStyle}">
                         <DataGrid.Resources>
-                            <Style x:Key="WrappedColumnHeaderStyle" TargetType="{x:Type DataGridColumnHeader}">
-                                <Setter Property="ContentTemplate">
-                                    <Setter.Value>
-                                        <DataTemplate>
-                                            <TextBlock  TextWrapping="Wrap" ToolTip="{Binding}" Text="{Binding}" TextAlignment="Center" HorizontalAlignment="Center" VerticalAlignment="Center"></TextBlock>
-                                        </DataTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Setter Property="HorizontalContentAlignment" Value="Center" />
-                            </Style>
                             <Style x:Key="RightGridTextColumn" TargetType="TextBlock" >
                                 <Setter Property="HorizontalAlignment" Value="Right"></Setter>
                             </Style>
                         </DataGrid.Resources>
+                        <DataGrid.ItemsSource>
+                            <Binding Mode="OneWay" Source="{StaticResource CVSResultControl}"/>
+                        </DataGrid.ItemsSource>
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Год" Binding="{Binding YEAR}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Месяц" Binding="{Binding MONTH}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Код МО" Binding="{Binding CODE_MO}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Наименование МО" Binding="{Binding NAM_MOK}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Код СМО" Binding="{Binding SMO}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Наименование СМО" Binding="{Binding NAM_SMOK}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Рубрика" Binding="{Binding RUBRIC}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Наименование рубрики" Binding="{Binding RUBRIC_NAME}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма(Всего)" Binding="{Binding SUM_ALL, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Кол-во снятых на МЭК без учета контроля объемов" Binding="{Binding K_MEK_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма снятых на МЭК без учета контроля объемов" Binding="{Binding S_MEK_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Кол-во принятых к оплате без учета контроля объемов" Binding="{Binding K_P_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма принятых к оплате без учета контроля объемов" Binding="{Binding S_P_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Фондодержание" Binding="{Binding FOND, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Муры" Binding="{Binding MUR, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Фондодержание фап" Binding="{Binding FAP, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количественный лимит" Binding="{Binding KOL_LIMIT, StringFormat=\{0:N\}}"  Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Стоимостной лимит" Binding="{Binding SUM_LIMIT, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество снятых по превышению объемов(количественные показатели)" Binding="{Binding K_MEK_VK, StringFormat=\{0:N\}}"  Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма снятых по превышению объемов(количественные показатели)" Binding="{Binding S_MEK_VK, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество снятых по превышению объемов(количественные показатели)(в рамках рубрики)" Binding="{Binding K_MEK_VK_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма снятых по превышению объемов(количественные показатели)(в рамках рубрики)" Binding="{Binding S_MEK_VK_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество снятых по превышению объемов(стоимостные показатели)" Binding="{Binding K_MEK_VS, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма снятых по превышению объемов(стоимостные показатели)" Binding="{Binding S_MEK_VS, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество снятых по превышению объемов(стоимостные показатели)(в рамках рубрики)" Binding="{Binding K_MEK_VS_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма снятых по превышению объемов(стоимостные показатели)(в рамках рубрики)" Binding="{Binding S_MEK_VS_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Принято кол-во" Binding="{Binding KOL_P, StringFormat=\{0:N\}}" Width="Auto"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Принято кол-во(%)" Binding="{Binding ProcKOL_P, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Принято Сумма" Binding="{Binding SUM_P, StringFormat=\{0:N\}}" Width="Auto"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Принято Сумма(%)" Binding="{Binding ProcSUM_P, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Принято(Всего)" Binding="{Binding SUM_P_ALL, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Год" Binding="{Binding YEAR}" Width="Auto"   ></DataGridTextColumn>
+                            <DataGridTextColumn Header="Месяц" Binding="{Binding MONTH}" Width="Auto"   ></DataGridTextColumn>
+                            <DataGridTextColumn Header="Код" Binding="{Binding CODE_MO}" Width="Auto"   ></DataGridTextColumn>
+                            <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_MOK}" Width="Auto"   ></DataGridTextColumn>
+                            <DataGridTextColumn Header="Код" Binding="{Binding SMO}" Width="Auto"   ></DataGridTextColumn>
+                            <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_SMOK}" Width="Auto"   ></DataGridTextColumn>
+                            <DataGridTextColumn Header="Рубрика" Binding="{Binding RUBRIC}" Width="Auto"   ></DataGridTextColumn>
+                            <DataGridTextColumn Header="Наименование" Binding="{Binding RUBRIC_NAME}" Width="Auto"   ></DataGridTextColumn>
+                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL, StringFormat=\{0:N\}}" Width="Auto"     ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма(+Фонд)" Binding="{Binding SUM_ALL, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding K_P_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_P_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Фондодержание" Binding="{Binding FOND, StringFormat=\{0:N\}}" Width="Auto"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="МУРы" Binding="{Binding MUR, StringFormat=\{0:N\}}" Width="Auto"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Фондодержание ФАП" Binding="{Binding FAP, StringFormat=\{0:N\}}" Width="Auto"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding KOL_LIMIT, StringFormat=\{0:N\}}"  Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_LIMIT, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VK, StringFormat=\{0:N\}}"  Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VK, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VK_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VK_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VS, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VS, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VS_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VS_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding KOL_P, StringFormat=\{0:N\}}" Width="Auto"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество(%)" Binding="{Binding ProcKOL_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_P, StringFormat=\{0:N\}}" Width="Auto"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма(%)" Binding="{Binding ProcSUM_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Всего" Binding="{Binding SUM_P_ALL, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
 
 
-                            <DataGridTextColumn Header="МЭК прошлых периодов(Кол-во)" Binding="{Binding KOL_MEK_P, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="МЭК прошлых периодов(Сумма)" Binding="{Binding SUM_MEK_P, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Возврат МУР" Binding="{Binding MUR_RETURN, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Количество" Binding="{Binding KOL_MEK_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_MEK_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Возврат МУР" Binding="{Binding MUR_RETURN, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
 
-                            <DataGridTextColumn Header="Наличие акта МЭК" Binding="{Binding IsACT_MEK, StringFormat=\{0:N\}}" Width="Auto" HeaderStyle="{StaticResource WrappedColumnHeaderStyle}"></DataGridTextColumn>
+                            <DataGridTextColumn Header="Наличие акта МЭК" Binding="{Binding IsACT_MEK, StringFormat=\{0:N\}}" Width="Auto"  ></DataGridTextColumn>
                         </DataGrid.Columns>
                     </DataGrid>
                     <Button Content="Запрос данных" HorizontalAlignment="Left" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="302" Style="{DynamicResource MainButton}" Command="{Binding RefreshCommand}"/>
