@@ -1486,11 +1486,12 @@ namespace ServiceLoaderMedpomData
                 if (Math.Round(Z_SL.SUMV.value, 2) != Math.Round(Z_SL.SUMV_USL_SUM, 2))
                     Error(XmlSeverityType.Error, Z_SL.SUMV.POS.LINE, Z_SL.SUMV.POS.POS, $"Сумма законченного случая({Math.Round(Z_SL.SUMV.value, 2)}) не равна сумме услуг({Math.Round(Z_SL.SUMV_USL_SUM, 2)})", "SUMV");
 
+                
                 var isRef = !string.IsNullOrEmpty(SCHET.REF.value);
                 if (Z_SL.PR_NOV.value == "1" && !isRef && IsValidateRef)
-                    Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Признак исправленной записи = 1 недопустим без указания тэга SCHET\\REF", "SUMV");
+                    Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Признак исправленной записи = 1 недопустим без указания тэга SCHET\\REF", "SUMV","ERR_ZS_1");
                 if (Z_SL.PR_NOV.value == "0" && isRef && IsValidateRef)
-                    Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Признак исправленной записи = 0 недопустим при указании тэга SCHET\\REF", "SUMV");
+                    Error(XmlSeverityType.Error, Z_SL.PR_NOV.POS.LINE, Z_SL.PR_NOV.POS.POS, $"Признак исправленной записи = 0 недопустим при указании тэга SCHET\\REF", "SUMV", "ERR_ZS_2");
 
                 var isFIRST_IDCASE = !string.IsNullOrEmpty(Z_SL.FIRST_IDCASE.value);
                 if (isFIRST_IDCASE && !isRef && IsValidateRef)

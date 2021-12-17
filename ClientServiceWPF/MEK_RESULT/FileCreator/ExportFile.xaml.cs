@@ -287,7 +287,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     }
 
                     cts = new CancellationTokenSource();
-                    var tasks = new List<Task> {Task.Run(() => { GetFilesXML(items, fbd.SelectedPath, PARAM.Source,PARAM.TypeFileCreate, smoList, cts.Token); })};
+                    var tasks = new List<Task> {Task.Run(  () => { GetFilesXMLAsync(items, fbd.SelectedPath, PARAM.Source, PARAM.TypeFileCreate, smoList, cts.Token); })};
 
                     if (PARAM.TypeFileCreate== TypeFileCreate.SMO)
                     {
@@ -341,7 +341,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             return Err;
         }
 
-        private void GetFilesXML(List<V_EXPORT_H_ZGLVRowVM> Items, string Folder, DBSource source, TypeFileCreate typeFileCreate, List<F002> smoList, CancellationToken cancel)
+        private void  GetFilesXMLAsync(List<V_EXPORT_H_ZGLVRowVM> Items, string Folder, DBSource source, TypeFileCreate typeFileCreate, List<F002> smoList, CancellationToken cancel)
         {
             var tm = new TaskManager(PARAM.CountTask);
             var index = 0;
@@ -416,6 +416,44 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     }
                     i++;
                 }
+                dispatcher.Invoke(() => { progress2.Text = ""; });
+            }
+
+            if (typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO))
+            {
+                var GLIST = Items.SelectMany(x => x.Results.Select(y=> new { x.Item.YEAR, x.Item.MONTH,Result=y })).Where(x => x.Result.Result).GroupBy(x => new { x.Result.SMO, x.YEAR, x.MONTH });
+                var countGR = GLIST.Count();
+                var i = 1;
+                dispatcher.Invoke(() => { progress1.SetValues(countGR, 0, "Сбор файлов в архив"); });
+
+                var removePath = new List<string>();
+
+                foreach (var gr in GLIST)
+                {
+                    cancel.ThrowIfCancellationRequested();
+                    var nameArc = $"{(typeFileCreate == TypeFileCreate.SMO ? "Реестры" : "МЭК прошлых периодов")} {gr.Key.SMO} за {gr.Key.MONTH:D2}.{gr.Key.YEAR}.ZIP";
+                    var pathArc = Path.Combine(Folder, nameArc);
+
+                    dispatcher.Invoke(() => { progress1.SetTextValue(i, $"Сбор файлов в архив: {nameArc}"); });
+
+                    using (var archive = ZipFile.Open(pathArc, ZipArchiveMode.Create))
+                    {
+                        foreach (var item in gr)
+                        {
+                            var file = item.Result.PathARC;
+                            dispatcher.Invoke(() => { progress2.Text = $"Добавление {file}"; });
+                            archive.CreateEntryFromFile(file, Path.GetFileName(file));
+                            File.Delete(file);
+                            removePath.Add(file);
+                        }
+                    }
+                    i++;
+                }
+                dispatcher.Invoke(() => { progress2.Text = "Очистка каталогов"; });
+                FilesHelper.RemoveFileAndDirAsync(Folder, removePath.ToArray());
+                
+
+
                 dispatcher.Invoke(() => { progress2.Text = ""; });
             }
             if (typeFileCreate == TypeFileCreate.SLUCH && PARAM.SluchParam.OneFile)
@@ -495,8 +533,10 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         {
                             var r = fileCreator.GetFileXML(item.Item, Folder, source, typeFileCreate, smo.SMOCOD, sluchParam, $"{OrderInMonth}{Order}{i}",Order!=1 || i!=1? $"ПОРЯДОК{Order}":"" ,pr);
                             Result.Add(r);
-                            if(r.Result)
+                            if (r.Result)
+                            {
                                 i++;
+                            }
                         }
                     }
                     dispatcher.Invoke(() =>

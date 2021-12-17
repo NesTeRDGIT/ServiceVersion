@@ -33,7 +33,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     item.D_SCHET = Convert.ToDateTime(row["D_SCHET"]);
                 item.SMO = row[nameof(SMO)].ToString();
                 item.NAME_SMOK = row[nameof(NAME_SMOK)].ToString();
-                item.ZGLV_ID_BASE = row[nameof(ZGLV_ID_BASE)].ToString().Split(',').Select(x => Convert.ToInt32(x)).Distinct().ToArray();
+                item.ZGLV_ID_BASE = row[nameof(ZGLV_ID_BASE)] != DBNull.Value ? row[nameof(ZGLV_ID_BASE)].ToString().Split(',').Select(x => Convert.ToInt32(x)).Distinct().ToArray() : new int[0];
                 item.S_ZGLV_ID = row[nameof(S_ZGLV_ID)].ToString().Split(',').Select(x => Convert.ToInt32(x)).Distinct().ToArray();
                 return item;
             }

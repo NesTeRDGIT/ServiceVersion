@@ -283,5 +283,59 @@ namespace ServiceLoaderMedpomData
             }
 
         }
+
+        private static string NormalizePath(string path)
+        {
+            while (path.Length != 0 && path[path.Length - 1] == '\\')
+            {
+                path = path.Remove(path.Length - 1, 1);
+            }
+            return path.ToUpper();
+        }
+        /// <summary>
+        /// Удалить файл и ветку его каталогов, если они пусты
+        /// </summary>
+        /// <param name="rootFolder">Каталог до которого происходит удаление</param>
+        /// <param name="p">Имя файла или каталога</param>
+        public static void RemoveFileAndDir(string rootFolder, params string[] paths)
+        {
+            rootFolder = NormalizePath(rootFolder);
+            foreach (var p in paths)
+            {
+                RemoveFileAndDirInner(rootFolder, NormalizePath(p));
+            }
+        }
+
+        public static Task RemoveFileAndDirAsync(string rootFolder, params string[] paths)
+        {
+            return Task.Run(() => RemoveFileAndDir(rootFolder, paths));
+
+        }
+
+        private static void RemoveFileAndDirInner(string rootFolder, string p)
+        {
+            if (!p.StartsWith(p, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new Exception("Путь не в базовом каталоге");
+            }
+            if (File.Exists(p))
+            {
+                File.Delete(p);
+            }
+            var dir = Path.GetDirectoryName(p);
+            if (dir != rootFolder)
+            {
+                if (Directory.Exists(dir))
+                {
+                    if (Directory.GetFiles(dir).Length == 0 && Directory.GetDirectories(dir).Length == 0)
+                    {
+                        Directory.Delete(dir);
+                        RemoveFileAndDirInner(rootFolder, dir);
+                    }
+                }
+            }
+        }
+
+
     }
 }

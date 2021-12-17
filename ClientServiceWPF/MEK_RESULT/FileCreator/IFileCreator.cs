@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
 using ClientServiceWPF.Class;
+using ClientServiceWPF.MEK_RESULT.ACTMEK;
 using ExcelManager;
 using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData;
@@ -46,6 +47,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         public int Order { get; set; }
     }
 
+   
+
     public class FileCreatorResult
     {
         public static FileCreatorResult CreateNotResult()
@@ -53,14 +56,15 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             return new FileCreatorResult {Result = false};
         }
 
-        public static FileCreatorResult CreateResult(string PathARC, decimal SUM)
+        public static FileCreatorResult CreateResult(string PathARC, decimal SUM,string SMO)
         {
-            return new FileCreatorResult {Result = true, PathARC = PathARC, SUM = SUM};
+            return new FileCreatorResult {Result = true, PathARC = PathARC, SUM = SUM, SMO= SMO};
         }
 
         public bool Result { get; set; }
         public string PathARC { get; set; }
         public decimal SUM { get; set; }
+        public string SMO { get; set; }
         public ZL_LIST FileH { get; set; }
         public PERS_LIST FileL { get; set; }
 
@@ -302,7 +306,14 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 var sc = new SchemaChecking();
                 var err = sc.CheckXML(pathfile, PATH_XSD, CXL);
                 if (err.Count != 0)
-                    AddLogInvoke(progress, LogType.Error, err.Select(x => x.MessageOUT).ToArray());
+                {
+                    if (typeFileCreate != TypeFileCreate.FFOMSDx || err.Count(x=>!x.ERR_CODE.In("ERR_ZS_1", "ERR_ZS_2"))!=0)
+                    {
+                        AddLogInvoke(progress, LogType.Error, err.Select(x => x.MessageOUT).ToArray());
+                    }
+                }
+
+                    
 
                 AddLogInvoke(progress, LogType.Info, "Проверка схемы файла персональных данных");
                 var L_XSD_PATH = Path.Combine(PathSchema, "L31.xsd");
@@ -345,7 +356,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 else
                     ToArchive(PATH_ARCIVE, pathfile, pathfileL);
 
-                var res = FileCreatorResult.CreateResult(PATH_ARCIVE, file.SCHET.SUMMAV);
+                var res = FileCreatorResult.CreateResult(PATH_ARCIVE, file.SCHET.SUMMAV,SMO);
                 if (typeFileCreate == TypeFileCreate.SLUCH)
                 {
                     res.FileH = file;
