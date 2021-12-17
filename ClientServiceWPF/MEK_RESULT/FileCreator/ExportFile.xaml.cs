@@ -341,28 +341,24 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             return Err;
         }
 
+       
+
         private void  GetFilesXMLAsync(List<V_EXPORT_H_ZGLVRowVM> Items, string Folder, DBSource source, TypeFileCreate typeFileCreate, List<F002> smoList, CancellationToken cancel)
         {
-            var tm = new TaskManager(PARAM.CountTask);
-            var index = 0;
-            var count = Items.Count;
-            dispatcher.Invoke(() => { progress1.SetValues(count,index, ""); });
             var dic_order = new Dictionary<string, int>();
-            foreach (var fi in Items)
+            var index = 0;
+            var paraleLoopResult = Parallel.ForEach(Items,new ParallelOptions{CancellationToken = cancel, MaxDegreeOfParallelism = PARAM.CountTask },  (item,pls) =>
             {
                 try
                 {
-                    var key = fi.Item.CODE_MO + fi.Item.FILENAME.Substring(0, 2);
-                    if(!dic_order.ContainsKey(key))
-                        dic_order.Add(key,0);
+                    var key = item.Item.CODE_MO + item.Item.FILENAME.Substring(0, 2);
+                    if (!dic_order.ContainsKey(key))
+                        dic_order.Add(key, 0);
                     dic_order[key]++;
-                   
-                    fi.SUM = 0;
-                    var tmitem = tm.WaitFreeItem(cancel);
+                    item.SUM = 0;
                     cancel.ThrowIfCancellationRequested();
-                    tmitem.TSK = CreateFileTask(fi, Folder, source, typeFileCreate,PARAM.SluchParam, smoList, PARAM.OrderInMonth, dic_order[key]);
-                    tmitem.Free = false;
-                    tmitem.TSK.Start();
+                    fileCreator.CreateFile(item, Folder, source, typeFileCreate, PARAM.SluchParam, smoList, PARAM.OrderInMonth, dic_order[key]);
+                
                     dispatcher.Invoke(() => { progress1.SetTextValue(index, $"Выгрузка {index} из {count}"); });
                 }
                 catch (Exception ex)
@@ -371,7 +367,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 }
 
                 index++;
-            }
+            });
+
+
+            if(paraleLoopResult.)
+            paraleLoopResult.IsCompleted
 
             cancel.ThrowIfCancellationRequested();
             dispatcher.Invoke(() =>
@@ -505,63 +505,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
         }
 
-        private Task CreateFileTask(V_EXPORT_H_ZGLVRowVM item, string Folder, DBSource source, TypeFileCreate typeFileCreate,SLUCH_PARAM sluchParam, List<F002> smoList,int OrderInMonth, int Order)
-        {
-            return new Task(() =>
-            {
-                try
-                {
-                    dispatcher.Invoke(() => { item.InWork = true; });
-                    var Result = new List<FileCreatorResult>();
-                    var pr = new Progress<ProgressFileCreator>(o =>
-                    {
-                        dispatcher.Invoke(() =>
-                        {
-                            foreach (var mes in o.Message)
-                            {
-                                item.Logs.Add(new LogItem(o.Type, mes));
-                            }
-                        });
-                    });
-
-                    if (smoList == null)
-                        Result.Add(fileCreator.GetFileXML(item.Item, Folder, source, typeFileCreate, item.Item.SMO, sluchParam, null,"", pr));
-                    else
-                    {
-                        var i = 1;
-                        foreach (var smo in smoList)
-                        {
-                            var r = fileCreator.GetFileXML(item.Item, Folder, source, typeFileCreate, smo.SMOCOD, sluchParam, $"{OrderInMonth}{Order}{i}",Order!=1 || i!=1? $"ПОРЯДОК{Order}":"" ,pr);
-                            Result.Add(r);
-                            if (r.Result)
-                            {
-                                i++;
-                            }
-                        }
-                    }
-                    dispatcher.Invoke(() =>
-                    {
-                        var validResult = Result.Where(x => x.Result).ToList();
-                        item.SUM = validResult.Sum(x => x.SUM);
-                        item.PathArc.AddRange(validResult.Select(x => x.PathARC).ToList());
-                        item.Results.AddRange(validResult);
-                        
-                    });
-                }
-                catch (Exception ex)
-                {
-                    dispatcher.Invoke(() => { item.AddLogs(LogType.Error, $"Ошибка при выгрузке данных: {ex.Message}"); });
-                }
-                finally
-                {
-                    dispatcher.Invoke(() =>
-                    {
-                        item.InWork = false;
-                        item.Finish = true;
-                    });
-                }
-            });
-        }
+      
 
 
         void GetFilesXLS(List<V_EXPORT_H_ZGLVRowVM> Items,  string Folder, List<F002> smoList, DateTime D_START_XLS, DateTime D_END_XLS, CancellationToken cancel)
