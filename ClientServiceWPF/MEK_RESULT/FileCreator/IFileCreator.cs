@@ -14,6 +14,7 @@ using ClientServiceWPF.MEK_RESULT.ACTMEK;
 using ExcelManager;
 using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData;
+using ServiceLoaderMedpomData.Annotations;
 using ServiceLoaderMedpomData.EntityMP_V31;
 using LogType = ClientServiceWPF.Class.LogType;
 
@@ -77,10 +78,12 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
     {
         private DateTime DT_2021_08 = new DateTime(2021, 8, 1);
         private IExportFileRepository exportFileRepository;
+        private SynchronizationContext uiContext;
 
-        public FileCreator(IExportFileRepository exportFileRepository)
+        public FileCreator(IExportFileRepository exportFileRepository, [NotNull]SynchronizationContext uiContext)
         {
             this.exportFileRepository = exportFileRepository;
+            this.uiContext = uiContext;
         }
 
         private string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
@@ -807,11 +810,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         {
             try
             {
-                SynchronizationContext.Current.Post(o => { item.InWork = true; }, null);
+                uiContext?.Post(o => { item.InWork = true; }, null);
                 var result = new List<FileCreatorResult>();
                 var pr = new Progress<ProgressFileCreator>(pfc =>
                 {
-                    SynchronizationContext.Current.Post(o =>
+                    uiContext.Post(o =>
                     {
                         foreach (var mes in pfc.Message)
                         {
@@ -836,7 +839,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     }
                 }
 
-                SynchronizationContext.Current.Post(o =>
+                uiContext?.Post(o =>
                 {
                     var validResult = result.Where(x => x.Result).ToList();
                     item.SUM = validResult.Sum(x => x.SUM);
@@ -846,11 +849,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
             catch (Exception ex)
             {
-                SynchronizationContext.Current.Post(o => { item.AddLogs(LogType.Error, $"Ошибка при выгрузке данных: {ex.Message}"); }, null);
+                uiContext?.Post(o => { item.AddLogs(LogType.Error, $"Ошибка при выгрузке данных: {ex.Message}"); }, null);
             }
             finally
             {
-                SynchronizationContext.Current.Post(o =>
+                uiContext?.Post(o =>
                 {
                     item.InWork = false;
                     item.Finish = true;

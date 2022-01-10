@@ -37,7 +37,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         public ExportFile()
         {
             var exportFileRepository = new ExportFileRepository(AppConfig.Property.ConnectionString);
-            var fileCreator = new FileCreator(exportFileRepository);
+            var fileCreator = new FileCreator(exportFileRepository, SynchronizationContext.Current);
             VM = new ExportFileVM(fileCreator, exportFileRepository, Dispatcher.CurrentDispatcher);
             InitializeComponent();
         }
@@ -287,7 +287,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     }
 
                     cts = new CancellationTokenSource();
-                    var tasks = new List<Task> {Task.Run(  () => { GetFilesXMLAsync(items, fbd.SelectedPath, PARAM.Source, PARAM.TypeFileCreate, smoList, cts.Token); })};
+                    var tasks = new List<Task> {Task.Run(  () => { CreateFilesAsync(items, fbd.SelectedPath, PARAM.Source, PARAM.TypeFileCreate, smoList, cts.Token); })};
 
                     if (PARAM.TypeFileCreate== TypeFileCreate.SMO)
                     {
@@ -343,15 +343,16 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 
        
 
-        private void  GetFilesXMLAsync(List<V_EXPORT_H_ZGLVRowVM> Items, string Folder, DBSource source, TypeFileCreate typeFileCreate, List<F002> smoList, CancellationToken cancel)
+        private void  CreateFilesAsync(List<V_EXPORT_H_ZGLVRowVM> Items, string Folder, DBSource source, TypeFileCreate typeFileCreate, List<F002> smoList, CancellationToken cancel)
         {
             var dic_order = new Dictionary<string, int>();
             var index = 0;
-            var paraleLoopResult = Parallel.ForEach(Items,new ParallelOptions{CancellationToken = cancel, MaxDegreeOfParallelism = PARAM.CountTask },  (item,pls) =>
+            var count = Items.Count;
+            var paralleLoopResult = Parallel.ForEach(Items,new ParallelOptions{CancellationToken = cancel, MaxDegreeOfParallelism = PARAM.CountTask },  (item,pls) =>
             {
                 try
                 {
-                    var key = item.Item.CODE_MO + item.Item.FILENAME.Substring(0, 2);
+                    var key = $"{item.Item.CODE_MO}{item.Item.FILENAME.Substring(0, 2)}";
                     if (!dic_order.ContainsKey(key))
                         dic_order.Add(key, 0);
                     dic_order[key]++;
@@ -363,27 +364,24 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 }
                 catch (Exception ex)
                 {
-                    dispatcher.Invoke(() => { fi.AddLogs(LogType.Error, $"Ошибка {ex.Source}: {ex.FullError()}"); });
+                    dispatcher.Invoke(() => { item.AddLogs(LogType.Error, $"Ошибка {ex.Source}: {ex.FullError()}"); });
                 }
 
                 index++;
             });
+            while (!paralleLoopResult.IsCompleted)
+            {
+                cancel.ThrowIfCancellationRequested();
+            }
 
-
-            if(paraleLoopResult.)
-            paraleLoopResult.IsCompleted
-
-            cancel.ThrowIfCancellationRequested();
             dispatcher.Invoke(() =>
             {
                 progress1.Text = "Ожидание завершения потоков";
                 progress1.IsIndeterminate = true;
             });
-            tm.WaitIsSTOP(cancel);
-
+           
             dispatcher.Invoke(() => 
             {
-
                 progress1.IsIndeterminate = false;
                 progress1.Text = "";
             });
