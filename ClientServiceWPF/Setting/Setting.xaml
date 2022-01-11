@@ -16,7 +16,7 @@
         <class:BindingProxy x:Key="SelectCheck" Data="{Binding ElementName=this, Path=SelectCheck}"></class:BindingProxy>
 
         <class:BindingProxy x:Key="SelectedLocalVersionZGLV" Data="{Binding ElementName=this, Path=SelectedLocalVersionZGLV}"></class:BindingProxy>
-        <class:BindingProxy x:Key="SelectedLocalFileType" Data="{Binding ElementName=this, Path=SelectedLocalFileType}"></class:BindingProxy>
+
 
     
         <CollectionViewSource x:Key="CVSTableItemsTRANS" Source="{Binding TableTransferParam.TableItems}"  d:DesignSource="{d:DesignInstance {x:Type local:TableItem}, CreateList=True}"></CollectionViewSource>
@@ -72,12 +72,12 @@
                             <ListBox Name="ListBoxServerFileType" HorizontalAlignment="Left" Margin="6,6,0,10" Width="182" SelectionMode="Extended" ItemsSource="{Binding SchemaServerParam.FileTypes}" SelectedItem="{Binding SchemaServerParam.CurrentFileType}" SelectionChanged="ListBoxServerFileType_OnSelectionChanged" >
                                 <ListBox.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
-                                        <MenuItem Header="Удалить все схемы" Command="{Binding SchemaServerParam.ClearSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementAllCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                        <MenuItem Header="Удалить все схемы" Command="{Binding SchemaServerParam.ClearSchemaElementAllCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
                                     </ContextMenu>
                                 </ListBox.ContextMenu>
                             </ListBox>
-                            <DataGrid Name="DataGridServerSchema"  Margin="193,6,10,10" ItemsSource="{Binding SchemaServerParam.Elements}" IsReadOnly="True" AutoGenerateColumns="False" SelectionUnit="CellOrRowHeader" CurrentCellChanged="DataGridSchemaServer_OnCurrentCellChanged">
+                            <DataGrid Name="DataGridServerSchema"  Margin="193,6,10,10" ItemsSource="{Binding SchemaServerParam.Elements}" IsReadOnly="True" AutoGenerateColumns="False" SelectionUnit="CellOrRowHeader"  SelectedCellsChanged="DataGridServerSchema_OnSelectedCellsChanged">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Binding="{Binding Value}" Header="Путь" ></DataGridTextColumn>
                                     <DataGridTextColumn Binding="{Binding DATE_B,StringFormat=dd.MM.yyyy}" Header="Дата начала" ></DataGridTextColumn>
@@ -86,8 +86,8 @@
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
                                         <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
-                                        <MenuItem Header="Редактировать" Command="{Binding SchemaServerParam.AddSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
-                                        <MenuItem Header="Удалить" Command="{Binding SchemaServerParam.ClearSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                        <MenuItem Header="Редактировать" Command="{Binding SchemaServerParam.EditSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                        <MenuItem Header="Удалить" Command="{Binding SchemaServerParam.RemoveSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
                             </DataGrid>
@@ -114,18 +114,24 @@
                             <ListBox  Name="ListBoxLocalFileType" HorizontalAlignment="Left" Margin="6,6,0,10" Width="182" SelectionMode="Extended" ItemsSource="{Binding SchemaLocalParam.FileTypes}" SelectedItem="{Binding SchemaLocalParam.CurrentFileType}" SelectionChanged="ListBoxLocalFileType_OnSelectionChanged">
                                 <ListBox.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaLocalParam.AddSchemaElementLocalCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedLocalFileType}}" ></MenuItem>
-                                        <MenuItem Header="Удалить все схемы"  Command="{Binding SchemaLocalParam.ClearSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedLocalFileType}}"></MenuItem>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaLocalParam.AddSchemaElementLocalAllCommand}" ></MenuItem>
+                                        <MenuItem Header="Удалить все схемы"  Command="{Binding SchemaLocalParam.ClearSchemaElementAllCommand}" ></MenuItem>
                                     </ContextMenu>
                                 </ListBox.ContextMenu>
                             </ListBox>
-                            <DataGrid  Margin="193,6,10,10" ItemsSource="{Binding SchemaLocalParam.Elements}" IsReadOnly="True" AutoGenerateColumns="False">
+                            <DataGrid Name="DataGridLocalSchema"  Margin="193,6,10,10" ItemsSource="{Binding SchemaLocalParam.Elements}" IsReadOnly="True" AutoGenerateColumns="False" SelectionUnit="CellOrRowHeader" SelectedCellsChanged="DataGridLocalSchema_OnSelectedCellsChanged">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Binding="{Binding Value}" Header="Путь" ></DataGridTextColumn>
                                     <DataGridTextColumn Binding="{Binding DATE_B,StringFormat=dd.MM.yyyy}" Header="Дата начала" ></DataGridTextColumn>
                                     <DataGridTextColumn Binding="{Binding DATE_E,StringFormat=dd.MM.yyyy}" Header="Дата окончания" ></DataGridTextColumn>
                                 </DataGrid.Columns>
-
+                                <DataGrid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementLocalCommand}" ></MenuItem>
+                                        <MenuItem Header="Редактировать" Command="{Binding SchemaServerParam.EditSchemaElementLocalCommand}" ></MenuItem>
+                                        <MenuItem Header="Удалить" Command="{Binding SchemaServerParam.RemoveSchemaElementCommand}"></MenuItem>
+                                    </ContextMenu>
+                                </DataGrid.ContextMenu>
                             </DataGrid>
 
                         </Grid>

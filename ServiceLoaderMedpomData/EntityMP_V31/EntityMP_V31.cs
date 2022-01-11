@@ -174,7 +174,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             {
                 case VersionMP.V2_1: zl = new ZL_LIST(new ServiceLoaderMedpomData.EntityMP_V3.ZL_LIST(ServiceLoaderMedpomData.EntityMP_V2.ZL_LIST.ReadFromFile(filepach))); break;
                 case VersionMP.V3_0: zl = new ZL_LIST(ServiceLoaderMedpomData.EntityMP_V3.ZL_LIST.ReadFromFile(filepach)); break;
-                case VersionMP.V3_1: zl = ZL_LIST.ReadFromFile(filepach); break;
+                case VersionMP.V3_1:
+                case VersionMP.V3_2: zl = ZL_LIST.ReadFromFile(filepach); break;
                 default:
                     break;
             }

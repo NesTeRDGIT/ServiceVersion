@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using ServiceLoaderMedpomData;
 using MessageBox = System.Windows.MessageBox;
 
 namespace ClientServiceWPF
@@ -22,10 +23,16 @@ namespace ClientServiceWPF
     public partial class NewSchemaItem : Window
     {
         private bool isLocalFind;
-        public NewSchemaItem(bool _isLocalFind)
+        public NewSchemaItem(bool _isLocalFind, SchemaElementValue value = null)
         {
             isLocalFind = _isLocalFind;
             InitializeComponent();
+            if (value != null)
+            {
+                textBoxPathXSD.Text = value.Value;
+                DatePickerD_BEG.SelectedDate = value.DATE_B;
+                DatePickerD_END.SelectedDate = value.DATE_E;
+            }
         }
 
         private void button32_Click(object sender, RoutedEventArgs e)

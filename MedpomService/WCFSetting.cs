@@ -376,9 +376,6 @@ namespace MedpomService
             AppConfig.Property.xml_h_mr_usl_n_transfer = st.xml_h_mr_usl_n;
             AppConfig.Property.xml_h_sl_lek_pr_transfer = st.xml_h_sl_lek_pr;
             AppConfig.Property.xml_h_med_dev_transfer = st.xml_h_med_dev;
-
-
-
         }
 
         public SettingTransfer GetSettingTransfer()
