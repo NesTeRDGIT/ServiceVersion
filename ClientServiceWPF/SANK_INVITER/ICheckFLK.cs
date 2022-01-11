@@ -333,7 +333,7 @@ namespace ClientServiceWPF.SANK_INVITER
                             OSHIB = 41
                         }));
 
-                        if (z_sl.SANK.GroupBy(x => x.S_TIP.ToTypeExp()).Count(x => x.Count() > 1) != 0)
+                        if (z_sl.SANK.Where(x=>x.S_SUM!=0).GroupBy(x => x.S_TIP.ToTypeExp()).Count(x => x.Count() > 1) != 0)
                             ErrList.Add(new ErrorProtocolXML
                             {
                                 BAS_EL = "SLUCH",
