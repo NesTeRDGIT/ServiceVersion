@@ -77,12 +77,19 @@
                                     </ContextMenu>
                                 </ListBox.ContextMenu>
                             </ListBox>
-                            <DataGrid  Margin="193,6,10,10" ItemsSource="{Binding SchemaServerParam.Elements}" IsReadOnly="True" AutoGenerateColumns="False">
+                            <DataGrid Name="DataGridServerSchema"  Margin="193,6,10,10" ItemsSource="{Binding SchemaServerParam.Elements}" IsReadOnly="True" AutoGenerateColumns="False" SelectionUnit="CellOrRowHeader" CurrentCellChanged="DataGridSchemaServer_OnCurrentCellChanged">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Binding="{Binding Value}" Header="Путь" ></DataGridTextColumn>
                                     <DataGridTextColumn Binding="{Binding DATE_B,StringFormat=dd.MM.yyyy}" Header="Дата начала" ></DataGridTextColumn>
                                     <DataGridTextColumn Binding="{Binding DATE_E,StringFormat=dd.MM.yyyy}" Header="Дата окончания" ></DataGridTextColumn>
                                 </DataGrid.Columns>
+                                <DataGrid.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                        <MenuItem Header="Редактировать" Command="{Binding SchemaServerParam.AddSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                        <MenuItem Header="Удалить" Command="{Binding SchemaServerParam.ClearSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                    </ContextMenu>
+                                </DataGrid.ContextMenu>
                             </DataGrid>
                         </Grid>
                     </GroupBox>

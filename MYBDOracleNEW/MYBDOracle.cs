@@ -43,6 +43,8 @@ namespace MYBDOracle
         TableInfo H_DS2;
         TableInfo H_DS3;
         TableInfo H_MR_USL_N;
+        TableInfo LEK_PR_H_TBL;
+        TableInfo MED_DEV_TBL;
 
         int curr_month;
         int curr_year;
@@ -54,6 +56,7 @@ namespace MYBDOracle
         TableInfo _H_DS2_N,
         TableInfo _H_NAZR, TableInfo _H_B_DIAG, TableInfo _H_B_PROT, TableInfo _H_NAPR,
         TableInfo _H_ONK_USL, TableInfo _H_LEK_PR, TableInfo _H_LEK_DATE_INJ, TableInfo _H_CONS, TableInfo _H_MR_USL_N,
+        TableInfo _LEK_PR_H_TBL, TableInfo _MED_DEV_TBL,
         TableInfo _xml_errors,
         DateTime curr_month)
         {
@@ -90,6 +93,8 @@ namespace MYBDOracle
             H_DS3 = _H_DS3;
             H_CRIT = _H_CRIT;
             H_MR_USL_N = _H_MR_USL_N;
+            MED_DEV_TBL = _MED_DEV_TBL;
+            LEK_PR_H_TBL = _LEK_PR_H_TBL;
         }
 
         private List<OracleConnection> Cons = new List<OracleConnection>();
@@ -293,6 +298,8 @@ returning  zglv_id into :id", con);
             InsertCRIT(sluch.Where(x => x.KSG_KPG != null).SelectMany(y => y.KSG_KPG.GetCRIT_SLUCH_ID(y.SLUCH_ID)).ToList());
             InsertCODE_EXP(sank.SelectMany(y => y.CODE_EXP).ToList());
             InsertMR_USL_N(usl.SelectMany(x => x.MR_USL_N).ToList());
+            InsertMED_DEV(usl.SelectMany(x=>x.MED_DEV).ToList());
+            InsertLEK_PR_H(sluch.SelectMany(x => x.LEK_PR).ToList());
         }
         Dictionary<string, decimal?> Insert(PERS_LIST pe)
         {
@@ -400,7 +407,6 @@ returning  zglv_id into :id", con);
             }
 
         }
-
         void InsertSCHET(SCHET item)
         {
             OracleCommand cmd = null;
@@ -445,7 +451,6 @@ values
                 RemoveOracleCommand(cmd);
             }
         }
-
         void InsertZAP(List<ZAP> Items)
         {
             OracleCommand cmd = null;
@@ -586,12 +591,12 @@ values
 (CODE_MES1,CODE_MES2, COMENTSL, DATE_1, DATE_2, DET, DN, DS0, DS1, DS1_PR,C_ZAB, DS_ONK,ED_COL,
             IDDOKT, KD, BZTSZ, IT_SL, KOEF_D, KOEF_U, KOEF_UP, KOEF_Z, KSG_PG, N_KSG, SL_K, VER_KSG,LPU_1,METOD_HMP,NHISTORY, PODR, PROFIL, PROFIL_K, PRVS,
              PR_D_N, P_CEL, P_PER, REAB, SLUCH_ID, SLUCH_Z_ID, SL_ID, SUM_M, TAL_D, TAL_NUM,TAL_P,TARIF, VERS_SPEC, VID_HMP, PACIENT_ID, DS1_T, MTSTZ, ONK_M, ONK_N, ONK_T, SOD, STAD,
-            K_FR, WEI, HEI, BSA,EXTR,SUM_MP)
+            K_FR, WEI, HEI, BSA,EXTR,SUM_MP, WEI)
 values
 (:CODE_MES1,:CODE_MES2,:COMENTSL,:DATE_1,:DATE_2,:DET,:DN,:DS0,:DS1,:DS1_PR,:C_ZAB, :DS_ONK,:ED_COL,
             :IDDOKT,:KD,:BZTSZ,:IT_SL,:KOEF_D,:KOEF_U,:KOEF_UP,:KOEF_Z,:KSG_PG,:N_KSG,:SL_K,:VER_KSG,:LPU_1,:METOD_HMP,:NHISTORY,:PODR,:PROFIL,:PROFIL_K,:PRVS,
 :PR_D_N,:P_CEL,:P_PER,:REAB,:SLUCH_ID,:SLUCH_Z_ID,:SL_ID,:SUM_M,:TAL_D,:TAL_NUM,:TAL_P,:TARIF,:VERS_SPEC,:VID_HMP, :PACIENT_ID,:DS1_T, :MTSTZ, :ONK_M, :ONK_N, :ONK_T, :SOD, :STAD,
-:K_FR, :WEI, :HEI, :BSA,:EXTR, :SUM_MP)", con);
+:K_FR, :WEI, :HEI, :BSA,:EXTR, :SUM_MP,:WEI)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("CODE_MES1", Items.Select(x => x.CODE_MES1str()).ToArray());
@@ -654,6 +659,7 @@ values
                 cmd.Parameters.Add("BSA", OracleDbType.Decimal, Items.Select(x => x.ONK_SL != null ? x.ONK_SL.BSA ?? (object)DBNull.Value : (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("EXTR", OracleDbType.Decimal, Items.Select(x => x.EXTR ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("SUM_MP", OracleDbType.Decimal, Items.Select(x => x.SUM_MP ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("WEI", OracleDbType.Decimal, Items.Select(x => x.WEI ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 var t = cmd.ExecuteNonQuery();
                 if (t != Items.Count) throw new Exception($"Не полная вставка SLUCH вставлено {t} из {Items.Count}");
             }
@@ -1152,6 +1158,68 @@ values
             catch (Exception ex)
             {
                 throw new Exception($"Ошибка в InsertMR_USL_N: {ex.Message}", ex);
+            }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
+        }
+        void InsertMED_DEV(List<MED_DEV> Items)
+        {
+            OracleCommand cmd = null;
+            try
+            {
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {MED_DEV_TBL.FullTableName}  (USL_ID,DATE_MED,CODE_MEDDEV,NUMBER_SER) values (:USL_ID,:DATE_MED, :CODE_MEDDEV, :NUMBER_SER)", con);
+                cmd.ArrayBindCount = Items.Count;
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add("USL_ID", OracleDbType.Decimal, Items.Select(x => x.USL_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DATE_MED", OracleDbType.Date, Items.Select(x => x.DATE_MED).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("CODE_MEDDEV", OracleDbType.Int32, Items.Select(x => x.CODE_MEDDEV).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("NUMBER_SER", OracleDbType.Varchar2, Items.Select(x => x.NUMBER_SER).ToArray(), ParameterDirection.Input);
+
+                var t = cmd.ExecuteNonQuery();
+                if (t != Items.Count) throw new Exception($"Не полная вставка MED_DEV вставлено {t} из {Items.Count}");
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка в InsertMED_DEV: {ex.Message}", ex);
+            }
+            finally
+            {
+                RemoveOracleCommand(cmd);
+            }
+        }
+        void InsertLEK_PR_H(List<LEK_PR_H> Items)
+        {
+            OracleCommand cmd = null;
+            try
+            {
+                if (!Items.Any()) return;
+                cmd = NewOracleCommand($@"insert into {LEK_PR_H_TBL.FullTableName}  (SLUCH_ID,CODE_SH,COD_MARK,DATE_INJ,REGNUM,COL_INJ,DOSE_INJ,ED_IZM,METHOD_INJ) values (:SLUCH_ID,:CODE_SH,:COD_MARK,:DATE_INJ,:REGNUM,:COL_INJ,:DOSE_INJ,:ED_IZM,:METHOD_INJ)", con);
+                cmd.ArrayBindCount = Items.Count;
+                cmd.BindByName = true;
+
+                cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("CODE_SH", OracleDbType.Date, Items.Select(x => x.CODE_SH).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("COD_MARK", OracleDbType.Int32, Items.Select(x => x.COD_MARK).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DATE_INJ", OracleDbType.Varchar2, Items.Select(x => x.DATE_INJ).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("REGNUM", OracleDbType.Varchar2, Items.Select(x => x.REGNUM).ToArray(), ParameterDirection.Input);
+
+                cmd.Parameters.Add("COL_INJ", OracleDbType.Varchar2, Items.Select(x => x.LEK_DOSE.COL_INJ).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DOSE_INJ", OracleDbType.Varchar2, Items.Select(x => x.LEK_DOSE.DOSE_INJ).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("ED_IZM", OracleDbType.Varchar2, Items.Select(x => x.LEK_DOSE.ED_IZM).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("METHOD_INJ", OracleDbType.Varchar2, Items.Select(x => x.LEK_DOSE.METHOD_INJ).ToArray(), ParameterDirection.Input);
+
+                var t = cmd.ExecuteNonQuery();
+                if (t != Items.Count) throw new Exception($"Не полная вставка LEK_PR_H вставлено {t} из {Items.Count}");
+
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка в InsertLEK_PR_H: {ex.Message}", ex);
             }
             finally
             {
@@ -2143,6 +2211,8 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
                 case TableName.DS3: table = H_DS3; break;
                 case TableName.CRIT: table = H_CRIT; break;
                 case TableName.MR_USL_N: table = H_MR_USL_N; break;
+                case TableName.SL_LEK_PR: table = LEK_PR_H_TBL; break;
+                case TableName.MED_DEV: table = MED_DEV_TBL; break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(nameTBL), nameTBL, null);
             }
@@ -2201,6 +2271,8 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
         public void TruncALL()
         {
 
+            Trunc(TableName.MED_DEV);
+            Trunc(TableName.SL_LEK_PR);
             Trunc(TableName.LEK_PR_DATE_INJ);
             Trunc(TableName.LEK_PR);
             Trunc(TableName.CONS);

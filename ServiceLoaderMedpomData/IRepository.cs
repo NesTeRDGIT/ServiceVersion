@@ -409,7 +409,9 @@ namespace ServiceLoaderMedpomData
         DS2,
         DS3,
         CRIT,
-        MR_USL_N
+        MR_USL_N,
+        SL_LEK_PR,
+        MED_DEV
     }
     public class TableInfo
     {

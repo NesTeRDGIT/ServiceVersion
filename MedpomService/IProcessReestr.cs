@@ -387,6 +387,12 @@ namespace MedpomService
                 //CRIT
                 currentpack.Comment = "Обработка пакета: Перенос CRIT";
                 TransResult(mybd.TransferTable(AppConfig.Property.xml_h_crit, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_crit_transfer, AppConfig.Property.schemaOracle_transfer));
+                //SL_LEK_PR
+                currentpack.Comment = "Обработка пакета: Перенос SL_LEK_PR";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_sl_lek_pr, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_sl_lek_pr_transfer, AppConfig.Property.schemaOracle_transfer));  
+                //CRIT
+                currentpack.Comment = "Обработка пакета: Перенос MED_DEV";
+                TransResult(mybd.TransferTable(AppConfig.Property.xml_h_med_dev, AppConfig.Property.schemaOracle, AppConfig.Property.xml_h_med_dev_transfer, AppConfig.Property.schemaOracle_transfer));
 
                 mybd.Commit();
                 foreach (var fi in ProcessList)
@@ -444,8 +450,6 @@ namespace MedpomService
                                  new TableInfo { TableName = AppConfig.Property.xml_h_sank, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_sank_code_exp, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
 
-
-
                                  new TableInfo { TableName = AppConfig.Property.xml_h_pacient, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_zap, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_usl, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
@@ -470,6 +474,8 @@ namespace MedpomService
                                  new TableInfo { TableName = AppConfig.Property.xml_h_date_inj, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_cons, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_mr_usl_n, SchemaName = AppConfig.Property.schemaOracle, SeqName = "" },
+                                 new TableInfo { TableName = AppConfig.Property.xml_h_sl_lek_pr, SchemaName = AppConfig.Property.schemaOracle, SeqName = "" },
+                                 new TableInfo { TableName = AppConfig.Property.xml_h_med_dev, SchemaName = AppConfig.Property.schemaOracle, SeqName = "" },
                                  new TableInfo { TableName = AppConfig.Property.xml_errors, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  AppConfig.Property.OtchetDate);
 

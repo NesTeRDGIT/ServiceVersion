@@ -91,6 +91,13 @@ namespace MedpomService
         public string xml_h_mr_usl_n { get; set; }
         public string xml_h_mr_usl_n_transfer { get; set; }
 
+        public string xml_h_sl_lek_pr { get; set; } = "xml_h_sl_lek_pr_v3_temp99";
+        public string xml_h_sl_lek_pr_transfer { get; set; } = "xml_h_sl_lek_pr_v3_temp100";
+
+        public string xml_h_med_dev { get; set; } = "xml_h_med_dev_v3_temp99";
+        public string xml_h_med_dev_transfer { get; set; } = "xml_h_med_dev_v3_temp100";
+
+
     }
 
 

@@ -89,19 +89,9 @@ namespace ClientServiceWPF
         {
             SelectedServerVersionZGLV = ListBoxServerVersionZGLV.SelectedItems.Cast<string>().ToList();
         }
-        private List<FileType> _SelectedServerFileType = new List<FileType>();
-        public List<FileType> SelectedServerServerFileType
-        {
-            get => _SelectedServerFileType;
-            set
-            {
-                _SelectedServerFileType = value;
-                RaisePropertyChanged();
-            }
-        }
         private void ListBoxServerFileType_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            SelectedServerServerFileType = ListBoxServerFileType.SelectedItems.Cast<FileType>().ToList();
+            VM.SelectedServerFileType = ListBoxServerFileType.SelectedItems.Cast<FileType>().ToList();
         }
         private List<string> _SelectedLocalVersionZGLV = new List<string>();
         public List<string> SelectedLocalVersionZGLV
@@ -118,19 +108,9 @@ namespace ClientServiceWPF
             SelectedLocalVersionZGLV = ListBoxLocalVersionZGLV.SelectedItems.Cast<string>().ToList();
         }
 
-        private List<FileType> _SelectedLocalFileType = new List<FileType>();
-        public List<FileType> SelectedLocalFileType
-        {
-            get => _SelectedLocalFileType;
-            set
-            {
-                _SelectedLocalFileType = value;
-                RaisePropertyChanged();
-            }
-        }
         private void ListBoxLocalFileType_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            SelectedLocalFileType = ListBoxLocalFileType.SelectedItems.Cast<FileType>().ToList();
+            VM.SelectedLocalFileType = ListBoxLocalFileType.SelectedItems.Cast<FileType>().ToList();
         }
         private List<OrclProcedure> _SelectCheck = new List<OrclProcedure>();
         public List<OrclProcedure> SelectCheck
@@ -149,6 +129,13 @@ namespace ClientServiceWPF
 
 
 
+        private void DataGridSchemaServer_OnCurrentCellChanged(object sender, EventArgs e)
+        {
+            VM.SelectServerSchemaElement = DataGridServerSchema.SelectedCells.Select(x => (SchemaElementValue)x.Item).Distinct().ToList();
+        }
+
+
+
 
         #region INotifyPropertyChanged
         public event PropertyChangedEventHandler PropertyChanged;
@@ -159,7 +146,8 @@ namespace ClientServiceWPF
         }
         #endregion
 
-      
+
+       
     }
 
     public enum TableItemType
@@ -201,7 +189,9 @@ namespace ClientServiceWPF
         seq_xml_h_onk_usl,
         seq_L_pers,
         seq_xml_h_lek_pr,
-        XML_H_MR_USL_N
+        XML_H_MR_USL_N,
+        XML_H_SL_LEK_PR,
+        XML_H_MED_DEV
     }
     public class TableItem : INotifyPropertyChanged
     {
@@ -266,6 +256,9 @@ namespace ClientServiceWPF
             this.wcf = wcf;
         }
 
+
+      
+        public List<FileType> SelectedLocalFileType { get; set; } = new List<FileType>();
         #region LocalParam
         private bool _ISVIRTUALPATH;
         public bool ISVIRTUALPATH
@@ -1078,6 +1071,8 @@ namespace ClientServiceWPF
             RaisePropertyChanged(nameof(Elements));
             RaisePropertyChanged(nameof(VersionZGLV));
         }
+        public List<FileType> SelectedFileType { get; set; } = new List<FileType>();
+        public List<SchemaElementValue> SelectedSchemaElement { get; set; } = new List<SchemaElementValue>();
 
 
         public SchemaCollection sc { get; private set; } = new SchemaCollection();
@@ -1166,13 +1161,12 @@ namespace ClientServiceWPF
         {
             try
             {
-                var selectedTypeSchema = (List<FileType>) o;
-                if (selectedTypeSchema.Count != 0)
+                if (SelectedFileType.Count != 0)
                 {
                     var win = new NewSchemaItem(false);
                     if (win.ShowDialog() == true)
                     {
-                        foreach (var item in selectedTypeSchema)
+                        foreach (var item in SelectedFileType)
                         {
                             try
                             {
@@ -1191,15 +1185,46 @@ namespace ClientServiceWPF
             {
                 MessageBox.Show(e.Message);
             }
-
         });
+
+
+        public ICommand AddSchemaElementCommand => new Command(o =>
+        {
+            try
+            {
+                if (SelectedFileType.Count != 0)
+                {
+                    var win = new NewSchemaItem(false);
+                    if (win.ShowDialog() == true)
+                    {
+                        foreach (var item in SelectedFileType)
+                        {
+                            try
+                            {
+                                sc[CurrentVersion].AddAndCheck(item, new SchemaElementValue { DATE_B = win.DATE_B, DATE_E = win.DATE_E, Value = win.PATH });
+                            }
+                            catch (Exception ex)
+                            {
+                                MessageBox.Show($@"Не удалось добавить схему к файлу {item} версии {CurrentVersion} по причине: {ex.Message}");
+                            }
+                        }
+                        RaisePropertyChanged(nameof(Elements));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        });
+
+
         private string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
         public ICommand AddSchemaElementLocalCommand => new Command(o =>
         {
             try
             {
-                var selectedTypeSchema = (List<FileType>)o;
-                if (selectedTypeSchema.Count != 0)
+                if (SelectedFileType.Count != 0)
                 {
                     var win = new NewSchemaItem(true);
                     if (win.ShowDialog() == true)
@@ -1209,7 +1234,7 @@ namespace ClientServiceWPF
                             MessageBox.Show("Выбранный файл вне каталога программы!");
                         }
                         var path = win.PATH.ToUpper().Replace(LocalFolder.ToUpper(), "");
-                        foreach (var item in selectedTypeSchema)
+                        foreach (var item in SelectedFileType)
                         {
                             try
                             {
@@ -1235,10 +1260,9 @@ namespace ClientServiceWPF
         {
             try
             {
-                var selectedTypeSchema = (List<FileType>) o;
-                if (selectedTypeSchema.Count != 0)
+                if (SelectedFileType.Count != 0)
                 {
-                    foreach (var item in selectedTypeSchema)
+                    foreach (var item in SelectedFileType)
                     {
                         try
                         {
@@ -1440,6 +1464,11 @@ namespace ClientServiceWPF
             TableItems.Add(new TableItem { TableName = setCon.xml_h_lek_pr_date_inj, Type = TableItemType.XML_H_LEK_PR_DATE_INJ });
             TableItems.Add(new TableItem { TableName = setCon.xml_h_usl, Type = TableItemType.XML_H_USL });
             TableItems.Add(new TableItem { TableName = setCon.xml_h_mr_usl_n, Type = TableItemType.XML_H_MR_USL_N });
+
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_sl_lek_pr, Type = TableItemType.XML_H_SL_LEK_PR });
+            TableItems.Add(new TableItem { TableName = setCon.xml_h_med_dev, Type = TableItemType.XML_H_MED_DEV });
+
+
             TableItems.Add(new TableItem { TableName = setCon.xml_l_zglv, Type = TableItemType.XML_L_ZGLV });
             TableItems.Add(new TableItem { TableName = setCon.xml_l_pers, Type = TableItemType.XML_L_PERS });
             TableItems.Add(new TableItem { TableName = setCon.v_xml_error, Type = TableItemType.V_XML_ERROR });
@@ -1471,9 +1500,13 @@ namespace ClientServiceWPF
             TableItems.Add(new TableItem { TableName = prop.xml_h_date_inj, Type = TableItemType.XML_H_LEK_PR_DATE_INJ });
             TableItems.Add(new TableItem { TableName = prop.xml_h_usl, Type = TableItemType.XML_H_USL });
             TableItems.Add(new TableItem { TableName = prop.xml_h_mr_usl_n, Type = TableItemType.XML_H_MR_USL_N });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_sl_lek_pr, Type = TableItemType.XML_H_SL_LEK_PR });
+            TableItems.Add(new TableItem { TableName = prop.xml_h_med_dev, Type = TableItemType.XML_H_MED_DEV });
             TableItems.Add(new TableItem { TableName = prop.xml_l_zglv, Type = TableItemType.XML_L_ZGLV });
             TableItems.Add(new TableItem { TableName = prop.xml_l_pers, Type = TableItemType.XML_L_PERS });
-            Owner= prop.schemaOracle;
+
+
+            Owner = prop.schemaOracle;
 
 
             SeqItems.Clear();
@@ -1516,8 +1549,11 @@ namespace ClientServiceWPF
             TableItems.Add(new TableItem { TableName = setTrans.xml_h_lek_pr_date_inj, Type = TableItemType.XML_H_LEK_PR_DATE_INJ });
             TableItems.Add(new TableItem { TableName = setTrans.xml_h_usl, Type = TableItemType.XML_H_USL });
             TableItems.Add(new TableItem { TableName = setTrans.xml_h_mr_usl_n, Type = TableItemType.XML_H_MR_USL_N });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_sl_lek_pr, Type = TableItemType.XML_H_SL_LEK_PR });
+            TableItems.Add(new TableItem { TableName = setTrans.xml_h_med_dev, Type = TableItemType.XML_H_MED_DEV });
             TableItems.Add(new TableItem { TableName = setTrans.xml_l_zglv, Type = TableItemType.XML_L_ZGLV });
             TableItems.Add(new TableItem { TableName = setTrans.xml_l_pers, Type = TableItemType.XML_L_PERS });
+
 
             Owner = setTrans.schemaOracle;
             Enabled = setTrans.Transfer;
@@ -1553,8 +1589,10 @@ namespace ClientServiceWPF
                 xml_h_mr_usl_n = GetTableItems(TableItemType.XML_H_MR_USL_N),
                 xml_l_zglv = GetTableItems(TableItemType.XML_L_ZGLV),
                 xml_l_pers = GetTableItems(TableItemType.XML_L_PERS),
-                v_xml_error = GetTableItems(TableItemType.V_XML_ERROR)
-            };
+                v_xml_error = GetTableItems(TableItemType.V_XML_ERROR),
+                xml_h_sl_lek_pr  = GetTableItems(TableItemType.XML_H_SL_LEK_PR),
+                xml_h_med_dev = GetTableItems(TableItemType.XML_H_MED_DEV)
+        };
             return setCon;
         }
         public void ReadTableItemsLocal()
@@ -1584,6 +1622,9 @@ namespace ClientServiceWPF
             AppConfig.Property.xml_h_mr_usl_n= GetTableItems(TableItemType.XML_H_MR_USL_N);
             AppConfig.Property.xml_l_zglv = GetTableItems(TableItemType.XML_L_ZGLV);
             AppConfig.Property.xml_l_pers = GetTableItems(TableItemType.XML_L_PERS);
+            AppConfig.Property.xml_h_sl_lek_pr = GetTableItems(TableItemType.XML_H_SL_LEK_PR);
+            AppConfig.Property.xml_h_med_dev = GetTableItems(TableItemType.XML_H_MED_DEV);
+
             AppConfig.Property.schemaOracle = Owner;
 
 
@@ -1631,7 +1672,9 @@ namespace ClientServiceWPF
                 xml_h_usl = GetTableItems(TableItemType.XML_H_USL),
                 xml_h_mr_usl_n = GetTableItems(TableItemType.XML_H_MR_USL_N),
                 xml_l_zglv = GetTableItems(TableItemType.XML_L_ZGLV),
-                xml_l_pers = GetTableItems(TableItemType.XML_L_PERS)
+                xml_l_pers = GetTableItems(TableItemType.XML_L_PERS),
+                xml_h_sl_lek_pr = GetTableItems(TableItemType.XML_H_SL_LEK_PR),
+                xml_h_med_dev = GetTableItems(TableItemType.XML_H_MED_DEV)
             };
             return setTrans;
         }

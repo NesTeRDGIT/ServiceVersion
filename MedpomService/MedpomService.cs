@@ -273,6 +273,10 @@ namespace MedpomService
                                  new TableInfo { TableName = AppConfig.Property.xml_h_date_inj, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_cons, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  new TableInfo { TableName = AppConfig.Property.xml_h_mr_usl_n, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
+                                 new TableInfo { TableName = AppConfig.Property.xml_h_mr_usl_n, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
+                                 new TableInfo { TableName = AppConfig.Property.xml_h_mr_usl_n, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
+
+
                                  new TableInfo { TableName = AppConfig.Property.xml_errors, SchemaName = AppConfig.Property.schemaOracle, SeqName = "PACIENT" },
                                  AppConfig.Property.OtchetDate);
 

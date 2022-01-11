@@ -1056,7 +1056,7 @@ namespace ServiceLoaderMedpomData
         public void Clear()
         {
             POS.Clear();
-            value = default(T);
+            value = default;
         }
         public T value { get; set; }
         public PositionRecord POS { get; set; }
@@ -1072,7 +1072,6 @@ namespace ServiceLoaderMedpomData
         D,
         MTR
     }
-
     class XML_SCHET_item
     {
         public XML_Element<int> YEAR { get; set; } = new XML_Element<int>();
@@ -1189,7 +1188,9 @@ namespace ServiceLoaderMedpomData
         public XML_Element<string> PR_D_N { get; set; } = new XML_Element<string>();
         public bool IsCONS { get; set; }
         public bool IsONK_SL { get; set; }
-
+        public bool IsWEI { get; set; }
+        public bool IsLEK_PR { get; set; }
+        public List<XML_Element<string>> CRIT { get; set; } = new List<XML_Element<string>>();
         public void Clear()
         {
             DS1.Clear();
@@ -1200,8 +1201,11 @@ namespace ServiceLoaderMedpomData
             REAB.Clear();
             C_ZAB.Clear();
             PR_D_N.Clear();
+            CRIT.Clear();
             IsCONS = false;
             IsONK_SL = false;
+            IsWEI = false;
+            IsLEK_PR = false;
         }
     }
 
@@ -1245,6 +1249,7 @@ namespace ServiceLoaderMedpomData
         private readonly DateTime DT_04_2020 = new DateTime(2020, 04, 01);
         private readonly DateTime DT_03_2021 = new DateTime(2021, 03, 01);
         private readonly DateTime DT_08_2021 = new DateTime(2021, 08, 01);
+        private readonly DateTime DT_01_2022 = new DateTime(2022, 01, 01);
         private XML_SCHET_item SCHET { get;  }= new XML_SCHET_item();
         private XML_Z_SL_item Z_SL { get;  } = new XML_Z_SL_item();
         private XML_SL_item SL { get;  } = new XML_SL_item();
@@ -1354,6 +1359,9 @@ namespace ServiceLoaderMedpomData
                         case "ZL_LIST/ZAP/Z_SL/SL/DS2":
                                 SL.DS2.Add(CreateStringXML_Element(reader));
                             break;
+                        case "ZL_LIST/ZAP/Z_SL/SL/KSG_KPG/CRIT":
+                            SL.CRIT.Add(CreateStringXML_Element(reader));
+                            break;
                         case "ZL_LIST/ZAP/Z_SL/SL/DS_ONK":
                                 SL.DS_ONK = CreateStringXML_Element(reader);
                             break;
@@ -1366,6 +1374,7 @@ namespace ServiceLoaderMedpomData
                         case "ZL_LIST/ZAP/Z_SL/SL/C_ZAB":
                                 SL.C_ZAB = CreateStringXML_Element(reader);
                             break;
+                       
                         case "ZL_LIST/ZAP/Z_SL/RSLT_D":
                                 Z_SL.RSLT_D = CreateStringXML_Element(reader); 
                             break;
@@ -1426,6 +1435,12 @@ namespace ServiceLoaderMedpomData
                             SCHET.REF = CreateStringXML_Element(reader);
                             SCHET.REF.value = "true";
                             break;
+                        case "ZL_LIST/ZAP/Z_SL/SL/WEI":
+                            SL.IsWEI = true;
+                            break;
+                        case "ZL_LIST/ZAP/Z_SL/SL/LEK_PR":
+                            SL.IsLEK_PR = true;
+                            break;
 
                     }
                     break;
@@ -1446,6 +1461,7 @@ namespace ServiceLoaderMedpomData
                                 SANK.Clear();
                             break;
                         case "ZL_LIST/ZAP/Z_SL/SL":
+                                CheckSL();
                                 CheckONK();
                                 SL.Clear();
                             break;
@@ -1502,6 +1518,18 @@ namespace ServiceLoaderMedpomData
 
             }
         }
+
+
+        private void CheckSL()
+        {
+            if (SCHET.TypeFile == XML_FileType.H && SCHET.DateFile >= DT_01_2022)
+            {
+                if(!SL.IsWEI && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value!="1" && SL.CRIT.Select(x=>x.value).Count(x=>x== "stt5")==0)
+                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле WEI обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5", "WEI", "ERR_SL_WEI_1");
+                if (!SL.IsLEK_PR && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0)
+                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5", "LEK_PR", "ERR_SL_LEK_PR_1");
+            }
+        }
         private void CheckUSL()
         {
             if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_04_2020 && SCHET.DateFile <DT_08_2021)
@@ -1519,7 +1547,7 @@ namespace ServiceLoaderMedpomData
 
         private void CheckPACIENT()
         {
-            if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_08_2021)
+            if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_08_2021 || SCHET.TypeFile == XML_FileType.H && SCHET.DateFile >= DT_01_2022)
             {
                 switch (PACIENT.VPOLIS.value)
                 {
@@ -1552,7 +1580,7 @@ namespace ServiceLoaderMedpomData
         }
         private void CheckMR_USL_N()
         {
-            if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_08_2021)
+            if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_08_2021 || SCHET.TypeFile == XML_FileType.H && SCHET.DateFile >= DT_01_2022)
             {
                 if (USL.P_OTK.value == "0" && string.IsNullOrEmpty(MR_USL_N.CODE_MD.value))
                     Error(XmlSeverityType.Error, USL.P_OTK.POS.LINE, USL.P_OTK.POS.POS, "Поле CODE_MD обязательно к заполнению при USL\\P_OTK = 0", "CODE_MD", "ERR_MR_USL_N_1");
@@ -1866,5 +1894,11 @@ namespace ServiceLoaderMedpomData
         {
             return values.Contains(val);
         }
+
+        public static bool In(this string val, params string[] values)
+        {
+            return values.Contains(val);
+        }
+
     }
 }

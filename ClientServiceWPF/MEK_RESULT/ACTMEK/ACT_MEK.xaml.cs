@@ -505,10 +505,6 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
 
     public static partial class Ext
     {
-        public static bool In(this string val, params string[] par)
-        {
-            return par.Contains(val);
-        }
         public static string FullMessage(this Exception ex)
         {
             if (ex == null) return "";

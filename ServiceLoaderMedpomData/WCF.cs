@@ -416,27 +416,22 @@ namespace ServiceLoaderMedpomData
         public string xml_h_ds2_n;
         public string xml_h_kslp;
         public string xml_h_z_sluch;
-
         public string xml_h_cons;
         public string xml_h_onk_usl;
         public string xml_h_lek_pr;
         public string xml_h_lek_pr_date_inj;
-
-        
-
-
         public string xml_h_b_diag;
         public string xml_h_b_prot;
         public string xml_h_napr;
-
         public string xml_h_sank_code_exp;
         public string xml_h_ds2;
         public string xml_h_ds3;
         public string xml_h_crit;
-
         public string schemaOracle;
-
         public string xml_h_mr_usl_n { get; set; }
+        public string xml_h_sl_lek_pr { get; set; }
+        public string xml_h_med_dev { get; set; }
+
     }
 
     public class SettingTransfer
@@ -468,6 +463,8 @@ namespace ServiceLoaderMedpomData
         public string xml_h_ds2;
         public string xml_h_ds3;
         public string xml_h_crit;
+        public string xml_h_sl_lek_pr { get; set; }
+        public string xml_h_med_dev { get; set; }
         public bool Transfer;
 
         public string xml_h_mr_usl_n { get; set; }

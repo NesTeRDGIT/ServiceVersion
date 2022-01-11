@@ -14,7 +14,9 @@ namespace ServiceLoaderMedpomDataTests
     public class SchemaCheckingTests
     {
         const string H_VALID = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\H_VALID.XML";
+        const string H_VALID_32 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\H_VALID_3.2.XML";
         const string PATH_XSD_H31 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\МП 3.1.xsd";
+        const string PATH_XSD_H32 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\МП 3.2.xsd";
 
         /// <summary>
         /// Тестирование проверки схемы файлов H
@@ -25,6 +27,110 @@ namespace ServiceLoaderMedpomDataTests
             var sc = new SchemaChecking();
             var res = sc.CheckXML(H_VALID, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1));
             Assert.IsTrue(res.Count==0, $"Для правильной XML не верную схему пишет: {string.Join(";",res.Select(x=>x.Comment))}");
+        }
+
+        [TestMethod(), Description("Проверка файлов H(3.2) на схему - правильное выполнение")]
+        public void CheckXML_H_VALID_32()
+        {
+            var sc = new SchemaChecking();
+            var res = sc.CheckXML(H_VALID_32, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1));
+            Assert.IsTrue(res.Count == 0, $"Для правильной XML не верную схему пишет: {string.Join(";", res.Select(x => x.Comment))}");
+        }
+
+
+        [TestMethod(), Description("Проверка файлов H(3.2) на схему - ERR_SL_WEI_1")]
+        public void CheckERR_SL_WEI_1_NOT()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID_32);
+            file.ZAP.Select(x => x.Z_SL).SelectMany(x => x.SL).ToList()
+                .ForEach(x =>
+                {
+                    x.DS1 = "U07.1";
+                    x.WEI = 10;
+                });
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count(x=>x.ERR_CODE == "ERR_SL_WEI_1") == 0, $"Видит ошибку которой нет");
+            }
+        }
+        [TestMethod(), Description("Проверка файлов H(3.2) на схему - ERR_SL_WEI_1")]
+        public void CheckERR_SL_WEI_1_ERR()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID_32);
+            file.ZAP.Select(x => x.Z_SL).SelectMany(x => x.SL).ToList()
+                .ForEach(x =>
+                {
+                    x.DS1 = "U07.1";
+                    x.WEI = null;
+                });
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count(x => x.ERR_CODE == "ERR_SL_WEI_1") == file.ZAP.SelectMany(x=>x.Z_SL_list).Select(x=>x.SL).Count(), $"Не видит ошибку");
+            }
+        }
+
+
+          [TestMethod(), Description("Проверка файлов H(3.2) на схему - ERR_SL_WEI_1")]
+        public void CheckERR_SL_LEK_PR_1_NOT()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID_32);
+            file.ZAP.Select(x => x.Z_SL).SelectMany(x => x.SL).ToList()
+                .ForEach(x =>
+                {
+                    x.DS1 = "U07.1";
+                    x.LEK_PR = new List<LEK_PR_H>()
+                    {
+                        new LEK_PR_H()
+                        {
+                            CODE_SH = "1",
+                            COD_MARK = "1",
+                            REGNUM = "REG",
+                            LEK_DOSE = new LEK_DOSE()
+                            {
+                                COL_INJ = 1,
+                                DOSE_INJ = 1,
+                                ED_IZM = "dsad",
+                                METHOD_INJ = "asdasd"
+                            }
+                        }
+                    };
+                });
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count(x=>x.ERR_CODE == "ERR_SL_LEK_PR_1") == 0, $"Видит ошибку которой нет");
+            }
+        }
+        [TestMethod(), Description("Проверка файлов H(3.2) на схему - ERR_SL_WEI_1")]
+        public void CheckERR_SL_LEK_PR_1_ERR()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID_32);
+            file.ZAP.Select(x => x.Z_SL).SelectMany(x => x.SL).ToList()
+                .ForEach(x =>
+                {
+                    x.DS1 = "U07.1";
+                    x.LEK_PR = null;
+                });
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1));
+               
+                Assert.IsTrue(res.Count(x => x.ERR_CODE == "ERR_SL_LEK_PR_1") == file.ZAP.SelectMany(x=>x.Z_SL_list).Select(x=>x.SL).Count(), $"Не видит ошибку");
+            }
         }
 
 
