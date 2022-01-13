@@ -111,18 +111,16 @@ namespace ClientServiceWPF.Class
     public class RusCurrency
     {
         private static HybridDictionary currencies = new HybridDictionary();
-
+     
         static RusCurrency()
         {
             Register("RUR", true, "рубль", "рубля", "рублей", "копейка", "копейки", "копеек");
             Register("EUR", true, "евро", "евро", "евро", "евроцент", "евроцента", "евроцентов");
             Register("USD", true, "доллар", "доллара", "долларов", "цент", "цента", "центов");
-            ConfigurationSettings.GetConfig("currency-names");
+            //ConfigurationSettings.GetConfig("currency-names");
         }
 
-        public static void Register(string currency, bool male,
-            string seniorOne, string seniorTwo, string seniorFive,
-            string juniorOne, string juniorTwo, string juniorFive)
+        public static void Register(string currency, bool male, string seniorOne, string seniorTwo, string seniorFive, string juniorOne, string juniorTwo, string juniorFive)
         {
             CurrencyInfo info;
             info.male = male;
@@ -139,25 +137,21 @@ namespace ClientServiceWPF.Class
         public static string Str(double val, string currency)
         {
             if (!currencies.Contains(currency))
-                throw new ArgumentOutOfRangeException("currency", "Валюта \"" + currency + "\" не зарегистрирована");
+                throw new ArgumentOutOfRangeException("currency", $"Валюта \"{currency}\" не зарегистрирована");
 
-            CurrencyInfo info = (CurrencyInfo)currencies[currency];
-            return Str(val, info.male,
-                info.seniorOne, info.seniorTwo, info.seniorFive,
-                info.juniorOne, info.juniorTwo, info.juniorFive);
+            var info = (CurrencyInfo)currencies[currency];
+            return Str(val, info.male, info.seniorOne, info.seniorTwo, info.seniorFive, info.juniorOne, info.juniorTwo, info.juniorFive);
         }
 
-        public static string Str(double val, bool male,
-            string seniorOne, string seniorTwo, string seniorFive,
-            string juniorOne, string juniorTwo, string juniorFive)
+        public static string Str(double val, bool male, string seniorOne, string seniorTwo, string seniorFive, string juniorOne, string juniorTwo, string juniorFive)
         {
             bool minus = false;
             if (val < 0) { val = -val; minus = true; }
 
-            int n = (int)val;
-            int remainder = (int)((val - n + 0.005) * 100);
+            var n = (int)val;
+            var remainder = (int)((val - n + 0.005) * 100);
 
-            StringBuilder r = new StringBuilder();
+            var r = new StringBuilder();
 
             if (0 == n) r.Append("0 ");
             if (n % 1000 != 0)

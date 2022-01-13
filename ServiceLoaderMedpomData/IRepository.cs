@@ -8,8 +8,6 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Threading;
-using DocumentFormat.OpenXml.Office2010.ExcelAc;
-using Microsoft.Office.Interop.Excel;
 using ServiceLoaderMedpomData.EntityMP_V31;
 using DataTable = System.Data.DataTable;
 

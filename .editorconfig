@@ -1,7 +1,9 @@
 ﻿[*.cs]
 
 # IDE0008: Использование явного типа
-csharp_style_var_elsewhere = false
+csharp_style_var_elsewhere =true:silent
 
 # IDE0008: Использование явного типа
 dotnet_diagnostic.IDE0008.severity = none
+csharp_style_var_for_built_in_types=true:silent
+csharp_style_var_when_type_is_apparent=true:silent

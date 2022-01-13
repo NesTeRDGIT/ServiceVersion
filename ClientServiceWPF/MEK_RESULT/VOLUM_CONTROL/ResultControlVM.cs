@@ -143,7 +143,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
 
         private SaveFileDialog sfd = new SaveFileDialog() { Filter = "Файлы Excel(*.xlsx)|*.xlsx" };
 
-        public ICommand SavePril5Command => new Command(async obj =>
+        public ICommand SavePril5Command => new Command(obj =>
         {
             try
             {
@@ -181,7 +181,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
             }
         }, o => !IsOperationRun);
 
-        public ICommand SaveVRCommand => new Command(async obj =>
+        public ICommand SaveVRCommand => new Command(obj =>
         {
             try
             {

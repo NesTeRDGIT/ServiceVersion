@@ -12,6 +12,7 @@
         {
             Type = _Type;
             Message = _Message;
+            
         }
         public string Message { get; set; }
         public LogType Type { get; set; }

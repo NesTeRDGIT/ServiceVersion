@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ServiceLoaderMedpomData.EntityMP_V31;
+using ClientServiceWPF.Class;
 
 namespace ServiceLoaderMedpomDataTests
 {
@@ -517,6 +518,8 @@ namespace ServiceLoaderMedpomDataTests
         [TestMethod(), Description("Проверка файла из каталога")]
         public void TestCustomFile()
         {
+
+          // var t =  RusCurrency.Str(152525526.36);
             /*var file = ZL_LIST.ReadFromFile(@"C:\TEMP\HM750004T75_211262.XML");
             file.SCHET.MONTH = 9;
             using (var ms = new MemoryStream())

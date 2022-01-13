@@ -7,8 +7,18 @@ using System.Text;
 
 namespace ExcelManager
 {
+    /// <summary>
+    /// Измеритель текста
+    /// </summary>
     public static class MeasureString
     {
+        /// <summary>
+        /// Измерить ширину текста
+        /// </summary>
+        /// <param name="Value">Текст</param>
+        /// <param name="familyName">Шрифт</param>
+        /// <param name="fontSize">Размер шрифта</param>
+        /// <returns></returns>
         public static double MeasureWidth(string Value,string familyName, float fontSize)
         {
             const double cellPadding = .4;
@@ -24,6 +34,13 @@ namespace ExcelManager
                 return Math.Ceiling(point);
             } 
         }
+        /// <summary>
+        /// Измерить высоту текста
+        /// </summary>
+        /// <param name="Value">Текст</param>
+        /// <param name="familyName">Шрифт</param>
+        /// <param name="fontSize">Размер шрифта</param>
+        /// <returns></returns>
         public static double MeasureHeight(string Value, string familyName, float fontSize)
         {
             const double cellPadding = .4;

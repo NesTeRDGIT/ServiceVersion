@@ -75,7 +75,13 @@ namespace ExcelManager
     /// </summary>
     public class MMergeCell
     {
+        /// <summary>
+        /// Класс объедениие OXML
+        /// </summary>
         public  MergeCell MergeCell { get; set;}
+        /// <summary>
+        /// Адрес региона
+        /// </summary>
         public CellRangeAddress CRA { get; set;}
     }
     /// <summary>
@@ -406,13 +412,19 @@ namespace ExcelManager
         F70 = 70
     }
 
-
+    /// <summary>
+    /// Форматы вывода
+    /// </summary>
     public static class NumFormat
     {
-       // public static string  IntAndSpace { get; }= "# ##0";
-//        public static string FloatAndSpace { get; } = "# ##0.00";
+        /// <summary>
+        /// 123 456 789
+        /// </summary>
 
         public static uint IntAndSpace { get; } = (uint)DefaultNumFormat.F3;
+        /// <summary>
+        /// 123 456 789,00
+        /// </summary>
         public static uint FloatAndSpace { get; } = (uint)DefaultNumFormat.F4;
     }
 
@@ -455,7 +467,10 @@ namespace ExcelManager
         WorksheetPart worksheetPart;
         SpreadsheetDocument document;
         WorkbookStylesPart stylesPart;
-
+        /// <summary>
+        /// Установить метку только для чтения
+        /// </summary>
+        /// <param name="value"></param>
         public void MarkAsFinal(bool value)
         {
             var cfpp = document.CustomFilePropertiesPart ?? document.AddCustomFilePropertiesPart();
@@ -754,6 +769,9 @@ namespace ExcelManager
                 CreateMergeCells();
             MergeCellsFile.AppendChild(mc);
         }
+        /// <summary>
+        /// Объеденинные диапазоны
+        /// </summary>
         public List<MMergeCell> MergeCells { get; set; }
         private void ReadMergeCells()
         {
@@ -806,7 +824,7 @@ namespace ExcelManager
             Create(fileName, name_sheet);
         }
         /// <summary>
-        /// Создать документ
+        /// Создать новый документ
         /// </summary>
         /// <param name="fileName">Имя файла</param>
         /// <param name="name_sheet">Имя листа</param>
@@ -816,6 +834,11 @@ namespace ExcelManager
             IsCreate = true;
             CreateDocument(st, name_sheet);
         }
+        /// <summary>
+        /// Создать новый документ
+        /// </summary>
+        /// <param name="stream">Поток</param>
+        /// <param name="name_sheet">Имя листа</param>
 
         public ExcelOpenXML(Stream stream, string name_sheet)
         {
@@ -832,11 +855,6 @@ namespace ExcelManager
             sp?.Remove();
         }
 
-        /// <summary>
-        ///  Создать новый документ
-        /// </summary>
-        /// <param name="stream">Поток</param>
-        /// <param name="name_sheet">Имя 1го листа</param>
       
 
         /// <summary>
@@ -1080,6 +1098,11 @@ namespace ExcelManager
             col.Col.Width = value;
             col.Col.CustomWidth = true;
         }
+        /// <summary>
+        /// Создать строку из XML
+        /// </summary>
+        /// <param name="rowIndex">Номер строки</param>
+        /// <param name="XML">XML</param>
         public void CreateRow(uint rowIndex, string XML)
         {
             if (!rowsDictionary.ContainsKey(rowIndex))
@@ -1091,10 +1114,6 @@ namespace ExcelManager
             rowsDictionary[rowIndex].r.InnerXml = XML;
         }
 
-        public void CalculateHeigth(uint rowIndex, uint ColIndex)
-        {
-            
-        }
 
 
         /// <summary>
@@ -1818,7 +1837,6 @@ namespace ExcelManager
         /// </summary>
         /// <param name="row">Строка</param>
         /// <param name="ColIndex">Ячейка</param>
-        /// <param name="BaseDefaultHeight">Основываться на базовой высоте строки</param>
         /// <returns>Размер в pt</returns>
         public double Fit(uint row, uint ColIndex)
         {
@@ -1830,7 +1848,7 @@ namespace ExcelManager
         /// </summary>
         /// <param name="row">Строка</param>
         /// <param name="ColIndex">Ячейка</param>
-        /// <param name="BaseDefaultHeight">Основываться на базовой высоте строки</param>
+      
         /// <returns>Размер в pt</returns>
         public double Fit(MRow row, uint ColIndex)
         {
@@ -1845,8 +1863,7 @@ namespace ExcelManager
         }
         private Font FindFont(MRow row, uint ColIndex)
         {
-            var addr = GetColumnAddr(ColIndex) + row.r.RowIndex;
-            var value = "";
+            var addr = GetColumnAddr(ColIndex) + row.r.RowIndex;         
             var styleId = row.r.Elements<Cell>().First(cell => cell.CellReference.Value == addr).StyleIndex.Value;
             var FontId = stylesPart.Stylesheet.CellFormats.Elements<CellFormat>().ToList()[Convert.ToInt32(styleId)].FontId.Value;
            return stylesPart.Stylesheet.Fonts.Elements<Font>().ToList()[Convert.ToInt32(FontId)];
@@ -1898,7 +1915,11 @@ namespace ExcelManager
             return result;
         }
 
-
+        /// <summary>
+        /// Установить высоту строки
+        /// </summary>
+        /// <param name="Row">Номер строки</param>
+        /// <param name="Heigth">Высота(pt)</param>
         public void SetRowHeigth(uint Row, double Heigth)
         {
             var r = GetRow(Row);
@@ -2285,58 +2306,61 @@ namespace ExcelManager
         /// Получить строки
         /// </summary>
         public IEnumerable<MRow> Rows => rowsDictionary.Values.OrderBy(x=>x.RowIndex);
-        /// <summary>
-        /// Просчитать кол-во страниц
-        /// </summary>
-        /// <param name="App">Приложение</param>
-        /// <param name="path">Путь</param>
-        /// <param name="sheet">Лист</param>
-        /// <returns></returns>
-        public static int GetPageCount(Microsoft.Office.Interop.Excel.Application App, string path, int sheet)
-        {
-            try
-            {
-                var workbooks = App.Workbooks;
-                Microsoft.Office.Interop.Excel.Workbook book = null;
-                book = workbooks.Open(path, 1, true, 5, "", "", true, Microsoft.Office.Interop.Excel.XlPlatform.xlWindows, "", false, false, 0, true, false, Microsoft.Office.Interop.Excel.XlCorruptLoad.xlNormalLoad);
+        /*
+       /// <summary>
+       /// Просчитать кол-во страниц
+       /// </summary>
+       /// <param name="App">Приложение</param>
+       /// <param name="path">Путь</param>
+       /// <param name="sheet">Лист</param>
+       /// <returns></returns>
+       public static int GetPageCount(Microsoft.Office.Interop.Excel.Application App, string path, int sheet)
+       {
+           try
+           {
+               var workbooks = App.Workbooks;
+               Microsoft.Office.Interop.Excel.Workbook book = null;
+               book = workbooks.Open(path, 1, true, 5, "", "", true, Microsoft.Office.Interop.Excel.XlPlatform.xlWindows, "", false, false, 0, true, false, Microsoft.Office.Interop.Excel.XlCorruptLoad.xlNormalLoad);
 
-                var Curr = (Microsoft.Office.Interop.Excel.Worksheet)book.Sheets[sheet];
-                var Count = Curr.HPageBreaks.Count + 1;
-                book.Close(SaveChanges:false );
-                workbooks.Close();
-                return Count;
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Ошибка при считывании кол-ва страниц", ex);
-            }
+               var Curr = (Microsoft.Office.Interop.Excel.Worksheet)book.Sheets[sheet];
+               var Count = Curr.HPageBreaks.Count + 1;
+               book.Close(SaveChanges:false );
+               workbooks.Close();
+               return Count;
+           }
+           catch (Exception ex)
+           {
+               throw new Exception("Ошибка при считывании кол-ва страниц", ex);
+           }
 
-        }
-        /// <summary>
-        /// Получить приложение EXCEL
-        /// </summary>
-        /// <returns></returns>
-        public static Microsoft.Office.Interop.Excel.Application GetAppExcel()
-        {
-            return new Microsoft.Office.Interop.Excel.Application();
+       }
 
 
-
-        }
-
-        /// <summary>
-        /// Закрыть приложение Excel
-        /// </summary>
-        /// <param name="app"></param>
-        public static void KillAppExcel(ref Microsoft.Office.Interop.Excel.Application app)
-        {
-            app.Quit();
-            app = null;
-            GC.Collect();
+       /// <summary>
+       /// Получить приложение EXCEL
+       /// </summary>
+       /// <returns></returns>
+       public static Microsoft.Office.Interop.Excel.Application GetAppExcel()
+       {
+           return new Microsoft.Office.Interop.Excel.Application();
 
 
 
-        }
+       }
+
+       /// <summary>
+       /// Закрыть приложение Excel
+       /// </summary>
+       /// <param name="app"></param>
+       public static void KillAppExcel(ref Microsoft.Office.Interop.Excel.Application app)
+       {
+           app.Quit();
+           app = null;
+           GC.Collect();
+
+
+
+       }*/
     }
 
     /// <summary>
@@ -2370,10 +2394,6 @@ namespace ExcelManager
         /// 
         /// </summary>
         public string List { get; set; }
-        /// <summary>
-        /// Регион в одной строке
-        /// </summary>
-       /// public bool IsOnewRows => From.Row == To.Row;
     }
     /// <summary>
     /// Адрес ячейки
@@ -2604,6 +2624,13 @@ namespace ExcelManager
             cell.CellValue = new CellValue() { Text = value.ToString().Replace(",", ".") };
             WriteCell(cell);
         }
+        /// <summary>
+        /// Вставить значение
+        /// </summary>
+        /// <param name="Row">Строка</param>
+        /// <param name="Cell">Ячейка</param>
+        /// <param name="value">Значение</param>
+        /// <param name="styleid">Стиль</param>
         public void PrintCell(MRow Row, string Cell, decimal value, uint? styleid)
         {
 
@@ -2615,6 +2642,13 @@ namespace ExcelManager
             cell.CellValue = new CellValue() { Text = value.ToString().Replace(",", ".") };
             WriteCell(cell);
         }
+        /// <summary>
+        /// Вставить значение
+        /// </summary>
+        /// <param name="Row">Строка</param>
+        /// <param name="Cell">Ячейка</param>
+        /// <param name="value">Значение</param>
+        /// <param name="styleid">Стиль</param>
 
         public void PrintCell(MRow Row, string Cell, int value, uint? styleid)
         {
@@ -2919,7 +2953,9 @@ namespace ExcelManager
             var cellResult = new Cell {CellReference = address};
             return cellResult;
         }
-
+        /// <summary>
+        /// Освободить используеммые ресурсы
+        /// </summary>
         public void Dispose()
         {
             document?.Dispose();

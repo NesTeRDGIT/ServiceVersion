@@ -681,8 +681,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 progress?.Report(@"0/{tbl.Count}");
 
                 var index = 0;
-                uint currRows = 7;
-                var countSheet = 1;
+                uint currRows = 7;              
 
                 var baseCOL = efm.Columns;
                 var H1 = efm.GetRow(6);

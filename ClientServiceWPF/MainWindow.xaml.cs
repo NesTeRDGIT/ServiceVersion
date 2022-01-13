@@ -51,6 +51,7 @@ namespace ClientServiceWPF
             ConnectWCF();
             InitializeComponent();
             CreateNotifiIcon();
+            
         }
 
         private void CreateNotifiIcon()
