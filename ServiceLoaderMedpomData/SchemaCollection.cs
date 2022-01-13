@@ -1595,11 +1595,11 @@ namespace ServiceLoaderMedpomData
                         Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Основной диагноз D00-D09 для файла H", "DS1");
                     if (!DS1likeZ && Z_SL.USL_OK.value == "3" && string.IsNullOrEmpty(SL.C_ZAB.value) && !(SCHET.YEAR.value==2018 && SCHET.MONTH.value ==9) && DateFile< DT_10_2021)
                     {
-                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при оказании амбулаторной помощи, если DS1 не входит в рубрику Z", "C_ZAB");
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при оказании амбулаторной помощи, если DS1 не входит в рубрику Z", "C_ZAB", "C_ZAB_EMPTY");
                     }
                     if (!DS1likeZ && !DS1U11 && Z_SL.USL_OK.value == "3" && string.IsNullOrEmpty(SL.C_ZAB.value)  && DateFile >= DT_10_2021)
                     {
-                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при оказании амбулаторной помощи, если DS1 не входит в рубрику Z  и не соответствует кодам диагноза U11 и U11.9", "C_ZAB");
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при оказании амбулаторной помощи, если DS1 не входит в рубрику Z  и не соответствует кодам диагноза U11 и U11.9", "C_ZAB", "C_ZAB_EMPTY");
                     }
                 }
                 if (tf == XML_FileType.T)
@@ -1618,7 +1618,7 @@ namespace ServiceLoaderMedpomData
 
                     var needC_ZAB = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47;
                     if (needC_ZAB && string.IsNullOrEmpty(SL.C_ZAB.value))
-                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "C_ZAB");
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Характер основного заболевания(C_ZAB) обязателен к заполнению при C00.0<=DS1<D10 или D45<=DS1<D48", "C_ZAB", "C_ZAB_EMPTY");
 
                     var needTARIF = DS1likeC || DS1likeD00D09 || DS1likeD70_C97C00_C80 || DS1likeD45D47;
                     if (needTARIF && string.IsNullOrEmpty(SL.TARIF.value))

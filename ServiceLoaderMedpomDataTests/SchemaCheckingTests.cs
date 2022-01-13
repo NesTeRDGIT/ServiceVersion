@@ -118,6 +118,37 @@ namespace ServiceLoaderMedpomDataTests
             }
         }
 
+
+        [TestMethod(), Description("Проверка файлов на схему - ошибка C_ZAB_EMPTY")]
+        public void CheckXML_H_31_ERR_C_ZAB_EMPTY()
+        {
+            var file = ZL_LIST.ReadFromFile(H_VALID);
+            var zSl = file.ZAP.Select(x => x.Z_SL).ToList();
+            
+            foreach (var z in zSl)
+            {
+                z.USL_OK = 3;
+                foreach (var sl in z.SL)
+                {
+                    sl.DS1 = "U07.1";
+                    sl.C_ZAB = null;
+                }
+            }
+
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count(x=>x.ERR_CODE == "C_ZAB_EMPTY") == zSl.SelectMany(x=>x.SL).Count(), $"Ошибку не видит");
+            }
+        }
+
+
+       
+
+
         [TestMethod(), Description("Проверка файлов на схему - ошибка SD_Z")]
         public void CheckXML_H_31_ERR_SD_Z()
         {
@@ -375,6 +406,23 @@ namespace ServiceLoaderMedpomDataTests
             }
         }
 
+
+
+        [TestMethod(), Description("Проверка файла из каталога")]
+        public void TestCustomFile()
+        {
+            /*var file = ZL_LIST.ReadFromFile(@"C:\TEMP\HM750004T75_211262.XML");
+            file.SCHET.MONTH = 9;
+            using (var ms = new MemoryStream())
+            {
+                file.WriteXml(ms);
+                ms.Seek(0, SeekOrigin.Begin);
+                var sc = new SchemaChecking();
+                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1));
+                Assert.IsTrue(res.Count == 1, $"Ошибку не видит");
+            }*/
+
+        }
 
     }
 }

@@ -37,8 +37,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         public ExportFile()
         {
             var exportFileRepository = new ExportFileRepository(AppConfig.Property.ConnectionString);
-            var fileCreator = new FileCreator(exportFileRepository, SynchronizationContext.Current);
-            VM = new ExportFileVM(fileCreator, exportFileRepository, Dispatcher.CurrentDispatcher);
+            var fileCreator = new FileCreator(exportFileRepository);
+            VM = new ExportFileVM(fileCreator, exportFileRepository, new FileCombiner(), Dispatcher.CurrentDispatcher);
             InitializeComponent();
         }
 
@@ -153,6 +153,18 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 
         public List<FileCreatorResult> Results { get; } = new List<FileCreatorResult>();
 
+
+        public void Clear()
+        {
+            Logs.Clear();
+            Finish = false;
+            InWork = false;
+            SUM = null;
+            SUM_XLS = null;
+            PathArc.Clear();
+            Results.Clear();
+        }
+
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -173,15 +185,17 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 
     public class ExportFileVM : INotifyPropertyChanged
     {
+        private IFileCombiner fileCombiner;
         private IFileCreator fileCreator;
         private Dispatcher dispatcher;
         private IExportFileRepository exportFileRepository;
 
-        public ExportFileVM(IFileCreator fileCreator, IExportFileRepository exportFileRepository, Dispatcher dispatcher)
+        public ExportFileVM(IFileCreator fileCreator, IExportFileRepository exportFileRepository, IFileCombiner fileCombiner, Dispatcher dispatcher)
         {
             this.fileCreator = fileCreator;
             this.exportFileRepository = exportFileRepository;
             this.dispatcher = dispatcher;
+            this.fileCombiner = fileCombiner;
         }
         public ObservableCollection<V_EXPORT_H_ZGLVRowVM> ZGLV_LIST { get; } = new ObservableCollection<V_EXPORT_H_ZGLVRowVM>();
 
@@ -263,12 +277,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 isProcessing = true;
                 foreach (var item in ZGLV_LIST)
                 {
-                    item.Logs.Clear();
-                    item.Finish = false;
-                    item.InWork = false;
-                    item.SUM = null;
-                    item.SUM_XLS = null;
-                    item.PathArc.Clear();
+                    item.Clear();
                 }
 
                 var items = ZGLV_LIST.Where(x => x.IsSelect).ToList();
@@ -283,23 +292,19 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     if (PARAM.TypeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.FFOMSDx))
                     {
                         progress1.Text = "Запрос справочника F002";
-                        smoList = await Task.Run(() => exportFileRepository.GetF002());
+                        smoList = await exportFileRepository.GetF002Async();
                     }
 
                     cts = new CancellationTokenSource();
-                    var tasks = new List<Task> {Task.Run(  () => { CreateFilesAsync(items, fbd.SelectedPath, PARAM.Source, PARAM.TypeFileCreate, smoList, cts.Token); })};
-
+                    var tasks = new List<Task> { CreateFilesAsync(items, fbd.SelectedPath, PARAM.Source, PARAM.TypeFileCreate, smoList, cts.Token) };
                     if (PARAM.TypeFileCreate== TypeFileCreate.SMO)
                     {
-                        tasks.Add(Task.Run(() => { GetFilesXLS(items,  fbd.SelectedPath, smoList, PARAM.DATE_1_XLS, PARAM.DATE_2_XLS,  cts.Token); }));
+                        tasks.Add(GetFilesXLSAsync(items,  fbd.SelectedPath, smoList, PARAM.DATE_1_XLS, PARAM.DATE_2_XLS,  cts.Token));
                     }
                     await Task.WhenAll(tasks);
 
-
-
-
-                    var Err = CheckResult(items, PARAM.IsSMO);
-                    if (CustomMessageBox.Show($"Завершено. Показать файлы?{(Err.Count != 0 ? $"{Environment.NewLine}{string.Join(Environment.NewLine, Err.Select(x => x))}" : "")}", "") == MessageBoxResult.Yes)
+                    var err = CheckResult(items, PARAM.IsSMO);
+                    if (CustomMessageBox.Show($"Завершено. Показать файлы?{(err.Count != 0 ? $"{Environment.NewLine}{string.Join(Environment.NewLine, err.Select(x => x))}" : "")}", "") == MessageBoxResult.Yes)
                     {
                         ShowSelectedInExplorer.FileOrFolder(fbd.SelectedPath);
                     }
@@ -320,224 +325,144 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 
         private List<string> CheckResult(List<V_EXPORT_H_ZGLVRowVM> items,bool IsSMO)
         {
-            var Err = new List<string>();
-            var err_count = items.Count(x => (x.IsTypeLog ?? LogType.Info) != LogType.Info);
-            if (err_count != 0)
-                Err.Add($@"Выгрузка содержит {err_count} ошибочных файлов");
+            var err = new List<string>();
+            var errCount = items.Count(x => (x.IsTypeLog ?? LogType.Info) != LogType.Info);
+            if (errCount != 0)
+                err.Add($@"Выгрузка содержит {errCount} ошибочных файлов");
 
             if (IsSMO)
             {
-                var RESULT = items.GroupBy(x => x.Item.CODE_MO);
-                foreach (var res in RESULT)
+                var result = items.GroupBy(x => x.Item.CODE_MO);
+                foreach (var res in result)
                 {
-                    var sumXLS = Math.Round(res.Sum(x => x.SUM_XLS ?? 0), 2);
-                    var sumXML = Math.Round(res.Sum(x => x.SUM ?? 0), 2);
-                    if (sumXML != sumXLS)
+                    var sumXls = Math.Round(res.Sum(x => x.SUM_XLS ?? 0), 2);
+                    var sumXml = Math.Round(res.Sum(x => x.SUM ?? 0), 2);
+                    if (sumXml != sumXls)
                     {
-                        Err.Add($@"Ошибка контроля сумм XML и XLS для МО = {res.Key} сумма XML ={sumXML} сумма XLS = {sumXLS}");
+                        err.Add($@"Ошибка контроля сумм XML и XLS для МО = {res.Key} сумма XML ={sumXml} сумма XLS = {sumXls}");
                     }
                 }
             }
-            return Err;
+            return err;
         }
 
-       
 
-        private void  CreateFilesAsync(List<V_EXPORT_H_ZGLVRowVM> Items, string Folder, DBSource source, TypeFileCreate typeFileCreate, List<F002> smoList, CancellationToken cancel)
+        private Task CreateFilesAsync(List<V_EXPORT_H_ZGLVRowVM> Items, string Folder, DBSource source, TypeFileCreate typeFileCreate, List<F002> smoList, CancellationToken cancel)
         {
-            var dic_order = new Dictionary<string, int>();
+            return Task.Run(() => CreateFiles(Items, Folder, source, typeFileCreate, smoList, cancel));
+        }
+        private void  CreateFiles(List<V_EXPORT_H_ZGLVRowVM> Items, string Folder, DBSource source, TypeFileCreate typeFileCreate, List<F002> smoList, CancellationToken cancel)
+        {
+            var dicOrder = new Dictionary<string, int>();
             var index = 0;
             var count = Items.Count;
-            var paralleLoopResult = Parallel.ForEach(Items,new ParallelOptions{CancellationToken = cancel, MaxDegreeOfParallelism = PARAM.CountTask },  (item,pls) =>
+            dispatcher.Invoke(() => { progress1.SetValues(count,0, ""); });
+            var parallelManager = new ParallelManager<V_EXPORT_H_ZGLVRowVM>(Items, PARAM.CountTask, item =>
             {
                 try
                 {
                     var key = $"{item.Item.CODE_MO}{item.Item.FILENAME.Substring(0, 2)}";
-                    if (!dic_order.ContainsKey(key))
-                        dic_order.Add(key, 0);
-                    dic_order[key]++;
+                    if (!dicOrder.ContainsKey(key))
+                        dicOrder.Add(key, 0);
+                    dicOrder[key]++;
                     item.SUM = 0;
                     cancel.ThrowIfCancellationRequested();
-                    fileCreator.CreateFile(item, Folder, source, typeFileCreate, PARAM.SluchParam, smoList, PARAM.OrderInMonth, dic_order[key]);
-                
                     dispatcher.Invoke(() => { progress1.SetTextValue(index, $"Выгрузка {index} из {count}"); });
+                    dispatcher.Invoke(() => { item.InWork = true; });
+                    fileCreator.CreateFile(item, Folder, source, typeFileCreate, PARAM.SluchParam, smoList, PARAM.OrderInMonth, dicOrder[key]);
                 }
                 catch (Exception ex)
                 {
                     dispatcher.Invoke(() => { item.AddLogs(LogType.Error, $"Ошибка {ex.Source}: {ex.FullError()}"); });
                 }
-
+                finally
+                {
+                    dispatcher.Invoke(() =>
+                    {
+                        item.InWork = false;
+                        item.Finish = true;
+                    });
+                }
                 index++;
             });
-            while (!paralleLoopResult.IsCompleted)
+
+            while (!parallelManager.IsCompleted)
             {
                 cancel.ThrowIfCancellationRequested();
             }
-
             dispatcher.Invoke(() =>
             {
-                progress1.Text = "Ожидание завершения потоков";
-                progress1.IsIndeterminate = true;
-            });
-           
-            dispatcher.Invoke(() => 
-            {
-                progress1.IsIndeterminate = false;
-                progress1.Text = "";
+                progress1.Clear();
             });
 
             if (typeFileCreate.In(TypeFileCreate.MO, TypeFileCreate.MEK_P_P_MO))
             {
-                var GLIST = Items.Where(x => x.PathArc.Count != 0).GroupBy(x => new {x.Item.YEAR, x.Item.MONTH, x.Item.CODE_MO});
-                var countGR = GLIST.Count();
-                var i = 1;
-                dispatcher.Invoke(() => { progress1.SetValues(countGR, 0, "Сбор файлов в архив"); });
-                foreach (var gr in GLIST)
+                fileCombiner.CreateMOMail(Items, Folder, typeFileCreate, cancel, new Progress<ProgressItemDouble>(o =>
                 {
-                    cancel.ThrowIfCancellationRequested();
-                    var name_arc = $"{(typeFileCreate == TypeFileCreate.MO? "Результаты МЭК" : "МЭК прошлых периодов")} {gr.Key.CODE_MO} за {gr.Key.MONTH:D2}.{gr.Key.YEAR}.ZIP";
-                    var NAME_ARC = Path.Combine(Folder, name_arc);
-
-                    dispatcher.Invoke(() => { progress1.SetTextValue(i, $"Сбор файлов в архив: {name_arc}"); });
-
-                    using (var archive = ZipFile.Open(NAME_ARC, ZipArchiveMode.Create))
+                    dispatcher.Invoke(() =>
                     {
-                        foreach (var item in gr)
-                        {
-                            foreach (var file in item.PathArc)
-                            {
-                                dispatcher.Invoke(() => { progress2.Text = $"Добавление {file}"; });
-                                archive.CreateEntryFromFile(file, Path.GetFileName(file));
-                                File.Delete(file);
-                            }
-                        }
-                    }
-                    i++;
-                }
-                dispatcher.Invoke(() => { progress2.Text = ""; });
+                        progress1.CopyFrom(o.progress1);
+                        progress2.CopyFrom(o.progress2);
+                    });
+                }));
             }
 
             if (typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO))
             {
-                var GLIST = Items.SelectMany(x => x.Results.Select(y=> new { x.Item.YEAR, x.Item.MONTH,Result=y })).Where(x => x.Result.Result).GroupBy(x => new { x.Result.SMO, x.YEAR, x.MONTH });
-                var countGR = GLIST.Count();
-                var i = 1;
-                dispatcher.Invoke(() => { progress1.SetValues(countGR, 0, "Сбор файлов в архив"); });
-
-                var removePath = new List<string>();
-
-                foreach (var gr in GLIST)
+                fileCombiner.CreateSMOMail(Items, Folder, typeFileCreate, cancel, new Progress<ProgressItemDouble>(o =>
                 {
-                    cancel.ThrowIfCancellationRequested();
-                    var nameArc = $"{(typeFileCreate == TypeFileCreate.SMO ? "Реестры" : "МЭК прошлых периодов")} {gr.Key.SMO} за {gr.Key.MONTH:D2}.{gr.Key.YEAR}.ZIP";
-                    var pathArc = Path.Combine(Folder, nameArc);
-
-                    dispatcher.Invoke(() => { progress1.SetTextValue(i, $"Сбор файлов в архив: {nameArc}"); });
-
-                    using (var archive = ZipFile.Open(pathArc, ZipArchiveMode.Create))
+                    dispatcher.Invoke(() =>
                     {
-                        foreach (var item in gr)
-                        {
-                            var file = item.Result.PathARC;
-                            dispatcher.Invoke(() => { progress2.Text = $"Добавление {file}"; });
-                            archive.CreateEntryFromFile(file, Path.GetFileName(file));
-                            File.Delete(file);
-                            removePath.Add(file);
-                        }
-                    }
-                    i++;
-                }
-                dispatcher.Invoke(() => { progress2.Text = "Очистка каталогов"; });
-                FilesHelper.RemoveFileAndDirAsync(Folder, removePath.ToArray());
-                
-
-
-                dispatcher.Invoke(() => { progress2.Text = ""; });
+                        progress1.CopyFrom(o.progress1);
+                        progress2.CopyFrom(o.progress2);
+                    });
+                }));
             }
             if (typeFileCreate == TypeFileCreate.SLUCH && PARAM.SluchParam.OneFile)
             {
-                var file = new ZL_LIST
-                {
-                    SCHET = new SCHET
-                    {
-                        CODE = 0,
-                        CODE_MO = "0",
-                        DSCHET = DateTime.Now,
-                        NSCHET = "0",
-                        PLAT = "75",
-                        MONTH = DateTime.Now.Month,
-                        YEAR = DateTime.Now.Year
-                    },
-                    ZGLV = new ZGLV()
-                    {
-                        DATA = DateTime.Now,
-                        FILENAME = PARAM.NewFileName,
-                        VERSION = "3.1"
-
-                    }
-                };
-                foreach (var item in Items.SelectMany(x=>x.Results).Select(x=>x.FileH))
-                {
-                    file.ZAP.AddRange(item.ZAP);
-                }
-
-                var i = 1;
-                foreach (var z in file.ZAP)
-                {
-                    z.N_ZAP = i;
-                    i++;
-                    if(z.Z_SL.SLUCH_Z_ID.HasValue)
-                        z.Z_SL.IDCASE = z.Z_SL.SLUCH_Z_ID.Value;
-                }
-                file.SCHET.SUMMAV = file.ZAP.Sum(x => x.Z_SL.SL.Sum(sl => sl.USL.Sum(us => us.SUMV_USL)));
-                file.SCHET.SUMMAP = file.ZAP.Sum(x => x.Z_SL.SUMP);
-                file.SCHET.SANK_MEK = file.ZAP.Sum(x => x.Z_SL.SANK.Sum(san => san.S_SUM));
-                
-
-                file.ZGLV.SD_Z = file.ZAP.Count;
-                using (var st = File.Create(Path.Combine(Folder, $"{PARAM.NewFileName}.xml")))
-                {
-                    file.WriteXml(st);
-                    st.Close();
-                }
+                fileCombiner.CreateSolidFile(Items, Folder,PARAM.NewFileName);
             }
         }
-
-      
-
-
-        void GetFilesXLS(List<V_EXPORT_H_ZGLVRowVM> Items,  string Folder, List<F002> smoList, DateTime D_START_XLS, DateTime D_END_XLS, CancellationToken cancel)
+        Task GetFilesXLSAsync(List<V_EXPORT_H_ZGLVRowVM> Items, string Folder, List<F002> smoList, DateTime D_START_XLS, DateTime D_END_XLS, CancellationToken cancel)
         {
-            var timer = new ActionTimer<string>(o =>
+            return Task.Run(() => GetFilesXLS(Items, Folder, smoList, D_START_XLS, D_END_XLS, cancel, new Progress<ProgressItemDouble>(mes =>
             {
-                dispatcher.Invoke(() => { progress3.SetTextValue(0, o); });
-            }, 500);
+                progress2.CopyFrom(mes.progress1);
+                progress3.CopyFrom( mes.progress2);
+            })));
+        }
+
+        void GetFilesXLS(List<V_EXPORT_H_ZGLVRowVM> Items,  string Folder, List<F002> smoList, DateTime D_START_XLS, DateTime D_END_XLS, CancellationToken cancel, IProgress<ProgressItemDouble> progress)
+        {
             try
             {
+                var pItem = new ProgressItemDouble();
                 var list = Items.GroupBy(x => x.Item.CODE_MO).OrderBy(x => x.Key).ToList();
                 //Прогресс создания файла
-                var pr = new Progress<string>(o => timer.RaiseAction(o));
-                dispatcher.Invoke(() => { progress2.SetValues(list.Count, 0, ""); });
-
-                dispatcher.Invoke(() => { progress2.SetValues(list.Count, 0, ""); });
+                pItem.progress1.SetValues(list.Count, 0, "");
+                pItem.progress2.SetValues(list.Count, 0, "");
+                progress?.Report(pItem);
                 var index = 1;
                 foreach (var pack in list)
                 {
                     cancel.ThrowIfCancellationRequested();
-                    dispatcher.Invoke(() => { progress2.SetTextValue(index, $"Выгрузка XLS для {pack.Key}"); });
+                    pItem.progress1.SetTextValue(index, $"Выгрузка XLS для {pack.Key}");
+                    progress?.Report(pItem);
                     index++;
-                    pack.First().SUM_XLS = fileCreator.GetFileXLS(pack.ToList().Select(x => x.Item).ToList(), smoList, Folder, D_START_XLS, D_END_XLS, pr);
+                    pack.First().SUM_XLS = fileCreator.GetFileXLS(pack.ToList().Select(x => x.Item).ToList(), smoList, Folder, D_START_XLS, D_END_XLS, new Progress<string>(val =>
+                    {
+                        pItem.progress2.Text = val;
+                        progress?.Report(pItem);
+                    }));
                 }
 
-                dispatcher.Invoke(() => { progress2.SetTextValue(0, ""); });
+                pItem.progress1.Clear();
+                pItem.progress2.Clear();
+                progress?.Report(pItem);
             }
             catch (Exception ex)
             {
                 dispatcher.Invoke(() => { MessageBox.Show(ex.Message); });
-            }
-            finally
-            {
-                timer.Dispose();
             }
         }
 
@@ -806,58 +731,5 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         #endregion
     }
    
-
-    /// <summary>
-    /// Класс который будет выполнять действие не чаще чем раз в MS
-    /// </summary>
-    /// <typeparam name="T"></typeparam>
-    public class ActionTimer<T>:IDisposable
-    {
-        private T LastValue { get; set; }
-        private Timer timer;
-        private Action<T> action;
-        public ActionTimer(Action<T> action, int MS)
-        {
-            this.action = action;
-            timer = new Timer(state => InvokeAction(), null, 0, MS);
-        }
-
-        private void InvokeAction()
-        {
-            var  item = GetLastValue();
-            if (item != null)
-            {
-                action.Invoke(item);
-            }
-        }
-
-        private readonly object lockobject = new object();
-        private T GetLastValue()
-        {
-            lock (lockobject)
-            {
-                var item = LastValue;
-                LastValue = default;
-                return item;
-            }
-        }
-
-        public void RaiseAction(T value)
-        {
-            lock (lockobject)
-            {
-                LastValue = value;
-            }
-        }
-
-        public void Dispose()
-        {
-            timer?.Dispose();
-            InvokeAction();
-        }
-    }
    
-
-    
-
 }

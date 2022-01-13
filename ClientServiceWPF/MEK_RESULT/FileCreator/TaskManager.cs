@@ -82,7 +82,6 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
         }
 
-
         public void ThrowIfException()
         {
             var ex_task = tasks.Where(x => x.TSK?.Exception != null).SelectMany(x => x.TSK.Exception.InnerExceptions).ToList();
@@ -92,6 +91,89 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw new AggregateException(ex_task);
             }
                 
+        }
+
+    }
+
+
+    public class ParallelManager<T>
+    {
+        private Task mainTask;
+        private Action<T> action;
+        private SemaphoreSlim semaphore;
+        private List<Exception> exceptions = new List<Exception>();
+
+        public ParallelManager(IEnumerable<T> items, int countParallel, Action<T> action)
+        {
+            semaphore = new SemaphoreSlim(countParallel);
+            this.action = action;
+            mainTask = Task.Run(async () =>
+            {
+                try
+                {
+                    var list = items.ToList();
+                    var tasks = new List<Task>();
+                    for (var i = 0; i < list.Count; i++)
+                    {
+                        var item = list[i];
+                        await semaphore.WaitAsync();
+                       // Debug.WriteLine($"Запуск:{item}");
+                        tasks.Add(RunActionAsync(item, i, list.Count));
+                    }
+                    Task.WaitAll(tasks.ToArray());
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+            });
+        }
+        private Task RunActionAsync(T value, int index, int count)
+        {
+            return Task.Run(() =>
+            {
+                try
+                {
+                    action.Invoke(value);
+                }
+                catch (Exception ex)
+                {
+                    exceptions.Add(ex);
+                }
+                finally
+                {
+                    semaphore.Release();
+                }
+            });
+        }
+
+
+        public bool IsCompleted
+        {
+            get
+            {
+                if (exceptions.Count != 0)
+                {
+                    if (exceptions.Count == 1)
+                        throw exceptions[0];
+                    throw new AggregateException(exceptions);
+                }
+                return mainTask != null && mainTask.IsCompleted;
+            }
+        }
+
+        public Task<bool> WaitCompletedAsync()
+        {
+            return Task.Run(WaitCompleted);
+        }
+
+        public bool WaitCompleted()
+        {
+            while (!IsCompleted)
+            {
+
+            }
+            return true;
         }
     }
 

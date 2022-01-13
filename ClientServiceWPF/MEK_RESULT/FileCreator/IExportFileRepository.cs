@@ -87,6 +87,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 
         OracleConnection CreateConnection();
         List<F002> GetF002();
+        Task<List<F002>> GetF002Async();
         string GetF003Name(string CODE_MO);
         List<XLS_TABLE> V_EXPORT_EXCEL_FROM(IEnumerable<int> ZGLV_ID, string SMO);
       
@@ -673,6 +674,12 @@ where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(
                 }
             }
         }
+
+        public Task<List<F002>> GetF002Async()
+        {
+            return Task.Run(()=>GetF002());
+        }
+
         public string  GetF003Name(string CODE_MO)
         {
             using (var conn = new OracleConnection(ConnectionString))

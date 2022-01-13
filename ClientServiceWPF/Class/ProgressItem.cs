@@ -87,6 +87,16 @@ namespace ClientServiceWPF.Class
             }
         }
 
+        public void CopyFrom(ProgressItem item)
+        {
+            this.Value = item.Value;
+            this.Maximum = item.Maximum;
+            this.Text = item.Text;
+            this.IsIndeterminate = item.IsIndeterminate;
+            this.IsOperationRun = item.IsOperationRun;
+
+        }
+
         public event PropertyChangedEventHandler PropertyChanged;
         [NotifyPropertyChangedInvocator]
         protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
