@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Markup;
+using ClientServiceWPF.Class;
 
 namespace ClientServiceWPF
 {
@@ -18,10 +19,12 @@ namespace ClientServiceWPF
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            Thread.CurrentThread.CurrentCulture = new System.Globalization.CultureInfo("RU-ru");
-            Thread.CurrentThread.CurrentUICulture = new System.Globalization.CultureInfo("RU-ru");
+            DispatcherHelper.Init();
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("RU-ru");
+            Thread.CurrentThread.CurrentUICulture = new CultureInfo("RU-ru");
             FrameworkElement.LanguageProperty.OverrideMetadata(typeof(FrameworkElement),new FrameworkPropertyMetadata(XmlLanguage.GetLanguage(CultureInfo.CurrentCulture.IetfLanguageTag)));
             base.OnStartup(e);
+            
         }
     }
 }

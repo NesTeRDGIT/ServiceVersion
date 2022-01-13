@@ -5,6 +5,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Threading;
@@ -13,6 +14,7 @@ using ClientServiceWPF.MEK_RESULT.ACTMEK;
 using ExcelManager;
 using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData;
+using ServiceLoaderMedpomData.Annotations;
 using ServiceLoaderMedpomData.EntityMP_V31;
 using LogType = ClientServiceWPF.Class.LogType;
 
@@ -20,21 +22,21 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 {
     public  interface IFileCreator
     {
-        FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, DBSource source, TypeFileCreate typeFileCreate, string SMO, SLUCH_PARAM sluchParam, string NN_FFOMS_DX,string sufix, IProgress<ProgressFileCreator> progress);
+        FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, DBSource source, TypeFileCreate typeFileCreate, string SMO, SLUCH_PARAM sluchParam, string NN_FFOMS_DX,string sufix, Action<ProgressFileCreator> progress);
         decimal GetFileXLS(List<V_EXPORT_H_ZGLVRow> List, List<F002> smoList, string path, DateTime D_START_XLS, DateTime D_END_XLS, IProgress<string> progress);
+        Task CreateFileAsync(V_EXPORT_H_ZGLVRowVM item, string Folder, DBSource source, TypeFileCreate typeFileCreate, SLUCH_PARAM sluchParam, List<F002> smoList, int OrderInMonth, int Order);
+        void CreateFile(V_EXPORT_H_ZGLVRowVM item, string Folder, DBSource source, TypeFileCreate typeFileCreate, SLUCH_PARAM sluchParam, List<F002> smoList, int OrderInMonth, int Order);
     }
-
     public class ProgressFileCreator
     {
-        public ProgressFileCreator(LogType Type, string[] Message)
+        public ProgressFileCreator(LogType type, string[] message)
         {
-            this.Type = Type;
-            this.Message = Message;
+            this.Type = type;
+            this.Message = message;
         }
         public LogType Type { get; set; }
         public string[] Message { get; set; }
     }
-    
     public class FileNameFFOMSDxParam
     {
         /// <summary>
@@ -46,9 +48,6 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         /// </summary>
         public int Order { get; set; }
     }
-
-   
-
     public class FileCreatorResult
     {
         public static FileCreatorResult CreateNotResult()
@@ -69,24 +68,25 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         public PERS_LIST FileL { get; set; }
 
     }
-
-    public class FileCreator: IFileCreator
+    public class FileCreator : IFileCreator
     {
         private DateTime DT_2021_08 = new DateTime(2021, 8, 1);
         private IExportFileRepository exportFileRepository;
-        public  FileCreator(IExportFileRepository exportFileRepository)
+
+        public FileCreator(IExportFileRepository exportFileRepository)
         {
             this.exportFileRepository = exportFileRepository;
         }
-        private  string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
+
+        private string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
 
         #region CreateXML
-        private void AddLogInvoke(IProgress<ProgressFileCreator> progress, LogType t, params string[] Message)
+        private void AddLogInvoke(Action<ProgressFileCreator> progress, LogType t, params string[] Message)
         {
-            progress?.Report(new ProgressFileCreator(t, Message));
-
+            progress?.Invoke(new ProgressFileCreator(t, Message));
         }
-        public FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, DBSource source, TypeFileCreate typeFileCreate, string SMO, SLUCH_PARAM sluchParam, string NN_FFOMS_DX, string sufix, IProgress<ProgressFileCreator> progress)
+
+        public FileCreatorResult GetFileXML(V_EXPORT_H_ZGLVRow item, string ExportFolder, DBSource source, TypeFileCreate typeFileCreate, string SMO, SLUCH_PARAM sluchParam, string NN_FFOMS_DX, string sufix, Action<ProgressFileCreator> progress)
         {
             try
             {
@@ -97,12 +97,12 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         PathSchema = Path.Combine(LocalFolder, "EXPORT_SMO_XSD");
                         break;
                     case TypeFileCreate.MEK_P_P_SMO:
-                        if(item.S_ZGLV_ID.Length==0)
+                        if (item.S_ZGLV_ID.Length == 0)
                             throw new Exception("Не найден указатель на акт");
                         PathSchema = Path.Combine(LocalFolder, "EXPORT_SMO_XSD");
                         break;
                     case TypeFileCreate.MEK_P_P_MO:
-                        if (item.S_ZGLV_ID.Length==0)
+                        if (item.S_ZGLV_ID.Length == 0)
                             throw new Exception("Не найден указатель на акт");
                         PathSchema = Path.Combine(LocalFolder, "EXPORT_MO_XSD");
                         break;
@@ -115,7 +115,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     case TypeFileCreate.FFOMSDx:
                         PathSchema = Path.Combine(LocalFolder, "EXPORT_FFOMS_XSD");
                         break;
-                
+
                     default:
                         throw new ArgumentOutOfRangeException(nameof(typeFileCreate), typeFileCreate, null);
                 }
@@ -128,6 +128,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 {
                     throw new Exception("Ошибка при определении типа файла");
                 }
+
                 var PATH_XSD = "";
                 CheckXMLValidator CXL;
 
@@ -145,7 +146,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     case FileType.DV:
                     case FileType.DA:
                     case FileType.DB:
-                        PATH_XSD = Path.Combine(PathSchema, dtFile>= DT_2021_08 ? "D31_2021_08.xsd" : "D31.xsd");
+                        PATH_XSD = Path.Combine(PathSchema, dtFile >= DT_2021_08 ? "D31_2021_08.xsd" : "D31.xsd");
                         break;
                     case FileType.H:
                         PATH_XSD = Path.Combine(PathSchema, "H31.xsd");
@@ -159,9 +160,9 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 }
 
                 var isSMO = !string.IsNullOrEmpty(SMO);
-             
+
                 AddLogInvoke(progress, LogType.Info, "Формирование файла");
-            
+
                 //Запрашиваем заголовки
                 //ZGLV
                 //Запрос
@@ -171,6 +172,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 {
                     throw new Exception($"Для файла {item.FILENAME} Вернулось больше 1го заголовка или 0");
                 }
+
                 //СЧЕТ----------------------------------              
                 AddLogInvoke(progress, LogType.Info, "Запрос счета");
 
@@ -183,7 +185,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 //----------------------------------------------------
                 AddLogInvoke(progress, LogType.Info, "Запрос записей");
                 //ZAP+PAC+Z_SL-------------------------------------------------
-                var ZAP = exportFileRepository.V_EXPORT_H_ZAP(typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO, TypeFileCreate.MEK_P_P_MO) ? item.S_ZGLV_ID:new[]{item.ZGLV_ID}, SMO, sluchParam.SLUCH_Z_ID, typeFileCreate==TypeFileCreate.FFOMSDx, typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO,TypeFileCreate.MEK_P_P_MO), source, conn);
+                var ZAP = exportFileRepository.V_EXPORT_H_ZAP(typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO, TypeFileCreate.MEK_P_P_MO) ? item.S_ZGLV_ID : new[] { item.ZGLV_ID }, SMO, sluchParam.SLUCH_Z_ID, typeFileCreate == TypeFileCreate.FFOMSDx, typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO, TypeFileCreate.MEK_P_P_MO), source, conn);
                 if (ZAP.Rows.Count == 0)
                 {
                     AddLogInvoke(progress, LogType.Info, $"Для файла {item.FILENAME} Вернулось 0 записей. СМО = {SMO}");
@@ -201,7 +203,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     var items = sl.ToList();
                     SLUCH.Merge(exportFileRepository.V_EXPORT_H_SLUCH(items, source, conn));
                     SANK.Merge(exportFileRepository.V_EXPORT_H_SANK(items, source, conn));
-                    if(isSMO)
+                    if (isSMO)
                         EXPERTIZE.Merge(exportFileRepository.V_EXPORT_H_EXPERTIZE(items, source, conn));
                 }
 
@@ -237,6 +239,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     DS3.Merge(exportFileRepository.V_EXPORT_H_DS3(items, source, conn));
                     CRIT.Merge(exportFileRepository.V_EXPORT_H_CRIT(items, source, conn));
                 }
+
                 var MR_USL = new DataTable();
                 foreach (var us in GetIDFromDataTable(USL, "USL_ID"))
                 {
@@ -259,20 +262,21 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 var PERS = new DataTable();
                 foreach (var sl in GetIDFromDataTable(ZAP, "PERS_ID"))
                 {
-                    PERS.Merge( exportFileRepository.V_EXPORT_L_PERS(sl, isSMO, source, conn));
+                    PERS.Merge(exportFileRepository.V_EXPORT_L_PERS(sl, isSMO, source, conn));
                 }
+
                 AddLogInvoke(progress, LogType.Info, "Создание файла L");
                 var fileL = CreateFileL(L_ZGLV, PERS);
                 AddLogInvoke(progress, LogType.Info, "Создание файла H");
-                var file = CreateFile(ZGLV, SCHET, ZAP, SLUCH, USL, NAZR, SANK, isSMO? EXPERTIZE: null, SL_KOEF, DS2_N, NAPR, B_PROT, B_DIAG, H_CONS, ONK_USLtbl, LEK_PR, DS2, DS3, CRIT, MR_USL);
+                var file = CreateFile(ZGLV, SCHET, ZAP, SLUCH, USL, NAZR, SANK, isSMO ? EXPERTIZE : null, SL_KOEF, DS2_N, NAPR, B_PROT, B_DIAG, H_CONS, ONK_USLtbl, LEK_PR, DS2, DS3, CRIT, MR_USL);
 
                 var month = fp.MM.PadLeft(2, '0');
                 var Year = fp.YY;
 
-                var newnameH = GetFileName(fp, Year, month, false, typeFileCreate.In(TypeFileCreate.SMO,TypeFileCreate.MEK_P_P_SMO)? SMO:null, typeFileCreate== TypeFileCreate.FFOMSDx? NN_FFOMS_DX : null);
+                var newnameH = GetFileName(fp, Year, month, false, typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO) ? SMO : null, typeFileCreate == TypeFileCreate.FFOMSDx ? NN_FFOMS_DX : null);
                 var newnameL = GetFileName(fp, Year, month, true, typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO) ? SMO : null, typeFileCreate == TypeFileCreate.FFOMSDx ? NN_FFOMS_DX : null);
 
-                ModernFileH(file, newnameH, SMO, typeFileCreate,sluchParam);
+                ModernFileH(file, newnameH, SMO, typeFileCreate, sluchParam);
                 ModernFileL(fileL, newnameL, newnameH);
 
 
@@ -289,31 +293,40 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 AddLogInvoke(progress, LogType.Info, $"Сохранение файла {pathfile}");
                 using (var st = File.Create(pathfile))
                 {
-                    if(typeFileCreate == TypeFileCreate.FFOMSDx)
+                    if (typeFileCreate == TypeFileCreate.FFOMSDx)
                         file.WriteXmlCustom(st);
                     else
                         file.WriteXml(st);
                     st.Close();
                 }
+
                 AddLogInvoke(progress, LogType.Info, $"Сохранение файла {pathfileL}");
                 using (var st = File.Create(pathfileL))
                 {
                     fileL.WriteXml(st);
                     st.Close();
                 }
+
                 AddLogInvoke(progress, LogType.Info, "Проверка схемы основного файла");
 
                 var sc = new SchemaChecking();
                 var err = sc.CheckXML(pathfile, PATH_XSD, CXL);
+
+                //2021 году не работала проверка схемы на C_ZAB
+                if (Convert.ToInt32(SCHET.Rows[0]["YEAR"]) == 2021)
+                {
+                    err.RemoveAll(x => x.ERR_CODE == "C_ZAB_EMPTY");
+                }
+              
                 if (err.Count != 0)
                 {
-                    if (typeFileCreate != TypeFileCreate.FFOMSDx || err.Count(x=>!x.ERR_CODE.In("ERR_ZS_1", "ERR_ZS_2"))!=0)
+                    if (typeFileCreate != TypeFileCreate.FFOMSDx || err.Count(x => !x.ERR_CODE.In("ERR_ZS_1", "ERR_ZS_2")) != 0)
                     {
                         AddLogInvoke(progress, LogType.Error, err.Select(x => x.MessageOUT).ToArray());
                     }
                 }
 
-                    
+
 
                 AddLogInvoke(progress, LogType.Info, "Проверка схемы файла персональных данных");
                 var L_XSD_PATH = Path.Combine(PathSchema, "L31.xsd");
@@ -325,7 +338,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     AddLogInvoke(progress, LogType.Error, err.Select(x => x.MessageOUT).ToArray());
 
                 var PATH_ARCIVE = Path.Combine(ExportFolder, $"{newnameH}.ZIP");
-                if (typeFileCreate.In(TypeFileCreate.SMO,  TypeFileCreate.MEK_P_P_SMO) && !string.IsNullOrEmpty(SMO))
+                if (typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO) && !string.IsNullOrEmpty(SMO))
                     PATH_ARCIVE = Path.Combine(ExportFolder, SMO, newnameH[0].ToString(), $"{newnameH}.ZIP");
 
                 if (typeFileCreate.In(TypeFileCreate.FFOMSDx))
@@ -340,7 +353,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         PATH_ARCIVE = Path.Combine(ExportFolder, newnameH.StartsWith("DP") || newnameH.StartsWith("DA") ? "1 этап" : "прочее", $"{newnameH}.ZIP");
                     }
                 }
-                   
+
 
                 var dir = Path.GetDirectoryName(PATH_ARCIVE);
                 if (!Directory.Exists(dir))
@@ -356,7 +369,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 else
                     ToArchive(PATH_ARCIVE, pathfile, pathfileL);
 
-                var res = FileCreatorResult.CreateResult(PATH_ARCIVE, file.SCHET.SUMMAV,SMO);
+                var res = FileCreatorResult.CreateResult(PATH_ARCIVE, file.SCHET.SUMMAV, SMO);
                 if (typeFileCreate == TypeFileCreate.SLUCH)
                 {
                     res.FileH = file;
@@ -371,6 +384,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 return FileCreatorResult.CreateNotResult();
             }
         }
+
         private void ModernFileH(ZL_LIST file, string FileName, string SMO, TypeFileCreate typeFileCreate, SLUCH_PARAM sluchParam)
         {
             switch (typeFileCreate)
@@ -394,6 +408,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         file.ClearForFFOMS_DATA();
                         file.SetENP_REG_IN_NPOLIS();
                     }
+
                     break;
                 case TypeFileCreate.FFOMSDx:
                     file.SCHET.PLAT = SMO;
@@ -403,25 +418,29 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 default:
                     throw new ArgumentOutOfRangeException(nameof(typeFileCreate), typeFileCreate, null);
             }
+
             file.SCHET.SUMMAV = file.ZAP.Sum(x => x.Z_SL.SL.Sum(sl => sl.USL.Sum(us => us.SUMV_USL)));
             var sumpList = file.ZAP.Select(x => x.Z_SL).Where(x => x.SUMP.HasValue).ToList();
-            if(sumpList.Count!=0)
+            if (sumpList.Count != 0)
                 file.SCHET.SUMMAP = sumpList.Sum(x => x.SUMP);
             var SANK_ITList = file.ZAP.Select(x => x.Z_SL).Where(x => x.SANK_IT.HasValue).ToList();
-            if(SANK_ITList.Count!=0)
-                file.SCHET.SANK_MEK = SANK_ITList.Sum(x =>  x.SANK_IT);
+            if (SANK_ITList.Count != 0)
+                file.SCHET.SANK_MEK = SANK_ITList.Sum(x => x.SANK_IT);
             file.ZGLV.FILENAME = FileName;
         }
+
         private void ModernFileL(PERS_LIST fileL, string newnameL, string newnameH)
         {
             fileL.ZGLV.FILENAME = newnameL;
             fileL.ZGLV.FILENAME1 = newnameH;
         }
+
         private static IEnumerable<IEnumerable<long>> GetIDFromDataTable(DataTable tbl, string column_name)
         {
             var items = tbl.Select().Select(x => Convert.ToInt64(x[column_name])).Distinct().ToList();
             return items.ToPartition(500);
         }
+
         private PERS_LIST CreateFileL(DataTable ZGLVtbl, DataTable PERStbl)
         {
             var item = new PERS_LIST();
@@ -430,9 +449,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             {
                 item.PERS.Add(PERS.Get(row));
             }
+
             return item;
         }
-        ZL_LIST CreateFile(DataTable ZGLVtbl, DataTable SCHETtbl, DataTable ZAPtbl, DataTable SLUCHtbl, DataTable USLtbl, DataTable NAZRtbl, DataTable SANKtbl,DataTable Expertizetbl, 
+
+        private ZL_LIST CreateFile(DataTable ZGLVtbl, DataTable SCHETtbl, DataTable ZAPtbl, DataTable SLUCHtbl, DataTable USLtbl, DataTable NAZRtbl, DataTable SANKtbl, DataTable Expertizetbl,
             DataTable KOEFtbl, DataTable DS2_Ntbl, DataTable NAPRtbl, DataTable B_PROTtbl, DataTable B_DIAGtbl, DataTable H_CONStbl, DataTable ONK_USLtbl, DataTable LEK_PRtbl,
             DataTable DS2, DataTable DS3, DataTable CRIT, DataTable MR_USL)
         {
@@ -467,7 +488,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                             z.Z_SL.EXPERTISE.Add(exp);
                         }
                     }
-                  
+
                     step = 2;
                     foreach (var sl_row in SLUCHtbl.Select($"SLUCH_Z_ID = {z.Z_SL.SLUCH_Z_ID}"))
                     {
@@ -481,8 +502,10 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                             {
                                 us.MR_USL_N.Add(MR_USL_N.Get(mr_row));
                             }
+
                             sl.USL.Add(us);
                         }
+
                         step = 4;
                         foreach (var onk_usl_row in ONK_USLtbl.Select($"SLUCH_ID = {sl.SLUCH_ID}"))
                         {
@@ -494,6 +517,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                                 o_us.LEK_PR.Add(lek);
                             }
                         }
+
                         step = 5;
 
 
@@ -501,6 +525,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         {
                             sl.NAPR.Add(NAPR.Get(napr_row));
                         }
+
                         step = 6;
                         foreach (var cons_row in H_CONStbl.Select($"SLUCH_ID = {sl.SLUCH_ID}"))
                         {
@@ -513,24 +538,28 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                             {
                                 sl.NAZ.Add(NAZR.Get(naz_row));
                             }
+
                         step = 9;
                         if (KOEFtbl != null)
                             foreach (var koef_row in KOEFtbl.Select($"SLUCH_ID = {sl.SLUCH_ID}"))
                             {
                                 sl.KSG_KPG.SL_KOEF.Add(SL_KOEF.Get(koef_row));
                             }
+
                         step = 10;
                         if (B_PROTtbl != null)
                             foreach (var prot_row in B_PROTtbl.Select($"SLUCH_ID = {sl.SLUCH_ID}"))
                             {
                                 sl.ONK_SL.B_PROT.Add(B_PROT.Get(prot_row));
                             }
+
                         step = 11;
                         if (B_DIAGtbl != null)
                             foreach (var diag_row in B_DIAGtbl.Select($"SLUCH_ID = {sl.SLUCH_ID}"))
                             {
                                 sl.ONK_SL.B_DIAG.Add(B_DIAG.Get(diag_row));
                             }
+
                         step = 12;
                         if (DS2_Ntbl != null)
                             foreach (var d2_row in DS2_Ntbl.Select($"SLUCH_ID = {sl.SLUCH_ID}"))
@@ -549,7 +578,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
 
         }
-        string GetFileName(MatchParseFileName fp, string Year, string month, bool IsFileL, string SMO, string NN_FFOMS_DX)
+
+        private string GetFileName(MatchParseFileName fp, string Year, string month, bool IsFileL, string SMO, string NN_FFOMS_DX)
         {
 
             var type = fp.FILE_TYPE.ToFileType();
@@ -559,6 +589,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             {
                 newnameL = $"L{newnameH}";
             }
+
             return IsFileL ? newnameL : newnameH;
 
         }
@@ -572,6 +603,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 if (t == null)
                     result.Add($"Для ID_PAC = {p.ID_PAC} не найдена соответствующая информация в файле персональных данных");
             }
+
             return result.ToArray();
         }
         private void ToArchive(string PathFile, params string[] path)
@@ -583,13 +615,17 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     archive.CreateEntryFromFile(str, Path.GetFileName(str));
                 }
             }
+
             foreach (var str in path)
             {
                 File.Delete(str);
             }
         }
+
         #endregion
+
         #region CreateXLS
+
         public decimal GetFileXLS(List<V_EXPORT_H_ZGLVRow> List, List<F002> smoList, string path, DateTime D_START_XLS, DateTime D_END_XLS, IProgress<string> progress)
         {
             //Формируем EXCEL
@@ -613,6 +649,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     if (ExcelTable.Count != 0)
                         SUM_IN_XLS += PrintExcel(ExcelTable, D_START_XLS, D_END_XLS, strah.SMOCOD, MO, EXL_PATH, progress);
                 }
+
                 progress?.Report("Формирование EXCEL завершено");
                 return SUM_IN_XLS;
             }
@@ -622,6 +659,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 return 0;
             }
         }
+
         decimal PrintExcel(List<XLS_TABLE> tbl, DateTime Start, DateTime End, string SMO, string MO, string path, IProgress<string> progress)
         {
             var Template = Path.Combine(LocalFolder, "TEMPLATE", "Template_Svod_Reestr.xlsx");
@@ -758,9 +796,217 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 return usl_1 + usl_2 + usl_3 + usl_4;
             }
         }
+
         #endregion
 
+
+        public void CreateFile(V_EXPORT_H_ZGLVRowVM item, string Folder, DBSource source, TypeFileCreate typeFileCreate, SLUCH_PARAM sluchParam, List<F002> smoList, int OrderInMonth, int Order)
+        {
+            try
+            {
+                var result = new List<FileCreatorResult>();
+                var pr = new Action<ProgressFileCreator>(pfc =>
+                {
+                    DispatcherHelper.Dispatcher.Invoke(() =>
+                    {
+                        foreach (var mes in pfc.Message)
+                        {
+                            item.Logs.Add(new LogItem(pfc.Type, mes));
+                        }
+                    });
+                });
+
+                if (smoList == null)
+                    result.Add(GetFileXML(item.Item, Folder, source, typeFileCreate, item.Item.SMO, sluchParam, null, "", pr));
+                else
+                {
+                    var i = 1;
+                    foreach (var smo in smoList)
+                    {
+                        var r = GetFileXML(item.Item, Folder, source, typeFileCreate, smo.SMOCOD, sluchParam, $"{OrderInMonth}{Order}{i}", Order != 1 || i != 1 ? $"ПОРЯДОК{Order}" : "", pr);
+                        result.Add(r);
+                        if (r.Result)
+                        {
+                            i++;
+                        }
+                    }
+                }
+
+                DispatcherHelper.Dispatcher.Invoke(() =>
+                {
+                    var validResult = result.Where(x => x.Result).ToList();
+                    item.SUM = validResult.Sum(x => x.SUM);
+                    item.PathArc.AddRange(validResult.Select(x => x.PathARC).ToList());
+                    item.Results.AddRange(validResult);
+                });
+            }
+            catch (Exception ex)
+            {
+                DispatcherHelper.Dispatcher.Invoke(() => { item.AddLogs(LogType.Error, $"Ошибка при выгрузке данных: {ex.Message}"); });
+            }
+        }
+
+        public Task CreateFileAsync(V_EXPORT_H_ZGLVRowVM item, string Folder, DBSource source, TypeFileCreate typeFileCreate, SLUCH_PARAM sluchParam, List<F002> smoList, int OrderInMonth, int Order)
+        {
+            return new Task(() => CreateFile(item, Folder, source, typeFileCreate, sluchParam, smoList, OrderInMonth, Order));
+        }
     }
+
+
+    public class ProgressItemDouble
+    {
+        public ProgressItem progress1 { get; set; } = new ProgressItem();
+        public ProgressItem progress2 { get; set; } = new ProgressItem();
+
+    }
+
+    public interface IFileCombiner
+    {
+        void CreateSMOMail(List<V_EXPORT_H_ZGLVRowVM> items, string folder, TypeFileCreate typeFileCreate, CancellationToken cancel, IProgress<ProgressItemDouble> progress);
+        void CreateMOMail(List<V_EXPORT_H_ZGLVRowVM> items, string folder, TypeFileCreate typeFileCreate, CancellationToken cancel, IProgress<ProgressItemDouble> progress);
+        void CreateSolidFile(List<V_EXPORT_H_ZGLVRowVM> items, string folder, string newFileName);
+    }
+
+
+    /// <summary>
+    /// Сборщик файлов в посылки в организации 
+    /// </summary>
+    public class FileCombiner: IFileCombiner
+    {
+        /// <summary>
+        /// Формировать пакет для СМО
+        /// </summary>
+        /// <param name="items"></param>
+        /// <param name="folder"></param>
+        /// <param name="typeFileCreate"></param>
+        /// <param name="cancel"></param>
+        /// <param name="progress"></param>
+        public void CreateSMOMail(List<V_EXPORT_H_ZGLVRowVM> items, string folder, TypeFileCreate typeFileCreate, CancellationToken cancel, IProgress<ProgressItemDouble> progress)
+        {
+            var progressItem = new ProgressItemDouble();
+            var groupList = items.SelectMany(x => x.Results.Select(y => new { x.Item.YEAR, x.Item.MONTH, Result = y })).Where(x => x.Result.Result).GroupBy(x => new { x.Result.SMO, x.YEAR, x.MONTH }).ToList();
+            var countGr = groupList.Count;
+            var i = 1;
+            progressItem.progress1.SetValues(countGr, 0, "Сбор файлов в архив");
+            progress?.Report(progressItem);
+
+            var removePath = new List<string>();
+            foreach (var gr in groupList)
+            {
+                cancel.ThrowIfCancellationRequested();
+                var nameArchive = $"{(typeFileCreate == TypeFileCreate.SMO ? "Реестры" : "МЭК прошлых периодов")} {gr.Key.SMO} за {gr.Key.MONTH:D2}.{gr.Key.YEAR}.ZIP";
+                var pathArchive = Path.Combine(folder, nameArchive);
+                progressItem.progress1.SetTextValue(i, $"Сбор файлов в архив: {nameArchive}");
+                progress?.Report(progressItem);
+
+                using (var archive = ZipFile.Open(pathArchive, ZipArchiveMode.Create))
+                {
+                    foreach (var item in gr)
+                    {
+                        var file = item.Result.PathARC;
+                        progressItem.progress2.Text = $"Добавление {file}";
+                        progress?.Report(progressItem);
+                        archive.CreateEntryFromFile(file, Path.GetFileName(file));
+                        File.Delete(file);
+                        removePath.Add(file);
+                    }
+                }
+                i++;
+            }
+            progressItem.progress2.Text = "Очистка каталогов";
+            progress?.Report(progressItem);
+            FilesHelper.RemoveFileAndDirAsync(folder, removePath.ToArray());
+            progressItem.progress2.Clear();
+            progressItem.progress1.Clear();
+            progress?.Report(progressItem);
+        }
+        public void CreateMOMail(List<V_EXPORT_H_ZGLVRowVM> items, string folder, TypeFileCreate typeFileCreate, CancellationToken cancel, IProgress<ProgressItemDouble> progress)
+        {
+            var progressItem = new ProgressItemDouble();
+            var groupList = items.Where(x => x.PathArc.Count != 0).GroupBy(x => new { x.Item.YEAR, x.Item.MONTH, x.Item.CODE_MO }).ToList();
+            var countGr = groupList.Count;
+            var i = 1;
+            progressItem.progress1.SetValues(countGr, 0, "Сбор файлов в архив");
+            progress?.Report(progressItem);
+            foreach (var gr in groupList)
+            {
+                cancel.ThrowIfCancellationRequested();
+                var nameArchive = $"{(typeFileCreate == TypeFileCreate.MO ? "Результаты МЭК" : "МЭК прошлых периодов")} {gr.Key.CODE_MO} за {gr.Key.MONTH:D2}.{gr.Key.YEAR}.ZIP";
+                var pathArchive = Path.Combine(folder, nameArchive);
+
+                progressItem.progress1.SetTextValue(i, $"Сбор файлов в архив: {nameArchive}");
+                progress?.Report(progressItem);
+
+
+                using (var archive = ZipFile.Open(pathArchive, ZipArchiveMode.Create))
+                {
+                    foreach (var item in gr)
+                    {
+                        foreach (var file in item.PathArc)
+                        {
+                            progressItem.progress2.Text = $"Добавление {file}";
+                            progress?.Report(progressItem);
+                            archive.CreateEntryFromFile(file, Path.GetFileName(file));
+                            File.Delete(file);
+                        }
+                    }
+                }
+                i++;
+            }
+            progressItem.progress2.Clear();
+            progressItem.progress1.Clear();
+            progress?.Report(progressItem);
+        }
+        public void CreateSolidFile(List<V_EXPORT_H_ZGLVRowVM> items, string folder,string newFileName)
+        {
+            var file = new ZL_LIST
+            {
+                SCHET = new SCHET
+                {
+                    CODE = 0,
+                    CODE_MO = "0",
+                    DSCHET = DateTime.Now,
+                    NSCHET = "0",
+                    PLAT = "75",
+                    MONTH = DateTime.Now.Month,
+                    YEAR = DateTime.Now.Year
+                },
+                ZGLV = new ZGLV
+                {
+                    DATA = DateTime.Now,
+                    FILENAME = newFileName,
+                    VERSION = "3.1"
+
+                }
+            };
+            foreach (var item in items.SelectMany(x => x.Results).Select(x => x.FileH))
+            {
+                file.ZAP.AddRange(item.ZAP);
+            }
+
+            var i = 1;
+            foreach (var z in file.ZAP)
+            {
+                z.N_ZAP = i;
+                i++;
+                if (z.Z_SL.SLUCH_Z_ID.HasValue)
+                    z.Z_SL.IDCASE = z.Z_SL.SLUCH_Z_ID.Value;
+            }
+            file.SCHET.SUMMAV = file.ZAP.Sum(x => x.Z_SL.SL.Sum(sl => sl.USL.Sum(us => us.SUMV_USL)));
+            file.SCHET.SUMMAP = file.ZAP.Sum(x => x.Z_SL.SUMP);
+            file.SCHET.SANK_MEK = file.ZAP.Sum(x => x.Z_SL.SANK.Sum(san => san.S_SUM));
+
+
+            file.ZGLV.SD_Z = file.ZAP.Count;
+            using (var st = File.Create(Path.Combine(folder, $"{newFileName}.xml")))
+            {
+                file.WriteXml(st);
+                st.Close();
+            }
+        }
+    }
+
+
 
     public static class Ext
     {
@@ -770,5 +1016,4 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 yield return new List<T>(source.Skip(size * i).Take(size));
         }
     }
-
 }

@@ -105,6 +105,7 @@
     <Compile Include="Class\BindingProxy.cs" />
     <Compile Include="Class\Command.cs" />
     <Compile Include="Class\Converters.cs" />
+    <Compile Include="Class\DispatcherHelper.cs" />
     <Compile Include="Class\DuplexSettings.cs" />
     <Compile Include="Class\FindPredicate.cs" />
     <Compile Include="Class\ProgressItem.cs" />

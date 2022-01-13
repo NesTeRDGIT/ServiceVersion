@@ -25,20 +25,7 @@
                     <Button Margin="0,0,4,8" HorizontalAlignment="Right" Width="111" Height="20" VerticalAlignment="Bottom"  Style="{DynamicResource MainButton}" Command="{Binding RefreshListCommand}">Запрос</Button>
                     <Button x:Name="buttonSelectAll" Content="Выбор" HorizontalAlignment="Left" Margin="6,0,0,8" VerticalAlignment="Bottom" Width="75" Style="{DynamicResource MainButton}" Command="{Binding SelectAllListCommand}" />
                     <GroupBox Header="По пациенту" Margin="0,53,4,33">
-                        <GroupBox.Style>
-                            <Style TargetType="{x:Type GroupBox}">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsChecked, ElementName=radioButtonToSMO}" Value="True">
-                                        <Setter Property="IsEnabled" Value="True"/>
-                                    </DataTrigger>
-                                    <DataTrigger Binding="{Binding IsChecked, ElementName=radioButtonToSMO}" Value="False">
-                                        <Setter Property="IsEnabled" Value="False"/>
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </GroupBox.Style>
                         <Grid>
-
                             <Label Content="SLUCH__Z__ID" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="-1,-2,0,0"/>
                             <TextBox Text="{Binding PARAM.SLUCH_Z_ID}" Margin="78,3,3,0" VerticalAlignment="Top" Grid.ColumnSpan="2"/>
                             <RadioButton Content="Для СМО" Margin="78,26,145,0" IsChecked="{Binding PARAM.SLUCH_Z_ID_IsSMO}" Height="22" VerticalAlignment="Top"></RadioButton>
@@ -86,6 +73,9 @@
                                                 <Image.Style>
                                                     <Style TargetType="Image" >
                                                         <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding InWork}" Value="True">
+                                                                <Setter Property="Source" Value="/ClientServiceWPF;component/Image/Стрелка_вниз.png"></Setter>
+                                                            </DataTrigger>
                                                             <MultiDataTrigger>
                                                                 <MultiDataTrigger.Conditions>
                                                                     <Condition Binding="{Binding IsTypeLog}" Value="{x:Static class:LogType.Error}"></Condition>
@@ -107,9 +97,7 @@
                                                                 </MultiDataTrigger.Conditions>
                                                                 <Setter Property="Source" Value="/ClientServiceWPF;component/Image/tick_circle.png"></Setter>
                                                             </MultiDataTrigger>
-                                                            <DataTrigger Binding="{Binding InWork}" Value="True">
-                                                                <Setter Property="Source" Value="/ClientServiceWPF;component/Image/Стрелка_вниз.png"></Setter>
-                                                            </DataTrigger>
+                                                           
                                                         </Style.Triggers>
                                                     </Style>
                                                 </Image.Style>
