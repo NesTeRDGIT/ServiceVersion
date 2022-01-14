@@ -27,9 +27,16 @@ namespace ServiceLoaderMedpomDataTests
             lis.ZAP.Add(new ZAP(){Z_SL = new Z_SL()});
             var t = lis.ZAP.Sum(x => null);
         }
+        [TestMethod, Description("Проверка архивов")]
+        public void CheckArchiveHelper()
+        {
+          /*  FilesHelper.CreateArchive(@"C:\TEMP\1.zip",new Progress<ZipArchiverProgress>(o=> {
+                var t = o;
+            }), new ZipArchiverEntry(@"C:\TEMP\TEST_MP"), new ZipArchiverEntry(@"C:\TEMP\HM750004T75_211262.XML"), new ZipArchiverEntry(@"C:\TEMP\2KVPO75_2111.xlsx"));
+          */
+        }
 
 
-       
     }
 
 

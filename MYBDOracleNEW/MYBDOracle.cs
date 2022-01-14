@@ -314,7 +314,7 @@ returning  zglv_id into :id", con);
             OracleCommand cmd = null;
             try
             {
-                cmd = NewOracleCommand($@"insert into {L_ZGLV.FullTableName} (DATA, FILENAME, FILENAME1, VERSION, ZGLV_ID) values (:DATA, :FILENAME, :FILENAME1, :VERSION, :ZGLV_ID)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {L_ZGLV.FullTableName} (DATA, FILENAME, FILENAME1, VERSION, ZGLV_ID) values (:DATA, :FILENAME, :FILENAME1, :VERSION, :ZGLV_ID)", con);
                 cmd.Parameters.Add("DATA", item.DATA);
                 cmd.Parameters.Add("FILENAME", item.FILENAME.ToUpper());
                 cmd.Parameters.Add("FILENAME1", item.FILENAME1.ToUpper());
@@ -338,7 +338,7 @@ returning  zglv_id into :id", con);
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {L_PERS.FullTableName} (COMENTP, DOCNUM, DOCSER, DOCTYPE,DOST,DOST_P,DR,DR_P,FAM,FAM_P,ID_PAC,IM,IM_P,MR,OKATOG,OKATOP,OT,OT_P,SNILS,TEL,W,W_P,PERS_ID,ZGLV_ID,DOCDATE,DOCORG)
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {L_PERS.FullTableName} (COMENTP, DOCNUM, DOCSER, DOCTYPE,DOST,DOST_P,DR,DR_P,FAM,FAM_P,ID_PAC,IM,IM_P,MR,OKATOG,OKATOP,OT,OT_P,SNILS,TEL,W,W_P,PERS_ID,ZGLV_ID,DOCDATE,DOCORG)
                                                                                   values
                                                                  (:COMENTP, :DOCNUM, :DOCSER, :DOCTYPE,:DOST,:DOST_P,:DR,:DR_P,:FAM,:FAM_P,:ID_PAC,:IM,:IM_P,:MR,:OKATOG,:OKATOP,:OT,:OT_P,:SNILS,:TEL,:W,:W_P,:PERS_ID,:ZGLV_ID,:DOCDATE,:DOCORG)", con);
 
@@ -388,7 +388,7 @@ returning  zglv_id into :id", con);
             OracleCommand cmd = null;
             try
             {
-                cmd = NewOracleCommand($@"insert into {H_ZGLV.FullTableName} (zglv_id, version, data, filename, sd_z) values (:zglv_id, :version, :data, :filename, :sd_z)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_ZGLV.FullTableName} (zglv_id, version, data, filename, sd_z) values (:zglv_id, :version, :data, :filename, :sd_z)", con);
                 cmd.Parameters.Add("zglv_id", item.ZGLV_ID);
                 cmd.Parameters.Add("version", item.VERSION);
                 cmd.Parameters.Add("data", item.DATA);
@@ -412,7 +412,7 @@ returning  zglv_id into :id", con);
             OracleCommand cmd = null;
             try
             {
-                cmd = NewOracleCommand($@"insert into {H_SCHET.FullTableName} 
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_SCHET.FullTableName} 
 (CODE, CODE_MO, COMENTS, DISP, DSCHET,MONTH,NSCHET,PLAT,SANK_EKMP,SANK_MEE,SANK_MEK,SCHET_ID,SUMMAP,SUMMAV,YEAR,ZGLV_ID,DOP_FLAG,YEAR_BASE, MONTH_BASE,FIRST_CODE,FIRST_MONTH, FIRST_YEAR)
 values
 (:CODE, :CODE_MO, :COMENTS, :DISP, :DSCHET,:MONTH,:NSCHET,:PLAT,:SANK_EKMP,:SANK_MEE,:SANK_MEK,:SCHET_ID,:SUMMAP,:SUMMAV,:YEAR,:ZGLV_ID,:DOP_FLAG,:YEAR_BASE,:MONTH_BASE,:FIRST_CODE,:FIRST_MONTH, :FIRST_YEAR)", con);
@@ -457,7 +457,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_ZAP.FullTableName} (N_ZAP, PR_NOV, SCHET_ID, ZAP_ID) values (:N_ZAP, :PR_NOV, :SCHET_ID, :ZAP_ID)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_ZAP.FullTableName} (N_ZAP, PR_NOV, SCHET_ID, ZAP_ID) values (:N_ZAP, :PR_NOV, :SCHET_ID, :ZAP_ID)", con);
                 cmd.BindByName = true;
                 cmd.ArrayBindCount = Items.Count;
                 cmd.Parameters.Add("N_ZAP", Items.Select(x => x.N_ZAP).ToArray());
@@ -483,7 +483,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_PAC.FullTableName} (ID_PAC, INV, MSE, NOVOR, NPOLIS, PACIENT_ID, SMO, SMO_NAM,  SMO_OGRN ,SMO_OK, SPOLIS,ENP, ST_OKATO,  VNOV_D, VPOLIS, ZAP_ID,SMO_TFOMS,PERS_ID)
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_PAC.FullTableName} (ID_PAC, INV, MSE, NOVOR, NPOLIS, PACIENT_ID, SMO, SMO_NAM,  SMO_OGRN ,SMO_OK, SPOLIS,ENP, ST_OKATO,  VNOV_D, VPOLIS, ZAP_ID,SMO_TFOMS,PERS_ID)
                                                                                   values
                                                                                   (:ID_PAC, :INV, :MSE, :NOVOR, :NPOLIS, :PACIENT_ID, :SMO, :SMO_NAM,  :SMO_OGRN ,:SMO_OK, :SPOLIS,:ENP, :ST_OKATO,  :VNOV_D, :VPOLIS, :ZAP_ID,:SMO_TFOMS,:PERS_ID)", con);
 
@@ -528,7 +528,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_Z_SLUCH.FullTableName} 
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_Z_SLUCH.FullTableName} 
 (DATE_Z_1,DATE_Z_2,FOR_POM,IDCASE,IDSP,ISHOD,KD_Z,LPU,NPR_DATE,NPR_MO,OPLATA,OS_SLUCH,P_OTK,RSLT,RSLT_D,SANK_IT,SLUCH_Z_ID,SUMP,SUMV,USL_OK,VBR,VB_P,VIDPOM,VNOV_M, ZAP_ID, PACIENT_ID,FIRST_IDCASE)
 values
 (:DATE_Z_1,:DATE_Z_2,:FOR_POM,:IDCASE,:IDSP,:ISHOD,:KD_Z,:LPU,:NPR_DATE,:NPR_MO,:OPLATA,:OS_SLUCH,:P_OTK,:RSLT,:RSLT_D,:SANK_IT,:SLUCH_Z_ID,:SUMP,:SUMV,:USL_OK,:VBR,:VB_P,:VIDPOM,:VNOV_M, :ZAP_ID,:PACIENT_ID,:FIRST_IDCASE)", con);
@@ -587,7 +587,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_SLUCH.FullTableName} 
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_SLUCH.FullTableName} 
 (CODE_MES1,CODE_MES2, COMENTSL, DATE_1, DATE_2, DET, DN, DS0, DS1, DS1_PR,C_ZAB, DS_ONK,ED_COL,
             IDDOKT, KD, BZTSZ, IT_SL, KOEF_D, KOEF_U, KOEF_UP, KOEF_Z, KSG_PG, N_KSG, SL_K, VER_KSG,LPU_1,METOD_HMP,NHISTORY, PODR, PROFIL, PROFIL_K, PRVS,
              PR_D_N, P_CEL, P_PER, REAB, SLUCH_ID, SLUCH_Z_ID, SL_ID, SUM_M, TAL_D, TAL_NUM,TAL_P,TARIF, VERS_SPEC, VID_HMP, PACIENT_ID, DS1_T, MTSTZ, ONK_M, ONK_N, ONK_T, SOD, STAD,
@@ -678,7 +678,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_USL.FullTableName} 
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_USL.FullTableName} 
 (CODE_MD,CODE_USL,COMENTU,DATE_IN,DATE_OUT, DET, DS, IDSERV, KOL_USL, LPU, LPU_1, NPL, USL_ID, PODR, PROFIL,PRVS,P_OTK, SLUCH_ID, TARIF, VID_VME, SUMP_USL, SUMV_USL)
 values
 (:CODE_MD,:CODE_USL,:COMENTU,:DATE_IN,:DATE_OUT, :DET, :DS, :IDSERV, :KOL_USL, :LPU, :LPU_1, :NPL,:USL_ID,:PODR, :PROFIL,:PRVS,:P_OTK, :SLUCH_ID, :TARIF,:VID_VME,:SUMP_USL,:SUMV_USL)", con);
@@ -726,7 +726,7 @@ values
             {
                 if (!Items.Any()) return;
 
-                cmd = NewOracleCommand($@"insert into {H_NAZR.FullTableName} 
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_NAZR.FullTableName} 
 (NAZ_N, NAZ_PK, NAZ_PMP, NAZ_R, NAZ_SP,NAZ_IDDOKT, NAZ_V, SLUCH_ID, NAZ_USL, NAPR_DATE, NAPR_MO)
 values
 (:NAZ_N, :NAZ_PK, :NAZ_PMP, :NAZ_R, :NAZ_SP,:NAZ_IDDOKT, :NAZ_V, :SLUCH_ID, :NAZ_USL, :NAPR_DATE, :NAPR_MO)", con);
@@ -763,7 +763,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_NAPR.FullTableName} 
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_NAPR.FullTableName} 
 (MET_ISSL, NAPR_DATE, NAPR_USL, NAPR_V,NAPR_MO, SLUCH_ID, IDSERV,USL_ID)
 values
 (:MET_ISSL, :NAPR_DATE, :NAPR_USL, :NAPR_V,:NAPR_MO, :SLUCH_ID, :IDSERV,:USL_ID)", con);
@@ -796,7 +796,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_B_PROT.FullTableName} (D_PROT,PROT,SLUCH_ID) values (:D_PROT,:PROT,:SLUCH_ID)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_B_PROT.FullTableName} (D_PROT,PROT,SLUCH_ID) values (:D_PROT,:PROT,:SLUCH_ID)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("D_PROT", Items.Select(x => x.D_PROT).ToArray());
@@ -822,7 +822,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_B_DIAG.FullTableName} (DIAG_CODE, DIAG_RSLT, DIAG_TIP, DIAG_DATE, SLUCH_ID, REC_RSLT) values (:DIAG_CODE,:DIAG_RSLT,:DIAG_TIP,:DIAG_DATE,:SLUCH_ID,:REC_RSLT)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_B_DIAG.FullTableName} (DIAG_CODE, DIAG_RSLT, DIAG_TIP, DIAG_DATE, SLUCH_ID, REC_RSLT) values (:DIAG_CODE,:DIAG_RSLT,:DIAG_TIP,:DIAG_DATE,:SLUCH_ID,:REC_RSLT)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("DIAG_CODE", OracleDbType.Decimal, Items.Select(x => x.DIAG_CODE).ToArray(), ParameterDirection.Input);
@@ -849,7 +849,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_CONS.FullTableName} (PR_CONS, DT_CONS, SLUCH_ID, IDSERV) values (:PR_CONS, :DT_CONS, :SLUCH_ID, :IDSERV)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_CONS.FullTableName} (PR_CONS, DT_CONS, SLUCH_ID, IDSERV) values (:PR_CONS, :DT_CONS, :SLUCH_ID, :IDSERV)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("PR_CONS", OracleDbType.Decimal, Items.Select(x => x.PR_CONS ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
@@ -874,7 +874,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_ONK_USL.FullTableName} 
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_ONK_USL.FullTableName} 
 (USL_TIP, HIR_TIP, LEK_TIP_L, LEK_TIP_V, LUCH_TIP, SLUCH_ID, ONK_USL_ID,IDSERV, PPTR)
 values
 (:USL_TIP, :HIR_TIP, :LEK_TIP_L, :LEK_TIP_V, :LUCH_TIP, :SLUCH_ID, :ONK_USL_ID,:IDSERV,:PPTR)", con);
@@ -907,7 +907,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_LEK_PR.FullTableName} (LEK_PR_ID,ONK_USL_ID, REGNUM,CODE_SH) values (:LEK_PR_ID, :ONK_USL_ID, :REGNUM,:CODE_SH)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_LEK_PR.FullTableName} (LEK_PR_ID,ONK_USL_ID, REGNUM,CODE_SH) values (:LEK_PR_ID, :ONK_USL_ID, :REGNUM,:CODE_SH)", con);
                 cmd.Parameters.Add("LEK_PR_ID", OracleDbType.Decimal, Items.Select(x => x.LEK_PR_ID).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("ONK_USL_ID", OracleDbType.Decimal, Items.Select(x => x.ONK_USL_ID).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("REGNUM", OracleDbType.Varchar2, Items.Select(x => x.REGNUM).ToArray(), ParameterDirection.Input);
@@ -932,7 +932,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_LEK_DATE_INJ.FullTableName} (LEK_PR_ID, DATE_INJ) values (:LEK_PR_ID, :DATE_INJ)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_LEK_DATE_INJ.FullTableName} (LEK_PR_ID, DATE_INJ) values (:LEK_PR_ID, :DATE_INJ)", con);
                 cmd.Parameters.Add("LEK_PR_ID", OracleDbType.Decimal, Items.Select(x => x.LEK_PR_ID).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("DATE_INJ", OracleDbType.Date, Items.Select(x => x.VALUE).ToArray(), ParameterDirection.Input);
                 cmd.ArrayBindCount = Items.Count;
@@ -955,7 +955,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_KSLP.FullTableName} (IDSL,Z_SL,SLUCH_ID) values (:IDSL,:Z_SL,:SLUCH_ID)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_KSLP.FullTableName} (IDSL,Z_SL,SLUCH_ID) values (:IDSL,:Z_SL,:SLUCH_ID)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("IDSL", Items.Select(x => x.IDSL).ToArray());
@@ -979,7 +979,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_SANK.FullTableName} 
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_SANK.FullTableName} 
 (SANK_ID,SLUCH_ID,SLUCH_Z_ID,S_CODE,S_COM,S_IST, S_OSN, S_SUM, S_TIP,S_YEAR,S_MONTH,S_TEM, S_PLAN, S_FINE, S_IDSERV,S_ZGLV_ID,DATE_ACT,NUM_ACT,SL_ID)
 values
 (:SANK_ID,:SLUCH_ID,:SLUCH_Z_ID,:S_CODE,:S_COM,:S_IST, :S_OSN, :S_SUM, :S_TIP, :S_YEAR,:S_MONTH,:S_TEM, :S_PLAN, :S_FINE,:S_IDSERV,:S_ZGLV_ID,:DATE_ACT,:NUM_ACT,:SL_ID)", con);
@@ -1023,7 +1023,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_CODE_EXP.FullTableName} (SANK_ID,CODE_EXP) values (:SANK_ID,:CODE_EXP)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_CODE_EXP.FullTableName} (SANK_ID,CODE_EXP) values (:SANK_ID,:CODE_EXP)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("SANK_ID", OracleDbType.Decimal, Items.Select(x => x.SANK_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
@@ -1046,7 +1046,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_DS2_N.FullTableName} (DS2,DS2_PR,PR_DS2_N,SLUCH_ID) values (:DS2,:DS2_PR,:PR_DS2_N,:SLUCH_ID)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_DS2_N.FullTableName} (DS2,DS2_PR,PR_DS2_N,SLUCH_ID) values (:DS2,:DS2_PR,:PR_DS2_N,:SLUCH_ID)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("DS2", Items.Select(x => x.DS2).ToArray());
@@ -1071,7 +1071,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_DS2.FullTableName} (DS2,SLUCH_ID) values (:DS2,:SLUCH_ID)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_DS2.FullTableName} (DS2,SLUCH_ID) values (:DS2,:SLUCH_ID)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("DS2", Items.Select(x => x.DS).ToArray());
@@ -1094,7 +1094,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_DS3.FullTableName} (DS3,SLUCH_ID) values (:DS3,:SLUCH_ID)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_DS3.FullTableName} (DS3,SLUCH_ID) values (:DS3,:SLUCH_ID)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("DS3", Items.Select(x => x.DS).ToArray());
@@ -1117,7 +1117,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_CRIT.FullTableName}  (CRIT,SLUCH_ID,ORD) values (:CRIT,:SLUCH_ID,:ORD)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_CRIT.FullTableName}  (CRIT,SLUCH_ID,ORD) values (:CRIT,:SLUCH_ID,:ORD)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
                 cmd.Parameters.Add("CRIT", Items.Select(x => x.CRIT).ToArray());
@@ -1142,7 +1142,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {H_MR_USL_N.FullTableName}  (USL_ID,MR_N,PRVS,CODE_MD) values (:USL_ID,:MR_N, :PRVS, :CODE_MD)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {H_MR_USL_N.FullTableName}  (USL_ID,MR_N,PRVS,CODE_MD) values (:USL_ID,:MR_N, :PRVS, :CODE_MD)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
            
@@ -1170,7 +1170,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {MED_DEV_TBL.FullTableName}  (USL_ID,DATE_MED,CODE_MEDDEV,NUMBER_SER) values (:USL_ID,:DATE_MED, :CODE_MEDDEV, :NUMBER_SER)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {MED_DEV_TBL.FullTableName}  (USL_ID,DATE_MED,CODE_MEDDEV,NUMBER_SER) values (:USL_ID,:DATE_MED, :CODE_MEDDEV, :NUMBER_SER)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
 
@@ -1198,7 +1198,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert into {LEK_PR_H_TBL.FullTableName}  (SLUCH_ID,CODE_SH,COD_MARK,DATE_INJ,REGNUM,COL_INJ,DOSE_INJ,ED_IZM,METHOD_INJ) values (:SLUCH_ID,:CODE_SH,:COD_MARK,:DATE_INJ,:REGNUM,:COL_INJ,:DOSE_INJ,:ED_IZM,:METHOD_INJ)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {LEK_PR_H_TBL.FullTableName}  (SLUCH_ID,CODE_SH,COD_MARK,DATE_INJ,REGNUM,COL_INJ,DOSE_INJ,ED_IZM,METHOD_INJ) values (:SLUCH_ID,:CODE_SH,:COD_MARK,:DATE_INJ,:REGNUM,:COL_INJ,:DOSE_INJ,:ED_IZM,:METHOD_INJ)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
 
@@ -1268,9 +1268,6 @@ values
                 return tbl.Select().Select(SVOD_FILE_Row.Get).ToList();
             }
         }
-
-
-
         public List<STAT_VIDMP_Row> STAT_VIDMP_TEMP99()
         {
             using (var oda = new OracleDataAdapter("select * from STAT_VIDMP_TEMP99", con))
@@ -1280,7 +1277,6 @@ values
                 return tbl.Select().Select(STAT_VIDMP_Row.Get).ToList();
             }
         }
-
         public List<STAT_FULL_Row> STAT_FULL_TEMP99()
         {
             using (var oda = new OracleDataAdapter("select * from STAT_FULL_TEMP99", con))
@@ -1349,7 +1345,6 @@ values
                 return false;
             }
         }
-
         public bool IdentySluch(ZL_LIST ZL, FileItem fi, Dispatcher dispatcher = null, List<FindSluchItem> IdentInfo = null)
         {
             try
@@ -1533,7 +1528,6 @@ values
 
             return sank;
         }
-
         private List<FindSANKItem> GetSANKBySLUCH_Z_ID(IEnumerable<long> SLUCH_Z_ID)
         {
             var sank_tbl = H_SANK.FullTableName;
@@ -1568,7 +1562,6 @@ where zs.SLUCH_Z_ID_MAIN  in ({string.Join(",", SLUCH_Z_ID_MAIN)})", con);
 
             return tbl.Select().Select(FindSANKItem.Get).ToList();
         }
-
         public List<FindSANKItem> FindACT(string NUM_ACT, DateTime D_ACT, string SMO)
         {
             var sank_tbl = H_SANK.FullTableName;
@@ -1589,7 +1582,6 @@ where san.date_act = :date_act and san.num_act = :num_act and sz.SMO = :smo", co
 
             return tbl.Select().Select(FindSANKItem.Get).ToList();
         }
-
         private void SetID(List<FindSluchItem> IDCASEs, Dictionary<decimal, Z_SL> tab)
         {
             foreach (var IDCASE in IDCASEs)
@@ -2178,8 +2170,6 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
                 throw new Exception($"Ошибка в UpdateSLUCH_SUM_P: {ex.Message}", ex);
             }
         }
-
-
         void Trunc(TableName nameTBL)
         {
             var table = new TableInfo();
@@ -2518,7 +2508,7 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
             var validateCol = ColumnFROM.Where(x => ColumnTo.Contains(x));
             var NOTvalidateCol = ColumnFROM.Where(x => !ColumnTo.Contains(x));
             var statement = string.Join(",", validateCol);
-            var sql = $@"insert into {ownerTo}.{tableTo} ({statement}) select {statement} from {ownerFrom}.{tableFrom}";
+            var sql = $@"insert /*+ APPEND */ into {ownerTo}.{tableTo} ({statement}) select {statement} from {ownerFrom}.{tableFrom}";
             
             using (var cmd = NewOracleCommand(sql, con))
             {

@@ -3,13 +3,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SqlServer.Server;
-using NPOI.SS.Formula.Functions;
 using ServiceLoaderMedpomData;
-using ServiceLoaderMedpomData.Annotations;
 using ServiceLoaderMedpomData.EntityMP_V31;
 
 namespace MedpomService

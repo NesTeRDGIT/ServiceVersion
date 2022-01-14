@@ -5,10 +5,8 @@ using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using ServiceLoaderMedpomData;
-using Ionic.Zip;
 
 namespace MedpomService
 {
@@ -270,12 +268,8 @@ namespace MedpomService
                     num++;
                     path = Path.Combine(pathDir, $"PROCESS{num}.zip");
                 }
-                using (var zf = new ZipFile(path, Encoding.GetEncoding("cp866")))
-                {
-                    zf.AddDirectory(AppConfig.Property.ProcessDir, "PROCESS");
-                    zf.SaveProgress += zf_SaveProgress;
-                    zf.Save();
-                }
+
+                FilesHelper.CreateArchive(path, new Progress<ZipArchiverProgress>(zf_SaveProgress), new ZipArchiverEntry(AppConfig.Property.ProcessDir));
                 progress.TXT = "Завершено";
             }
             catch (Exception ex)
@@ -295,22 +289,11 @@ namespace MedpomService
             return progress;
         }
 
-        void zf_SaveProgress(object sender, SaveProgressEventArgs e)
+        void zf_SaveProgress(ZipArchiverProgress e)
         {
-            if (e.EventType == ZipProgressEventType.Saving_BeforeWriteEntry)
-                if (e.CurrentEntry != null)
-                {
-                    progress.Value = e.EntriesSaved;
-                    progress.Max = e.EntriesTotal;
-                    progress.TXT = e.CurrentEntry.FileName;
-                }
-            if (e.EventType == ZipProgressEventType.Error_Saving)
-            {
-                if (e.CurrentEntry != null)
-                {
-                    progress.TXT = $"Ошибка: {e.CurrentEntry.FileName} {e.CurrentEntry.Comment}";
-                }
-            }
+            progress.Value = e.Current;
+            progress.Max = e.Count;
+            progress.TXT = e.FileName;
         }
 
         public void AddListFile(List<string> List)

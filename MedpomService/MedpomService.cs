@@ -1,22 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.ServiceModel;
 using System.ServiceProcess;
-using System.Text;
 using System.Threading;
-using Oracle.ManagedDataAccess.Client;
 using ServiceLoaderMedpomData;
 using System.Security.Cryptography.X509Certificates;
 using System.ServiceModel.Description;
 using System.Threading.Tasks;
-using ExcelManager;
-using Ionic.Zip;
-using ServiceLoaderMedpomData.EntityMP_V31;
-using ThreadState = System.Threading.ThreadState;
 using MYBDOracle;
 
 //Общая концепция

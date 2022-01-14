@@ -1,11 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using NPOI.SS.Formula.Functions;
 
 
 namespace ServiceLoaderMedpomData
@@ -131,7 +131,6 @@ namespace ServiceLoaderMedpomData
             File.Move(From, path);
             return path;
         }
-
         /// <summary>
         /// Удаление директории(с несколькими попытками)
         /// </summary>
@@ -159,7 +158,6 @@ namespace ServiceLoaderMedpomData
 
             throw new Exception($"Директория {dir} не существует");
         }
-
         /// <summary>
         /// Копирование файла с проверкой на совпадение и если совпадает то будет имя_файла(1).. итд
         /// </summary>
@@ -185,6 +183,11 @@ namespace ServiceLoaderMedpomData
             File.Copy(From, path);
             return path;
         }
+        /// <summary>
+        /// Получить список файлов в архиве
+        /// </summary>
+        /// <param name="path"></param>
+        /// <returns></returns>
         public static string[] GetFileNameInArchive(string path)
         {
             try
@@ -200,6 +203,12 @@ namespace ServiceLoaderMedpomData
             }
 
         }
+        /// <summary>
+        /// Извлечь архив
+        /// </summary>
+        /// <param name="From"></param>
+        /// <param name="To"></param>
+        /// <returns></returns>
         public static async Task<BoolResult> FilesExtract(string From, string To)
         {
             var ArchiveName = Path.GetFileName(From);
@@ -283,7 +292,6 @@ namespace ServiceLoaderMedpomData
             }
 
         }
-
         private static string NormalizePath(string path)
         {
             while (path.Length != 0 && path[path.Length - 1] == '\\')
@@ -305,13 +313,11 @@ namespace ServiceLoaderMedpomData
                 RemoveFileAndDirInner(rootFolder, NormalizePath(p));
             }
         }
-
         public static Task RemoveFileAndDirAsync(string rootFolder, params string[] paths)
         {
             return Task.Run(() => RemoveFileAndDir(rootFolder, paths));
 
         }
-
         private static void RemoveFileAndDirInner(string rootFolder, string p)
         {
             if (!p.StartsWith(p, StringComparison.OrdinalIgnoreCase))
@@ -337,5 +343,104 @@ namespace ServiceLoaderMedpomData
         }
 
 
+
+
+        public static void CreateArchive(string filePath, IProgress<ZipArchiverProgress> progress, params ZipArchiverEntry[] files)
+        {
+            CreateArchive(filePath, files, progress);
+        }
+        public static void CreateArchive(string filePath, IEnumerable<ZipArchiverEntry> files, IProgress<ZipArchiverProgress> progress = null)
+        {
+            CreateMessageArchive(filePath, null, files, progress);
+        }
+        public static void CreateMessageArchive(string filePath, string message, IEnumerable<ZipArchiverEntry> files, IProgress<ZipArchiverProgress> progress = null)
+        {
+            var progressItem = new ZipArchiverProgress { Count = files.Count(), Current = 0 };
+            using (var st = File.Create(filePath))
+            {
+                using (var zipArchive = new ZipArchive(st, ZipArchiveMode.Create, true, Encoding.GetEncoding("cp866")))
+                {
+                    foreach (var file in files)
+                    {
+                        progressItem.FileName = Path.GetFileName(file.FilePath);
+                        zipArchive.CreateEntryFromAny(file.FilePath, file.EntryName);
+                        progressItem.Current++;
+                        progress?.Report(progressItem);
+                    }
+                    if(!string.IsNullOrEmpty(message))
+                    {
+                        var buf = Encoding.UTF8.GetBytes(message);
+                        var mesEntry = zipArchive.CreateEntry("message.txt");
+                        using (var stMessage = mesEntry.Open())
+                        {
+                            stMessage.Write(buf, 0, buf.Length);
+                            stMessage.Close();
+                        }
+                    }
+                }
+            }
+        }
+
+
+    }
+
+    public class ZipArchiverProgress
+    {
+        public int Count { get; set; }
+        public int Current { get; set; }
+        public string FileName { get; set; }
+    }
+
+    public class ZipArchiverEntry
+    {
+        /// <summary>
+        /// Элемент архива
+        /// </summary>
+        /// <param name="filePath">Пусть к файлу</param>
+        /// <param name="entryName">Директория внутри архива</param>
+        public ZipArchiverEntry(string filePath,string entryName = "")
+        {
+            this.FilePath = filePath;
+            this.EntryName = entryName;
+        }
+        public string FilePath { get; set; }
+        public string EntryName { get; set; }
+    }
+
+    public static class ZipArchiveExtension
+    {
+        public static void CreateEntryFromAny(this ZipArchive archive, string sourceName, string entryName = "")
+        {
+            var fileName = Path.GetFileName(sourceName);
+            if (File.GetAttributes(sourceName).HasFlag(FileAttributes.Directory))
+            {
+                archive.CreateEntryFromDirectory(sourceName, Path.Combine(entryName, fileName));
+            }
+            else
+            {
+                archive.CreateEntryFromFile(sourceName, Path.Combine(entryName, fileName), CompressionLevel.Optimal);
+            }
+        }
+
+        public static void CreateEntryFromDirectory(this ZipArchive archive, string sourceDirName, string entryName = "")
+        {
+            var files = Directory.GetFiles(sourceDirName).Concat(Directory.GetDirectories(sourceDirName)).ToArray();
+            if (files.Any())
+            {
+                foreach (var file in files)
+                {
+                    archive.CreateEntryFromAny(file, entryName);
+                }
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(entryName) && entryName[entryName.Length - 1] != '/')
+                {
+                    entryName += "\\";
+                }
+                archive.CreateEntry(entryName);
+            }
+
+        }
     }
 }

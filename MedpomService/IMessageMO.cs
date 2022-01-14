@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Ionic.Zip;
 using ServiceLoaderMedpomData;
+using System.Linq;
 
 namespace MedpomService
 {
@@ -30,27 +26,22 @@ namespace MedpomService
         public void CreateErrorMessage(FilePacket pack)
         {
             // формируем файл для страховых
-            var zipF = new ZipFile(Encoding.GetEncoding("cp866"));
-            zipF.CompressionLevel = Ionic.Zlib.CompressionLevel.BestCompression;
+            var fileToArchive = new List<ZipArchiverEntry>();
+            
             var dir = new DirectoryInfo(Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO));
-            foreach (var fi in dir.EnumerateFiles("*.log"))
-                zipF.AddFile(fi.FullName, "");
-            foreach (var fi in dir.EnumerateFiles("*FLK.XML"))
-                zipF.AddFile(fi.FullName, "");
-            foreach (var fi in dir.EnumerateFiles("*.XLS"))
-                zipF.AddFile(fi.FullName, "");
+            fileToArchive.AddRange(dir.EnumerateFiles("*.log").Select(fi => new ZipArchiverEntry(fi.FullName)));
+            fileToArchive.AddRange(dir.EnumerateFiles("*FLK.XML").Select(fi => new ZipArchiverEntry(fi.FullName)));
+            fileToArchive.AddRange(dir.EnumerateFiles("*.XLS").Select(fi => new ZipArchiverEntry(fi.FullName)));
 
-            if (AppConfig.Property.AddDIRInERROR != "")
-                if (Directory.Exists(AppConfig.Property.AddDIRInERROR))
-                    zipF.AddDirectory(AppConfig.Property.AddDIRInERROR, Path.GetFileNameWithoutExtension(AppConfig.Property.AddDIRInERROR));
+            if (!string.IsNullOrEmpty(AppConfig.Property.AddDIRInERROR) && Directory.Exists(AppConfig.Property.AddDIRInERROR))
+                fileToArchive.Add(new ZipArchiverEntry(AppConfig.Property.AddDIRInERROR));
 
-            var ZIP_NAME = GetErrorName(pack) + ".zip";
+            var ZIP_NAME = $"{GetErrorName(pack)}.zip";
             pack.Comment = "Обработка пакета: Формирование ошибок";
-
-
-            zipF.Save(Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO, ZIP_NAME));
-            zipF.Dispose();
-            pack.PATH_ZIP = Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO, ZIP_NAME);
+             
+            var pathZip = Path.Combine(AppConfig.Property.ProcessDir, pack.CodeMO, ZIP_NAME);
+            FilesHelper.CreateArchive(pathZip, fileToArchive);
+            pack.PATH_ZIP = pathZip;
             FilesHelper.CopyFileTo(pack.PATH_ZIP, Path.Combine(ErrorArchivePath, Path.GetFileName(pack.PATH_ZIP)));
 
             if (pack.IST == IST.MAIL)
@@ -60,11 +51,10 @@ namespace MedpomService
                 var x = 1;
                 while (File.Exists(checkfile))
                 {
-                    checkfile = Path.Combine(Path.GetDirectoryName(FilePath), Path.GetFileNameWithoutExtension(FilePath) + "(" + x.ToString() + ")" + Path.GetExtension(FilePath));
+                    checkfile = Path.Combine(Path.GetDirectoryName(FilePath), $"{Path.GetFileNameWithoutExtension(FilePath)}({x}){Path.GetExtension(FilePath)}");
                     x++;
                 }
                 FilePath = checkfile;
-
                 FilesHelper.CopyFileTo(pack.PATH_ZIP, FilePath);
             }
             pack.Comment = "Обработка пакета: Формирование ошибок закончено";
@@ -81,28 +71,21 @@ namespace MedpomService
             Monitor.Enter(Flag);
             try
             {
-                var buf = Encoding.UTF8.GetBytes(Message);
-                var zfile = new ZipFile(Encoding.GetEncoding("cp866"));
-                zfile.AddFiles(Attachment, "");
-                zfile.AddEntry("message.txt", buf);
-                var checkfile = FilePath;
                 var x = 1;
+                var checkfile = FilePath;
                 while (File.Exists(checkfile))
                 {
                     checkfile = Path.Combine(Path.GetDirectoryName(FilePath), $"{Path.GetFileNameWithoutExtension(FilePath)}({x}){Path.GetExtension(FilePath)}");
                     x++;
                 }
                 FilePath = checkfile;
-
                 var pathArchive = Path.Combine(ErrorArchivePath, Path.GetFileName(FilePath));
-
                 if (!Directory.Exists(Path.GetDirectoryName(pathArchive)))
                 {
                     Directory.CreateDirectory(Path.GetDirectoryName(pathArchive));
                 }
-                zfile.Save(pathArchive);
-                zfile.Save(FilePath);
-                zfile.Dispose();
+                FilesHelper.CreateMessageArchive(pathArchive, Message, Attachment.Select(at => new ZipArchiverEntry(at)));
+                FilesHelper.CreateMessageArchive(FilePath, Message, Attachment.Select(at => new ZipArchiverEntry(at)));
             }
             catch (Exception ex)
             {
