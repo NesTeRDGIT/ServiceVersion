@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL"
         xmlns:class="clr-namespace:ClientServiceWPF.Class"
         xmlns:mr="clr-namespace:TFOMSCustomControl.MultiRowHeader;assembly=TFOMSCustomControl"
+        xmlns:controls="using:Microsoft.Toolkit.Uwp.UI.Controls"
         xmlns:volumControl="clr-namespace:ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL"
         mc:Ignorable="d"
         Name="this"
@@ -342,6 +343,42 @@
                             </TextBox>
                             <Button Content="Установить дату акта" HorizontalAlignment="Left" Height="24" Margin="439,83,0,0" VerticalAlignment="Top" Width="189"  x:Name="ButtonSetActDate"  Style="{StaticResource MainButton}" Click="ButtonSetActDate_Click"/>
                             <DatePicker Name="DatePickerDT_ACT" HorizontalAlignment="Left" Margin="299,83,0,0" VerticalAlignment="Top" Width="135"/>
+
+                        </Grid>
+                    </GroupBox>
+                </Grid>
+            </TabItem>
+            <TabItem Header="Управление данными">
+                <TabItem.DataContext>
+                    <Binding ElementName="this" Path="DataControlVM"></Binding>
+                </TabItem.DataContext>
+                <Grid>
+                    <GroupBox  Height="75" VerticalAlignment="Top" Header="Состояние TEMP100(Временная база текущего приема)" >
+                        <Grid>
+                            <Label Content="Периоды в БД:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="136" FontSize="8" FontWeight="Bold" Padding="0" Margin="0,5,0,0"/>
+                            <TextBox IsReadOnly="True" HorizontalAlignment="Left" Height="25" Margin="0,17,0,0" TextWrapping="Wrap" VerticalAlignment="Top" Width="336" Text="{Binding Temp100Status, Mode=OneWay}"/>
+                            <Button HorizontalAlignment="Left" Margin="341,17,0,0" VerticalAlignment="Top" Width="25" Height="25" Style="{DynamicResource ButtonUpd}" Command="{Binding GetTemp100StatusCommand}" />
+                            <Button Content="Очистить таблицы" HorizontalAlignment="Left" Margin="371,17,0,0" VerticalAlignment="Top" Width="190" Height="25" Style="{DynamicResource MainButton}" Command="{Binding ClearTemp100Command}"/>
+                            <ProgressBar Margin="566,17,0,0" HorizontalAlignment="Left" Width="50" Height="25" VerticalAlignment="Top" Maximum="{Binding ProgressTemp100Clear.Maximum}" Value="{Binding ProgressTemp100Clear.Value}" IsIndeterminate="{Binding ProgressTemp100Clear.IsIndeterminate}"/>
+                            <Label Margin="621,17,0,0" Height="25" VerticalAlignment="Top" Content="{Binding ProgressTemp100Clear.Text}"/>
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox  Height="75" VerticalAlignment="Top" Header="Состояние TEMP1(База последнего приема)" Margin="0,75,0,0" >
+                        <Grid>
+                            <Label Content="Периоды в БД:" HorizontalAlignment="Left" VerticalAlignment="Top" Width="136" FontSize="8" FontWeight="Bold" Padding="0" Margin="0,5,0,0"/>
+                            <TextBox IsReadOnly="True" HorizontalAlignment="Left" Height="25" Margin="0,17,0,0" TextWrapping="Wrap" Text="{Binding Temp1Status, Mode=OneWay}" VerticalAlignment="Top" Width="336"/>
+                            <Button HorizontalAlignment="Left" Margin="341,17,0,0" VerticalAlignment="Top" Width="25" Height="25" Style="{DynamicResource ButtonUpd}" Command="{Binding GetTemp1StatusCommand}"/>
+                            <Button Content="Очистить таблицы" HorizontalAlignment="Left" Margin="371,17,0,0" VerticalAlignment="Top" Width="190" Height="25" Style="{DynamicResource MainButton}" Command="{Binding ClearTemp1Command}"/>
+                            <ProgressBar Margin="566,17,0,0" HorizontalAlignment="Left" Width="50" Height="25" VerticalAlignment="Top" Maximum="{Binding ProgressTemp1Clear.Maximum}" Value="{Binding ProgressTemp1Clear.Value}" IsIndeterminate="{Binding ProgressTemp1Clear.IsIndeterminate}"/>
+                            <Label Margin="621,17,0,0" Height="25" VerticalAlignment="Top" Content="{Binding ProgressTemp1Clear.Text}"/>
+
+                        </Grid>
+                    </GroupBox>
+                    <GroupBox  Height="75" VerticalAlignment="Top" Header="Перенос TEMP100 в TEMP1 и в основную БД" Margin="0,150,0,0" >
+                        <Grid>
+                            <Button Content="Начать перенос" HorizontalAlignment="Left" Margin="10,17,0,0" VerticalAlignment="Top" Width="551" Height="25" Style="{DynamicResource MainButton}" Command="{Binding TransferTemp100Command}" />
+                            <ProgressBar Margin="566,17,0,0" HorizontalAlignment="Left" Width="50" Height="25" VerticalAlignment="Top" Maximum="{Binding ProgressTransfer.Maximum}" Value="{Binding ProgressTransfer.Value}" IsIndeterminate="{Binding ProgressTransfer.IsIndeterminate}"/>
+                            <Label Margin="621,17,0,0" Height="25" VerticalAlignment="Top" Content="{Binding ProgressTransfer.Text}"/>
 
                         </Grid>
                     </GroupBox>

@@ -108,6 +108,7 @@
     <Compile Include="Class\DispatcherHelper.cs" />
     <Compile Include="Class\DuplexSettings.cs" />
     <Compile Include="Class\FindPredicate.cs" />
+    <Compile Include="Class\OracleCMDWatcher.cs" />
     <Compile Include="Class\ProgressItem.cs" />
     <Compile Include="Class\ProtectStr.cs" />
     <Compile Include="Class\RusNumber.cs" />
@@ -120,6 +121,8 @@
     <Compile Include="Class\LogItem.cs" />
     <Compile Include="MEK_RESULT\FileCreator\TaskManager.cs" />
     <Compile Include="MEK_RESULT\VOLUM_CONTROL\ControlProcedureVM.cs" />
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL\DataControlVM.cs" />
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL\IDataControlRepository.cs" />
     <Compile Include="MEK_RESULT\VOLUM_CONTROL\LimitViewVM.cs" />
     <Compile Include="MEK_RESULT\VOLUM_CONTROL\Repository.cs" />
     <Compile Include="MEK_RESULT\VOLUM_CONTROL\ResultControlVM.cs" />

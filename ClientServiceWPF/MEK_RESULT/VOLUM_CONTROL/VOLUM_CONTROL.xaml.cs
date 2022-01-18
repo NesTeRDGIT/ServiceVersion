@@ -29,8 +29,8 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
     {
         public ControlProcedureVM ControlProcedureVM { get; }
         public ResultControlVM ResultControlVM { get; }
-
         public LimitViewVM LimitViewVM { get; }
+        public DataControlVM DataControlVM { get; }
 
         public VOLUM_CONTROL()
         {
@@ -39,7 +39,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
             LimitViewVM = new LimitViewVM(repo);
             ControlProcedureVM = new ControlProcedureVM(repo);
             LimitViewVM = new LimitViewVM(repo);
-
+            DataControlVM = new DataControlVM(new DataControlRepository(AppConfig.Property.ConnectionString));
             InitializeComponent();
             DefaultValue();
         }
@@ -406,7 +406,11 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
             }
         }
 
+      
 
+
+
+        
     }
 
 

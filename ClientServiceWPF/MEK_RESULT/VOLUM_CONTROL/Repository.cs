@@ -762,5 +762,4 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
             }
         }
     }
-
 }
