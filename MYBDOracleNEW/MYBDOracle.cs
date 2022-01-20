@@ -1205,7 +1205,7 @@ values
                 cmd.Parameters.Add("SLUCH_ID", OracleDbType.Decimal, Items.Select(x => x.SLUCH_ID ?? (object)DBNull.Value).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("CODE_SH", OracleDbType.Varchar2, Items.Select(x => x.CODE_SH).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("COD_MARK", OracleDbType.Varchar2, Items.Select(x => x.COD_MARK).ToArray(), ParameterDirection.Input);
-                cmd.Parameters.Add("DATE_INJ", OracleDbType.Date, Items.Select(x => x.DATE_INJ).ToArray(), ParameterDirection.Input);
+                cmd.Parameters.Add("DATA_INJ", OracleDbType.Date, Items.Select(x => x.DATA_INJ).ToArray(), ParameterDirection.Input);
                 cmd.Parameters.Add("REGNUM", OracleDbType.Varchar2, Items.Select(x => x.REGNUM).ToArray(), ParameterDirection.Input);
 
                 cmd.Parameters.Add("COL_INJ", OracleDbType.Decimal, Items.Select(x => x.LEK_DOSE!=null? x.LEK_DOSE.COL_INJ:(object)DBNull.Value).ToArray(), ParameterDirection.Input);
