@@ -3067,7 +3067,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlIgnore]
         public long? SLUCH_ID { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, DataType = "date")]
-        public DateTime DATE_INJ { get; set; }
+        public DateTime DATA_INJ { get; set; }
         [XmlElement]
         public string CODE_SH { get; set; }
         [XmlElement]
