@@ -127,6 +127,7 @@
     <Compile Include="MEK_RESULT\VOLUM_CONTROL\Repository.cs" />
     <Compile Include="MEK_RESULT\VOLUM_CONTROL\ResultControlVM.cs" />
     <Compile Include="MEK_RESULT\VOLUM_CONTROL\VCExcelManager.cs" />
+    <Compile Include="MEK_RESULT\VOLUM_CONTROL\VolumControlVM.cs" />
     <Compile Include="ORDERS\DISP\DISPWin.xaml.cs">
       <DependentUpon>DISPWin.xaml</DependentUpon>
     </Compile>
