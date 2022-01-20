@@ -25,328 +25,366 @@
     </Window.Resources>
     <Grid>
         <TabControl>
-
-            <TabItem Header="Процедура контроля">
-                <TabItem.DataContext>
-                    <Binding ElementName="this" Path="ControlProcedureVM"></Binding>
-                </TabItem.DataContext>
-                <Grid>
-                    <GroupBox Header="Фильтрация" Height="112" VerticalAlignment="Top">
+            <TabItem Header="Контроль объемов">
+                <TabControl>
+                    <TabItem Header="Просмотр лимитов">
+                        <TabItem.DataContext>
+                            <Binding ElementName="this" Path="LimitViewVM"></Binding>
+                        </TabItem.DataContext>
                         <Grid>
-                            <CheckBox Content="Количественные показатели" HorizontalAlignment="Left" Margin="4,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_KOL}"/>
-                            <CheckBox  Content="Стоимостные показатели" HorizontalAlignment="Left" Margin="197,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_SUM}"/>
-                            <ComboBox  HorizontalAlignment="Left" Margin="65,30,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Path=MO_SPR}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.CODE_MO}"/>
-                            <Label Content="МО" HorizontalAlignment="Left" Margin="4,26,0,0" VerticalAlignment="Top"/>
-                            <ComboBox  HorizontalAlignment="Left" Margin="403,30,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Path=SMO_SPR}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME"  SelectedValue="{Binding Filter.SMO}"/>
-                            <Label Content="СМО" HorizontalAlignment="Left" Margin="361,26,0,0" VerticalAlignment="Top"/>
-                            <ComboBox  HorizontalAlignment="Left" Margin="65,61,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Path=RUBRIC_SPR}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME"  SelectedValue="{Binding Filter.RUB}"/>
-                            <Label Content="Рубрика" HorizontalAlignment="Left" Margin="4,57,0,0" VerticalAlignment="Top"/>
-                            <Button  Content="Применить" HorizontalAlignment="Right" Margin="0,6,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Command="{Binding FilterCommand}"/>
+                            <GroupBox Header="Выборка" Height="51" VerticalAlignment="Top" Grid.ColumnSpan="3">
+                                <Grid>
+                                    <Label Content="Период выборки" HorizontalAlignment="Left" Margin="2,0,0,0" VerticalAlignment="Top" Width="108"/>
+                                    <DatePicker  HorizontalAlignment="Left" Margin="115,1,0,0"  class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" SelectedDate="{Binding Param.Period }" Height="24" VerticalAlignment="Top" Width="100"/>
+                                    <Button Content="Button" HorizontalAlignment="Left" Margin="220,1,0,0" VerticalAlignment="Top" Width="25" Height="24" Style="{DynamicResource ButtonUpd}" Command="{Binding RefreshCommand}"/>
+                                </Grid>
+                            </GroupBox>
+                            <GroupBox Header="Фильтрация" Margin="0,56,0,0"  Grid.Column="0" Height="95" VerticalAlignment="Top" >
+                                <Grid>
+                                    <Label Content="МО" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top"/>
+                                    <ComboBox HorizontalAlignment="Left" Margin="61,9,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMMO}}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.CODE_MO}"/>
+                                    <Label Content="СМО" HorizontalAlignment="Left" Margin="357,5,0,0" VerticalAlignment="Top"/>
+                                    <ComboBox HorizontalAlignment="Left" Margin="399,9,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMSMO}}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.SMO}"/>
+                                    <Label Content="Рубрика" HorizontalAlignment="Left" Margin="0,37,0,0" VerticalAlignment="Top"/>
+                                    <ComboBox  HorizontalAlignment="Left" Margin="61,41,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMRUB}}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.RUB}"/>
 
+                                    <CheckBox  Content="Ошибки лимитов" HorizontalAlignment="Left" Margin="399,41,0,0" VerticalAlignment="Top" Height="22" IsThreeState="True" IsChecked="{Binding Filter.IsErr}"/>
+                                </Grid>
+                            </GroupBox>
+                            <GroupBox Header="Текущий лимит" Margin="0,151,0,0" Grid.Column="0">
+                                <Grid>
+                                    <mr:MultiRowHeader DataGrid="{Binding ElementName=DataGridLimit}" RowCount="2" VerticalAlignment="Top" Height="87">
+                                        <mr:MultiRowHeader.HeaderColumns>
+                                            <mr:MergeDataGridColumn Column="1" ColSpan="12" Row="0"  HeaderText="Фактические показатели"  HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="1" ColSpan="2" Row="1"  HeaderText="Период" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="3" ColSpan="2" Row="1"  HeaderText="МО" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="5" ColSpan="2" Row="1"  HeaderText="СМО" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="7" ColSpan="2" Row="1"  HeaderText="Рубрика" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="9" ColSpan="2" Row="1"  HeaderText="Исполнено" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="11" ColSpan="2" Row="1"  HeaderText="Месячный лимит" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="13" ColSpan="10" Row="0"  HeaderText="Плановые показатели" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="13" ColSpan="2" Row="1"  HeaderText="1 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="15" ColSpan="2" Row="1"  HeaderText="2 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="17" ColSpan="2" Row="1"  HeaderText="3 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="19" ColSpan="2" Row="1"  HeaderText="4 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="21" ColSpan="2" Row="1"  HeaderText="Год" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                            <mr:MergeDataGridColumn Column="23" ColSpan="2" Row="0" RowSpan="2"  HeaderText="Прочее" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                        </mr:MultiRowHeader.HeaderColumns>
+                                    </mr:MultiRowHeader>
+                                    <DataGrid Name="DataGridLimit" IsReadOnly="True" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMITs}}" Margin="0,87,0,29" SelectionUnit="CellOrRowHeader" SelectedCellsChanged="DataGridLimit_OnSelectedCellsChanged" AutoGenerateColumns="False" ColumnHeaderStyle="{StaticResource MergedHeader}">
+                                        <DataGrid.Resources>
+                                            <Style x:Key="RightGridTextColumn" TargetType="TextBlock" >
+                                                <Setter Property="HorizontalAlignment" Value="Right"></Setter>
+                                            </Style>
+                                        </DataGrid.Resources>
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Год" Binding="{Binding YEAR}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Месяц" Binding="{Binding MONTH}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Код" Binding="{Binding CODE_MO}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_MOK}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Код" Binding="{Binding SMO}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_SMOK}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Рубрика" Binding="{Binding VOLUM_RUBRIC_ID}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Наименование" Binding="{Binding NAME_RUB}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_ISP, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_ISP, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_M, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_M, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q1, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q1, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q2, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q2, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q3, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q3, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q4, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q4, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Y, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Y, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Тип контроля" Binding="{Binding VID_STR}"></DataGridTextColumn>
+                                            <DataGridTextColumn Header="Последний лимит" Binding="{Binding IsLast}"></DataGridTextColumn>
+                                        </DataGrid.Columns>
+                                        <DataGrid.RowHeaderTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Image x:Name="ImageCS" VerticalAlignment="Center" HorizontalAlignment="Left" Width="20" ToolTip="Найден ли в ЦС" Margin="0,0" />
+                                                </Grid>
+                                                <DataTemplate.Triggers>
+                                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=DataGridRow}, Path=DataContext.IsErr}" Value="True">
+                                                        <Setter TargetName="ImageCS" Property="Source" Value="../../Image/error.png"/>
+                                                        <Setter TargetName="ImageCS" Property="ToolTip" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=DataGridRow}, Path=DataContext.ErrComment}"/>
+                                                    </DataTrigger>
+                                                </DataTemplate.Triggers>
+                                            </DataTemplate>
+                                        </DataGrid.RowHeaderTemplate>
+
+                                    </DataGrid>
+                                    <ProgressBar  HorizontalAlignment="Left" Height="20" Margin="2,0,0,4" VerticalAlignment="Bottom" Width="313" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}" IsIndeterminate="{Binding Progress1.IsIndeterminate}"/>
+                                    <Label  Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="320,0,377,4" VerticalAlignment="Bottom" Height="20" />
+
+                                    <Label Content="{Binding Items.Count, ElementName=DataGridLimit, Mode=OneWay}"  ContentStringFormat="{}{N}" HorizontalAlignment="Right" Margin="0,0,0,3" VerticalAlignment="Bottom" Width="62" HorizontalContentAlignment="Right"/>
+                                    <Label Content="{Binding SUM_SELECT_LIM, ElementName=this, Mode=OneWay}"  ContentStringFormat="{}{0:N}" HorizontalAlignment="Right" Margin="0,0,99,4" VerticalAlignment="Bottom" Width="143" HorizontalContentAlignment="Right" Height="25" VerticalContentAlignment="Center"/>
+                                </Grid>
+                            </GroupBox>
                         </Grid>
-                    </GroupBox>
-                    <DataGrid Name="DataGrid"  Margin="0,117,0,32" AutoGenerateColumns="True" ItemsSource="{Binding Mode=OneWay, Path= LIST_FILTER}"  IsReadOnly="True" SelectionUnit="CellOrRowHeader"   >
-
-
-
-                    </DataGrid>
-                    <Button  Content="Запрос данных" HorizontalAlignment="Left" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="302" Style="{DynamicResource MainButton}" Command="{Binding RefreshCommand}"/>
-                    <ProgressBar  HorizontalAlignment="Left" Height="20" Margin="312,0,0,7" VerticalAlignment="Bottom" Width="313" IsIndeterminate="{Binding Progress1.IsIndeterminate}" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}"/>
-                    <Label  Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="630,0,67,7" VerticalAlignment="Bottom" Height="20" />
-                    <Label Padding="0" VerticalContentAlignment="Center" Content="{Binding ElementName=DataGrid, Path=Items.Count, StringFormat=\{0:N\}}" Margin="0,0,0,7" VerticalAlignment="Bottom" Height="20" HorizontalAlignment="Right" Width="62" HorizontalContentAlignment="Right"/>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Лимиты">
-                <TabItem.DataContext>
-                    <Binding ElementName="this" Path="LimitViewVM"></Binding>
-                </TabItem.DataContext>
-                <Grid>
-                    <GroupBox Header="Выборка" Height="51" VerticalAlignment="Top" Grid.ColumnSpan="3">
+                    </TabItem>
+                    <TabItem Header="Контроль объемов" DataContext="{Binding ElementName=this, Path=VolumControlVM}" >
                         <Grid>
-                            <Label Content="Период выборки" HorizontalAlignment="Left" Margin="2,0,0,0" VerticalAlignment="Top" Width="108"/>
-                            <DatePicker  HorizontalAlignment="Left" Margin="115,1,0,0"  class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" SelectedDate="{Binding Param.Period }" Height="24" VerticalAlignment="Top" Width="100"/>
-                            <Button Content="Button" HorizontalAlignment="Left" Margin="220,1,0,0" VerticalAlignment="Top" Width="25" Height="24" Style="{DynamicResource ButtonUpd}" Command="{Binding RefreshCommand}"/>
+                            <GroupBox Header="Выборка" Height="51" VerticalAlignment="Top" >
+                                <Grid>
+                                    <Button  Content="Button" HorizontalAlignment="Left" Margin="4,1,0,0" VerticalAlignment="Top" Width="25" Height="24" Style="{DynamicResource ButtonUpd}" Command="{Binding RefreshStatusCommand}" />
+                                    <ProgressBar  HorizontalAlignment="Left" Height="24" Margin="34,1,0,0" VerticalAlignment="Top" Width="259" Maximum="{Binding ProgressMain.Maximum}" IsIndeterminate="{Binding ProgressMain.IsIndeterminate}" Value="{Binding ProgressMain.Value}"/>
+                                    <Label  Content="{Binding ProgressMain.Text}" Margin="298,1,10,0" VerticalAlignment="Top" Height="24" Padding="0" VerticalContentAlignment="Center" />
+                                </Grid>
+                            </GroupBox>
+                            <GroupBox Header="Данные" Margin="0,51,0,0">
+                                <Grid>
+                                    <TextBox  HorizontalAlignment="Left" Margin="121,2,0,0" VerticalAlignment="Top" Width="313" Height="24" Text="{Binding VP.Period, StringFormat=MM.yyyy, Mode=OneWay}" IsReadOnly="True" />
+                                    <Label Content="Отчетный период" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108"/>
+                                    <TextBox  HorizontalAlignment="Left" Margin="121,57,0,0" VerticalAlignment="Top" Width="313" Height="24" IsReadOnly="True" >
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.IsVOLUME, Mode=OneWay}" Value="True">
+                                                        <Setter Property="Text" Value="Присутствуют результаты контроля"></Setter>
+                                                        <Setter Property="Background" Value="Chocolate"></Setter>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.IsVOLUME, Mode=OneWay}" Value="False">
+                                                        <Setter Property="Text" Value="Отсутствуют результаты контроля"></Setter>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.IsVOLUME, Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="Text" Value="Нет данных"></Setter>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+                                    <Label Content="Наличие контроля" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,55,0,0"/>
+                                    <Label Content="Синхронизация БД" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,81,0,0"/>
+                                    <TextBox  HorizontalAlignment="Left" Margin="121,83,0,0" VerticalAlignment="Top" Width="313" Height="24"  IsReadOnly="True" >
+                                        <TextBox.Style>
+                                            <Style TargetType="TextBox">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.IsSyncMainBD,  Mode=OneWay}" Value="True">
+                                                        <Setter Property="Text" Value="БД синхронизирована"></Setter>
+                                                        <Setter Property="Background" Value="YellowGreen"></Setter>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.IsSyncMainBD,  Mode=OneWay}" Value="False">
+                                                        <Setter Property="Text" Value="БД НЕ синхронизирована"></Setter>
+                                                        <Setter Property="Background" Value="Chocolate"></Setter>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.IsSyncMainBD,  Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="Text" Value="Нет данных"></Setter>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+                                    <Button Content="Провести контроль объемов" HorizontalAlignment="Left" Height="24" Margin="439,57,0,0" VerticalAlignment="Top" Width="189" Command="{Binding ControlVolumeCommand}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource MainButton}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.IsVOLUME, Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="IsEnabled" Value="False"></Setter>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Button Content="Провести синхронизацию" HorizontalAlignment="Left" Height="24" Margin="439,83,0,0" VerticalAlignment="Top" Width="189"  Command="{Binding SincBDCommand}">
+                                        <Button.Style>
+                                            <Style TargetType="Button" BasedOn="{StaticResource MainButton}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.IsSyncMainBD, Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="IsEnabled" Value="False"></Setter>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Label Content="Дата акта МЭК" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,110,0,0"/>
+                                    <TextBox  HorizontalAlignment="Left" Margin="121,112,0,0" VerticalAlignment="Top" Width="88" Height="24"  IsReadOnly="True" Text="{Binding Path=VP.CurrActDt, StringFormat=dd.MM.yyyy}" >
+
+                                    </TextBox>
+                                    <Button Content="Установить дату акта" HorizontalAlignment="Left" Height="24" Margin="439,112,0,0" VerticalAlignment="Top" Width="189"  x:Name="ButtonSetActDate"  Style="{StaticResource MainButton}" Command="{Binding SetActDtCommand}"/>
+                                    <DatePicker  HorizontalAlignment="Left" Margin="299,112,0,0" VerticalAlignment="Top" Width="135" SelectedDate="{Binding VP.NewActDt, Mode=TwoWay}"/>
+                                    <TextBox  HorizontalAlignment="Left" Margin="121,28,0,0" VerticalAlignment="Top" Width="313" Height="24" IsReadOnly="True" Text="{Binding VP.LimitStatus, Mode=OneWay}" >
+                                        <TextBox.Style>
+                                            <Style TargetType="{x:Type TextBox}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.HasLimit, Mode=OneWay}" Value="True">                                                  
+                                                        <Setter Property="Background" Value="YellowGreen"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.IsBlockLimit, Mode=OneWay}" Value="True">
+                                                        <Setter Property="Background" Value="LightGray"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+                                    <Label Content="Наличие лимитов" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,26,0,0"/>
+                                    <Button Content="Расчет лимитов" HorizontalAlignment="Left" Height="24" Margin="439,28,0,0" VerticalAlignment="Top" Width="189" Command="{Binding CalcLimitCommand}">
+                                        <Button.Style>
+                                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MainButton}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.IsBlockLimit, Mode=OneWay}" Value="True">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.IsBlockLimit, Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+
+                                </Grid>
+                            </GroupBox>
                         </Grid>
-                    </GroupBox>
-                    <GroupBox Header="Фильтрация" Margin="0,56,0,0"  Grid.Column="0" Height="95" VerticalAlignment="Top" >
+                    </TabItem>
+                    <TabItem Header="Результаты контроля" DataContext="{Binding ElementName=this, Path=ResultControlVM}">
                         <Grid>
-                            <Label Content="МО" HorizontalAlignment="Left" Margin="0,5,0,0" VerticalAlignment="Top"/>
-                            <ComboBox HorizontalAlignment="Left" Margin="61,9,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMMO}}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.CODE_MO}"/>
-                            <Label Content="СМО" HorizontalAlignment="Left" Margin="357,5,0,0" VerticalAlignment="Top"/>
-                            <ComboBox HorizontalAlignment="Left" Margin="399,9,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMSMO}}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.SMO}"/>
-                            <Label Content="Рубрика" HorizontalAlignment="Left" Margin="0,37,0,0" VerticalAlignment="Top"/>
-                            <ComboBox  HorizontalAlignment="Left" Margin="61,41,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMRUB}}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.RUB}"/>
+                            <TabControl Height="112" VerticalAlignment="Top">
+                                <TabItem Header="Фильтрация">
+                                    <Grid>
+                                        <CheckBox Content="Снятие по количественным показателям" HorizontalAlignment="Left" Margin="4,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_KOL}"/>
+                                        <CheckBox Content="Снятие по стоимостным показателям" HorizontalAlignment="Left" Margin="254,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_SUM}"/>
+                                        <Label Content="МО" HorizontalAlignment="Left" Margin="4,26,0,0" VerticalAlignment="Top"/>
+                                        <ComboBox  HorizontalAlignment="Left" Margin="65,30,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding MO_SPR}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.CODE_MO}"/>
+                                        <Label Content="СМО" HorizontalAlignment="Left" Margin="361,26,0,0" VerticalAlignment="Top"/>
+                                        <ComboBox  HorizontalAlignment="Left" Margin="403,30,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding SMO_SPR}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.SMO}"/>
+                                        <Label Content="Рубрика" HorizontalAlignment="Left" Margin="4,57,0,0" VerticalAlignment="Top"/>
+                                        <ComboBox HorizontalAlignment="Left" Margin="65,61,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding RUBRIC_SPR}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.RUB}"/>
 
-                            <CheckBox  Content="Ошибки лимитов" HorizontalAlignment="Left" Margin="399,41,0,0" VerticalAlignment="Top" Height="22" IsThreeState="True" IsChecked="{Binding Filter.IsErr}"/>
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox Header="Текущий лимит" Margin="0,151,0,0" Grid.Column="0">
-                        <Grid>
-                            <mr:MultiRowHeader DataGrid="{Binding ElementName=DataGridLimit}" RowCount="2" VerticalAlignment="Top" Height="87">
+                                        <Button Content="Применить" HorizontalAlignment="Right" Margin="0,6,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Command="{Binding FilterCommand}"/>
+
+                                    </Grid>
+                                </TabItem>
+                                <TabItem Header="Экспорт">
+                                    <Grid>
+                                        <TextBox Height="23" Margin="4,15,730,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="{Binding Param.DOLG}"/>
+                                        <Label  Content="Должность" FontSize="8" HorizontalAlignment="Left" Margin="4,-3,0,0" VerticalAlignment="Top"/>
+                                        <TextBox Height="23" Margin="4,53,730,0" TextWrapping="Wrap"  VerticalAlignment="Top" Text="{Binding Param.FIO}"/>
+                                        <Label  Content="ФИО" FontSize="8" HorizontalAlignment="Left" Margin="4,35,0,0" VerticalAlignment="Top"/>
+                                        <Button  Content="Excel" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="134" Style="{DynamicResource MainButton}" Command="{Binding SaveVRCommand}" Height="28"/>
+                                        <Button  Content="Приложение 5" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Command="{Binding SavePril5Command}" Height="28"/>
+
+                                    </Grid>
+                                </TabItem>
+                            </TabControl>
+
+                            <mr:MultiRowHeader DataGrid="{Binding ElementName=DataGridResult}" RowCount="2" Margin="0,112,0,0" VerticalAlignment="Top">
                                 <mr:MultiRowHeader.HeaderColumns>
-                                    <mr:MergeDataGridColumn Column="1" ColSpan="12" Row="0"  HeaderText="Фактические показатели"  HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="1" ColSpan="2" Row="1"  HeaderText="Период" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="3" ColSpan="2" Row="1"  HeaderText="МО" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="5" ColSpan="2" Row="1"  HeaderText="СМО" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="7" ColSpan="2" Row="1"  HeaderText="Рубрика" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="9" ColSpan="2" Row="1"  HeaderText="Исполнено" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="11" ColSpan="2" Row="1"  HeaderText="Месячный лимит" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="13" ColSpan="10" Row="0"  HeaderText="Плановые показатели" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="13" ColSpan="2" Row="1"  HeaderText="1 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="15" ColSpan="2" Row="1"  HeaderText="2 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="17" ColSpan="2" Row="1"  HeaderText="3 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="19" ColSpan="2" Row="1"  HeaderText="4 квартал" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="21" ColSpan="2" Row="1"  HeaderText="Год" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
-                                    <mr:MergeDataGridColumn Column="23" ColSpan="2" Row="0" RowSpan="2"  HeaderText="Прочее" HeaderStyle="{StaticResource MergedHeader}"></mr:MergeDataGridColumn>
+                                    <mr:MergeDataGridColumn Column="1" ColSpan="2" Row="0" RowSpan="2"  HeaderText="Период" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="3" ColSpan="2" Row="0" RowSpan="2"  HeaderText="МО" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="5" ColSpan="2" Row="0" RowSpan="2"   HeaderText="СМО" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="7" ColSpan="2" Row="0" RowSpan="2"   HeaderText="Рубрика" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="9" ColSpan="3" Row="0" RowSpan="2"   HeaderText="Предъявлено" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="12" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снятых на МЭК без учета контроля объемов" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="14" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Принятых к оплате без учета контроля объемов" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="16" ColSpan="3" Row="0"  RowSpan="2"  HeaderText="Фондодержание" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="19" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Лимит" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="21" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(количественные показатели)" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="23" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(количественные показатели)(в рамках рубрики)" HeaderStyle="{StaticResource MergedHeader}"/>
+
+
+                                    <mr:MergeDataGridColumn Column="25" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(стоимостные показатели)" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="27" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(стоимостные показатели)(в рамках рубрики)" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="29" ColSpan="5" Row="0"  RowSpan="2"  HeaderText="Принято" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="34" ColSpan="3" Row="0"  RowSpan="2"  HeaderText="МЭК прошлых периодов" HeaderStyle="{StaticResource MergedHeader}"/>
+                                    <mr:MergeDataGridColumn Column="37" ColSpan="1" Row="0"  RowSpan="2"  HeaderText="Прочее" HeaderStyle="{StaticResource MergedHeader}"/>
                                 </mr:MultiRowHeader.HeaderColumns>
                             </mr:MultiRowHeader>
-                            <DataGrid Name="DataGridLimit" IsReadOnly="True" ItemsSource="{Binding Mode=OneWay, Source={StaticResource CVSLIMITs}}" Margin="0,87,0,29" SelectionUnit="CellOrRowHeader" SelectedCellsChanged="DataGridLimit_OnSelectedCellsChanged" AutoGenerateColumns="False" ColumnHeaderStyle="{StaticResource MergedHeader}">
+                            <DataGrid Name="DataGridResult"  CanUserReorderColumns="False" Margin="0,167,0,32" IsReadOnly="True" SelectionUnit="CellOrRowHeader" AutoGenerateColumns="False" ColumnHeaderStyle="{StaticResource WrappedColumnHeaderStyle}">
                                 <DataGrid.Resources>
                                     <Style x:Key="RightGridTextColumn" TargetType="TextBlock" >
                                         <Setter Property="HorizontalAlignment" Value="Right"></Setter>
                                     </Style>
                                 </DataGrid.Resources>
+                                <DataGrid.ItemsSource>
+                                    <Binding Mode="OneWay" Source="{StaticResource CVSResultControl}"/>
+                                </DataGrid.ItemsSource>
                                 <DataGrid.Columns>
-                                    <DataGridTextColumn Header="Год" Binding="{Binding YEAR}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Месяц" Binding="{Binding MONTH}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Код" Binding="{Binding CODE_MO}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_MOK}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Код" Binding="{Binding SMO}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_SMOK}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Рубрика" Binding="{Binding VOLUM_RUBRIC_ID}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Наименование" Binding="{Binding NAME_RUB}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_ISP, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_ISP, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_M, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_M, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q1, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q1, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q2, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q2, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q3, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q3, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Q4, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Q4, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL_Y, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_Y, StringFormat=\{0:N\}}" ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Тип контроля" Binding="{Binding VID_STR}"></DataGridTextColumn>
-                                    <DataGridTextColumn Header="Последний лимит" Binding="{Binding IsLast}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Год" Binding="{Binding YEAR}" Width="Auto"   ></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Месяц" Binding="{Binding MONTH}" Width="Auto"   ></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Код" Binding="{Binding CODE_MO}" Width="Auto"   ></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_MOK}" Width="Auto"   ></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Код" Binding="{Binding SMO}" Width="Auto"   ></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_SMOK}" Width="Auto"   ></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Рубрика" Binding="{Binding RUBRIC}" Width="Auto"   ></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Наименование" Binding="{Binding RUBRIC_NAME}" Width="Auto"   ></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL, StringFormat=\{0:N\}}" Width="Auto"     ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма(+Фонд)" Binding="{Binding SUM_ALL, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Количество" Binding="{Binding K_P_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding S_P_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Фондодержание" Binding="{Binding FOND, StringFormat=\{0:N\}}" Width="Auto"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="МУРы" Binding="{Binding MUR, StringFormat=\{0:N\}}" Width="Auto"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Фондодержание ФАП" Binding="{Binding FAP, StringFormat=\{0:N\}}" Width="Auto"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Количество" Binding="{Binding KOL_LIMIT, StringFormat=\{0:N\}}"  Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_LIMIT, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VK, StringFormat=\{0:N\}}"  Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VK, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VK_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VK_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VS, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VS, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VS_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VS_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Количество" Binding="{Binding KOL_P, StringFormat=\{0:N\}}" Width="Auto"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Количество(%)" Binding="{Binding ProcKOL_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_P, StringFormat=\{0:N\}}" Width="Auto"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма(%)" Binding="{Binding ProcSUM_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Всего" Binding="{Binding SUM_P_ALL, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+
+
+                                    <DataGridTextColumn Header="Количество" Binding="{Binding KOL_MEK_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_MEK_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+                                    <DataGridTextColumn Header="Возврат МУР" Binding="{Binding MUR_RETURN, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
+
+                                    <DataGridTextColumn Header="Наличие акта МЭК" Binding="{Binding IsACT_MEK, StringFormat=\{0:N\}}" Width="Auto"  ></DataGridTextColumn>
                                 </DataGrid.Columns>
-                                <DataGrid.RowHeaderTemplate>
-                                    <DataTemplate>
-                                        <Grid>
-                                            <Image x:Name="ImageCS" VerticalAlignment="Center" HorizontalAlignment="Left" Width="20" ToolTip="Найден ли в ЦС" Margin="0,0" />
-                                        </Grid>
-                                        <DataTemplate.Triggers>
-                                            <DataTrigger Binding="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=DataGridRow}, Path=DataContext.IsErr}" Value="True">
-                                                <Setter TargetName="ImageCS" Property="Source" Value="../../Image/error.png"/>
-                                                <Setter TargetName="ImageCS" Property="ToolTip" Value="{Binding RelativeSource={RelativeSource FindAncestor, AncestorType=DataGridRow}, Path=DataContext.ErrComment}"/>
-                                            </DataTrigger>
-                                        </DataTemplate.Triggers>
-                                    </DataTemplate>
-                                </DataGrid.RowHeaderTemplate>
+                            </DataGrid>
+                            <Button Content="Запрос данных" HorizontalAlignment="Left" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="302" Style="{DynamicResource MainButton}" Command="{Binding RefreshCommand}"/>
+                            <ProgressBar  HorizontalAlignment="Left" Height="20" Margin="497,0,0,7" VerticalAlignment="Bottom" Width="128" IsIndeterminate="{Binding Progress1.IsIndeterminate}" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}" />
+                            <Label  Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="630,0,67,7" VerticalAlignment="Bottom" Height="20" />
+                            <Label Padding="0" VerticalContentAlignment="Center" Content="{Binding Items.Count, ElementName=dataGridVOL_RES, Mode=OneWay}" Margin="0,0,0,7" VerticalAlignment="Bottom" Height="20" HorizontalAlignment="Right" Width="62" HorizontalContentAlignment="Right"/>
+                            <CheckBox Content="Текущий" HorizontalAlignment="Left" Margin="307,0,0,10" VerticalAlignment="Bottom" IsChecked="{Binding Param.IsTemp1}"/>
+                            <DatePicker Margin="383,0,0,5" VerticalAlignment="Bottom" class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" SelectedDate="{Binding Param.Period}" IsEnabled="{Binding Param.IsTemp1, Converter={StaticResource BoolInverterConverter}}" HorizontalAlignment="Left" Width="100"/>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Процедура контроля">
+                        <TabItem.DataContext>
+                            <Binding ElementName="this" Path="ControlProcedureVM"></Binding>
+                        </TabItem.DataContext>
+                        <Grid>
+                            <GroupBox Header="Фильтрация" Height="112" VerticalAlignment="Top">
+                                <Grid>
+                                    <CheckBox Content="Количественные показатели" HorizontalAlignment="Left" Margin="4,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_KOL}"/>
+                                    <CheckBox  Content="Стоимостные показатели" HorizontalAlignment="Left" Margin="197,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_SUM}"/>
+                                    <ComboBox  HorizontalAlignment="Left" Margin="65,30,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding Mode=OneWay, Path=MO_SPR}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.CODE_MO}"/>
+                                    <Label Content="МО" HorizontalAlignment="Left" Margin="4,26,0,0" VerticalAlignment="Top"/>
+                                    <ComboBox  HorizontalAlignment="Left" Margin="403,30,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding Mode=OneWay, Path=SMO_SPR}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME"  SelectedValue="{Binding Filter.SMO}"/>
+                                    <Label Content="СМО" HorizontalAlignment="Left" Margin="361,26,0,0" VerticalAlignment="Top"/>
+                                    <ComboBox  HorizontalAlignment="Left" Margin="65,61,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding Mode=OneWay, Path=RUBRIC_SPR}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME"  SelectedValue="{Binding Filter.RUB}"/>
+                                    <Label Content="Рубрика" HorizontalAlignment="Left" Margin="4,57,0,0" VerticalAlignment="Top"/>
+                                    <Button  Content="Применить" HorizontalAlignment="Right" Margin="0,6,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Command="{Binding FilterCommand}"/>
+
+                                </Grid>
+                            </GroupBox>
+                            <DataGrid Name="DataGrid"  Margin="0,117,0,32" AutoGenerateColumns="True" ItemsSource="{Binding Mode=OneWay, Path= LIST_FILTER}"  IsReadOnly="True" SelectionUnit="CellOrRowHeader"   >
+
+
 
                             </DataGrid>
-                            <ProgressBar  HorizontalAlignment="Left" Height="20" Margin="2,0,0,4" VerticalAlignment="Bottom" Width="313" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}" IsIndeterminate="{Binding Progress1.IsIndeterminate}"/>
-                            <Label  Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="320,0,377,4" VerticalAlignment="Bottom" Height="20" />
-
-                            <Label Content="{Binding Items.Count, ElementName=DataGridLimit, Mode=OneWay}"  ContentStringFormat="{}{N}" HorizontalAlignment="Right" Margin="0,0,0,3" VerticalAlignment="Bottom" Width="62" HorizontalContentAlignment="Right"/>
-                            <Label Content="{Binding SUM_SELECT_LIM, ElementName=this, Mode=OneWay}"  ContentStringFormat="{}{0:N}" HorizontalAlignment="Right" Margin="0,0,99,4" VerticalAlignment="Bottom" Width="143" HorizontalContentAlignment="Right" Height="25" VerticalContentAlignment="Center"/>
+                            <Button  Content="Запрос данных" HorizontalAlignment="Left" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="302" Style="{DynamicResource MainButton}" Command="{Binding RefreshCommand}"/>
+                            <ProgressBar  HorizontalAlignment="Left" Height="20" Margin="312,0,0,7" VerticalAlignment="Bottom" Width="313" IsIndeterminate="{Binding Progress1.IsIndeterminate}" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}"/>
+                            <Label  Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="630,0,67,7" VerticalAlignment="Bottom" Height="20" />
+                            <Label Padding="0" VerticalContentAlignment="Center" Content="{Binding ElementName=DataGrid, Path=Items.Count, StringFormat=\{0:N\}}" Margin="0,0,0,7" VerticalAlignment="Bottom" Height="20" HorizontalAlignment="Right" Width="62" HorizontalContentAlignment="Right"/>
                         </Grid>
-                    </GroupBox>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Результаты контроля" DataContext="{Binding ElementName=this, Path=ResultControlVM}">
-                <Grid>
-                    <TabControl Height="112" VerticalAlignment="Top">
-                        <TabItem Header="Фильтрация">
-                            <Grid>
-                                <CheckBox Content="Снятие по количественным показателям" HorizontalAlignment="Left" Margin="4,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_KOL}"/>
-                                <CheckBox Content="Снятие по стоимостным показателям" HorizontalAlignment="Left" Margin="254,6,0,0" VerticalAlignment="Top" IsThreeState="True" IsChecked="{Binding Filter.IsMEK_SUM}"/>
-                                <Label Content="МО" HorizontalAlignment="Left" Margin="4,26,0,0" VerticalAlignment="Top"/>
-                                <ComboBox  HorizontalAlignment="Left" Margin="65,30,0,0" VerticalAlignment="Top" Width="291" ItemsSource="{Binding MO_SPR}" SelectedValuePath="CODE_MO" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.CODE_MO}"/>
-                                <Label Content="СМО" HorizontalAlignment="Left" Margin="361,26,0,0" VerticalAlignment="Top"/>
-                                <ComboBox  HorizontalAlignment="Left" Margin="403,30,0,0" VerticalAlignment="Top" Width="317"  ItemsSource="{Binding SMO_SPR}" SelectedValuePath="SMOCOD" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.SMO}"/>
-                                <Label Content="Рубрика" HorizontalAlignment="Left" Margin="4,57,0,0" VerticalAlignment="Top"/>
-                                <ComboBox HorizontalAlignment="Left" Margin="65,61,0,0" VerticalAlignment="Top" Width="291"   ItemsSource="{Binding RUBRIC_SPR}" SelectedValuePath="VOLUM_RUBRIC_ID" DisplayMemberPath="FULL_NAME" SelectedValue="{Binding Filter.RUB}"/>
-
-                                <Button Content="Применить" HorizontalAlignment="Right" Margin="0,6,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Command="{Binding FilterCommand}"/>
-
-                            </Grid>
-                        </TabItem>
-                        <TabItem Header="Экспорт">
-                            <Grid>
-                                <TextBox Height="23" Margin="4,15,730,0" TextWrapping="Wrap" VerticalAlignment="Top" Text="{Binding Param.DOLG}"/>
-                                <Label  Content="Должность" FontSize="8" HorizontalAlignment="Left" Margin="4,-3,0,0" VerticalAlignment="Top"/>
-                                <TextBox Height="23" Margin="4,53,730,0" TextWrapping="Wrap"  VerticalAlignment="Top" Text="{Binding Param.FIO}"/>
-                                <Label  Content="ФИО" FontSize="8" HorizontalAlignment="Left" Margin="4,35,0,0" VerticalAlignment="Top"/>
-                                <Button  Content="Excel" HorizontalAlignment="Right" Margin="0,0,10,10" VerticalAlignment="Bottom" Width="134" Style="{DynamicResource MainButton}" Command="{Binding SaveVRCommand}" Height="28"/>
-                                <Button  Content="Приложение 5" HorizontalAlignment="Right" Margin="0,10,10,0" VerticalAlignment="Top" Width="134" Style="{DynamicResource MainButton}" Command="{Binding SavePril5Command}" Height="28"/>
-
-                            </Grid>
-                        </TabItem>
-                    </TabControl>
-
-                    <mr:MultiRowHeader DataGrid="{Binding ElementName=DataGridResult}" RowCount="2" Margin="0,112,0,0" VerticalAlignment="Top">
-                        <mr:MultiRowHeader.HeaderColumns>
-                            <mr:MergeDataGridColumn Column="1" ColSpan="2" Row="0" RowSpan="2"  HeaderText="Период" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="3" ColSpan="2" Row="0" RowSpan="2"  HeaderText="МО" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="5" ColSpan="2" Row="0" RowSpan="2"   HeaderText="СМО" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="7" ColSpan="2" Row="0" RowSpan="2"   HeaderText="Рубрика" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="9" ColSpan="3" Row="0" RowSpan="2"   HeaderText="Предъявлено" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="12" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снятых на МЭК без учета контроля объемов" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="14" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Принятых к оплате без учета контроля объемов" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="16" ColSpan="3" Row="0"  RowSpan="2"  HeaderText="Фондодержание" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="19" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Лимит" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="21" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(количественные показатели)" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="23" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(количественные показатели)(в рамках рубрики)" HeaderStyle="{StaticResource MergedHeader}"/>
-
-
-                            <mr:MergeDataGridColumn Column="25" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(стоимостные показатели)" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="27" ColSpan="2" Row="0"  RowSpan="2"  HeaderText="Снято по превышению(стоимостные показатели)(в рамках рубрики)" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="29" ColSpan="5" Row="0"  RowSpan="2"  HeaderText="Принято" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="34" ColSpan="3" Row="0"  RowSpan="2"  HeaderText="МЭК прошлых периодов" HeaderStyle="{StaticResource MergedHeader}"/>
-                            <mr:MergeDataGridColumn Column="37" ColSpan="1" Row="0"  RowSpan="2"  HeaderText="Прочее" HeaderStyle="{StaticResource MergedHeader}"/>
-                        </mr:MultiRowHeader.HeaderColumns>
-                    </mr:MultiRowHeader>
-                    <DataGrid Name="DataGridResult"  CanUserReorderColumns="False" Margin="0,167,0,32" IsReadOnly="True" SelectionUnit="CellOrRowHeader" AutoGenerateColumns="False" ColumnHeaderStyle="{StaticResource WrappedColumnHeaderStyle}">
-                        <DataGrid.Resources>
-                            <Style x:Key="RightGridTextColumn" TargetType="TextBlock" >
-                                <Setter Property="HorizontalAlignment" Value="Right"></Setter>
-                            </Style>
-                        </DataGrid.Resources>
-                        <DataGrid.ItemsSource>
-                            <Binding Mode="OneWay" Source="{StaticResource CVSResultControl}"/>
-                        </DataGrid.ItemsSource>
-                        <DataGrid.Columns>
-                            <DataGridTextColumn Header="Год" Binding="{Binding YEAR}" Width="Auto"   ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Месяц" Binding="{Binding MONTH}" Width="Auto"   ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Код" Binding="{Binding CODE_MO}" Width="Auto"   ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_MOK}" Width="Auto"   ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Код" Binding="{Binding SMO}" Width="Auto"   ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Наименование" Binding="{Binding NAM_SMOK}" Width="Auto"   ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Рубрика" Binding="{Binding RUBRIC}" Width="Auto"   ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Наименование" Binding="{Binding RUBRIC_NAME}" Width="Auto"   ></DataGridTextColumn>
-                            <DataGridTextColumn Header="Кол-во" Binding="{Binding KOL, StringFormat=\{0:N\}}" Width="Auto"     ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма(+Фонд)" Binding="{Binding SUM_ALL, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество" Binding="{Binding K_P_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_P_NOT_V, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Фондодержание" Binding="{Binding FOND, StringFormat=\{0:N\}}" Width="Auto"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="МУРы" Binding="{Binding MUR, StringFormat=\{0:N\}}" Width="Auto"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Фондодержание ФАП" Binding="{Binding FAP, StringFormat=\{0:N\}}" Width="Auto"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество" Binding="{Binding KOL_LIMIT, StringFormat=\{0:N\}}"  Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_LIMIT, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VK, StringFormat=\{0:N\}}"  Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VK, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VK_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VK_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VS, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VS, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество" Binding="{Binding K_MEK_VS_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding S_MEK_VS_RUB, StringFormat=\{0:N\}}" Width="SizeToCells" MinWidth="100"   ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество" Binding="{Binding KOL_P, StringFormat=\{0:N\}}" Width="Auto"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Количество(%)" Binding="{Binding ProcKOL_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_P, StringFormat=\{0:N\}}" Width="Auto"  ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма(%)" Binding="{Binding ProcSUM_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Всего" Binding="{Binding SUM_P_ALL, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-
-
-                            <DataGridTextColumn Header="Количество" Binding="{Binding KOL_MEK_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Сумма" Binding="{Binding SUM_MEK_P, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-                            <DataGridTextColumn Header="Возврат МУР" Binding="{Binding MUR_RETURN, StringFormat=\{0:N\}}" Width="Auto"    ElementStyle="{StaticResource RightGridTextColumn}"></DataGridTextColumn>
-
-                            <DataGridTextColumn Header="Наличие акта МЭК" Binding="{Binding IsACT_MEK, StringFormat=\{0:N\}}" Width="Auto"  ></DataGridTextColumn>
-                        </DataGrid.Columns>
-                    </DataGrid>
-                    <Button Content="Запрос данных" HorizontalAlignment="Left" Margin="0,0,0,7" VerticalAlignment="Bottom" Width="302" Style="{DynamicResource MainButton}" Command="{Binding RefreshCommand}"/>
-                    <ProgressBar  HorizontalAlignment="Left" Height="20" Margin="497,0,0,7" VerticalAlignment="Bottom" Width="128" IsIndeterminate="{Binding Progress1.IsIndeterminate}" Maximum="{Binding Progress1.Maximum}" Value="{Binding Progress1.Value}" />
-                    <Label  Padding="0" VerticalContentAlignment="Center" Content="{Binding Progress1.Text}" Margin="630,0,67,7" VerticalAlignment="Bottom" Height="20" />
-                    <Label Padding="0" VerticalContentAlignment="Center" Content="{Binding Items.Count, ElementName=dataGridVOL_RES, Mode=OneWay}" Margin="0,0,0,7" VerticalAlignment="Bottom" Height="20" HorizontalAlignment="Right" Width="62" HorizontalContentAlignment="Right"/>
-                    <CheckBox Content="Текущий" HorizontalAlignment="Left" Margin="307,0,0,10" VerticalAlignment="Bottom" IsChecked="{Binding Param.IsTemp1}"/>
-                    <DatePicker Margin="383,0,0,5" VerticalAlignment="Bottom" class:DatePickerCalendar.IsMonthYear="True" class:DatePickerDateFormat.DateFormat="MM.yyyy" SelectedDate="{Binding Param.Period}" IsEnabled="{Binding Param.IsTemp1, Converter={StaticResource BoolInverterConverter}}" HorizontalAlignment="Left" Width="100"/>
-                </Grid>
-            </TabItem>
-            <TabItem Header="Контроль объемов">
-                <Grid>
-                    <GroupBox Header="Выборка" Height="51" VerticalAlignment="Top" >
-                        <Grid>
-                            <Button x:Name="buttonRefreshVOLUM" Content="Button" HorizontalAlignment="Left" Margin="4,1,0,0" VerticalAlignment="Top" Width="25" Height="24" Style="{DynamicResource ButtonUpd}" Click="buttonRefreshVOLUM_Click" />
-                            <ProgressBar Name="ProgressBarVOLUMRefresh" HorizontalAlignment="Left" Height="24" Margin="34,1,0,0" VerticalAlignment="Top" Width="259"/>
-                            <Label x:Name="LabelProgressBarVOLUMRefresh" Content="" Margin="509,1,10,0" VerticalAlignment="Top" Height="24" Padding="0" VerticalContentAlignment="Center"/>
-                        </Grid>
-                    </GroupBox>
-                    <GroupBox Header="Данные" Margin="0,51,0,0">
-                        <Grid>
-                            <TextBox  HorizontalAlignment="Left" Margin="121,2,0,0" VerticalAlignment="Top" Width="313" Height="24" Text="{Binding VP.DT, ElementName=this, StringFormat=MM.yyyy, Mode=OneWay}" IsReadOnly="True" />
-                            <Label Content="Отчетный период" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108"/>
-                            <TextBox  HorizontalAlignment="Left" Margin="121,28,0,0" VerticalAlignment="Top" Width="313" Height="24" IsReadOnly="True" >
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding VP.IsVOLUME, ElementName=this, Mode=OneWay}" Value="True">
-                                                <Setter Property="Text" Value="Присутствуют результаты контроля"></Setter>
-                                                <Setter Property="Background" Value="Chocolate"></Setter>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding VP.IsVOLUME, ElementName=this, Mode=OneWay}" Value="False">
-                                                <Setter Property="Text" Value="Отсутствуют результаты контроля"></Setter>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBox.Style>
-                            </TextBox>
-                            <Label Content="Наличие контроля" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,26,0,0"/>
-                            <Label Content="Синхронизация БД" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,52,0,0"/>
-                            <TextBox  HorizontalAlignment="Left" Margin="121,54,0,0" VerticalAlignment="Top" Width="313" Height="24"  IsReadOnly="True" >
-                                <TextBox.Style>
-                                    <Style TargetType="TextBox">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding VP.IsSyncMainBD, ElementName=this, Mode=OneWay}" Value="True">
-                                                <Setter Property="Text" Value="БД синхронизирована"></Setter>
-                                                <Setter Property="Background" Value="YellowGreen"></Setter>
-                                            </DataTrigger>
-                                            <DataTrigger Binding="{Binding VP.IsSyncMainBD, ElementName=this, Mode=OneWay}" Value="False">
-                                                <Setter Property="Text" Value="БД НЕ синхронизирована"></Setter>
-                                                <Setter Property="Background" Value="Chocolate"></Setter>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </TextBox.Style>
-                            </TextBox>
-                            <Button Content="Провести контроль объемов" HorizontalAlignment="Left" Height="24" Margin="439,28,0,0" VerticalAlignment="Top" Width="189" Name="ButtonVolumeCheck" Click="ButtonVolumeCheck_Click">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource MainButton}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding VP.IsVOLUME, ElementName=this, Mode=OneWay}" Value="{x:Null}">
-                                                <Setter Property="IsEnabled" Value="False"></Setter>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-                            <Button Content="Провести синхронизацию" HorizontalAlignment="Left" Height="24" Margin="439,54,0,0" VerticalAlignment="Top" Width="189"  Name="ButtonSyncMainBD" Click="ButtonSyncMainBD_Click">
-                                <Button.Style>
-                                    <Style TargetType="Button" BasedOn="{StaticResource MainButton}">
-                                        <Style.Triggers>
-                                            <DataTrigger Binding="{Binding VP.IsSyncMainBD, ElementName=this, Mode=OneWay}" Value="{x:Null}">
-                                                <Setter Property="IsEnabled" Value="False"></Setter>
-                                            </DataTrigger>
-                                        </Style.Triggers>
-                                    </Style>
-                                </Button.Style>
-                            </Button>
-                            <Label Content="Дата акта МЭК" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,81,0,0"/>
-                            <TextBox  HorizontalAlignment="Left" Margin="121,83,0,0" VerticalAlignment="Top" Width="88" Height="24"  IsReadOnly="True" Text="{Binding ElementName=this, Path=VP.DT_ACT, StringFormat=dd.MM.yyyy}" >
-
-                            </TextBox>
-                            <Button Content="Установить дату акта" HorizontalAlignment="Left" Height="24" Margin="439,83,0,0" VerticalAlignment="Top" Width="189"  x:Name="ButtonSetActDate"  Style="{StaticResource MainButton}" Click="ButtonSetActDate_Click"/>
-                            <DatePicker Name="DatePickerDT_ACT" HorizontalAlignment="Left" Margin="299,83,0,0" VerticalAlignment="Top" Width="135"/>
-
-                        </Grid>
-                    </GroupBox>
-                </Grid>
+                    </TabItem>
+                </TabControl>
             </TabItem>
             <TabItem Header="Управление данными">
                 <TabItem.DataContext>

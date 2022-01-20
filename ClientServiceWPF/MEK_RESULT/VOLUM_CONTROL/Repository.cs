@@ -12,14 +12,124 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
 
     public interface IRepositoryVolumeControl
     {
+        /// <summary>
+        /// Получить результат контроля лимитов(текущий)
+        /// </summary>
+        /// <returns></returns>
         List<LIMIT_RESULTRow> GET_VR();
+        /// <summary>
+        /// Получить результат контроля лимитов(текущий)
+        /// </summary>
         Task<List<LIMIT_RESULTRow>> GET_VRAsync();
+        /// <summary>
+        /// Получить результат контроля лимитов за отчетный период
+        /// </summary>
         List<LIMIT_RESULTRow> GET_VR(int year, int month);
+        /// <summary>
+        /// Получить результат контроля лимитов за отчетный период
+        /// </summary>
         Task<List<LIMIT_RESULTRow>> GET_VRAsync(int year, int month);
+        /// <summary>
+        /// Получить лимиты
+        /// </summary>
         List<LIMITRow> GET_LIMITS(int year, int month);
+        /// <summary>
+        /// Получить лимиты
+        /// </summary>
         Task<List<LIMITRow>> GET_LIMITSAsync(int year, int month);
+        /// <summary>
+        /// Получить процедуру контроля
+        /// </summary>
         List<VOLUME_CONTROLRow> GET_VOLUME();
+        /// <summary>
+        /// Получить процедуру контроля
+        /// </summary>
         Task<List<VOLUME_CONTROLRow>> GET_VOLUMEAsync();
+
+        /// <summary>
+        /// Получить даты счетов в текущем приема
+        /// </summary>
+        DateTime? GetSchetDT();
+        /// <summary>
+        /// Получить даты счетов в текущем приема
+        /// </summary>
+        Task<DateTime?> GetSchetDTAsync();
+        /// <summary>
+        /// Получить кол-во санкции контроля объема
+        /// </summary>
+        int GetCountSANK();
+        /// <summary>
+        /// Получить кол-во санкции контроля объема
+        /// </summary>
+        Task<int> GetCountSANKAsync();
+
+        /// <summary>
+        /// Синхронизирована ли основная и текущая БД
+        /// </summary>
+        bool GetIsSyncMainBD(Progress<string> progress);
+        /// <summary>
+        /// Синхронизирована ли основная и текущая БД
+        /// </summary>
+        Task<bool> GetIsSyncMainBDAsync(Progress<string> progress);
+        /// <summary>
+        /// Получить дату акта МЭК
+        /// </summary>
+        DateTime? GetActDt();
+        /// <summary>
+        /// Получить дату акта МЭК
+        /// </summary>
+        Task<DateTime?> GetActDtAsync();
+        /// <summary>
+        /// Провести контроль объемов
+        /// </summary>
+        /// <param name="progress"></param>
+        void VolumeCheck(Progress<string> progress);
+        /// <summary>
+        /// Провести контроль объемов
+        /// </summary>
+        /// <param name="progress"></param>
+        Task VolumeCheckAsync(Progress<string> progress);
+        /// <summary>
+        /// Синхронизация БД
+        /// </summary>
+        /// <param name="progress"></param>
+        void SyncBD(Progress<string> progress);
+        /// <summary>
+        /// Синхронизация БД
+        /// </summary>
+        /// <param name="progress"></param>
+        Task SyncBDAsync(Progress<string> progress);
+        /// <summary>
+        /// Установить дату акта
+        /// </summary>
+        /// <param name="dt"></param>
+        void SetActDt(DateTime dt);
+        /// <summary>
+        /// Установить дату акта
+        /// </summary>
+        /// <param name="dt"></param>
+        Task SetActDtAsync(DateTime dt);
+        /// <summary>
+        /// Получить статус лимитов
+        /// </summary>
+        LimitStatus GetLimitStatus(int year,int month);
+        /// <summary>
+        /// Получить статус лимитов
+        /// </summary>
+        /// <param name="dt"></param>
+        Task<LimitStatus> GetLimitStatusAsync(int year, int month);
+
+        /// <summary>
+        /// Расчет лимитов  БД
+        /// </summary>
+        /// <param name="progress"></param>
+        void CalcLimit(int year, int month, Progress<string> progress);
+        /// <summary>
+        /// Расчет лимитов  БД
+        /// </summary>
+        /// <param name="progress"></param>
+        Task CalcLimitAsync(int year, int month, Progress<string> progress);
+
     }
 
     public class RepositoryVolumeControl : IRepositoryVolumeControl
@@ -110,6 +220,255 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
         public Task<List<VOLUME_CONTROLRow>> GET_VOLUMEAsync()
         {
             return Task.Run(GET_VOLUME);
+        }
+
+
+
+        public DateTime? GetSchetDT()
+        {
+            using (var CONN = new OracleConnection(this.connectionString))
+            {
+                CONN.Open();
+                using (var cmd = new OracleCommand("select VOLUM_CONTROL.SchetDT() from dual", CONN))
+                {
+                    var obj = cmd.ExecuteScalar();
+                    if(obj!=null && obj!=DBNull.Value)
+                        return Convert.ToDateTime(cmd.ExecuteScalar());
+                    return null;
+                }
+            }
+        }
+        public Task<DateTime?> GetSchetDTAsync()
+        {
+            return Task.Run(GetSchetDT);
+        }
+
+
+        public int GetCountSANK()
+        {
+            using (var CONN = new OracleConnection(this.connectionString))
+            {
+                CONN.Open();
+                using (var cmd = new OracleCommand("select VOLUM_CONTROL.CountSANK() from dual", CONN))
+                {
+                    return Convert.ToInt32(cmd.ExecuteScalar());
+                }
+            }
+        }
+        public Task<int> GetCountSANKAsync()
+        {
+            return Task.Run(()=>GetCountSANK());
+        }
+
+
+        public bool GetIsSyncMainBD(Progress<string> progress)
+        {
+            OracleCMDWatcher watcher = null;
+            try
+            {
+                using (var con = new OracleConnection(this.connectionString))
+                {
+                    using (var cmd = new OracleCommand("select volum_control.IsSyncMainBD from dual", con))
+                    {
+                        con.Open();
+                        if (progress != null)
+                        {
+                            watcher = new OracleCMDWatcher(con, this.connectionString);
+                            watcher.StartWatch(500, progress);
+                        }
+                        return Convert.ToBoolean(cmd.ExecuteScalar());
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                watcher?.Dispose();
+            }
+        }
+        public Task<bool> GetIsSyncMainBDAsync(Progress<string> progress)
+        {
+            return Task.Run(()=>GetIsSyncMainBD(progress));
+        }
+
+
+
+        public DateTime? GetActDt()
+        {
+            using (var CONN = new OracleConnection(this.connectionString))
+            {
+                CONN.Open();
+                using (var cmd = new OracleCommand("select VOLUM_CONTROL.ACT_DT() from dual", CONN))
+                {
+                    var obj = cmd.ExecuteScalar();
+                    if (obj != null && obj != DBNull.Value)
+                    {
+                        return Convert.ToDateTime(obj);
+                    }
+                    return null;
+                }
+            }
+        }
+        public Task<DateTime?> GetActDtAsync()
+        {
+            return Task.Run(GetActDt);
+        }
+        public void VolumeCheck(Progress<string> progress)
+        {
+            OracleCMDWatcher watcher = null;
+            try
+            {
+                using (var con = new OracleConnection(this.connectionString))
+                {
+                    using (var cmd = new OracleCommand("VOLUM_CONTROL.VolumeCheck", con) { CommandType = System.Data.CommandType.StoredProcedure })
+                    {
+                        con.Open();
+                        if (progress != null)
+                        {
+                            watcher = new OracleCMDWatcher(con, this.connectionString);
+                            watcher.StartWatch(500, progress);
+                        }
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                watcher?.Dispose();
+            }
+        }
+        public Task VolumeCheckAsync(Progress<string> progress)
+        {
+            return Task.Run(()=>VolumeCheck(progress));
+        }
+
+
+        public void SyncBD(Progress<string> progress)
+        {
+            OracleCMDWatcher watcher = null;
+            try
+            {
+                using (var con = new OracleConnection(this.connectionString))
+                {
+                    using (var cmd = new OracleCommand("VOLUM_CONTROL.SyncMainBD", con) { CommandType = System.Data.CommandType.StoredProcedure })
+                    {
+                        con.Open();
+                        if (progress != null)
+                        {
+                            watcher = new OracleCMDWatcher(con, this.connectionString);
+                            watcher.StartWatch(500, progress);
+                        }
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                watcher?.Dispose();
+            }
+        }
+
+        public Task SyncBDAsync(Progress<string> progress)
+        {
+            return Task.Run(() => VolumeCheck(progress));
+        }
+
+
+        public void SetActDt(DateTime dt)
+        {
+            using (var con = new OracleConnection(this.connectionString))
+            {
+                using (var cmd = new OracleCommand($"begin VOLUM_CONTROL.SetActDT('{dt:dd.MM.yyyy}'); end;", con))
+                {
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public Task SetActDtAsync(DateTime dt)
+        {
+            return Task.Run(() => SetActDt(dt));
+        }
+
+        public LimitStatus GetLimitStatus(int year, int month)
+        {
+            var result = new LimitStatus();
+            using (var con = new OracleConnection(this.connectionString))
+            {
+                using (var cmd = new OracleCommand($"select * from table(VOLUM_CONTROL.GetLimitStatus(:year,:month))", con))
+                {
+                    cmd.Parameters.Add("year", year);
+                    cmd.Parameters.Add("month", month);
+
+                    con.Open();
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            result.HasLimit = Convert.ToBoolean(reader[nameof(LimitStatus.HasLimit)]);
+                            result.IsBLOCK = Convert.ToBoolean(reader[nameof(LimitStatus.IsBLOCK)]);
+                        }
+                    }
+                    con.Close();
+                }
+            }
+            return result;
+        }
+
+        public Task<LimitStatus> GetLimitStatusAsync(int year, int month)
+        {
+            return Task.Run(() => GetLimitStatus(year, month));
+        }
+
+        public void CalcLimit(int year, int month, Progress<string> progress)
+        {
+            OracleCMDWatcher watcher = null;
+            try
+            {
+                using (var con = new OracleConnection(this.connectionString))
+                {
+                    using (var cmd = new OracleCommand("begin VOLUM_CONTROL.CalcLimit(:year,:month)); end;", con) )
+                    {
+                        cmd.Parameters.Add("year", year);
+                        cmd.Parameters.Add("month", month);
+                        con.Open();
+                        if (progress != null)
+                        {
+                            watcher = new OracleCMDWatcher(con, this.connectionString);
+                            watcher.StartWatch(500, progress);
+                        }
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                watcher?.Dispose();
+            }
+        }
+
+        public Task CalcLimitAsync(int year, int month, Progress<string> progress)
+        {
+            return Task.Run(() => CalcLimit(year, month, progress));
         }
     }
 
@@ -761,5 +1120,11 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
                 }
             }
         }
+    }
+
+    public class LimitStatus
+    {
+        public bool IsBLOCK { get; set; }
+        public bool HasLimit { get; set; }
     }
 }
