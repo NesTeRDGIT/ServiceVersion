@@ -130,6 +130,51 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
         /// <param name="progress"></param>
         Task CalcLimitAsync(int year, int month, Progress<string> progress);
 
+
+        /// <summary>
+        /// Получить статус Мэка прошлого периода
+        /// </summary>
+        /// <param name="progress"></param>
+        MekPPStatus GetStatusMekPP(int year, int month);
+        /// <summary>
+        /// Получить статус Мэка прошлого периода
+        /// </summary>
+        /// <param name="progress"></param>
+        Task<MekPPStatus> GetStatusMekPPAsync(int year, int month);
+
+        /// <summary>
+        /// Провести МЭК прошлого периода
+        /// </summary>
+        /// <param name="progress"></param>
+        void RaiseMekPP(int year, int month, Progress<string> progress);
+        /// <summary>
+        ///  Провести МЭК прошлого периода
+        /// </summary>
+        /// <param name="progress"></param>
+        Task RaiseMekPPAsync(int year, int month, Progress<string> progress);
+
+        /// <summary>
+        /// Актировать МЭК прошлого периода
+        /// </summary>
+        /// <param name="progress"></param>
+        void CreateActMekPP(int year, int month, Progress<string> progress);
+        /// <summary>
+        ///  Провести МЭК прошлого периода
+        /// </summary>
+        /// <param name="progress"></param>
+        Task CreateActMekPPAsync(int year, int month, Progress<string> progress);
+
+        /// <summary>
+        /// Отменить МЭК прошлого периода
+        /// </summary>
+        /// <param name="progress"></param>
+        void CancelActMekPP(int year, int month, Progress<string> progress);
+        /// <summary>
+        ///  Отменить МЭК прошлого периода
+        /// </summary>
+        /// <param name="progress"></param>
+        Task CancelActMekPPAsync(int year, int month, Progress<string> progress);
+
     }
 
     public class RepositoryVolumeControl : IRepositoryVolumeControl
@@ -441,7 +486,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
             {
                 using (var con = new OracleConnection(this.connectionString))
                 {
-                    using (var cmd = new OracleCommand("begin VOLUM_CONTROL.CalcLimit(:year,:month)); end;", con) )
+                    using (var cmd = new OracleCommand("begin VOLUM_CONTROL.CalcLimit(:year,:month); end;", con) )
                     {
                         cmd.Parameters.Add("year", year);
                         cmd.Parameters.Add("month", month);
@@ -469,6 +514,145 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
         public Task CalcLimitAsync(int year, int month, Progress<string> progress)
         {
             return Task.Run(() => CalcLimit(year, month, progress));
+        }
+
+        public MekPPStatus GetStatusMekPP(int year, int month)
+        {
+            var res = new MekPPStatus();
+            using (var con = new OracleConnection(this.connectionString))
+            {
+                using (var cmd = new OracleCommand("select * from table(MEK_P_P.GetStatusMekPP(:year,:month))", con))
+                {
+                    cmd.Parameters.Add("year", year);
+                    cmd.Parameters.Add("month", month);
+                    con.Open();
+                    var reader = cmd.ExecuteReader();
+                    while(reader.Read())
+                    {
+                        res.ActMekPP = Convert.ToBoolean( reader[nameof(MekPPStatus.ActMekPP)]);
+                        res.HasMekDefault = Convert.ToBoolean(reader[nameof(MekPPStatus.HasMekDefault)]);
+                        res.HasMekPP = Convert.ToBoolean(reader[nameof(MekPPStatus.HasMekPP)]);
+                    }                   
+                    con.Close();
+                    return res;
+                }
+            }
+        }
+
+        public Task<MekPPStatus> GetStatusMekPPAsync(int year, int month)
+        {
+            return Task.Run(() => GetStatusMekPP(year, month));
+        }
+
+        public void RaiseMekPP(int year, int month, Progress<string> progress)
+        {
+            OracleCMDWatcher watcher = null;
+            try
+            {
+                using (var con = new OracleConnection(this.connectionString))
+                {
+                    using (var cmd = new OracleCommand("begin MEK_P_P.RaiseMekPP; end;", con))
+                    {
+                        cmd.Parameters.Add("year", year);
+                        cmd.Parameters.Add("month", month);
+                        con.Open();
+                        if (progress != null)
+                        {
+                            watcher = new OracleCMDWatcher(con, this.connectionString);
+                            watcher.StartWatch(500, progress);
+                        }
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                watcher?.Dispose();
+            }
+        }
+
+        public Task RaiseMekPPAsync(int year, int month, Progress<string> progress)
+        {
+            return Task.Run(() => RaiseMekPPAsync(year, month, progress));
+        }
+
+        public void CreateActMekPP(int year, int month, Progress<string> progress)
+        {
+            OracleCMDWatcher watcher = null;
+            try
+            {
+                using (var con = new OracleConnection(this.connectionString))
+                {
+                    using (var cmd = new OracleCommand("begin MEK_P_P.ActMek_PP(:year,:month); end;", con))
+                    {
+                        cmd.Parameters.Add("year", year);
+                        cmd.Parameters.Add("month", month);
+                        con.Open();
+                        if (progress != null)
+                        {
+                            watcher = new OracleCMDWatcher(con, this.connectionString);
+                            watcher.StartWatch(500, progress);
+                        }
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                watcher?.Dispose();
+            }
+        }
+
+        public Task CreateActMekPPAsync(int year, int month, Progress<string> progress)
+        {
+            return Task.Run(() => CreateActMekPPAsync(year, month, progress));
+        }
+
+        public void CancelActMekPP(int year, int month, Progress<string> progress)
+        {
+            OracleCMDWatcher watcher = null;
+            try
+            {
+                using (var con = new OracleConnection(this.connectionString))
+                {
+                    using (var cmd = new OracleCommand("begin MEK_P_P.CancelMEK_PP(:year,:month); end;", con))
+                    {
+                        cmd.Parameters.Add("year", year);
+                        cmd.Parameters.Add("month", month);
+                        con.Open();
+                        if (progress != null)
+                        {
+                            watcher = new OracleCMDWatcher(con, this.connectionString);
+                            watcher.StartWatch(500, progress);
+                        }
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                watcher?.Dispose();
+            }
+        }
+
+        public Task CancelActMekPPAsync(int year, int month, Progress<string> progress)
+        {
+            return Task.Run(() => CancelActMekPP(year, month, progress));
         }
     }
 
@@ -1126,5 +1310,12 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
     {
         public bool IsBLOCK { get; set; }
         public bool HasLimit { get; set; }
+    }
+
+    public class MekPPStatus
+    {
+        public bool HasMekPP { get; set; }
+        public bool HasMekDefault { get; set; }
+        public bool ActMekPP { get; set; }
     }
 }

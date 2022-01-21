@@ -138,9 +138,9 @@
                             </GroupBox>
                             <GroupBox Header="Данные" Margin="0,51,0,0">
                                 <Grid>
-                                    <TextBox  HorizontalAlignment="Left" Margin="121,2,0,0" VerticalAlignment="Top" Width="313" Height="24" Text="{Binding VP.Period, StringFormat=MM.yyyy, Mode=OneWay}" IsReadOnly="True" />
-                                    <Label Content="Отчетный период" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108"/>
-                                    <TextBox  HorizontalAlignment="Left" Margin="121,57,0,0" VerticalAlignment="Top" Width="313" Height="24" IsReadOnly="True" >
+                                    <TextBox  HorizontalAlignment="Left" Margin="151,2,0,0" VerticalAlignment="Top" Width="313" Height="24" Text="{Binding VP.Period, StringFormat=MM.yyyy, Mode=OneWay}" IsReadOnly="True" />
+                                    <Label Content="Отчетный период" HorizontalAlignment="Left" VerticalAlignment="Top" Width="108" Height="30" Margin="0,2,0,0"/>
+                                    <TextBox  HorizontalAlignment="Left" Margin="151,90,0,0" VerticalAlignment="Top" Width="313" Height="24" IsReadOnly="True" >
                                         <TextBox.Style>
                                             <Style TargetType="TextBox">
                                                 <Style.Triggers>
@@ -158,9 +158,9 @@
                                             </Style>
                                         </TextBox.Style>
                                     </TextBox>
-                                    <Label Content="Наличие контроля" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,55,0,0"/>
-                                    <Label Content="Синхронизация БД" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,81,0,0"/>
-                                    <TextBox  HorizontalAlignment="Left" Margin="121,83,0,0" VerticalAlignment="Top" Width="313" Height="24"  IsReadOnly="True" >
+                                    <Label Content="Наличие контроля" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,90,0,0" Height="29"/>
+                                    <Label Content="Синхронизация БД" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,119,0,0" Height="29"/>
+                                    <TextBox  HorizontalAlignment="Left" Margin="151,119,0,0" VerticalAlignment="Top" Width="313" Height="24"  IsReadOnly="True" >
                                         <TextBox.Style>
                                             <Style TargetType="TextBox">
                                                 <Style.Triggers>
@@ -179,7 +179,7 @@
                                             </Style>
                                         </TextBox.Style>
                                     </TextBox>
-                                    <Button Content="Провести контроль объемов" HorizontalAlignment="Left" Height="24" Margin="439,57,0,0" VerticalAlignment="Top" Width="189" Command="{Binding ControlVolumeCommand}">
+                                    <Button Content="Провести контроль объемов" HorizontalAlignment="Left" Height="24" Margin="469,90,0,0" VerticalAlignment="Top" Width="189" Command="{Binding ControlVolumeCommand}">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource MainButton}">
                                                 <Style.Triggers>
@@ -190,7 +190,7 @@
                                             </Style>
                                         </Button.Style>
                                     </Button>
-                                    <Button Content="Провести синхронизацию" HorizontalAlignment="Left" Height="24" Margin="439,83,0,0" VerticalAlignment="Top" Width="189"  Command="{Binding SincBDCommand}">
+                                    <Button Content="Провести синхронизацию" HorizontalAlignment="Left" Height="24" Margin="469,119,0,0" VerticalAlignment="Top" Width="189"  Command="{Binding SincBDCommand}">
                                         <Button.Style>
                                             <Style TargetType="Button" BasedOn="{StaticResource MainButton}">
                                                 <Style.Triggers>
@@ -201,17 +201,17 @@
                                             </Style>
                                         </Button.Style>
                                     </Button>
-                                    <Label Content="Дата акта МЭК" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,110,0,0"/>
-                                    <TextBox  HorizontalAlignment="Left" Margin="121,112,0,0" VerticalAlignment="Top" Width="88" Height="24"  IsReadOnly="True" Text="{Binding Path=VP.CurrActDt, StringFormat=dd.MM.yyyy}" >
+                                    <Label Content="Дата акта МЭК" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,148,0,0" Height="24"/>
+                                    <TextBox  HorizontalAlignment="Left" Margin="151,148,0,0" VerticalAlignment="Top" Width="88" Height="24"  IsReadOnly="True" Text="{Binding Path=VP.CurrActDt, StringFormat=dd.MM.yyyy}" >
 
                                     </TextBox>
-                                    <Button Content="Установить дату акта" HorizontalAlignment="Left" Height="24" Margin="439,112,0,0" VerticalAlignment="Top" Width="189"  x:Name="ButtonSetActDate"  Style="{StaticResource MainButton}" Command="{Binding SetActDtCommand}"/>
-                                    <DatePicker  HorizontalAlignment="Left" Margin="299,112,0,0" VerticalAlignment="Top" Width="135" SelectedDate="{Binding VP.NewActDt, Mode=TwoWay}"/>
-                                    <TextBox  HorizontalAlignment="Left" Margin="121,28,0,0" VerticalAlignment="Top" Width="313" Height="24" IsReadOnly="True" Text="{Binding VP.LimitStatus, Mode=OneWay}" >
+                                    <Button Content="Установить дату акта" HorizontalAlignment="Left" Height="24" Margin="469,148,0,0" VerticalAlignment="Top" Width="189"  x:Name="ButtonSetActDate"  Style="{StaticResource MainButton}" Command="{Binding SetActDtCommand}"/>
+                                    <DatePicker  HorizontalAlignment="Left" Margin="329,148,0,0" VerticalAlignment="Top" Width="135" SelectedDate="{Binding VP.NewActDt, Mode=TwoWay}"/>
+                                    <TextBox  HorizontalAlignment="Left" Margin="151,61,0,0" VerticalAlignment="Top" Width="313" Height="24" IsReadOnly="True" Text="{Binding VP.LimitStatus, Mode=OneWay}" >
                                         <TextBox.Style>
                                             <Style TargetType="{x:Type TextBox}">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding VP.HasLimit, Mode=OneWay}" Value="True">                                                  
+                                                    <DataTrigger Binding="{Binding VP.HasLimit, Mode=OneWay}" Value="True">
                                                         <Setter Property="Background" Value="YellowGreen"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding VP.IsBlockLimit, Mode=OneWay}" Value="True">
@@ -221,8 +221,8 @@
                                             </Style>
                                         </TextBox.Style>
                                     </TextBox>
-                                    <Label Content="Наличие лимитов" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,26,0,0"/>
-                                    <Button Content="Расчет лимитов" HorizontalAlignment="Left" Height="24" Margin="439,28,0,0" VerticalAlignment="Top" Width="189" Command="{Binding CalcLimitCommand}">
+                                    <Label Content="Наличие лимитов" HorizontalAlignment="Left" VerticalAlignment="Top" Width="121" Margin="0,61,0,0" Height="24"/>
+                                    <Button Content="Расчет лимитов" HorizontalAlignment="Left" Height="24" Margin="469,61,0,0" VerticalAlignment="Top" Width="189" Command="{Binding CalcLimitCommand}">
                                         <Button.Style>
                                             <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MainButton}">
                                                 <Style.Triggers>
@@ -230,6 +230,74 @@
                                                         <Setter Property="IsEnabled" Value="False"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding VP.IsBlockLimit, Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.ActMekPP, Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.ActMekPP, Mode=OneWay}" Value="False">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+
+                                    <Label Content="МЭК прошлых периодов" HorizontalAlignment="Left" VerticalAlignment="Top" Width="188" Margin="0,32,0,0" Height="27"/>
+                                    <TextBox  HorizontalAlignment="Left" Margin="151,32,0,0" VerticalAlignment="Top" Width="313" Height="24" IsReadOnly="True" Text="{Binding VP.MekPPStatus, Mode=OneWay}" >
+                                        <TextBox.Style>
+                                            <Style TargetType="{x:Type TextBox}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.ActMekPP, Mode=OneWay}" Value="True">
+                                                        <Setter Property="Background" Value="YellowGreen"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBox.Style>
+                                    </TextBox>
+
+                                    <Button Content="Провести МЭК(ПП)" HorizontalAlignment="Left" Height="24" Margin="469,32,0,0" VerticalAlignment="Top" Width="124" Command="{Binding RaiseMekPPCommand}">
+                                        <Button.Style>
+                                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MainButton}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.HasMekDefault, Mode=OneWay}" Value="True">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.HasMekDefault, Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.ActMekPP, Mode=OneWay}" Value="True">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Button Content="Актировать МЭК(ПП)" HorizontalAlignment="Left" Height="24" Margin="598,32,0,0" VerticalAlignment="Top" Width="125" Command="{Binding CalcLimitCommand}">
+                                        <Button.Style>
+                                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MainButton}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.ActMekPP, Mode=OneWay}" Value="True">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.ActMekPP, Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                    </Button>
+                                    <Button Content="Отменить МЭК(ПП)" HorizontalAlignment="Left" Height="24" Margin="728,32,0,0" VerticalAlignment="Top" Width="125" Command="{Binding CancelMEK_PPCommand}">
+                                        <Button.Style>
+                                            <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MainButton}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding VP.ActMekPP, Mode=OneWay}" Value="False">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.ActMekPP, Mode=OneWay}" Value="{x:Null}">
+                                                        <Setter Property="IsEnabled" Value="False"/>
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding VP.IsBlockLimit, Mode=OneWay}" Value="True">
                                                         <Setter Property="IsEnabled" Value="False"/>
                                                     </DataTrigger>
                                                 </Style.Triggers>

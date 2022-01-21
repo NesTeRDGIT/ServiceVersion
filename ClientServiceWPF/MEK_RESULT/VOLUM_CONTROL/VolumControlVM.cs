@@ -53,6 +53,13 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
                     var limitStatus = await repository.GetLimitStatusAsync(VP.Period.Value.Year, VP.Period.Value.Month);
                     VP.HasLimit = limitStatus.HasLimit;
                     VP.IsBlockLimit = limitStatus.IsBLOCK;
+
+                    ProgressMain.Text = "Запрос данных о МЭК прошлых периодов";
+                    var mekppStatus = await repository.GetStatusMekPPAsync(VP.Period.Value.Year, VP.Period.Value.Month);
+                    VP.HasMekPP = mekppStatus.HasMekPP;
+                    VP.HasMekDefault = mekppStatus.HasMekDefault;
+                    VP.ActMekPP = mekppStatus.ActMekPP;
+
                 }
                 ProgressMain.Text = "Запрос наличия санкций";
                 VP.CountSANK = await repository.GetCountSANKAsync();
@@ -74,16 +81,105 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
             }
         }, o=> !ProgressMain.IsOperationRun);
 
+
+
+        public ICommand RaiseMekPPCommand => new Command(async obj =>
+        {
+            try
+            {
+                if(VP.Period.HasValue)
+                {
+                    ProgressMain.IsIndeterminate = ProgressMain.IsOperationRun = true;
+                    ProgressMain.Text = "Проведение МЭК прошлых периодов";
+                    await repository.RaiseMekPPAsync(VP.Period.Value.Year, VP.Period.Value.Month, new Progress<string>(mes =>
+                    {
+                        ProgressMain.Text = $"Проведение МЭК прошлых периодов: {mes}";
+                    }));
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                ProgressMain.Clear();
+                RefreshStatusCommand.Execute(null);
+            }
+
+        }, o => !ProgressMain.IsOperationRun && VP.Period.HasValue);
+
+
+        public ICommand ActMekPPCommand => new Command(async obj =>
+        {
+            try
+            {
+                if (VP.Period.HasValue)
+                {
+                    ProgressMain.IsIndeterminate = ProgressMain.IsOperationRun = true;
+                    ProgressMain.Text = "Актирование МЭК прошлых периодов";
+                    await repository.CreateActMekPPAsync(VP.Period.Value.Year, VP.Period.Value.Month, new Progress<string>(mes =>
+                    {
+                        ProgressMain.Text = $"Актирование МЭК прошлых периодов: {mes}";
+                    }));
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                ProgressMain.Clear();
+                RefreshStatusCommand.Execute(null);
+            }
+
+        }, o => !ProgressMain.IsOperationRun && VP.Period.HasValue);
+
+
+        public ICommand CancelMEK_PPCommand => new Command(async obj =>
+        {
+            try
+            {
+                if (VP.Period.HasValue)
+                {
+                    if(MessageBox.Show("Вы уверены, что хотите отменить МЭК прошлых периодов? Текущие результаты будет не возможно востановить","", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
+                    {
+                        ProgressMain.IsIndeterminate = ProgressMain.IsOperationRun = true;
+                        ProgressMain.Text = "Отмена МЭК прошлых периодов";
+                        await repository.CancelActMekPPAsync(VP.Period.Value.Year, VP.Period.Value.Month, new Progress<string>(mes =>
+                        {
+                            ProgressMain.Text = $"Отмена МЭК прошлых периодов: {mes}";
+                        }));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                ProgressMain.Clear();
+                RefreshStatusCommand.Execute(null);
+            }
+
+        }, o => !ProgressMain.IsOperationRun && VP.Period.HasValue);
+
+
         public ICommand CalcLimitCommand => new Command(async obj =>
         {
             try
             {
-                ProgressMain.IsIndeterminate = ProgressMain.IsOperationRun = true;
-                ProgressMain.Text = "Расчет лимитов";
-                await repository.VolumeCheckAsync(new Progress<string>(mes =>
+                if (VP.Period.HasValue)
                 {
-                    ProgressMain.Text = $"Расчет лимитов: {mes}";
-                }));
+                    ProgressMain.IsIndeterminate = ProgressMain.IsOperationRun = true;
+                    ProgressMain.Text = "Расчет лимитов";
+                    await repository.CalcLimitAsync(VP.Period.Value.Year, VP.Period.Value.Month,new Progress<string>(mes =>
+                    {
+                        ProgressMain.Text = $"Расчет лимитов: {mes}";
+                    }));
+                }
             }
             catch (Exception e)
             {
@@ -190,7 +286,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
 
     }
 
-    public class VOLUME_PARAM:INotifyPropertyChanged
+    public class VOLUME_PARAM : INotifyPropertyChanged
     {
         private DateTime? _period;
         public DateTime? Period
@@ -268,8 +364,81 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
             }
         }
 
-        public string LimitStatus => (!HasLimit.HasValue ? "Нет данных" : HasLimit.Value ? "Лимиты присутствуют" : "Лимиты отсутствуют")+ (!IsBlockLimit.HasValue?"": HasLimit.Value ? "(Блокированы)" : "(Доступны для пересчета)");
+        public string LimitStatus => (!HasLimit.HasValue ? "Нет данных" : HasLimit.Value ? "Лимиты присутствуют" : "Лимиты отсутствуют") + (!IsBlockLimit.HasValue ? "" : IsBlockLimit.Value ? "(Блокированы)" : "(Доступны для пересчета)");
 
+        private bool? _HasMekPP;
+        /// <summary>
+        /// Наличие МЭК прошлого периода в БД
+        /// </summary>
+        public bool? HasMekPP
+        {
+            get => _HasMekPP;
+            set
+            {
+                _HasMekPP = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(MekPPStatus));
+            }
+        }
+        private bool? _HasMekDefault;
+        /// <summary>
+        /// Наличия аката МЭК прошлого периода по умолчанию
+        /// </summary>
+        public bool? HasMekDefault
+        {
+            get => _HasMekDefault;
+            set
+            {
+                _HasMekDefault = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(MekPPStatus));
+            }
+        }
+        private bool? _ActMekPP;
+        /// <summary>
+        /// Актирован ли мэк прошлого периода,т.е. завершен
+        /// </summary>
+        public bool? ActMekPP
+        {
+            get => _ActMekPP;
+            set
+            {
+                _ActMekPP = value;
+                RaisePropertyChanged();
+                RaisePropertyChanged(nameof(MekPPStatus));
+            }
+        }
+      
+        public string MekPPStatus
+        {
+            get
+            {
+                if (!HasMekPP.HasValue || !HasMekDefault.HasValue || !ActMekPP.HasValue)
+                    return "Нет данных";
+              
+                if(ActMekPP.Value)
+                    return "МЭК прошлого периода завершен";
+                else
+                {
+                    if(HasMekPP.Value)
+                    {
+                        if (HasMekDefault.Value)
+                        {
+                            return "МЭК прошлого периода ожидает актирования";
+                        }
+                        else
+                        {
+                            return "МЭК прошлого периода присутствует, но отказы по умолчанию отсутствуют";
+                        }
+                    }
+                    else
+                    {
+                        return "МЭК прошлого периода отсутствует";
+                    }
+                }
+               
+            }
+        }
         #region INotifyPropertyChanged
 
         public event PropertyChangedEventHandler PropertyChanged;
