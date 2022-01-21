@@ -1141,7 +1141,7 @@
                     <format xsi:type="TypeSComplex" />
                     <Elements>
                       <SchemaElement>
-                        <name>DATE_INJ</name>
+                        <name>DATA_INJ</name>
                         <Type>O</Type>
                         <Unique>false</Unique>
                         <UniqueGlobal>false</UniqueGlobal>
