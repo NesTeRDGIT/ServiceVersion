@@ -724,7 +724,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
                 if (row[nameof(EntityMP_V31.REF.FIRST_CODE)]!=DBNull.Value)
                 {
-                    item.REF = new REF {FIRST_CODE = Convert.ToInt64(row[nameof(EntityMP_V31.REF.FIRST_CODE)]), FIRST_MONTH = Convert.ToInt32(row[nameof(EntityMP_V31.REF.FIRST_CODE)]), FIRST_YEAR = Convert.ToInt32(row[nameof(EntityMP_V31.REF.FIRST_CODE)])};
+                    item.REF = new REF {FIRST_CODE = Convert.ToInt64(row[nameof(EntityMP_V31.REF.FIRST_CODE)]), FIRST_MONTH = Convert.ToInt32(row[nameof(EntityMP_V31.REF.FIRST_MONTH)]), FIRST_YEAR = Convert.ToInt32(row[nameof(EntityMP_V31.REF.FIRST_YEAR)])};
                 }
                 return item;
             }
@@ -1362,7 +1362,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     item.VID_HMP = row[nameof(VID_HMP)].ToString();
                 if (row[nameof(C_ZAB)] != DBNull.Value)
                     item.C_ZAB = Convert.ToDecimal(row[nameof(C_ZAB)]);
-                if (row[nameof(WEI)] != DBNull.Value)
+               
+                if (row[nameof(WEI)] != DBNull.Value && row[nameof(EntityMP_V31.ONK_SL.DS1_T)] == DBNull.Value)
                     item.WEI = Convert.ToDecimal(row[nameof(WEI)]);
                 item.DS2.Clear();
                 foreach(var ds2 in DS2tbl)

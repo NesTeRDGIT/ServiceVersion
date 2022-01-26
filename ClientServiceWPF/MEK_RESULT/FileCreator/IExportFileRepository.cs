@@ -722,6 +722,8 @@ where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(
         public int MONTH { get; set; }
         public int YEAR_BASE { get; set; }
         public int MONTH_BASE { get; set; }
+        public int YEAR_SANK { get; set; }
+        public int MONTH_SANK { get; set; }
         public bool DOP { get; set; }
         public string SMO { get; set; } = null;
 
@@ -735,13 +737,15 @@ where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(
             {
                 var item = new V_EXPORT_H_ZGLVRow
                 {
-                    ZGLV_ID = Convert.ToInt32(row["ZGLV_ID"]),
-                    FILENAME = Convert.ToString(row["FILENAME"]),
-                    CODE_MO = Convert.ToString(row["CODE_MO"]),
-                    YEAR = Convert.ToInt32(row["YEAR"]),
-                    MONTH = Convert.ToInt32(row["MONTH"]),
-                    YEAR_BASE = Convert.ToInt32(row["YEAR_BASE"]),
-                    MONTH_BASE = Convert.ToInt32(row["MONTH_BASE"]),
+                    ZGLV_ID = Convert.ToInt32(row[nameof(ZGLV_ID)]),
+                    FILENAME = Convert.ToString(row[nameof(FILENAME)]),
+                    CODE_MO = Convert.ToString(row[nameof(CODE_MO)]),
+                    YEAR = Convert.ToInt32(row[nameof(YEAR)]),
+                    MONTH = Convert.ToInt32(row[nameof(MONTH)]),
+                    YEAR_BASE = Convert.ToInt32(row[nameof(YEAR_BASE)]),
+                    MONTH_BASE = Convert.ToInt32(row[nameof(MONTH_BASE)]),
+                    YEAR_SANK = Convert.ToInt32(row[nameof(YEAR_SANK)]),
+                    MONTH_SANK = Convert.ToInt32(row[nameof(MONTH_SANK)]),
                     DOP = Convert.ToBoolean(row[nameof(DOP)])
                    
                 };

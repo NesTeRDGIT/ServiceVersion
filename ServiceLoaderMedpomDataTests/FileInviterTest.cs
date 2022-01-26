@@ -13,7 +13,7 @@ using MedpomService;
 using System.Windows.Controls;
 using Moq;
 using ServiceLoaderMedpomData.EntityMP_V31;
-
+using System.Globalization;
 
 namespace ServiceLoaderMedpomDataTests
 {
@@ -30,10 +30,7 @@ namespace ServiceLoaderMedpomDataTests
         [TestMethod, Description("Проверка архивов")]
         public void CheckArchiveHelper()
         {
-          /*  FilesHelper.CreateArchive(@"C:\TEMP\1.zip",new Progress<ZipArchiverProgress>(o=> {
-                var t = o;
-            }), new ZipArchiverEntry(@"C:\TEMP\TEST_MP"), new ZipArchiverEntry(@"C:\TEMP\HM750004T75_211262.XML"), new ZipArchiverEntry(@"C:\TEMP\2KVPO75_2111.xlsx"));
-          */
+            var t = (0.23).ToString("N2", new CultureInfo("RU-ru"));
         }
 
 

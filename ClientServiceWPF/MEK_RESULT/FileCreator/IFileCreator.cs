@@ -883,7 +883,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         public void CreateSMOMail(List<V_EXPORT_H_ZGLVRowVM> items, string folder, TypeFileCreate typeFileCreate, CancellationToken cancel, IProgress<ProgressItemDouble> progress)
         {
             var progressItem = new ProgressItemDouble();
-            var groupList = items.SelectMany(x => x.Results.Select(y => new { x.Item.YEAR, x.Item.MONTH, Result = y })).Where(x => x.Result.Result).GroupBy(x => new { x.Result.SMO, x.YEAR, x.MONTH }).ToList();
+            var groupList = items.SelectMany(x => x.Results.Select(y => new { x.Item.YEAR_SANK, x.Item.MONTH_SANK, Result = y })).Where(x => x.Result.Result).GroupBy(x => new { x.Result.SMO, x.YEAR_SANK, x.MONTH_SANK }).ToList();
             var countGr = groupList.Count;
             var i = 1;
             progressItem.progress1.SetValues(countGr, 0, "Сбор файлов в архив");
@@ -893,7 +893,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             foreach (var gr in groupList)
             {
                 cancel.ThrowIfCancellationRequested();
-                var nameArchive = $"{(typeFileCreate == TypeFileCreate.SMO ? "Реестры" : "МЭК прошлых периодов")} {gr.Key.SMO} за {gr.Key.MONTH:D2}.{gr.Key.YEAR}.ZIP";
+                var nameArchive = $"{(typeFileCreate == TypeFileCreate.SMO ? "Реестры" : "МЭК прошлых периодов")} {gr.Key.SMO} за {gr.Key.MONTH_SANK:D2}.{gr.Key.YEAR_SANK}.ZIP";
                 var pathArchive = Path.Combine(folder, nameArchive);
                 progressItem.progress1.SetTextValue(i, $"Сбор файлов в архив: {nameArchive}");
                 progress?.Report(progressItem);
@@ -922,7 +922,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         public void CreateMOMail(List<V_EXPORT_H_ZGLVRowVM> items, string folder, TypeFileCreate typeFileCreate, CancellationToken cancel, IProgress<ProgressItemDouble> progress)
         {
             var progressItem = new ProgressItemDouble();
-            var groupList = items.Where(x => x.PathArc.Count != 0).GroupBy(x => new { x.Item.YEAR, x.Item.MONTH, x.Item.CODE_MO }).ToList();
+            var groupList = items.Where(x => x.PathArc.Count != 0).GroupBy(x => new { x.Item.YEAR_SANK, x.Item.MONTH_SANK, x.Item.CODE_MO }).ToList();
             var countGr = groupList.Count;
             var i = 1;
             progressItem.progress1.SetValues(countGr, 0, "Сбор файлов в архив");
@@ -930,7 +930,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             foreach (var gr in groupList)
             {
                 cancel.ThrowIfCancellationRequested();
-                var nameArchive = $"{(typeFileCreate == TypeFileCreate.MO ? "Результаты МЭК" : "МЭК прошлых периодов")} {gr.Key.CODE_MO} за {gr.Key.MONTH:D2}.{gr.Key.YEAR}.ZIP";
+                var nameArchive = $"{(typeFileCreate == TypeFileCreate.MO ? "Результаты МЭК" : "МЭК прошлых периодов")} {gr.Key.CODE_MO} за {gr.Key.MONTH_SANK:D2}.{gr.Key.YEAR_SANK}.ZIP";
                 var pathArchive = Path.Combine(folder, nameArchive);
 
                 progressItem.progress1.SetTextValue(i, $"Сбор файлов в архив: {nameArchive}");

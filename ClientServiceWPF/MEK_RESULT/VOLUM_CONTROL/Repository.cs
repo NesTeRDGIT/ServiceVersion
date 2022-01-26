@@ -175,6 +175,22 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
         /// <param name="progress"></param>
         Task CancelActMekPPAsync(int year, int month, Progress<string> progress);
 
+
+        /// <summary>
+        /// Синхронизировать акты МЭК прошлых периодов
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="progress"></param>
+        void SyncDTMEK_P_P(int year, int month, Progress<string> progress);
+        /// <summary>
+        /// Синхронизировать акты МЭК прошлых периодов
+        /// </summary>
+        /// <param name="year"></param>
+        /// <param name="month"></param>
+        /// <param name="progress"></param>
+        /// <returns></returns>
+        Task SyncActMekPPAsync(int year, int month, Progress<string> progress);
     }
 
     public class RepositoryVolumeControl : IRepositoryVolumeControl
@@ -428,7 +444,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
 
         public Task SyncBDAsync(Progress<string> progress)
         {
-            return Task.Run(() => VolumeCheck(progress));
+            return Task.Run(() => SyncBD(progress));
         }
 
 
@@ -532,6 +548,8 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
                         res.ActMekPP = Convert.ToBoolean( reader[nameof(MekPPStatus.ActMekPP)]);
                         res.HasMekDefault = Convert.ToBoolean(reader[nameof(MekPPStatus.HasMekDefault)]);
                         res.HasMekPP = Convert.ToBoolean(reader[nameof(MekPPStatus.HasMekPP)]);
+                        if(reader[nameof(MekPPStatus.CurrActPPDt)]!=DBNull.Value)
+                            res.CurrActPPDt = Convert.ToDateTime(reader[nameof(MekPPStatus.CurrActPPDt)]);
                     }                   
                     con.Close();
                     return res;
@@ -653,6 +671,43 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
         public Task CancelActMekPPAsync(int year, int month, Progress<string> progress)
         {
             return Task.Run(() => CancelActMekPP(year, month, progress));
+        }
+
+        public void SyncDTMEK_P_P(int year, int month, Progress<string> progress)
+        {
+            OracleCMDWatcher watcher = null;
+            try
+            {
+                using (var con = new OracleConnection(this.connectionString))
+                {
+                    using (var cmd = new OracleCommand("begin MEK_P_P.SincDTMEK_P_P(:year,:month); end;", con))
+                    {
+                        cmd.Parameters.Add("year", year);
+                        cmd.Parameters.Add("month", month);
+                        con.Open();
+                        if (progress != null)
+                        {
+                            watcher = new OracleCMDWatcher(con, this.connectionString);
+                            watcher.StartWatch(500, progress);
+                        }
+                        cmd.ExecuteNonQuery();
+                        con.Close();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw ex;
+            }
+            finally
+            {
+                watcher?.Dispose();
+            }
+        }
+
+        public Task SyncActMekPPAsync(int year, int month, Progress<string> progress)
+        {
+            return Task.Run(() => SyncDTMEK_P_P(year, month, progress));
         }
     }
 
@@ -1317,5 +1372,6 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
         public bool HasMekPP { get; set; }
         public bool HasMekDefault { get; set; }
         public bool ActMekPP { get; set; }
+        public DateTime? CurrActPPDt { get; set; }
     }
 }

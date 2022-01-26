@@ -59,6 +59,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
                     VP.HasMekPP = mekppStatus.HasMekPP;
                     VP.HasMekDefault = mekppStatus.HasMekDefault;
                     VP.ActMekPP = mekppStatus.ActMekPP;
+                    VP.CurrActPPDt = mekppStatus.CurrActPPDt;
 
                 }
                 ProgressMain.Text = "Запрос наличия санкций";
@@ -270,6 +271,32 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
 
         }, o => !ProgressMain.IsOperationRun);
 
+        public ICommand SincActDtMEKPPCommand => new Command(async obj =>
+        {
+            try
+            {
+                if (VP.Period.HasValue)
+                {
+                    ProgressMain.IsIndeterminate = ProgressMain.IsOperationRun = true;
+                    ProgressMain.Text = "Синхронизация актов МЭК прошлых периодов";
+                    await repository.SyncActMekPPAsync(VP.Period.Value.Year, VP.Period.Value.Month, new Progress<string>(mes =>
+                    {
+                        ProgressMain.Text = $"Синхронизация актов МЭК прошлых периодов: {mes}";
+                    }));
+                }
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+            finally
+            {
+                ProgressMain.Clear();
+                RefreshStatusCommand.Execute(null);
+            }
+
+        }, o => !ProgressMain.IsOperationRun);
+
 
 
         #region INotifyPropertyChanged
@@ -326,6 +353,16 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
             set
             {
                 _CurrActDt = value;
+                RaisePropertyChanged();
+            }
+        }
+        private DateTime? _CurrActPPDt { get; set; }
+        public DateTime? CurrActPPDt
+        {
+            get => _CurrActPPDt;
+            set
+            {
+                _CurrActPPDt = value;
                 RaisePropertyChanged();
             }
         }
