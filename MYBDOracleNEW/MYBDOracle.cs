@@ -1198,7 +1198,7 @@ values
             try
             {
                 if (!Items.Any()) return;
-                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {LEK_PR_H_TBL.FullTableName}  (SLUCH_ID,CODE_SH,COD_MARK,DATE_INJ,REGNUM,COL_INJ,DOSE_INJ,ED_IZM,METHOD_INJ) values (:SLUCH_ID,:CODE_SH,:COD_MARK,:DATE_INJ,:REGNUM,:COL_INJ,:DOSE_INJ,:ED_IZM,:METHOD_INJ)", con);
+                cmd = NewOracleCommand($@"insert /*+ APPEND */ into {LEK_PR_H_TBL.FullTableName}  (SLUCH_ID,CODE_SH,COD_MARK,DATA_INJ,REGNUM,COL_INJ,DOSE_INJ,ED_IZM,METHOD_INJ) values (:SLUCH_ID,:CODE_SH,:COD_MARK,:DATA_INJ,:REGNUM,:COL_INJ,:DOSE_INJ,:ED_IZM,:METHOD_INJ)", con);
                 cmd.ArrayBindCount = Items.Count;
                 cmd.BindByName = true;
 

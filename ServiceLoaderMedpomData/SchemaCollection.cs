@@ -1186,6 +1186,7 @@ namespace ServiceLoaderMedpomData
         public XML_Element<string> REAB { get; set; } = new XML_Element<string>();
         public XML_Element<string> C_ZAB { get; set; } = new XML_Element<string>();
         public XML_Element<string> PR_D_N { get; set; } = new XML_Element<string>();
+     
         public bool IsCONS { get; set; }
         public bool IsONK_SL { get; set; }
         public bool IsWEI { get; set; }
@@ -1245,6 +1246,7 @@ namespace ServiceLoaderMedpomData
 
     class MyValidatorV31 : IValidatorXML
     {
+        DepthXML depthXml = new DepthXML();
         private bool IsValidateRef { get;  }
         private readonly DateTime DT_04_2020 = new DateTime(2020, 04, 01);
         private readonly DateTime DT_03_2021 = new DateTime(2021, 03, 01);
@@ -1257,17 +1259,9 @@ namespace ServiceLoaderMedpomData
         private XML_SANK_item SANK { get;  } = new XML_SANK_item();
         private XML_Pacient_item PACIENT { get;  } = new XML_Pacient_item();
         private XML_MR_USL_N_item MR_USL_N { get; } = new XML_MR_USL_N_item();
-        
-
-
-        public MyValidatorV31(ErrorActionEvent err, bool IsValidateRef)
-        {
-            Error = err;
-            this.IsValidateRef = IsValidateRef;
-        }
-
         public event ErrorActionEvent Error;
 
+        #region Helper
         private XML_Element<string> CreateStringXML_Element(XmlReader r)
         {
             return new XML_Element<string>(r.Value, PositionRecord.Get(r));
@@ -1294,7 +1288,12 @@ namespace ServiceLoaderMedpomData
             decimal val;
             return decimal.TryParse(r.Value, NumberStyles.Float, new NumberFormatInfo() { NumberDecimalSeparator = "." }, out val) ? new XML_Element<decimal?>(val, PositionRecord.Get(r)) : new XML_Element<decimal?>(null, PositionRecord.Get(r));
         }
-
+        #endregion Helper
+        public MyValidatorV31(ErrorActionEvent err, bool IsValidateRef)
+        {
+            Error = err;
+            this.IsValidateRef = IsValidateRef;
+        }
         public void Check(XmlReader reader)
         {
             depthXml.NextNode(reader);
@@ -1481,9 +1480,6 @@ namespace ServiceLoaderMedpomData
 
 
         }
-        DepthXML depthXml = new DepthXML();
-
-
         private void CheckSANK()
         {
             if (SANK.S_SUM.value != 0 && SANK.SL_ID.Count == 0)
@@ -1492,7 +1488,6 @@ namespace ServiceLoaderMedpomData
                 Error(XmlSeverityType.Error, SANK.S_OSN.POS.LINE, SANK.S_OSN.POS.POS, @"Для санкций ЭКМП CODE_EXP обязательно к заполнению", "SANK");
          
         }
-
         private void CheckZ_SL()
         {
             if (Math.Round(Z_SL.SUMV.value, 2) != Math.Round(Z_SL.SUM_M_SUM, 2))
@@ -1518,16 +1513,15 @@ namespace ServiceLoaderMedpomData
 
             }
         }
-
-
         private void CheckSL()
         {
             if (SCHET.TypeFile == XML_FileType.H && SCHET.DateFile >= DT_01_2022)
             {
-                if(!SL.IsWEI && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value!="1" && SL.CRIT.Select(x=>x.value).Count(x=>x== "stt5")==0)
-                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле WEI обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5", "WEI", "ERR_SL_WEI_1");
-                if (!SL.IsLEK_PR && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0)
-                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5", "LEK_PR", "ERR_SL_LEK_PR_1");
+                //dsadasdasdsad
+                if(!SL.IsWEI && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value!="1" && !Z_SL.USL_OK.value.In("3","4")  && SL.CRIT.Select(x=>x.value).Count(x=>x== "stt5")==0)
+                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле WEI обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5 и USL_OK<>(3,4)", "WEI", "ERR_SL_WEI_1");
+                if (!SL.IsLEK_PR && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && !Z_SL.USL_OK.value.In("3", "4") && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0)
+                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5 и USL_OK<>(3,4)", "LEK_PR", "ERR_SL_LEK_PR_1");
             }
         }
         private void CheckUSL()
@@ -1544,7 +1538,6 @@ namespace ServiceLoaderMedpomData
                     Error(XmlSeverityType.Error, USL.PRVS.POS.LINE, USL.PRVS.POS.POS, "Поле PRVS не подлежит заполнению при USL\\P_OTK = 1", "PRVS");
             }
         }
-
         private void CheckPACIENT()
         {
             if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_08_2021 || SCHET.TypeFile == XML_FileType.H && SCHET.DateFile >= DT_01_2022)
@@ -1592,7 +1585,6 @@ namespace ServiceLoaderMedpomData
                     Error(XmlSeverityType.Error, MR_USL_N.PRVS.POS.LINE, MR_USL_N.PRVS.POS.POS, "Поле PRVS не подлежит заполнению при USL\\P_OTK = 1", "PRVS", "ERR_MR_USL_N_4");
             }
         }
-
         private DateTime DT_10_2021 = new DateTime(2021, 10, 1);
         private void CheckONK()
         {
@@ -1691,7 +1683,6 @@ namespace ServiceLoaderMedpomData
                     Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле PR_D_N обязательно к заполнению при DS1 не пустое", "DS1");
             }
         }
-
         private void CheckSCHET()
         {
             if (SCHET.SD_Z.value.HasValue)
@@ -1709,8 +1700,6 @@ namespace ServiceLoaderMedpomData
                 }
             }
         }
-
-
         public void Close()
         {
             CheckSCHET();
@@ -1727,23 +1716,19 @@ namespace ServiceLoaderMedpomData
             Depth++;
             Nodes.Add(Name);
         }
-
         private void RemoveDepth()
         {
             Depth--;
             Nodes.RemoveAt(Nodes.Count-1);
         }
-
         private void SetLast(string Name)
         {
             Nodes.Remove(Nodes.Last());
             Nodes.Add(Name);
         }
-        
         public string Path => string.Join("/", Nodes);
         public void NextNode(XmlReader r)
         {
-           
             if (r.NodeType == XmlNodeType.Element)
             {
                 var comp = r.Depth.CompareTo(Depth);
@@ -1756,7 +1741,6 @@ namespace ServiceLoaderMedpomData
                    
                 }
             }
-
             if (r.NodeType == XmlNodeType.EndElement)
             {
                 var comp = r.Depth.CompareTo(Depth);
