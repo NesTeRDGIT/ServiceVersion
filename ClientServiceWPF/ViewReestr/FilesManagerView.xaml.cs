@@ -214,17 +214,17 @@ namespace ClientServiceWPF
                     try
                     {
                         FM.AddRange(wcf.GetFileManagerList());
+                        dispatcher.Invoke(() =>
+                        {
+                            StatusOperation.Text = @"Обновление списка...";
+                            RefreshDate(FM);
+                        });
                     }
                     catch (Exception ex)
                     {
                         MessageBox.Show(ex.Message);
                     }
                 }
-                dispatcher.Invoke(() =>
-                {
-                    StatusOperation.Text = @"Обновление списка...";
-                    RefreshDate(FM);
-                });
             });
         }
         private void RefreshDate(List<FilePacket> list)
