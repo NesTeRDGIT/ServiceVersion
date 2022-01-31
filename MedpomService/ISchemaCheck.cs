@@ -206,11 +206,10 @@ namespace MedpomService
                     var FileXSD = FindXSD(SC, vers_file, dt_file, item);
                     var LFileXSD = FindXSD(SC, vers_file_l, dt_file, item.filel);
 
-
-                    pack.Comment = $"Обработка пакета: Проверка схемы файла {item.FileName}";
-                    CheckXSD(item, FileXSD);
                     pack.Comment = $"Обработка пакета: Проверка схемы файла {item.filel.FileName}";
-                    CheckXSD(item.filel, LFileXSD);
+                    var resL = CheckXSD(item.filel, LFileXSD, new Dictionary<string, PacientInfo>());
+                    pack.Comment = $"Обработка пакета: Проверка схемы файла {item.FileName}";
+                    CheckXSD(item, FileXSD, resL.P_INFO);
                     var IsMainErr = item.Process == StepsProcess.ErrorXMLxsd;
                     var IsLErr = item.filel.Process == StepsProcess.ErrorXMLxsd;
 
@@ -324,21 +323,34 @@ namespace MedpomService
             return DateTime.Now;
         }
 
-        private bool CheckXSD(FileItemBase item, string pathXSD)
+        private class CheckXSDResult
+        {
+            public CheckXSDResult(bool result, Dictionary<string, PacientInfo>  P_INFO = null)
+            {
+                this.Result = result;
+                this.P_INFO = P_INFO;
+            }
+            public bool Result { get; set; }
+            public Dictionary<string,PacientInfo> P_INFO { get; set; }
+        }
+
+        private CheckXSDResult CheckXSD(FileItemBase item, string pathXSD, Dictionary<string, PacientInfo> P_INFO = null)
         {
             if (!string.IsNullOrEmpty(pathXSD))
             {
                 var scchek = new SchemaChecking();
-                if (scchek.CheckSchema(item, pathXSD))
+              
+                if (scchek.CheckSchema(item, pathXSD, true, P_INFO))
                 {
                     item.Process = StepsProcess.XMLxsd;
-                    return true;
+                    return new CheckXSDResult(true, scchek.P_INFO);
                 }
+             
                 item.Process = StepsProcess.ErrorXMLxsd;
                 item.CommentAndLog = "Ошибка: Файл не соответствует схеме";
-                return false;
+                return new CheckXSDResult(false, scchek.P_INFO);
             }
-            return false;
+            return new CheckXSDResult(false);
         }
 
         private string FindXSD(SchemaCollection sc, string version, DateTime dt, FileItemBase item)

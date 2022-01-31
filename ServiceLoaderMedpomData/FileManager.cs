@@ -1198,5 +1198,16 @@ $@"Наименование файла должно быть
         {
             return items.Contains(item);
         }
+
+        public static bool In(this FileType type, params FileType[] items)
+        {
+            return items.Contains(type);
+        }
+
+        public static bool IsL(this FileType? type)
+        {
+            if (type == null) return false;
+            return type.Value.In(FileType.LH, FileType.LT, FileType.LP, FileType.LV, FileType.LO, FileType.LS, FileType.LU, FileType.LF, FileType.LD, FileType.LR, FileType.LC, FileType.LA, FileType.LB);
+        }
     }
 }

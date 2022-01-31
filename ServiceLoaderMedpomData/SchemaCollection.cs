@@ -285,24 +285,29 @@ namespace ServiceLoaderMedpomData
         public ErrorProtocolXML()
         {
         }
-
         public string MessageOUT => $"[{Line}][{column}]: {Comment}";
     }
 
     public class CheckXMLValidator
     {
-        public CheckXMLValidator(VersionMP v, bool IsMTRProtocol =false, bool IsValidateRef = true)
+        public CheckXMLValidator(VersionMP v, bool IsMTRProtocol =false, bool IsValidateRef = true, Dictionary<string,PacientInfo> P_INFO = null)
         {
             this.IsMTRProtocol = IsMTRProtocol;
             Version = v;
             this.IsValidateRef = IsValidateRef;
+            this.P_INFO = P_INFO;
         }
+        public Dictionary<string, PacientInfo> P_INFO { get; set; }
         public VersionMP Version { get; set; }
         public bool IsMTRProtocol { get; set; }
         public bool IsValidateRef { get; set; }
     }
  
-
+    public class PacientInfo
+    {
+        public string ID_PAC { get; set; }
+        public DateTime? DR { get; set; }
+    }
     
     public class SchemaChecking
     {
@@ -319,11 +324,14 @@ namespace ServiceLoaderMedpomData
         string id_pac { get; set; } //номер ID_PAC
         string sl_id { get; set; } = ""; //номер SL_ID
         bool fileL { get; set; }
+
+      
         public SchemaChecking()
         {
-            ListER = new List<ErrorProtocolXML>();
-          
+            ListER = new List<ErrorProtocolXML>();          
         }
+
+         
         //формирование файла флк
         public static void XMLfileFLK(string pathToXml,string FNAME_1, List<ErrorProtocolXML> ListER)
         {
@@ -410,19 +418,22 @@ namespace ServiceLoaderMedpomData
         /// <param name="isvalidate">Подключать валидатор</param>
         /// <returns>0-ошибка при проверке 1 проверка успешна</returns>
         /// 
-        public bool CheckSchema(FileItemBase _File, string PathXSD, bool isValidateRef = true)
+        public bool CheckSchema(FileItemBase _File, string PathXSD, bool isValidateRef = true, Dictionary<string, PacientInfo> P_INFO = null)
         {
             var prevnodes = "";
             var LineNumber = 0;
             var LinePosition = 0;
             try
             {
+               
                 FileLog = _File.FileLog;
                 filepath = _File.FilePach;
                 fileL = false;
                 ShowErrText = true;
                 FileLog.WriteLn("Проверка файла на соответствие схеме:");
-                var validate = new CheckXMLValidator(_File.Version, false, isValidateRef);
+              
+                var validate = new CheckXMLValidator(_File.Version, false, isValidateRef, P_INFO);
+
                 var res = CheckXML(filepath, PathXSD, validate);
                 var resul = res.Count == 0;
                 _File.DOP_REESTR = DOP_REESTR;
@@ -442,6 +453,8 @@ namespace ServiceLoaderMedpomData
                 return false;
             }
         }
+
+        public Dictionary<string, PacientInfo> P_INFO { get; private set; }
 
         private bool? DOP_REESTR { get; set; }
         public List<ErrorProtocolXML> GetProtokol => ListER;
@@ -487,14 +500,15 @@ namespace ServiceLoaderMedpomData
                                 validate = new MyValidatorV3(ErrorAction);
                                 break;
                             case VersionMP.V3_1:
-                                validate = new MyValidatorV31(ErrorAction, CXV.IsValidateRef);
+                                validate = new MyValidatorV31(ErrorAction, CXV.IsValidateRef,CXV.P_INFO);
                                 break;
                             default:
-                                validate = new MyValidatorV31(ErrorAction, CXV.IsValidateRef);
+                                validate = new MyValidatorV31(ErrorAction, CXV.IsValidateRef, CXV.P_INFO);
                                 break;
                         }
                     }
                 }
+                this.P_INFO = CXV.P_INFO;
 
                 var currdep = -1;
              
@@ -1062,7 +1076,6 @@ namespace ServiceLoaderMedpomData
         public PositionRecord POS { get; set; }
 
     }
-
     enum XML_FileType
     {
         NONE,
@@ -1126,7 +1139,6 @@ namespace ServiceLoaderMedpomData
         }
 
     }
-
     class XML_Z_SL_item
     {
         
@@ -1136,6 +1148,8 @@ namespace ServiceLoaderMedpomData
         public XML_Element<string> RSLT_D { get;  set; } = new XML_Element<string>();
         public XML_Element<decimal> SUMV { get; set; } = new XML_Element<decimal>();
         public XML_Element<string> USL_OK { get; set; } = new XML_Element<string>();
+        public XML_Element<DateTime?> DATE_Z_1 { get; set; } = new XML_Element<DateTime?>();
+     
         public decimal SUM_M_SUM { get;  set; }
         public decimal SUMV_USL_SUM { get;  set; }
         public void Clear()
@@ -1148,6 +1162,7 @@ namespace ServiceLoaderMedpomData
             SUMV_USL_SUM = 0;
             PR_NOV.Clear();
             FIRST_IDCASE.Clear();
+            DATE_Z_1.Clear();
         }
     }
     class XML_Pacient_item
@@ -1157,12 +1172,17 @@ namespace ServiceLoaderMedpomData
         public XML_Element<string> SPOLIS { get; set; } = new XML_Element<string>();
         public XML_Element<string> NPOLIS { get; set; } = new XML_Element<string>();
         public XML_Element<string> ENP { get; set; } = new XML_Element<string>();
+        public XML_Element<string> ID_PAC { get; set; } = new XML_Element<string>();
+        public XML_Element<DateTime?> DR { get; set; } = new XML_Element<DateTime?>();
+
         public void Clear()
         {
             VPOLIS.Clear();
             SPOLIS.Clear();
             NPOLIS.Clear();
             ENP.Clear();
+            DR.Clear();
+            ID_PAC.Clear();
         }
     }
     class XML_MR_USL_N_item
@@ -1209,7 +1229,6 @@ namespace ServiceLoaderMedpomData
             IsLEK_PR = false;
         }
     }
-
     class XML_USL_item
     {
         public XML_Element<string> CODE_MD { get; set; } = new XML_Element<string>();
@@ -1225,7 +1244,6 @@ namespace ServiceLoaderMedpomData
         }
 
     }
-
     class XML_SANK_item
     {
         public XML_Element<int> S_TIP { get; set; } = new XML_Element<int>();
@@ -1260,11 +1278,21 @@ namespace ServiceLoaderMedpomData
         private XML_Pacient_item PACIENT { get;  } = new XML_Pacient_item();
         private XML_MR_USL_N_item MR_USL_N { get; } = new XML_MR_USL_N_item();
         public event ErrorActionEvent Error;
+        public Dictionary<string, PacientInfo> P_INFO { get; set; } = new Dictionary<string, PacientInfo>();
 
         #region Helper
         private XML_Element<string> CreateStringXML_Element(XmlReader r)
         {
             return new XML_Element<string>(r.Value, PositionRecord.Get(r));
+        }
+        private XML_Element<DateTime?> CreateDateTimeXML_Element(XmlReader r)
+        {
+            DateTime val;
+            if(DateTime.TryParse(r.Value, out val))
+            {
+                return new XML_Element<DateTime?>(val, PositionRecord.Get(r));
+            }
+            return new XML_Element<DateTime?>(null, PositionRecord.Get(r));
         }
         private XML_Element<int> CreateIntXML_Element(XmlReader r)
         {
@@ -1289,10 +1317,11 @@ namespace ServiceLoaderMedpomData
             return decimal.TryParse(r.Value, NumberStyles.Float, new NumberFormatInfo() { NumberDecimalSeparator = "." }, out val) ? new XML_Element<decimal?>(val, PositionRecord.Get(r)) : new XML_Element<decimal?>(null, PositionRecord.Get(r));
         }
         #endregion Helper
-        public MyValidatorV31(ErrorActionEvent err, bool IsValidateRef)
+        public MyValidatorV31(ErrorActionEvent err, bool IsValidateRef, Dictionary<string, PacientInfo> P_INFO = null)
         {
             Error = err;
             this.IsValidateRef = IsValidateRef;
+            this.P_INFO = P_INFO;
         }
         public void Check(XmlReader reader)
         {
@@ -1302,6 +1331,12 @@ namespace ServiceLoaderMedpomData
                 case XmlNodeType.Text:
                     switch (depthXml.Path)
                     {
+                        case "PERS_LIST/PERS/ID_PAC":
+                            PACIENT.ID_PAC = CreateStringXML_Element(reader);
+                            break;
+                        case "PERS_LIST/PERS/DR":
+                            PACIENT.DR = CreateDateTimeXML_Element(reader);
+                            break;
                         case "ZL_LIST/SCHET/YEAR":
                                 SCHET.YEAR = CreateIntXML_Element(reader);
                             break;
@@ -1323,6 +1358,9 @@ namespace ServiceLoaderMedpomData
                         case "ZL_LIST/ZAP/PACIENT/VPOLIS":
                             PACIENT.VPOLIS = CreateIntXML_Element(reader);
                             break;
+                        case "ZL_LIST/ZAP/PACIENT/ID_PAC":
+                            PACIENT.ID_PAC = CreateStringXML_Element(reader);
+                            break;
                         case "ZL_LIST/ZAP/PACIENT/SPOLIS":
                             PACIENT.SPOLIS = CreateStringXML_Element(reader);
                             break;
@@ -1335,6 +1373,9 @@ namespace ServiceLoaderMedpomData
                         case "ZL_LIST/ZAP/Z_SL/SUMV":
                                 Z_SL.SUMV = CreateDecimalXML_Element(reader);
                                 SCHET.SUMV_SUM += Z_SL.SUMV.value;
+                            break;
+                        case "ZL_LIST/ZAP/Z_SL/DATE_Z_1":
+                            Z_SL.DATE_Z_1 = CreateDateTimeXML_Element(reader);
                             break;
                         case "ZL_LIST/ZAP/Z_SL/SL/SUM_M":
                                 SL.SUM_M = CreateDecimalXML_Element(reader);
@@ -1454,6 +1495,7 @@ namespace ServiceLoaderMedpomData
                         case "ZL_LIST/ZAP/Z_SL":
                                 CheckZ_SL();
                                 Z_SL.Clear();
+                                PACIENT.Clear();
                             break;
                         case "ZL_LIST/ZAP/Z_SL/SANK":
                                 CheckSANK();
@@ -1466,6 +1508,15 @@ namespace ServiceLoaderMedpomData
                             break;
                         case "ZL_LIST/ZAP/PACIENT":
                             CheckPACIENT();
+                          
+                            break;
+                        case "PERS_LIST/PERS":
+                            if(P_INFO!=null)
+                            {
+                                if(!string.IsNullOrEmpty(PACIENT.ID_PAC.value) && !P_INFO.ContainsKey(PACIENT.ID_PAC.value))
+                                    P_INFO?.Add(PACIENT.ID_PAC.value, new PacientInfo { DR = PACIENT.DR.value, ID_PAC= PACIENT.ID_PAC.value });
+                            }
+                          
                             PACIENT.Clear();
                             break;
                         case "ZL_LIST/ZAP/Z_SL/SL/USL/MR_USL_N":
@@ -1518,12 +1569,54 @@ namespace ServiceLoaderMedpomData
             if (SCHET.TypeFile == XML_FileType.H && SCHET.DateFile >= DT_01_2022)
             {
                 //dsadasdasdsad
-                if(!SL.IsWEI && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value!="1" && !Z_SL.USL_OK.value.In("3","4")  && SL.CRIT.Select(x=>x.value).Count(x=>x== "stt5")==0)
-                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле WEI обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5 и USL_OK<>(3,4)", "WEI", "ERR_SL_WEI_1");
-                if (!SL.IsLEK_PR && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && !Z_SL.USL_OK.value.In("3", "4") && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0)
-                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5 и USL_OK<>(3,4)", "LEK_PR", "ERR_SL_LEK_PR_1");
+                if (!SL.IsWEI && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0)
+                    Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле WEI обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5", "WEI", "ERR_SL_WEI_1");
+                
+                var isDs2O = SL.DS2.Count(x => x.value.StartsWith("O")) != 0;
+                var isDs2Z34_Z35 = SL.DS2.Count(x => x.value.Substring(0, 3).Between("Z34", "Z35")) != 0;
+
+                var vzr = GetAge();
+                if(vzr.HasValue)
+                {
+                    if (!SL.IsLEK_PR && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && Z_SL.USL_OK.value.In("1") && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
+                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5 и USL_OK=1 и DS2 <> (O00-O99, Z34-Z35) и возраст больше 18 лет", "LEK_PR", "ERR_SL_LEK_PR_1");
+
+                }
             }
         }
+
+        private int? GetAge()
+        {
+            if (P_INFO==null)
+            {
+                Error(XmlSeverityType.Error, PACIENT.ID_PAC.POS.LINE, PACIENT.ID_PAC.POS.POS, "Не удалось найти возраст пациента, нет данных о файле L", "PACIENT", "ERR_PACIENT_DR_1");
+                return null;
+            }       
+            if(string.IsNullOrEmpty(PACIENT.ID_PAC.value))
+            {
+                Error(XmlSeverityType.Error, PACIENT.ID_PAC.POS.LINE, PACIENT.ID_PAC.POS.POS, "Не удалось найти ID_PAC в файле", "PACIENT", "ERR_PACIENT_DR_1");
+                return null;
+            }
+            if (!P_INFO.ContainsKey(PACIENT.ID_PAC.value))
+            {
+                Error(XmlSeverityType.Error, PACIENT.ID_PAC.POS.LINE, PACIENT.ID_PAC.POS.POS, "Не удалось найти возраст пациента, нет данных о дате рождении в файле L", "PACIENT", "ERR_PACIENT_DR_1");
+                return null;
+            }     
+            var pinfo = P_INFO[PACIENT.ID_PAC.value];
+            if (!pinfo.DR.HasValue)
+            {
+                Error(XmlSeverityType.Error, PACIENT.ID_PAC.POS.LINE, PACIENT.ID_PAC.POS.POS, "Не удалось найти возраст пациента, нет данных о дате рождении в файле L", "PACIENT", "ERR_PACIENT_DR_2");
+                return null;
+            }
+            if (!Z_SL.DATE_Z_1.value.HasValue)
+            {
+                Error(XmlSeverityType.Error, PACIENT.ID_PAC.POS.LINE, PACIENT.ID_PAC.POS.POS, "Не удалось найти DATE_Z_1 для расчета возраста", "Z_SL", "ERR_DATE_Z_1");
+                return null;
+            }     
+            
+            return pinfo.DR.Value.GetAge(Z_SL.DATE_Z_1.value.Value);
+        }
+        
         private void CheckUSL()
         {
             if (SCHET.TypeFile == XML_FileType.D && SCHET.DateFile >= DT_04_2020 && SCHET.DateFile <DT_08_2021)
@@ -1882,6 +1975,12 @@ namespace ServiceLoaderMedpomData
         public static bool In(this string val, params string[] values)
         {
             return values.Contains(val);
+        }
+
+        public static int GetAge(this DateTime birthDate,DateTime now)
+        {
+            return now.Year - birthDate.Year - 1 +
+                ((now.Month > birthDate.Month || now.Month == birthDate.Month && now.Day >= birthDate.Day) ? 1 : 0);
         }
 
     }

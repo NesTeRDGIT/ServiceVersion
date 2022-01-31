@@ -34,7 +34,10 @@ namespace ServiceLoaderMedpomDataTests
         public void CheckXML_H_VALID_32()
         {
             var sc = new SchemaChecking();
-            var res = sc.CheckXML(H_VALID_32, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1));
+
+            var file = ZL_LIST.ReadFromFile(H_VALID_32);
+
+            var res = sc.CheckXML(H_VALID_32, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1, false,true,GetPacientInfo(file)));
             Assert.IsTrue(res.Count == 0, $"Для правильной XML не верную схему пишет: {string.Join(";", res.Select(x => x.Comment))}");
         }
 
@@ -117,21 +120,36 @@ namespace ServiceLoaderMedpomDataTests
         public void CheckERR_SL_LEK_PR_1_ERR()
         {
             var file = ZL_LIST.ReadFromFile(H_VALID_32);
-            file.ZAP.Select(x => x.Z_SL).SelectMany(x => x.SL).ToList()
-                .ForEach(x =>
+            file.ZAP.ForEach(z =>
+            {
+                z.Z_SL.USL_OK = 1;
+                z.Z_SL.SL.ForEach(sl =>
                 {
-                    x.DS1 = "U07.1";
-                    x.LEK_PR = null;
+
+                    sl.DS1 = "U07.1";
+                    sl.LEK_PR = null;
                 });
+            });
             using (var ms = new MemoryStream())
             {
                 file.WriteXml(ms);
                 ms.Seek(0, SeekOrigin.Begin);
                 var sc = new SchemaChecking();
-                var res = sc.CheckXML(ms, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1));
+                var res = sc.CheckXML(ms, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1, false,true, GetPacientInfo(file)));
                
                 Assert.IsTrue(res.Count(x => x.ERR_CODE == "ERR_SL_LEK_PR_1") == file.ZAP.SelectMany(x=>x.Z_SL_list).Select(x=>x.SL).Count(), $"Не видит ошибку");
             }
+        }
+
+        private Dictionary<string,PacientInfo> GetPacientInfo(ZL_LIST file)
+        {
+            Dictionary<string, PacientInfo> dic = new Dictionary<string, PacientInfo>();
+            foreach(var zap in file.ZAP)
+            {
+                if (!dic.ContainsKey(zap.PACIENT.ID_PAC))
+                    dic.Add(zap.PACIENT.ID_PAC, new PacientInfo { DR = new DateTime(1991, 1, 1) });
+            }
+            return dic;
         }
 
 

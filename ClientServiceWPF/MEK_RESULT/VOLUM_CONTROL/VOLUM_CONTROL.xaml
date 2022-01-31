@@ -133,7 +133,7 @@
                                 <Grid>
                                     <Button  Content="Button" HorizontalAlignment="Left" Margin="4,1,0,0" VerticalAlignment="Top" Width="25" Height="24" Style="{DynamicResource ButtonUpd}" Command="{Binding RefreshStatusCommand}" />
                                     <ProgressBar  HorizontalAlignment="Left" Height="24" Margin="34,1,0,0" VerticalAlignment="Top" Width="259" Maximum="{Binding ProgressMain.Maximum}" IsIndeterminate="{Binding ProgressMain.IsIndeterminate}" Value="{Binding ProgressMain.Value}"/>
-                                    <Label  Content="{Binding ProgressMain.Text}" Margin="298,1,10,0" VerticalAlignment="Top" Height="24" Padding="0" VerticalContentAlignment="Center" />
+                                    <Label  Content="{Binding ProgressMain.Text}" Margin="298,1,0,0" VerticalAlignment="Top" Height="24" Padding="0" VerticalContentAlignment="Center" />
                                 </Grid>
                             </GroupBox>
                             <GroupBox Header="Данные" Margin="0,51,0,0">
