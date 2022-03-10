@@ -74,6 +74,11 @@ namespace ClientServiceWPF.SANK_INVITER
                 if (item.Version != VersionMP.NONE)
                 {
                     var res = sc.CheckSchema(item, Path.Combine(LocalFolder, sc_file.Value.Value), false);
+                    var protot = sc.GetProtokol;
+                    if(protot.Count(x=>string.IsNullOrEmpty(x.ERR_CODE) || x.ERR_CODE!= "C_ZAB_EMPTY")==0)
+                    {
+                        res = true;
+                    }
                     dispatcher.Invoke(() =>
                     {
                         if (res)
@@ -96,6 +101,7 @@ namespace ClientServiceWPF.SANK_INVITER
                     if (item.filel.Version != VersionMP.NONE)
                     {
                         var res = sc.CheckSchema(item.filel, Path.Combine(LocalFolder, sc_filel.Value.Value));
+                        
                         dispatcher.Invoke(() =>
                         {
                             if (res)

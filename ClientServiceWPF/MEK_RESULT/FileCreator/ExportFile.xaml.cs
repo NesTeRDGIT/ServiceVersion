@@ -289,7 +289,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 if (fbd.ShowDialog() == DialogResult.OK)
                 {
                     List<F002> smoList = null;
-                    if (PARAM.TypeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.FFOMSDx))
+                    if (PARAM.TypeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.FFOMSDx, TypeFileCreate.TEST_COVID))
                     {
                         progress1.Text = "Запрос справочника F002";
                         smoList = await exportFileRepository.GetF002Async();
@@ -593,6 +593,18 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 RaisePropertyChanged();
             }
         }
+
+        private bool _IsFFOMSHw;
+        public bool IsFFOMSHw
+        {
+            get => _IsFFOMSHw;
+            set
+            {
+                _IsFFOMSHw = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private bool _IsMEK_P_P_SMO;
         public bool IsMEK_P_P_SMO
         {
@@ -706,6 +718,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 if (IsFFOMSDx) return TypeFileCreate.FFOMSDx;
                 if (IsMEK_P_P_SMO) return TypeFileCreate.MEK_P_P_SMO;
                 if (IsMEK_P_P_MO) return TypeFileCreate.MEK_P_P_MO;
+                if (IsFFOMSHw) return TypeFileCreate.TEST_COVID;
                 throw new Exception("Не удалось определить тип выгрузки");
             }
         }

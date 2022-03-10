@@ -71,6 +71,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
     public class FileCreator : IFileCreator
     {
         private DateTime DT_2021_08 = new DateTime(2021, 8, 1);
+        private DateTime DT_2022_01 = new DateTime(2022, 1, 1);
         private IExportFileRepository exportFileRepository;
 
         public FileCreator(IExportFileRepository exportFileRepository)
@@ -113,6 +114,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         PathSchema = Path.Combine(LocalFolder, "EXPORT_MO_XSD");
                         break;
                     case TypeFileCreate.FFOMSDx:
+                    case TypeFileCreate.TEST_COVID:
                         PathSchema = Path.Combine(LocalFolder, "EXPORT_FFOMS_XSD");
                         break;
 
@@ -130,10 +132,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 }
 
                 var PATH_XSD = "";
-                CheckXMLValidator CXL;
+               
 
                 var dtFile = new DateTime(item.YEAR_BASE, item.MONTH_BASE, 1);
-                CXL = new CheckXMLValidator(VersionMP.V3_1);
+               
+                
                 switch (fp.FILE_TYPE.ToFileType())
                 {
                     case FileType.DD:
@@ -149,7 +152,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         PATH_XSD = Path.Combine(PathSchema, dtFile >= DT_2021_08 ? "D31_2021_08.xsd" : "D31.xsd");
                         break;
                     case FileType.H:
-                        PATH_XSD = Path.Combine(PathSchema, "H31.xsd");
+                        PATH_XSD = Path.Combine(PathSchema, dtFile >= DT_2022_01 ? "H32.xsd" : "H31.xsd");
+                        if (typeFileCreate == TypeFileCreate.TEST_COVID)
+                        {
+                            PATH_XSD = Path.Combine(PathSchema, "HW32.xsd");
+                        }
                         break;
                     case FileType.T:
                         PATH_XSD = Path.Combine(PathSchema, "T31.xsd");
@@ -166,6 +173,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 //Запрашиваем заголовки
                 //ZGLV
                 //Запрос
+
+
+
+
+
                 AddLogInvoke(progress, LogType.Info, "Запрос заголовка");
                 var ZGLV = exportFileRepository.V_EXPORT_H_ZGLV(item.ZGLV_ID, source, conn);
                 if (ZGLV.Rows.Count != 1)
@@ -181,54 +193,62 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 {
                     throw new Exception($"Для файла {item.FILENAME} Вернулось больше 1го счета или 0");
                 }
-
                 //----------------------------------------------------
-                AddLogInvoke(progress, LogType.Info, "Запрос записей");
-                //ZAP+PAC+Z_SL-------------------------------------------------
-                var ZAP = exportFileRepository.V_EXPORT_H_ZAP(typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO, TypeFileCreate.MEK_P_P_MO) ? item.S_ZGLV_ID : new[] { item.ZGLV_ID }, SMO, sluchParam.SLUCH_Z_ID, typeFileCreate == TypeFileCreate.FFOMSDx, typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO, TypeFileCreate.MEK_P_P_MO), source, conn);
-                if (ZAP.Rows.Count == 0)
+                AddLogInvoke(progress, LogType.Info, "Запрос услуг");
+                var zglvid = typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO, TypeFileCreate.MEK_P_P_MO) ? item.S_ZGLV_ID : new[] { item.ZGLV_ID };
+                var onlyValidFFOMS = typeFileCreate == TypeFileCreate.FFOMSDx;
+                var onlyDop = typeFileCreate.In(TypeFileCreate.MEK_P_P_SMO, TypeFileCreate.MEK_P_P_MO);
+                var testCovid = typeFileCreate.In(TypeFileCreate.TEST_COVID);
+                var USL = exportFileRepository.V_EXPORT_H_USL(zglvid, SMO, sluchParam.SLUCH_Z_ID, onlyValidFFOMS, onlyDop, testCovid, source, conn);
+                
+                if (USL.Rows.Count == 0)
                 {
                     AddLogInvoke(progress, LogType.Info, $"Для файла {item.FILENAME} Вернулось 0 записей. СМО = {SMO}");
                     return FileCreatorResult.CreateNotResult();
                 }
 
-
-                //-------------------------------------------------------------------------  
-                var SLUCH = new DataTable();
-                var SANK = new DataTable();
-                var EXPERTIZE = new DataTable();
-                AddLogInvoke(progress, LogType.Info, "Запрос случаев");
-                foreach (var sl in GetIDFromDataTable(ZAP, "SLUCH_Z_ID"))
+                AddLogInvoke(progress, LogType.Info, "Запрос данных об услугах");
+                var MED_DEV = new DataTable();
+                var MR_USL = new DataTable();
+                foreach (var us in GetIDFromDataTable(USL, "USL_ID"))
                 {
-                    var items = sl.ToList();
-                    SLUCH.Merge(exportFileRepository.V_EXPORT_H_SLUCH(items, source, conn));
-                    SANK.Merge(exportFileRepository.V_EXPORT_H_SANK(items, source, conn));
-                    if (isSMO)
-                        EXPERTIZE.Merge(exportFileRepository.V_EXPORT_H_EXPERTIZE(items, source, conn));
+                    var items = us.ToList();
+                    MR_USL.Merge(exportFileRepository.V_EXPORT_H_MR_USL(items, source, conn));
+                    MED_DEV.Merge(exportFileRepository.V_EXPORT_H_MED_DEV(items, source, conn));
                 }
 
+              
+              
+
+                AddLogInvoke(progress, LogType.Info, "Запрос случаев");
+                var SLUCH = new DataTable();
+                foreach (var sl in GetIDFromDataTable(USL, "SLUCH_ID"))
+                {
+                    var items = sl.ToList();
+                    SLUCH.Merge(exportFileRepository.V_EXPORT_H_SLUCH_BY_SLUCH_ID(items, source, conn));                
+                }
+
+                AddLogInvoke(progress, LogType.Info, "Запрос данных в случае");
                 var NAZR = new DataTable();
                 var DS2_N = new DataTable();
-                var SL_KOEF = new DataTable();
-                var USL = new DataTable();
+                var SL_KOEF = new DataTable();              
                 var ONK_USLtbl = new DataTable();
                 var LEK_PR = new DataTable();
+                var LEK_PR_SL = new DataTable();
                 var NAPR = new DataTable();
                 var B_PROT = new DataTable();
                 var H_CONS = new DataTable();
                 var DS2 = new DataTable();
                 var DS3 = new DataTable();
-                var CRIT = new DataTable();
-                AddLogInvoke(progress, LogType.Info, "Запрос данных в случае");
+                var CRIT = new DataTable();             
                 var B_DIAG = new DataTable();
+
                 foreach (var sl in GetIDFromDataTable(SLUCH, "SLUCH_ID"))
                 {
                     var items = sl.ToList();
-
                     NAZR.Merge(exportFileRepository.V_EXPORT_H_NAZR(items, source, conn));
                     DS2_N.Merge(exportFileRepository.V_EXPORT_H_DS2_N(items, source, conn));
-                    SL_KOEF.Merge(exportFileRepository.V_EXPORT_H_SL_KOEF(items, source, conn));
-                    USL.Merge(exportFileRepository.V_EXPORT_H_USL(items, source, conn));
+                    SL_KOEF.Merge(exportFileRepository.V_EXPORT_H_SL_KOEF(items, source, conn));                 
                     ONK_USLtbl.Merge(exportFileRepository.V_EXPORT_ONK_USL(items, source, conn));
                     LEK_PR.Merge(exportFileRepository.V_EXPORT_LEK_PR(items, source, conn));
                     NAPR.Merge(exportFileRepository.V_EXPORT_H_NAPR(items, source, conn));
@@ -238,16 +258,23 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     DS2.Merge(exportFileRepository.V_EXPORT_H_DS2(items, source, conn));
                     DS3.Merge(exportFileRepository.V_EXPORT_H_DS3(items, source, conn));
                     CRIT.Merge(exportFileRepository.V_EXPORT_H_CRIT(items, source, conn));
+                    LEK_PR_SL.Merge(exportFileRepository.V_EXPORT_LEK_PR_SL(items, source, conn));
                 }
+               
+               
+                
 
-                var MR_USL = new DataTable();
-                foreach (var us in GetIDFromDataTable(USL, "USL_ID"))
+                AddLogInvoke(progress, LogType.Info, "Запрос записей");
+                var ZAP = new DataTable();
+                var SANK = new DataTable();
+                var EXPERTIZE = new DataTable();
+                foreach (var sl in GetIDFromDataTable(SLUCH, "SLUCH_Z_ID"))
                 {
-                    var items = us.ToList();
-                    MR_USL.Merge(exportFileRepository.V_EXPORT_H_MR_USL(items, source, conn));
+                    ZAP.Merge(exportFileRepository.V_EXPORT_H_ZAP(sl, source, conn));
+                    SANK.Merge(exportFileRepository.V_EXPORT_H_SANK(sl, source, conn));
+                    if (isSMO)
+                        EXPERTIZE.Merge(exportFileRepository.V_EXPORT_H_EXPERTIZE(sl, source, conn));
                 }
-
-
                 //L_ZGLV
                 AddLogInvoke(progress, LogType.Info, "Запрос заголовка перс данных");
                 var L_ZGLV = exportFileRepository.V_EXPORT_L_ZGLV(item.FILENAME, source, conn);
@@ -268,13 +295,13 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 AddLogInvoke(progress, LogType.Info, "Создание файла L");
                 var fileL = CreateFileL(L_ZGLV, PERS);
                 AddLogInvoke(progress, LogType.Info, "Создание файла H");
-                var file = CreateFile(ZGLV, SCHET, ZAP, SLUCH, USL, NAZR, SANK, isSMO ? EXPERTIZE : null, SL_KOEF, DS2_N, NAPR, B_PROT, B_DIAG, H_CONS, ONK_USLtbl, LEK_PR, DS2, DS3, CRIT, MR_USL);
+                var file = CreateFile(ZGLV, SCHET, ZAP, SLUCH, USL, NAZR, SANK, isSMO ? EXPERTIZE : null, SL_KOEF, DS2_N, NAPR, B_PROT, B_DIAG, H_CONS, ONK_USLtbl, LEK_PR, DS2, DS3, CRIT, MR_USL, MED_DEV, LEK_PR_SL);
 
                 var month = fp.MM.PadLeft(2, '0');
                 var Year = fp.YY;
 
-                var newnameH = GetFileName(fp, Year, month, false, typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO) ? SMO : null, typeFileCreate == TypeFileCreate.FFOMSDx ? NN_FFOMS_DX : null);
-                var newnameL = GetFileName(fp, Year, month, true, typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO) ? SMO : null, typeFileCreate == TypeFileCreate.FFOMSDx ? NN_FFOMS_DX : null);
+                var newnameH = GetFileName(fp, Year, month, false, typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO) ? SMO : null, typeFileCreate == TypeFileCreate.FFOMSDx ? NN_FFOMS_DX : null, typeFileCreate == TypeFileCreate.TEST_COVID);
+                var newnameL = GetFileName(fp, Year, month, true, typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO) ? SMO : null, typeFileCreate == TypeFileCreate.FFOMSDx ? NN_FFOMS_DX : null, typeFileCreate == TypeFileCreate.TEST_COVID);
 
                 ModernFileH(file, newnameH, SMO, typeFileCreate, sluchParam);
                 ModernFileL(fileL, newnameL, newnameH);
@@ -293,13 +320,21 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 AddLogInvoke(progress, LogType.Info, $"Сохранение файла {pathfile}");
                 using (var st = File.Create(pathfile))
                 {
-                    if (typeFileCreate == TypeFileCreate.FFOMSDx)
+                    if (typeFileCreate.In(TypeFileCreate.FFOMSDx, TypeFileCreate.TEST_COVID))
+                    {
                         file.WriteXmlCustom(st);
+                    }
                     else
+                    {
                         file.WriteXml(st);
+                    }
                     st.Close();
                 }
-
+                if (typeFileCreate.In(TypeFileCreate.TEST_COVID))
+                {
+                    ExtZLLIST.ChangeNamespace(pathfile);
+                }
+                
                 AddLogInvoke(progress, LogType.Info, $"Сохранение файла {pathfileL}");
                 using (var st = File.Create(pathfileL))
                 {
@@ -307,35 +342,43 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     st.Close();
                 }
 
-                AddLogInvoke(progress, LogType.Info, "Проверка схемы основного файла");
 
+                AddLogInvoke(progress, LogType.Info, "Проверка схемы файла персональных данных");
                 var sc = new SchemaChecking();
-                var err = sc.CheckXML(pathfile, PATH_XSD, CXL);
+                var CXL = new CheckXMLValidator(VersionMP.V3_1);
+                CXL.P_INFO = new Dictionary<string, PacientInfo>();
 
+                var L_XSD_PATH = Path.Combine(PathSchema, "L31.xsd");
+                if (fileL.ZGLV.VERSION == "3.2")
+                    L_XSD_PATH = Path.Combine(PathSchema, "L32.xsd");
+                var err = sc.CheckXML(pathfileL, L_XSD_PATH, CXL);
+
+                if (err.Count != 0)
+                    AddLogInvoke(progress, LogType.Error, err.Select(x => x.MessageOUT).ToArray());
+
+
+
+                AddLogInvoke(progress, LogType.Info, "Проверка схемы основного файла");            
+
+                err = sc.CheckXML(pathfile, PATH_XSD, CXL);
+              
                 //2021 году не работала проверка схемы на C_ZAB
                 if (Convert.ToInt32(SCHET.Rows[0]["YEAR"]) == 2021)
                 {
-                    err.RemoveAll(x => x.ERR_CODE == "C_ZAB_EMPTY");
+                    err.RemoveAll(x => x.ERR_CODE.In("C_ZAB_EMPTY"));
                 }
+
               
+
+                
                 if (err.Count != 0)
                 {
-                    if (typeFileCreate != TypeFileCreate.FFOMSDx || err.Count(x => !x.ERR_CODE.In("ERR_ZS_1", "ERR_ZS_2")) != 0)
+                    if (!typeFileCreate.In(TypeFileCreate.FFOMSDx, TypeFileCreate.TEST_COVID) || err.Count(x => !x.ERR_CODE.In("ERR_ZS_1", "ERR_ZS_2")) != 0)
                     {
                         AddLogInvoke(progress, LogType.Error, err.Select(x => x.MessageOUT).ToArray());
                     }
                 }
-
-
-
-                AddLogInvoke(progress, LogType.Info, "Проверка схемы файла персональных данных");
-                var L_XSD_PATH = Path.Combine(PathSchema, "L31.xsd");
-                if (fileL.ZGLV.VERSION == "3.2")
-                    L_XSD_PATH = Path.Combine(PathSchema, "L32.xsd");
-                err = sc.CheckXML(pathfileL, L_XSD_PATH, CXL);
-
-                if (err.Count != 0)
-                    AddLogInvoke(progress, LogType.Error, err.Select(x => x.MessageOUT).ToArray());
+            
 
                 var PATH_ARCIVE = Path.Combine(ExportFolder, $"{newnameH}.ZIP");
                 if (typeFileCreate.In(TypeFileCreate.SMO, TypeFileCreate.MEK_P_P_SMO) && !string.IsNullOrEmpty(SMO))
@@ -408,12 +451,18 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                         file.ClearForFFOMS_DATA();
                         file.SetENP_REG_IN_NPOLIS();
                     }
-
                     break;
                 case TypeFileCreate.FFOMSDx:
                     file.SCHET.PLAT = SMO;
                     file.ZGLV.DATA = DateTime.Now.Date;
                     file.ClearForFFOMS_DATA();
+                    break;
+                case TypeFileCreate.TEST_COVID:
+                    ChangeUslTestCovid(file);
+                    file.ZGLV.DATA = DateTime.Now.Date;
+                    file.ClearForFFOMS_DATA();
+                    file.ClearSUMP();
+                    file.ReCalcSUMV();
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(typeFileCreate), typeFileCreate, null);
@@ -427,6 +476,46 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             if (SANK_ITList.Count != 0)
                 file.SCHET.SANK_MEK = SANK_ITList.Sum(x => x.SANK_IT);
             file.ZGLV.FILENAME = FileName;
+        }
+
+        private void ChangeUslTestCovid(ZL_LIST file)
+        {
+            foreach (var zap in file.ZAP)
+            {
+                foreach (var sl in zap.Z_SL.SL)
+                {
+                    var remUsl = new List<USL>();
+                    var addUsl = new List<USL>();
+                    foreach (var us in sl.USL)
+                    {                       
+                        if(us.CODE_USL.In("611270","611271"))
+                        {
+                            var newUSL = new USL();
+                            newUSL.CopyFrom(us);
+                            newUSL.CODE_USL = "A26.08.027.001";
+                            var newUSL1 = new USL();
+                            newUSL1.CopyFrom(us);
+                            newUSL1.TARIF = newUSL1.SUMV_USL  = 0;
+                            newUSL1.CODE_USL = "A26.08.046.001";
+
+                            remUsl.Add(us);
+                            addUsl.Add(newUSL);
+                            addUsl.Add(newUSL1);
+                        }
+                    }
+                    foreach(var us in remUsl)
+                    {
+                        sl.USL.Remove(us);
+                    }
+                    sl.USL.AddRange(addUsl);
+                    int idserv = 1;
+                    foreach (var us in sl.USL)
+                    {
+                        us.IDSERV = idserv.ToString();
+                        idserv++;
+                    }
+                }
+            }
         }
 
         private void ModernFileL(PERS_LIST fileL, string newnameL, string newnameH)
@@ -455,7 +544,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 
         private ZL_LIST CreateFile(DataTable ZGLVtbl, DataTable SCHETtbl, DataTable ZAPtbl, DataTable SLUCHtbl, DataTable USLtbl, DataTable NAZRtbl, DataTable SANKtbl, DataTable Expertizetbl,
             DataTable KOEFtbl, DataTable DS2_Ntbl, DataTable NAPRtbl, DataTable B_PROTtbl, DataTable B_DIAGtbl, DataTable H_CONStbl, DataTable ONK_USLtbl, DataTable LEK_PRtbl,
-            DataTable DS2, DataTable DS3, DataTable CRIT, DataTable MR_USL)
+            DataTable DS2, DataTable DS3, DataTable CRIT, DataTable MR_USL, DataTable MEDDEV, DataTable LEK_PR_SL)
         {
             var step = 0;
             try
@@ -502,11 +591,23 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                             {
                                 us.MR_USL_N.Add(MR_USL_N.Get(mr_row));
                             }
-
+                            foreach (var mr_row in MEDDEV.Select($"USL_ID = {us.USL_ID}"))
+                            {
+                                us.MED_DEV.Add(MED_DEV.Get(mr_row));
+                            }
                             sl.USL.Add(us);
                         }
 
+
+
                         step = 4;
+                        sl.LEK_PR = new List<LEK_PR_H>();
+                        foreach (var lek_pr_sl_row in LEK_PR_SL.Select($"SLUCH_ID = {sl.SLUCH_ID}"))
+                        {
+                            
+                            sl.LEK_PR.Add(LEK_PR_H.Get(lek_pr_sl_row));
+                        }
+
                         foreach (var onk_usl_row in ONK_USLtbl.Select($"SLUCH_ID = {sl.SLUCH_ID}"))
                         {
                             var o_us = ONK_USL.Get(onk_usl_row);
@@ -579,17 +680,15 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
 
         }
 
-        private string GetFileName(MatchParseFileName fp, string Year, string month, bool IsFileL, string SMO, string NN_FFOMS_DX)
+        private string GetFileName(MatchParseFileName fp, string Year, string month, bool IsFileL, string SMO, string NN_FFOMS_DX,bool isHW)
         {
-
             var type = fp.FILE_TYPE.ToFileType();
-            var newnameH = $"{fp.FILE_TYPE}{fp.Pi}{fp.Ni}{(string.IsNullOrEmpty(SMO) ? "T75" : $"S{SMO}")}_{Year}{month}{NN_FFOMS_DX ?? $"{fp.NN}"}";
+            var newnameH = $"{fp.FILE_TYPE}{(isHW? "W":"")}{fp.Pi}{fp.Ni}{(string.IsNullOrEmpty(SMO) ? "T75" : $"S{SMO}")}_{Year}{month}{NN_FFOMS_DX ?? $"{fp.NN}"}";
             var newnameL = $"L{newnameH.Substring(1)}";
             if (type.Contains(FileType.T, FileType.C))
             {
                 newnameL = $"L{newnameH}";
             }
-
             return IsFileL ? newnameL : newnameH;
 
         }

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<xs:schema xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+<xs:schema xmlns:msdata="urn:schemas-microsoft-com:xml-msdata" xmlns:msprop="urn:schemas-microsoft-com:xml-msprop" elementFormDefault="qualified" targetNamespace="urn:ffoms:dispa:schema:xsd:reestr:d1:1.1" xmlns:xs="http://www.w3.org/2001/XMLSchema">
   <xs:simpleType name="VNOV_M">
     <xs:restriction base="xs:decimal">
       <xs:totalDigits value="4" />
@@ -509,7 +509,7 @@
                     <xs:element minOccurs="0" maxOccurs="unbounded" name="VNOV_M" nillable="true">
                       <xs:complexType>
                         <xs:simpleContent msdata:ColumnName="VNOV_M" msdata:Ordinal="0" msprop:Orders="11">
-                          <xs:extension base="VNOV_M" />
+                          <xs:extension xmlns:q1="urn:ffoms:dispa:schema:xsd:reestr:d1:1.1" base="q1:VNOV_M" />
                         </xs:simpleContent>
                       </xs:complexType>
                     </xs:element>
@@ -536,7 +536,7 @@
                     <xs:element minOccurs="0" maxOccurs="unbounded" name="OS_SLUCH" nillable="true">
                       <xs:complexType>
                         <xs:simpleContent msdata:ColumnName="OS_SLUCH" msdata:Ordinal="0" msprop:Orders="13">
-                          <xs:extension base="OS_SLUCH" />
+                          <xs:extension xmlns:q2="urn:ffoms:dispa:schema:xsd:reestr:d1:1.1" base="q2:OS_SLUCH" />
                         </xs:simpleContent>
                       </xs:complexType>
                     </xs:element>
@@ -698,14 +698,14 @@
                           <xs:element minOccurs="0" maxOccurs="unbounded" name="DS2" nillable="true">
                             <xs:complexType>
                               <xs:simpleContent msdata:ColumnName="DS2" msdata:Ordinal="0" msprop:Orders="15">
-                                <xs:extension base="DS2" />
+                                <xs:extension xmlns:q3="urn:ffoms:dispa:schema:xsd:reestr:d1:1.1" base="q3:DS2" />
                               </xs:simpleContent>
                             </xs:complexType>
                           </xs:element>
                           <xs:element minOccurs="0" maxOccurs="unbounded" name="DS3" nillable="true">
                             <xs:complexType>
                               <xs:simpleContent msdata:ColumnName="DS3" msdata:Ordinal="0" msprop:Orders="15">
-                                <xs:extension base="DS3" />
+                                <xs:extension xmlns:q4="urn:ffoms:dispa:schema:xsd:reestr:d1:1.1" base="q4:DS3" />
                               </xs:simpleContent>
                             </xs:complexType>
                           </xs:element>
@@ -736,7 +736,7 @@
                           <xs:element minOccurs="0" maxOccurs="unbounded" name="CODE_MES1" nillable="true">
                             <xs:complexType>
                               <xs:simpleContent msdata:ColumnName="CODE_MES1" msdata:Ordinal="0" msprop:Orders="17">
-                                <xs:extension base="CODE_MES1" />
+                                <xs:extension xmlns:q5="urn:ffoms:dispa:schema:xsd:reestr:d1:1.1" base="q5:CODE_MES1" />
                               </xs:simpleContent>
                             </xs:complexType>
                           </xs:element>
@@ -832,7 +832,7 @@
                                 <xs:element minOccurs="0" maxOccurs="unbounded" name="CRIT" nillable="true">
                                   <xs:complexType>
                                     <xs:simpleContent msdata:ColumnName="CRIT" msdata:Ordinal="0" msprop:Orders="8">
-                                      <xs:extension base="CRIT" />
+                                      <xs:extension xmlns:q6="urn:ffoms:dispa:schema:xsd:reestr:d1:1.1" base="q6:CRIT" />
                                     </xs:simpleContent>
                                   </xs:complexType>
                                 </xs:element>
@@ -1347,7 +1347,7 @@
                           <xs:element minOccurs="0" maxOccurs="unbounded" name="SL_ID" nillable="true">
                             <xs:complexType>
                               <xs:simpleContent msdata:ColumnName="SL_ID" msdata:Ordinal="0" msprop:Orders="3">
-                                <xs:extension base="SL_ID" />
+                                <xs:extension xmlns:q7="urn:ffoms:dispa:schema:xsd:reestr:d1:1.1" base="q7:SL_ID" />
                               </xs:simpleContent>
                             </xs:complexType>
                           </xs:element>
@@ -1381,7 +1381,7 @@
                           <xs:element minOccurs="0" maxOccurs="unbounded" name="CODE_EXP" nillable="true">
                             <xs:complexType>
                               <xs:simpleContent msdata:ColumnName="CODE_EXP" msdata:Ordinal="0" msprop:Orders="6">
-                                <xs:extension base="CODE_EXP" />
+                                <xs:extension xmlns:q8="urn:ffoms:dispa:schema:xsd:reestr:d1:1.1" base="q8:CODE_EXP" />
                               </xs:simpleContent>
                             </xs:complexType>
                           </xs:element>

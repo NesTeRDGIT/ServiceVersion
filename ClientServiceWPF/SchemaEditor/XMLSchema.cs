@@ -284,6 +284,7 @@ namespace ClientServiceWPF.SchemaEditor
     /// </summary>
     public class XMLSchemaFile
     {
+
         /// <summary>
         /// Список элементов
         /// </summary>
@@ -438,7 +439,7 @@ namespace ClientServiceWPF.SchemaEditor
             try
             {
                 var writer = new XmlSerializer(typeof(List<SchemaElement>));
-                var file = System.IO.File.Create(fileName);
+                var file = File.Create(fileName);
                 writer.Serialize(file, SchemaElements);
                 file.Close();
             }
@@ -519,57 +520,7 @@ namespace ClientServiceWPF.SchemaEditor
             }
             return false;
         }
-        /// <summary>
-        /// Поднять элемент на уровень вверх
-        /// </summary>
-        /// <param name="index">Массив индексов. Как адрес элемента в дереве. Пример - ([1,1,5,6])</param>
-        /// <returns>true удачно false не удачно (Элемент 1 в списке)</returns>
-        public bool ElementUp(int[] index)
-        {
-            var i = index[index.Length - 1];
-            var index2 = new int[index.Length];
-            index.CopyTo(index2, 0);
-            index2[index.Length - 1] = i - 1;
-            var Se1 = this[index];
-            if (i != 0)
-            {
-                var Se2 = this[index2];
-                this[index2] = Se1;
-                this[index] = Se2;
-                return true;
-            }
-
-            return false;
-        }
-        /// <summary>
-        /// Опустить элемент на уровень вниз
-        /// </summary>
-        /// <param name="index">Массив индексов. Как адрес элемента в дереве. Пример - ([1,1,5,6])</param>
-        /// <returns>true удачно false не удачно (Элемент последний в списке)</returns>
-        public bool ElementDown(int[] index)
-        {
-            var indexparent = new int[index.Length - 1];
-            for (var j = 0; j < index.Length - 1; j++)
-            {
-                indexparent[j] = index[j];
-            }
-            var ListCount = this[indexparent].Elements.Count;
-
-            var i = index[index.Length - 1];
-            var index2 = new int[index.Length];
-            index.CopyTo(index2, 0);
-            index2[index.Length - 1] = i + 1;
-            var Se1 = this[index];
-
-            if (i != ListCount - 1)
-            {
-                var Se2 = this[index2];
-                this[index2] = Se1;
-                this[index] = Se2;
-                return true;
-            }
-            return false;
-        }
+       
 
         /// <summary>
         /// Создание простого типа числа
@@ -579,45 +530,53 @@ namespace ClientServiceWPF.SchemaEditor
         private XmlSchemaSimpleType CreateTypeDec(TypeSDigit value)
         {
             var type = new XmlSchemaSimpleType();
-
+            
             //Создаем класс ограничений
-            var Restriction = new XmlSchemaSimpleTypeRestriction();
-            Restriction.BaseTypeName = new XmlQualifiedName("decimal", "http://www.w3.org/2001/XMLSchema");
-            //ограничение на количество символов
-            var TotalDigitsFacet = new XmlSchemaTotalDigitsFacet();
-            TotalDigitsFacet.Value = value.ZnakMest.ToString();
-            Restriction.Facets.Add(TotalDigitsFacet);
-
-            if (value.ZnakMestPosDot != 0)//ограничение после точки
+            var restriction = new XmlSchemaSimpleTypeRestriction
             {
-                var FractionDigitsFacet = new XmlSchemaFractionDigitsFacet();
-                FractionDigitsFacet.Value = value.ZnakMestPosDot.ToString();
-                Restriction.Facets.Add(FractionDigitsFacet);
-            }
+                BaseTypeName = new XmlQualifiedName("decimal", "http://www.w3.org/2001/XMLSchema")
+            };
+            //ограничение на количество символов
+            var totalDigitsFacet = new XmlSchemaTotalDigitsFacet
+            {
+                Value = value.ZnakMest.ToString()
+            };
+            restriction.Facets.Add(totalDigitsFacet);
+         
+            var fractionDigitsFacet = new XmlSchemaFractionDigitsFacet
+            {
+                Value = value.ZnakMestPosDot.ToString()
+            };
+            restriction.Facets.Add(fractionDigitsFacet);
 
-            var MinIxclusive = new XmlSchemaMinInclusiveFacet();
-            MinIxclusive.Value = "0";
-            Restriction.Facets.Add(MinIxclusive);
+            var minInclusive = new XmlSchemaMinInclusiveFacet
+            {
+                Value = "0"
+            };
+            restriction.Facets.Add(minInclusive);
 
-            var MaxExclusive = new XmlSchemaMaxExclusiveFacet();
-
-            // Int64 maxvalue = Convert.ToInt64(Math.Pow(10, (value.ZnakMest - value.ZnakMestPosDot)));
-            MaxExclusive.Value = POV((value.ZnakMest - value.ZnakMestPosDot));
-            Restriction.Facets.Add(MaxExclusive);
+            var maxExclusive = new XmlSchemaMaxExclusiveFacet
+            {
+                Value = POV(value.ZnakMest - value.ZnakMestPosDot)
+            };
+            restriction.Facets.Add(maxExclusive);
 
             if (value.Enum.Count != 0)
-                for (var i = 0; i < value.Enum.Count; i++)
+            {
+                foreach (var items in value.Enum)
                 {
-                    var Enums = new XmlSchemaEnumerationFacet();
-                    Enums.Value = value.Enum[i].ToString();
-                    Restriction.Facets.Add(Enums);
+                    var enums = new XmlSchemaEnumerationFacet
+                    {
+                        Value = items.ToString()
+                    };
+                    restriction.Facets.Add(enums);
                 }
-
-            type.Content = Restriction;
+            }
+            type.Content = restriction;
             return type;
         }
 
-        string POV(int MEST)
+        private string POV(int MEST)
         {
             var rzlt = "1";
             for (var i = 0; i < MEST; i++)
@@ -635,31 +594,37 @@ namespace ClientServiceWPF.SchemaEditor
         private XmlSchemaSimpleType CreateTypeStr(TypeSString value, TypeElement TypeEl)
         {
             var type = new XmlSchemaSimpleType();
-
             //Создаем класс ограничений
-            var Restriction = new XmlSchemaSimpleTypeRestriction();
-            Restriction.BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema");
+            var restriction = new XmlSchemaSimpleTypeRestriction
+            {
+                BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema")
+            };
+            var maxLengthFacet = new XmlSchemaMaxLengthFacet
+            {
+                Value = value.ZnakMest.ToString()
+            };
+            restriction.Facets.Add(maxLengthFacet);
 
-            var MaxLengthFacet = new XmlSchemaMaxLengthFacet();
-            MaxLengthFacet.Value = value.ZnakMest.ToString();
-            Restriction.Facets.Add(MaxLengthFacet);
 
-
-            var MinLengthFacet = new XmlSchemaMinLengthFacet();
+            var minLengthFacet = new XmlSchemaMinLengthFacet();
             if (TypeEl == TypeElement.O || TypeEl == TypeElement.OM)
-                MinLengthFacet.Value = "1";
+                minLengthFacet.Value = "1";
             else
-                MinLengthFacet.Value = "0";
-            Restriction.Facets.Add(MinLengthFacet);
+                minLengthFacet.Value = "0";
+            restriction.Facets.Add(minLengthFacet);
 
             if (value.Enum.Count != 0)
-                for (var i = 0; i < value.Enum.Count; i++)
+            {
+                foreach (var item in value.Enum)
                 {
-                    var Enums = new XmlSchemaEnumerationFacet();
-                    Enums.Value = value.Enum[i].Trim();
-                    Restriction.Facets.Add(Enums);
+                    var enums = new XmlSchemaEnumerationFacet
+                    {
+                        Value = item.Trim()
+                    };
+                    restriction.Facets.Add(enums);
                 }
-            type.Content = Restriction;
+            }
+            type.Content = restriction;
             return type;
         }
 
@@ -671,83 +636,108 @@ namespace ClientServiceWPF.SchemaEditor
         private XmlSchemaSimpleType CreateTypeDate(TypeSDate value)
         {
             var type = new XmlSchemaSimpleType();
-
-            var Restriction = new XmlSchemaSimpleTypeRestriction();
-            Restriction.BaseTypeName = new XmlQualifiedName("date", "http://www.w3.org/2001/XMLSchema");
-
-
+            var restriction = new XmlSchemaSimpleTypeRestriction
+            {
+                BaseTypeName = new XmlQualifiedName("date", "http://www.w3.org/2001/XMLSchema")
+            };
             //  <xsd:restriction base="xsd:date">
             //  <xsd:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" /> 
             //  <xsd:maxInclusive value="9999-12-31" /> 
             //  <xsd:minInclusive value="0001-01-01" /> 
             // </xsd:restriction>
-
             var pat = new XmlSchemaPatternFacet
             {
-                Value =
-                    "((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))"
+                Value = "((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))"
             };
             var max = new XmlSchemaMaxExclusiveFacet { Value = "2030-12-31" };
             var min = new XmlSchemaMinExclusiveFacet { Value = "1899-12-31" };
-
-            Restriction.Facets.Add(pat);
-            Restriction.Facets.Add(max);
-            Restriction.Facets.Add(min);
-            type.Content = Restriction;
+            restriction.Facets.Add(pat);
+            restriction.Facets.Add(max);
+            restriction.Facets.Add(min);
+            type.Content = restriction;
             return type;
         }
 
         private XmlSchemaSimpleType CreateTypeTime(TypeSTime value)
         {
             var type = new XmlSchemaSimpleType();
-
-            var Restriction = new XmlSchemaSimpleTypeRestriction();
-            Restriction.BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema");
-
-
+            var restriction = new XmlSchemaSimpleTypeRestriction
+            {
+                BaseTypeName = new XmlQualifiedName("string", "http://www.w3.org/2001/XMLSchema")
+            };
             //  <xsd:restriction base="xsd:date">
             //  <xsd:pattern value="((000[1-9])|(00[1-9][0-9])|(0[1-9][0-9]{2})|([1-9][0-9]{3}))-((0[1-9])|(1[012]))-((0[1-9])|([12][0-9])|(3[01]))" /> 
             //  <xsd:maxInclusive value="9999-12-31" /> 
             //  <xsd:minInclusive value="0001-01-01" /> 
             // </xsd:restriction>
-
             var pat = new XmlSchemaPatternFacet { Value = "^([0-1]?[0-9]|2[0-3]):[0-5][0-9]:[0-5][0-9]$" };
-
-
-            Restriction.Facets.Add(pat);
-            type.Content = Restriction;
+            restriction.Facets.Add(pat);
+            type.Content = restriction;
             return type;
+        }
+
+
+        private XmlSchemaComplexType CreateXmlSchemaComplexType(SchemaElement se, int index,string targetNamespace)
+        {
+            //комплекстный тип
+            var complexType = new XmlSchemaComplexType();
+            //Симплконтент
+            var con = new XmlSchemaSimpleContent();
+
+            //2 атрибута 
+            var d = new XmlDocument();
+            var att1 = d.CreateAttribute("ColumnName", "urn:schemas-microsoft-com:xml-msdata");
+            att1.Value = se.name;
+            var att2 = d.CreateAttribute("Ordinal", "urn:schemas-microsoft-com:xml-msdata");
+            att2.Value = "0";
+            var att3 = d.CreateAttribute("Orders", "urn:schemas-microsoft-com:xml-msprop");
+            att3.Value = index.ToString();
+            var xmlatt = new List<XmlAttribute>{ att1 , att2 };
+            if (se.Type == TypeElement.YM || se.Type == TypeElement.NM || se.Type == TypeElement.OM)
+                xmlatt.Add(att3);
+            con.UnhandledAttributes = xmlatt.ToArray();
+
+
+            var simpleContentExtension = new XmlSchemaSimpleContentExtension
+            {
+                BaseTypeName = new XmlQualifiedName(se.name, targetNamespace)
+            };
+
+            con.Content = simpleContentExtension;
+            complexType.ContentModel = con;
+            return complexType;
         }
         /// <summary>
         /// Создание элемента схемы
         /// </summary>
         /// <param name="se">Элемент класса</param>
         /// <returns>Элемент схемы</returns>
-        private XmlSchemaElement CreateSchemaElement(SchemaElement se, int index)
+        private XmlSchemaElement CreateSchemaElement(SchemaElement se, int index,string targetNamespace)
         {
-            var Element = new XmlSchemaElement();
+            var element = new XmlSchemaElement();
+          
             XmlDocument d;
             XmlAttribute[] xmlatt;
             switch (se.Type)
             {
                 case TypeElement.O:
-                    Element.MinOccurs = 1;
+                    element.MinOccurs = 1;
                     break;
                 case TypeElement.OM:
 
-                    Element.MinOccurs = 1;
-                    Element.MaxOccursString = "unbounded";
+                    element.MinOccurs = 1;
+                    element.MaxOccursString = "unbounded";
                     break;
                 case TypeElement.Y:
                 case TypeElement.N:
-                    Element.MinOccurs = 0;
-                    Element.IsNillable = true;
+                    element.MinOccurs = 0;
+                    element.IsNillable = true;
                     break;
                 case TypeElement.NM:
                 case TypeElement.YM:
-                    Element.MinOccurs = 0;
-                    Element.MaxOccursString = "unbounded";
-                    Element.IsNillable = true;
+                    element.MinOccurs = 0;
+                    element.MaxOccursString = "unbounded";
+                    element.IsNillable = true;
                     break;
                 default:
                     break;
@@ -755,51 +745,20 @@ namespace ClientServiceWPF.SchemaEditor
             }
 
 
-
-            Element.Name = se.name;
+            element.Name = se.name;
 
             if (se.format is TypeSTime)
             {
                 if (se.Type == TypeElement.NM || se.Type == TypeElement.OM || se.Type == TypeElement.YM)
                 {
-                    //комплекстный тип
-                    var complexType = new XmlSchemaComplexType();
-                    //Симплконтент
-                    var con = new XmlSchemaSimpleContent();
-
-                    //2 атрибута 
-                    d = new XmlDocument();
-                    var att1 = d.CreateAttribute("ColumnName", "urn:schemas-microsoft-com:xml-msdata");
-                    att1.Value = se.name;
-                    var att2 = d.CreateAttribute("Ordinal", "urn:schemas-microsoft-com:xml-msdata");
-                    att2.Value = "0";
-                    var att3 = d.CreateAttribute("Orders", "urn:schemas-microsoft-com:xml-msprop");
-                    att3.Value = index.ToString();
-                    xmlatt = new XmlAttribute[3];
-                    xmlatt.SetValue(att1, 0);
-                    xmlatt.SetValue(att2, 1);
-                    if (se.Type == TypeElement.YM || se.Type == TypeElement.NM || se.Type == TypeElement.OM)
-                        xmlatt.SetValue(att3, 2);
-                    con.UnhandledAttributes = xmlatt;
-
-
-                    var simpleContent_extension = new XmlSchemaSimpleContentExtension();
-                    simpleContent_extension.BaseTypeName = new XmlQualifiedName(se.name, "");
-
-                    con.Content = simpleContent_extension;
-
-
-                    complexType.ContentModel = con;
-
-                    Element.SchemaType = complexType;
-
+                    element.SchemaType = CreateXmlSchemaComplexType(se, index, targetNamespace);
                     var type = CreateTypeTime(se.format as TypeSTime);
                     type.Name = se.name;
                     schema.Items.Add(type);
                 }
                 else
                 {
-                    Element.SchemaType = CreateTypeTime(se.format as TypeSTime);
+                    element.SchemaType = CreateTypeTime(se.format as TypeSTime);
                 }
             }
 
@@ -808,44 +767,14 @@ namespace ClientServiceWPF.SchemaEditor
             {
                 if (se.Type == TypeElement.NM || se.Type == TypeElement.OM || se.Type == TypeElement.YM)
                 {
-                    //комплекстный тип
-                    var complexType = new XmlSchemaComplexType();
-                    //Симплконтент
-                    var con = new XmlSchemaSimpleContent();
-
-                    //2 атрибута 
-                    d = new XmlDocument();
-                    var att1 = d.CreateAttribute("ColumnName", "urn:schemas-microsoft-com:xml-msdata");
-                    att1.Value = se.name;
-                    var att2 = d.CreateAttribute("Ordinal", "urn:schemas-microsoft-com:xml-msdata");
-                    att2.Value = "0";
-                    var att3 = d.CreateAttribute("Orders", "urn:schemas-microsoft-com:xml-msprop");
-                    att3.Value = index.ToString();
-                    xmlatt = new XmlAttribute[3];
-                    xmlatt.SetValue(att1, 0);
-                    xmlatt.SetValue(att2, 1);
-                    if (se.Type == TypeElement.YM || se.Type == TypeElement.NM || se.Type == TypeElement.OM)
-                        xmlatt.SetValue(att3, 2);
-                    con.UnhandledAttributes = xmlatt;
-
-
-                    var simpleContent_extension = new XmlSchemaSimpleContentExtension();
-                    simpleContent_extension.BaseTypeName = new XmlQualifiedName(se.name, "");
-
-                    con.Content = simpleContent_extension;
-
-
-                    complexType.ContentModel = con;
-
-                    Element.SchemaType = complexType;
-
+                    element.SchemaType = CreateXmlSchemaComplexType(se, index, targetNamespace);
                     var type = CreateTypeDate(se.format as TypeSDate);
                     type.Name = se.name;
                     schema.Items.Add(type);
                 }
                 else
                 {
-                    Element.SchemaType = CreateTypeDate(se.format as TypeSDate);
+                    element.SchemaType = CreateTypeDate(se.format as TypeSDate);
                 }
             }
 
@@ -853,105 +782,41 @@ namespace ClientServiceWPF.SchemaEditor
             {
                 if (se.Type == TypeElement.NM || se.Type == TypeElement.OM || se.Type == TypeElement.YM)
                 {
-                    //комплекстный тип
-                    var complexType = new XmlSchemaComplexType();
-                    //Симплконтент
-                    var con = new XmlSchemaSimpleContent();
-
-                    //2 атрибута 
-                    d = new XmlDocument();
-                    var att1 = d.CreateAttribute("ColumnName", "urn:schemas-microsoft-com:xml-msdata");
-                    att1.Value = se.name;
-                    var att2 = d.CreateAttribute("Ordinal", "urn:schemas-microsoft-com:xml-msdata");
-                    att2.Value = "0";
-                    var att3 = d.CreateAttribute("Orders", "urn:schemas-microsoft-com:xml-msprop");
-                    att3.Value = index.ToString();
-                    xmlatt = new XmlAttribute[3];
-                    xmlatt.SetValue(att1, 0);
-                    xmlatt.SetValue(att2, 1);
-                    if (se.Type == TypeElement.YM || se.Type == TypeElement.NM || se.Type == TypeElement.OM)
-                        xmlatt.SetValue(att3, 2);
-                    con.UnhandledAttributes = xmlatt;
-
-
-                    var simpleContent_extension = new XmlSchemaSimpleContentExtension();
-                    simpleContent_extension.BaseTypeName = new XmlQualifiedName(se.name, "");
-
-                    con.Content = simpleContent_extension;
-
-
-                    complexType.ContentModel = con;
-
-                    Element.SchemaType = complexType;
-
+                    element.SchemaType = CreateXmlSchemaComplexType(se, index, targetNamespace);
                     var type = CreateTypeDec(se.format as TypeSDigit);
                     type.Name = se.name;
                     schema.Items.Add(type);
                 }
                 else
                 {
-                    Element.SchemaType = CreateTypeDec(se.format as TypeSDigit);
+                    element.SchemaType = CreateTypeDec(se.format as TypeSDigit);
                 }
             }
 
             if (se.format is TypeSString)
                 if (se.Type == TypeElement.NM || se.Type == TypeElement.OM || se.Type == TypeElement.YM)
                 {
-                    //комплекстный тип
-                    var complexType = new XmlSchemaComplexType();
-                    //Симплконтент
-                    var con = new XmlSchemaSimpleContent();
-
-                    //2 атрибута 
-                    d = new XmlDocument();
-                    var att1 = d.CreateAttribute("ColumnName", "urn:schemas-microsoft-com:xml-msdata");
-                    att1.Value = se.name;
-                    var att2 = d.CreateAttribute("Ordinal", "urn:schemas-microsoft-com:xml-msdata");
-                    att2.Value = "0";
-                    var att3 = d.CreateAttribute("Orders", "urn:schemas-microsoft-com:xml-msprop");
-                    att3.Value = index.ToString();
-                    xmlatt = new XmlAttribute[3];
-                    xmlatt.SetValue(att1, 0);
-                    xmlatt.SetValue(att2, 1);
-
-                    if (se.Type == TypeElement.YM || se.Type == TypeElement.NM || se.Type == TypeElement.OM)
-                        xmlatt.SetValue(att3, 2);
-
-                    con.UnhandledAttributes = xmlatt;
-
-
-                    var simpleContent_extension = new XmlSchemaSimpleContentExtension();
-                    simpleContent_extension.BaseTypeName = new XmlQualifiedName(se.name, "");
-
-                    con.Content = simpleContent_extension;
-
-
-                    complexType.ContentModel = con;
-
-                    Element.SchemaType = complexType;
-
+                    element.SchemaType = CreateXmlSchemaComplexType(se, index, targetNamespace);
                     var type = CreateTypeStr(se.format as TypeSString, se.Type);
                     type.Name = se.name;
                     schema.Items.Add(type);
                 }
                 else
                 {
-                    Element.SchemaType = CreateTypeStr(se.format as TypeSString, se.Type);
+                    element.SchemaType = CreateTypeStr(se.format as TypeSString, se.Type);
                 }
 
 
             if (se.format is TypeSComplex)
             {
-                Element.SchemaType = CreateComplexType(se, se.Elements);
+                element.SchemaType = CreateComplexType(se.Elements, targetNamespace);
                 d = new XmlDocument();
                 var att3 = d.CreateAttribute("Orders", "urn:schemas-microsoft-com:xml-msprop");
+
                 att3.Value = index.ToString();
                 xmlatt = new XmlAttribute[1];
-                //if (se.Type == TypeElement.YM || se.Type == TypeElement.NM || se.Type == TypeElement.OM)
-                {
-                    xmlatt.SetValue(att3, 0);
-                    Element.UnhandledAttributes = xmlatt;
-                }
+                xmlatt.SetValue(att3, 0);
+                element.UnhandledAttributes = xmlatt;
 
                 foreach (var itemM in se.Elements)
                 {
@@ -963,11 +828,13 @@ namespace ClientServiceWPF.SchemaEditor
                             {
                                 if (item.Unique && !item.UniqueGlobal)
                                 {
-                                    var un = new XmlSchemaUnique();
-                                    un.Name = item.name;
-                                    un.Selector = new XmlSchemaXPath() { XPath = itemM.name };
-                                    un.Fields.Add(new XmlSchemaXPath() { XPath = item.name });
-                                    Element.Constraints.Add(un);
+                                    var un = new XmlSchemaUnique
+                                    {
+                                        Name = item.name,
+                                        Selector = new XmlSchemaXPath { XPath = itemM.name }
+                                    };
+                                    un.Fields.Add(new XmlSchemaXPath { XPath = item.name });
+                                    element.Constraints.Add(un);
                                 }
 
                             }
@@ -976,31 +843,32 @@ namespace ClientServiceWPF.SchemaEditor
                 }
             }
 
-            return Element;
+            return element;
 
         }
+
         /// <summary>
         /// Создание комплексного типа
         /// </summary>
-        /// <param name="se">Элемент класса</param>
-        /// <param name="Elements">Дочерние элементы</param>
+        /// <param name="elements">Дочерние элементы</param>
+        /// <param name="targetNamespace"></param>
         /// <returns>Комплексный тип</returns>
-        private XmlSchemaComplexType CreateComplexType(SchemaElement se, List<SchemaElement> Elements)
+        private XmlSchemaComplexType CreateComplexType(List<SchemaElement> elements,string targetNamespace)
         {
-            var SchemaComplexType = new XmlSchemaComplexType();
+            var schemaComplexType = new XmlSchemaComplexType();
+          
             var sequence = new XmlSchemaSequence();
-
+          
             var index_ = 0;
-            foreach (var item in Elements)
+            foreach (var item in elements)
             {
-                sequence.Items.Add(CreateSchemaElement(item, index_));
+                sequence.Items.Add(CreateSchemaElement(item, index_, targetNamespace));
                 if (!(item.Type == TypeElement.NM || item.Type == TypeElement.YM || item.Type == TypeElement.OM || item.format is TypeSComplex))
                     index_++;
-
-
             }
-            SchemaComplexType.Particle = sequence;
-            return SchemaComplexType;
+            schemaComplexType.Particle = sequence;
+            
+            return schemaComplexType;
         }
 
         class Unic
@@ -1054,44 +922,44 @@ namespace ClientServiceWPF.SchemaEditor
         /// </summary>
         /// <param name="path">Путь к файлу</param>
         /// <returns>true - компиляция удачна false - ошибка компиляции</returns>
-        public bool Compile(string path)
+        public bool Compile(string path, string targetNamespace)
         {
+            targetNamespace = targetNamespace ?? "";
             schema = new XmlSchema();
             schema.Namespaces.Add("msdata", "urn:schemas-microsoft-com:xml-msdata");
             schema.Namespaces.Add("msprop", "urn:schemas-microsoft-com:xml-msprop");
+            schema.TargetNamespace = targetNamespace;
+            schema.ElementFormDefault = XmlSchemaForm.Qualified;
             //Компиляция элементов
             var index = 0;
             foreach (var item in SchemaElements)
             {
                 var xml1 = new XmlSchemaElement();
-                var xml = CreateSchemaElement(item, index);
+                var xml = CreateSchemaElement(item, index, targetNamespace);
                 index++;
 
                 xml1.Name = xml.Name;
                 xml1.SchemaType = xml.SchemaType;
-
-                // xml1.Constraints.Add();
+                
+             
 
                 var t = GetGlobalIndex();
                 foreach (var u in t)
                 {
                     var un = new XmlSchemaUnique { Name = u.Field, Selector = new XmlSchemaXPath() { XPath = u.Selector } };
+                    
                     un.Fields.Add(new XmlSchemaXPath() { XPath = u.Field });
                     xml1.Constraints.Add(un);
                 }
 
                 schema.Items.Add(xml1);
             }
-            /*
-            System.Xml.Schema.XmlSchemaUnique xml = new XmlSchemaUnique();
-            xml.Name = "IDSERV";
-            xml.Selector.XPath = "IDSERV";
-            xml.Fields.Add(new XmlSchemaXPath(){XPath = "asd"};*/
             //Компиляция файла
             compileEr = true;
 
             var set = new XmlSchemaSet();
             set.Add(schema);
+            
             set.ValidationEventHandler += ValidationCallback;
             set.Compile();
             //schema.Compile(ValidationCallback);

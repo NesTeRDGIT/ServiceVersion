@@ -237,7 +237,6 @@ namespace ClientServiceWPF.SANK_INVITER
                 STAT.IsFLKCheck = IsFLKCheck;
                 STAT.IsInsertCheck = IsInsertCheck;
                 STAT.IsXSDCheck = IsXSDCheck;
-
             });
         }
         #endregion
@@ -882,7 +881,7 @@ namespace ClientServiceWPF.SANK_INVITER
             }
             finally
             {
-                RefreshStat();
+                RefreshStat(); 
             }
         });
 

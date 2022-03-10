@@ -214,6 +214,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 item.FAP_S = Convert.ToDecimal(row[nameof(FAP_S)]);
                 item.MUR = Convert.ToDecimal(row[nameof(MUR)]);
                 item.MUR_RETURN = Convert.ToDecimal(row[nameof(MUR_RETURN)]);
+                item.FIN_S_AMB_MBT = Convert.ToDecimal(row[nameof(FIN_S_AMB_MBT)]);
                 return item;
             }
             catch (Exception ex)
@@ -222,7 +223,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             }
         }
 
-        public decimal FOND_SUM => AMB_S + SCOR_S + FAP_S;
+        public decimal FOND_SUM => AMB_S + SCOR_S + FAP_S + FIN_S_AMB_MBT;
         public decimal FOND_SUMP => FOND_SUM - MUR;
         public decimal FOND_SUMP_ON_MEK_P => FOND_SUM - MUR + MUR_RETURN;
         public decimal AMB_S_P => AMB_S - MUR;
@@ -239,6 +240,8 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
 
         public decimal MUR { get; set; }
         public decimal MUR_RETURN { get; set; }
+        public decimal FIN_S_AMB_MBT { get; set; }
+
 
         public static MO_FOND_INFO operator +(MO_FOND_INFO item1, MO_FOND_INFO item2)
         {
@@ -252,7 +255,8 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 SCOR_STANDART = item1.SCOR_STANDART + item2.SCOR_STANDART,
                 FAP_S = item1.FAP_S + item2.FAP_S,
                 MUR = item1.MUR + item2.MUR,
-                MUR_RETURN = item1.MUR_RETURN + item2.MUR_RETURN
+                MUR_RETURN = item1.MUR_RETURN + item2.MUR_RETURN,
+                FIN_S_AMB_MBT = item1.FIN_S_AMB_MBT + item2.FIN_S_AMB_MBT,
             };
         }
     }

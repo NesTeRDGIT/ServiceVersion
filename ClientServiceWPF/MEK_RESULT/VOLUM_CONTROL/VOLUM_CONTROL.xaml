@@ -273,7 +273,7 @@
                                             </Style>
                                         </Button.Style>
                                     </Button>
-                                    <Button Content="Актировать МЭК(ПП)" HorizontalAlignment="Left" Height="24" Margin="598,32,0,0" VerticalAlignment="Top" Width="125" Command="{Binding CalcLimitCommand}">
+                                    <Button Content="Актировать МЭК(ПП)" HorizontalAlignment="Left" Height="24" Margin="598,32,0,0" VerticalAlignment="Top" Width="125" Command="{Binding ActMekPPCommand}">
                                         <Button.Style>
                                             <Style TargetType="{x:Type Button}" BasedOn="{StaticResource MainButton}">
                                                 <Style.Triggers>

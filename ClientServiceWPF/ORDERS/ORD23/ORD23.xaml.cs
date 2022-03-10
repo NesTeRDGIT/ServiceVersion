@@ -229,7 +229,8 @@ namespace ClientServiceWPF.ORDERS.ORD23
                             z.SLUCH.SL_K = z.SLUCH.SL_KOEF.Count == 0 ? 0 : 1;
                             if (z.SLUCH.SL_KOEF.Count != 0)
                             {
-                                z.SLUCH.IT_SL = z.SLUCH.SL_KOEF.Sum(x => x.Z_SL - 1) + 1;
+                                z.SLUCH.IT_SL = YEAR <= 2021 ? z.SLUCH.SL_KOEF.Sum(x => x.Z_SL - 1) + 1 : z.SLUCH.SL_KOEF.Sum(x => x.Z_SL);
+
                             }
 
                             j++;

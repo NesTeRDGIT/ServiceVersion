@@ -20,6 +20,7 @@ namespace ServiceLoaderMedpomData
 
     public static class XmlSerializerExtensions
     {
+        //private string defaultNamespace;
         // the target format of the decimal precision, change to your needs
 
 
@@ -29,6 +30,8 @@ namespace ServiceLoaderMedpomData
             serializer.Serialize(writer, o, ns);
         }
 
+
+
         private static void IteratePropertiesRecursively(object o)
         {
             if (o == null)
@@ -37,10 +40,13 @@ namespace ServiceLoaderMedpomData
             var type = o.GetType();
             var properties = type.GetProperties();
 
+
             // enumerate the properties of the type
             foreach (var property in properties)
             {
                 var propertyType = property.PropertyType;
+             
+               
 
                 // if property is a generic list
                 if (propertyType.Name == "List`1")
@@ -85,10 +91,10 @@ namespace ServiceLoaderMedpomData
 
         private static void SetFormatDecimal(PropertyInfo property, Type type, object o)
         {
-            var Format = Attribute.GetCustomAttributes(property, typeof(DecimalFormatAttribute)).Select(x => (DecimalFormatAttribute)x).FirstOrDefault();
+            var format = Attribute.GetCustomAttributes(property, typeof(DecimalFormatAttribute)).Select(x => (DecimalFormatAttribute)x).FirstOrDefault();
 
 
-            if (Format != null)
+            if (format != null)
             {
                 var specifiedPropertyName = $"{property.Name}Specified";
                 var isSpecifiedProperty = type.GetProperty(specifiedPropertyName);
@@ -99,13 +105,13 @@ namespace ServiceLoaderMedpomData
                     var isSpecifiedPropertyValue = isSpecifiedProperty.GetValue(o, null) as bool?;
                     if (isSpecifiedPropertyValue == true)
                     {
-                        FormatDecimal(property, o, Format.FORMAT);
+                        FormatDecimal(property, o, format.FORMAT);
                     }
                 }
                 else
                 {
                     // if there is no property with name XXXSpecified, we can safely format the decimal
-                    FormatDecimal(property, o, Format.FORMAT);
+                    FormatDecimal(property, o, format.FORMAT);
                 }
             }
         }

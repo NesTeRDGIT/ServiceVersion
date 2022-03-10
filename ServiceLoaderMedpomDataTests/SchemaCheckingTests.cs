@@ -531,24 +531,40 @@ namespace ServiceLoaderMedpomDataTests
             }
         }
 
+        public class SeparatorComparer : IComparer<string>
+        {
+            public int Compare(string x, string y)
+            {
+                var result = 0;
+                var x_arr = x.Split('.').Where(z => !string.IsNullOrEmpty(z)).ToArray();
+                var y_arr = y.Split('.').Where(z => !string.IsNullOrEmpty(z)).ToArray(); ;
 
+                for (var i = 0; i < x_arr.Length; i++)
+                {
+                    if (i >= y_arr.Length) break;
+                    var a = Convert.ToInt32(x_arr[i]);
+                    var b = Convert.ToInt32(y_arr[i]);
+                    result = a.CompareTo(b);
+                    if (result != 0)
+                        return result;
+                }
+                return x.Length.CompareTo(y.Length);
+            }
+
+
+        }
 
         [TestMethod(), Description("Проверка файла из каталога")]
         public void TestCustomFile()
         {
-
-          // var t =  RusCurrency.Str(152525526.36);
-            /*var file = ZL_LIST.ReadFromFile(@"C:\TEMP\HM750004T75_211262.XML");
-            file.SCHET.MONTH = 9;
-            using (var ms = new MemoryStream())
+            var item = new ZL_LIST();
+            string p = "C:\\1\\1.xml";
+            using (var st = File.Create(p))
             {
-                file.WriteXml(ms);
-                ms.Seek(0, SeekOrigin.Begin);
-                var sc = new SchemaChecking();
-                var res = sc.CheckXML(ms, PATH_XSD_H31, new CheckXMLValidator(VersionMP.V3_1));
-                Assert.IsTrue(res.Count == 1, $"Ошибку не видит");
-            }*/
-
+                item.WriteXmlCustom(st);
+              
+            }
+            ExtZLLIST.ChangeNamespace(p);
         }
 
     }

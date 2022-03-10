@@ -279,8 +279,6 @@
                     <xs:fractionDigits value="0" />
                     <xs:minInclusive value="0" />
                     <xs:maxExclusive value="10" />
-                    <xs:enumeration value="0" />
-                    <xs:enumeration value="1" />
                   </xs:restriction>
                 </xs:simpleType>
               </xs:element>
@@ -316,7 +314,7 @@
                     <xs:element minOccurs="0" name="NPOLIS" nillable="true">
                       <xs:simpleType>
                         <xs:restriction base="xs:string">
-                          <xs:maxLength value="16" />
+                          <xs:maxLength value="20" />
                           <xs:minLength value="0" />
                         </xs:restriction>
                       </xs:simpleType>
@@ -394,6 +392,14 @@
                           <xs:fractionDigits value="0" />
                           <xs:minInclusive value="0" />
                           <xs:maxExclusive value="10000" />
+                        </xs:restriction>
+                      </xs:simpleType>
+                    </xs:element>
+                    <xs:element minOccurs="0" name="LPU_REG" nillable="true">
+                      <xs:simpleType>
+                        <xs:restriction base="xs:string">
+                          <xs:maxLength value="6" />
+                          <xs:minLength value="0" />
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
@@ -662,8 +668,8 @@
                           <xs:element minOccurs="0" name="KD" nillable="true">
                             <xs:simpleType>
                               <xs:restriction base="xs:decimal">
-                                <xs:totalDigits value="4" />
-                                <xs:fractionDigits value="1" />
+                                <xs:totalDigits value="3" />
+                                <xs:fractionDigits value="0" />
                                 <xs:minInclusive value="0" />
                                 <xs:maxExclusive value="1000" />
                               </xs:restriction>
@@ -1095,6 +1101,8 @@
                                       <xs:fractionDigits value="0" />
                                       <xs:minInclusive value="0" />
                                       <xs:maxExclusive value="10" />
+                                      <xs:enumeration value="0" />
+                                      <xs:enumeration value="1" />
                                     </xs:restriction>
                                   </xs:simpleType>
                                 </xs:element>
@@ -1293,17 +1301,20 @@
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
-                    <xs:element minOccurs="0" name="OPLATA" nillable="true">
+                    <xs:element minOccurs="1" name="OPLATA">
                       <xs:simpleType>
                         <xs:restriction base="xs:decimal">
                           <xs:totalDigits value="1" />
                           <xs:fractionDigits value="0" />
                           <xs:minInclusive value="0" />
                           <xs:maxExclusive value="10" />
+                          <xs:enumeration value="1" />
+                          <xs:enumeration value="2" />
+                          <xs:enumeration value="3" />
                         </xs:restriction>
                       </xs:simpleType>
                     </xs:element>
-                    <xs:element minOccurs="0" name="SUMP" nillable="true">
+                    <xs:element minOccurs="1" name="SUMP">
                       <xs:simpleType>
                         <xs:restriction base="xs:decimal">
                           <xs:totalDigits value="15" />
@@ -1351,13 +1362,13 @@
                               </xs:simpleContent>
                             </xs:complexType>
                           </xs:element>
-                          <xs:element minOccurs="0" name="S_OSN" nillable="true">
+                          <xs:element minOccurs="1" name="S_OSN">
                             <xs:simpleType>
                               <xs:restriction base="xs:decimal">
-                                <xs:totalDigits value="2" />
+                                <xs:totalDigits value="3" />
                                 <xs:fractionDigits value="0" />
                                 <xs:minInclusive value="0" />
-                                <xs:maxExclusive value="100" />
+                                <xs:maxExclusive value="1000" />
                               </xs:restriction>
                             </xs:simpleType>
                           </xs:element>
@@ -1400,6 +1411,64 @@
                                 <xs:fractionDigits value="0" />
                                 <xs:minInclusive value="0" />
                                 <xs:maxExclusive value="10" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="S_YEAR" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="4" />
+                                <xs:fractionDigits value="0" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10000" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="S_MONTH" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="2" />
+                                <xs:fractionDigits value="0" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="100" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="S_PLAN" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="1" />
+                                <xs:fractionDigits value="0" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="S_TEM" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="1" />
+                                <xs:fractionDigits value="0" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="S_FINE" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:decimal">
+                                <xs:totalDigits value="15" />
+                                <xs:fractionDigits value="2" />
+                                <xs:minInclusive value="0" />
+                                <xs:maxExclusive value="10000000000000" />
+                              </xs:restriction>
+                            </xs:simpleType>
+                          </xs:element>
+                          <xs:element minOccurs="0" name="S_OSN_TFOMS" nillable="true">
+                            <xs:simpleType>
+                              <xs:restriction base="xs:string">
+                                <xs:maxLength value="6" />
+                                <xs:minLength value="0" />
                               </xs:restriction>
                             </xs:simpleType>
                           </xs:element>

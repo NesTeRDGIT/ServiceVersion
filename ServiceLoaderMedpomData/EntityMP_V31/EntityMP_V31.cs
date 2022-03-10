@@ -14,6 +14,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [XmlRoot(Namespace = "", IsNullable = false)]
     public  class ZL_LIST
     {
+        /// <summary>
+        /// Установить сумму принятую в зависимости от OPLATA
+        /// </summary>
         public void SetSUMP()
         {
             foreach(var zs in ZAP.SelectMany(x=>x.Z_SL_list))
@@ -48,6 +51,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
 
+        /// <summary>
+        /// Удалить данные для СМО(LPU_REG, SLUCH_Z_ID, SLUCH_Z_ID_MAIN, S_OSN_TFOMS, SUM_MP, SLUCH_ID, PS_VOLUME, BSP, NOT_VR, SUMP_USL, USL_ID)
+        /// </summary>
         public void ClearSMO_DATA()
         {
             foreach (var z in ZAP)
@@ -79,6 +85,45 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
 
+        /// <summary>
+        /// Очистить сумму принятую
+        /// </summary>
+        public void ClearSUMP()
+        {
+            foreach (var z in ZAP)
+            {
+                foreach (var z_sl in z.Z_SL_list)
+                {
+                    z_sl.SUMP = null;
+                    z_sl.OPLATA = null;
+                    z_sl.SANK_IT = null;
+                }
+            }
+            SCHET.SUMMAP = null;            
+            SCHET.SANK_MEK = null;
+        }
+        /// <summary>
+        /// Пересчитать сумму выставленную
+        /// </summary>
+        public void ReCalcSUMV()
+        {
+            foreach (var z in ZAP)
+            {
+                foreach (var z_sl in z.Z_SL_list)
+                {
+                    foreach(var sl in z_sl.SL)
+                    {
+                        sl.SUM_M = sl.USL.Sum(x => x.SUMV_USL);
+                    }
+                    z_sl.SUMV = z_sl.SL.Sum(x => x.SUM_M);
+                }
+            }
+            SCHET.SUMMAV = ZAP.SelectMany(x => x.Z_SL_list).Sum(x => x.SUMV);
+        }
+
+        /// <summary>
+        /// Удалить поля для СМО
+        /// </summary>
         public void ClearForFFOMS_DATA()
         {
             SCHET.REF = null;
@@ -1426,6 +1471,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             this.CODE_MES1 = new List<string>();
             this.NAPR = new List<NAPR>();
             this.CONS = new List<CONS>();
+            this.LEK_PR = new List<LEK_PR_H>();
         }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
@@ -2470,6 +2516,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal SUMV_USL { get; set; }
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
+        public decimal? SUMP_USL { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public List<MED_DEV> MED_DEV { get; set; } = new List<MED_DEV>();
@@ -2477,8 +2525,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public List<MR_USL_N> MR_USL_N { get; set; } = new List<MR_USL_N>();
 
-        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
-        public decimal? SUMP_USL { get; set; }
+       
         public bool ShouldSerializeSUMP_USL()
         {
             return SUMP_USL.HasValue;
@@ -2525,6 +2572,53 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         {
             return NOT_VR.HasValue;
         }
+
+
+
+
+        public void CopyFrom(USL usl)
+        {
+            this.BSP = usl.BSP;
+            this.CODE_MD = usl.CODE_MD;
+            this.CODE_USL = usl.CODE_USL;
+            this.COMENTU = usl.COMENTU;
+            this.DATE_IN = usl.DATE_IN;
+            this.DATE_OUT = usl.DATE_OUT;
+            this.DET = usl.DET;
+            this.DS = usl.DS;
+            this.IDSERV = usl.IDSERV;
+            this.KOL_USL = usl.KOL_USL;
+            this.LPU = usl.LPU;
+            this.LPU_1 = usl.LPU_1;
+            this.MED_DEV.Clear();
+            foreach(var meddev in usl.MED_DEV)
+            {
+                var newmeddev = new MED_DEV();
+                newmeddev.CopyFrom(meddev);
+                this.MED_DEV.Add(newmeddev);
+            }
+            this.MR_USL_N.Clear();
+            foreach (var mr in usl.MR_USL_N)
+            {
+                var newmr = new MR_USL_N();
+                newmr.CopyFrom(mr);
+                this.MR_USL_N.Add(newmr);
+            }
+            this.NOT_VR = usl.NOT_VR;
+            this.NPL = usl.NPL;
+            this.PODR = usl.PODR;
+            this.PROFIL = usl.PROFIL;        
+            this.PRVS = usl.PRVS;
+            this.PS_VOLUME = usl.PS_VOLUME;
+            this.P_OTK = usl.P_OTK;
+            this.SLUCH_ID = usl.SLUCH_ID;
+            this.SUMP_USL = usl.SUMP_USL;
+            this.SUMV_USL = usl.SUMV_USL;
+            this.TARIF = usl.TARIF;
+            this.USL_ID = usl.USL_ID;
+            this.VID_VME = usl.VID_VME;
+           
+        }
     }
     public class MR_USL_N
     {
@@ -2547,6 +2641,13 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             {
                 throw new Exception($"Ошибка получения MR_USL_N:{ex.Message}");
             }
+        }
+        public void CopyFrom(MR_USL_N usl)
+        {
+            this.USL_ID = usl.USL_ID;
+            this.MR_N = usl.MR_N;
+            this.PRVS = usl.PRVS;
+            this.CODE_MD = usl.CODE_MD;
         }
         [XmlIgnore]
         public long? USL_ID { get; set; }
@@ -2811,7 +2912,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [XmlType(AnonymousType = true)]
     [XmlRoot(Namespace = "", IsNullable = false)]
     public  class PERS_LIST
-    { public static PERS_LIST LoadFromFile(string Path)
+    {
+        public static PERS_LIST LoadFromFile(string Path)
         {
             Stream st = null;
             try
@@ -3065,6 +3167,29 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
     public class LEK_PR_H
     {
+        public static LEK_PR_H Get(DataRow row)
+        {
+            try
+            {
+                var item = new LEK_PR_H();
+                item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
+                item.DATA_INJ = Convert.ToDateTime(row[nameof(DATA_INJ)]);
+                if (row[nameof(CODE_SH)] != DBNull.Value)
+                    item.CODE_SH = row[nameof(CODE_SH)].ToString();
+                if (row[nameof(REGNUM)] != DBNull.Value)
+                    item.REGNUM = row[nameof(REGNUM)].ToString();
+                if (row[nameof(COD_MARK)] != DBNull.Value)
+                    item.COD_MARK = row[nameof(COD_MARK)].ToString();
+
+                if (row[nameof(EntityMP_V31.LEK_DOSE.DOSE_INJ)] != DBNull.Value)
+                    item.LEK_DOSE = LEK_DOSE.Get(row);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения LEK_PR_H:{ex.Message}");
+            }
+        }
         [XmlIgnore]
         public long? SLUCH_ID { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, DataType = "date")]
@@ -3075,12 +3200,30 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public string REGNUM { get; set; }
         [XmlElement]
         public string COD_MARK { get; set; }
-        public LEK_DOSE LEK_DOSE { get; set; } = new LEK_DOSE();
-
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
+        public LEK_DOSE LEK_DOSE { get; set; } 
     }
 
     public class LEK_DOSE
     {
+        public static LEK_DOSE Get(DataRow row)
+        {
+            try
+            {
+                var item = new LEK_DOSE();
+                if (row[nameof(ED_IZM)] != DBNull.Value)
+                    item.ED_IZM = row[nameof(ED_IZM)].ToString();
+                item.DOSE_INJ = Convert.ToInt32(row[nameof(DOSE_INJ)]);
+                if (row[nameof(METHOD_INJ)] != DBNull.Value)
+                    item.METHOD_INJ = row[nameof(METHOD_INJ)].ToString();
+                item.COL_INJ = Convert.ToInt32(row[nameof(COL_INJ)]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения LEK_DOSE:{ex.Message}");
+            }
+        }
         [XmlElement]
         public string ED_IZM { get; set; }
         [XmlElement]
@@ -3094,6 +3237,33 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
     public class MED_DEV
     {
+        public static MED_DEV Get(DataRow row)
+        {
+            try
+            {
+                var item = new MED_DEV();
+                item.USL_ID = Convert.ToInt64(row[nameof(USL_ID)]);
+                item.DATE_MED = Convert.ToDateTime(row[nameof(DATE_MED)]);
+                item.CODE_MEDDEV = Convert.ToInt32(row[nameof(CODE_MEDDEV)]);
+                if(row[nameof(NUMBER_SER)]!=DBNull.Value)
+                    item.NUMBER_SER = row[nameof(NUMBER_SER)].ToString();
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения MED_DEV:{ex.Message}");
+            }
+        }
+
+
+        public void CopyFrom(MED_DEV dev)
+        {
+            this.USL_ID = dev.USL_ID;
+            this.DATE_MED = dev.DATE_MED;
+            this.CODE_MEDDEV = dev.CODE_MEDDEV;
+            this.NUMBER_SER = dev.NUMBER_SER;
+        }
+
         [XmlIgnore]
         public long? USL_ID { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, DataType = "date")]
@@ -3106,38 +3276,44 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
     public static class ExtZLLIST
     {
+        private static System.Text.Encoding encoding = System.Text.Encoding.GetEncoding("Windows-1251");
 
-        public static void WriteXml(this ServiceLoaderMedpomData.EntityMP_V3.ZL_LIST zl, Stream st)
+        public static void WriteXml(this EntityMP_V3.ZL_LIST zl, Stream st)
         {
-            var ser = new XmlSerializer(typeof(ServiceLoaderMedpomData.EntityMP_V3.ZL_LIST));
-            var set = new XmlWriterSettings();
-            set.Encoding = System.Text.Encoding.GetEncoding("Windows-1251");
-            set.Indent = true;
             var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
+            var ser = new XmlSerializer(typeof(ZL_LIST));
+            var set = new XmlWriterSettings { Encoding = encoding, Indent = true };
             var xml = XmlWriter.Create(st, set);
             ser.Serialize(xml, zl, ns);
-           
         }
 
-    
         public static void WriteXml(this ZL_LIST zl, Stream st)
         {
-            var ser = new XmlSerializer(typeof(ZL_LIST));
-            var set = new XmlWriterSettings {Encoding = System.Text.Encoding.GetEncoding("Windows-1251"), Indent = true};
             var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
+            var ser = new XmlSerializer(typeof(ZL_LIST));
+            var set = new XmlWriterSettings {Encoding = encoding, Indent = true};
             var xml = XmlWriter.Create(st, set);
             ser.Serialize(xml, zl, ns);
         }
         public static void WriteXmlCustom(this ZL_LIST zl, Stream st)
         {
             var ser = new XmlSerializer(typeof(ZL_LIST));
-            var set = new XmlWriterSettings {Encoding = System.Text.Encoding.GetEncoding("Windows-1251"), Indent = true};
+            var set = new XmlWriterSettings {Encoding = encoding, Indent = true};
             var ns = new XmlSerializerNamespaces();
             ns.Add("", "");
+           
             var xml = XmlWriter.Create(st, set);
             ser.SerializeWithDecimalFormatting(xml, zl, ns);
+        }
+        //КОСТЫЛЬ
+        public static void ChangeNamespace(string path)
+        {
+            var text = File.ReadAllText(path, encoding);
+            var newText = text.Replace("<ZL_LIST>", "<ZL_LIST xmlns=\"urn:ffoms:dispa:schema:xsd:reestr:d1:1.1\">");
+            File.WriteAllText(path, newText, encoding);
+
         }
         public static void WriteXml(this PERS_LIST zl, Stream st)
         {
@@ -3552,5 +3728,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         }
 
 
+       
     }
 }

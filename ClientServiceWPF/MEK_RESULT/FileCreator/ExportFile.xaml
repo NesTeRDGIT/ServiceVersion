@@ -150,6 +150,7 @@
                             <RadioButton Content="Для ФФОМС(Dx)" HorizontalAlignment="Left" Margin="10,40,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsFFOMSDx}"/>
                             <RadioButton Content="МЭК прошлых периодов(в СМО)" HorizontalAlignment="Left" Margin="10,55,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsMEK_P_P_SMO}"/>
                             <RadioButton Content="МЭК прошлых периодов(в МО)" HorizontalAlignment="Left" Margin="10,70,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsMEK_P_P_MO}"/>
+                            <RadioButton Content="Тесты COVID ФФОМС(HW)" HorizontalAlignment="Left" Margin="10,85,0,0" VerticalAlignment="Top" IsChecked="{Binding PARAM.IsFFOMSHw}"/>
                         </Grid>
                     </GroupBox>
                     <GroupBox Header="Параметры файлов XLS" Margin="653,2,0,0" HorizontalAlignment="Left" Width="228" Height="80" VerticalAlignment="Top">

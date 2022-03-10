@@ -569,7 +569,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
             {
                 using (var con = new OracleConnection(this.connectionString))
                 {
-                    using (var cmd = new OracleCommand("begin MEK_P_P.RaiseMekPP; end;", con))
+                    using (var cmd = new OracleCommand("begin MEK_P_P.RaiseMekPP(:year,:month); end;", con))
                     {
                         cmd.Parameters.Add("year", year);
                         cmd.Parameters.Add("month", month);
@@ -596,7 +596,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
 
         public Task RaiseMekPPAsync(int year, int month, Progress<string> progress)
         {
-            return Task.Run(() => RaiseMekPPAsync(year, month, progress));
+            return Task.Run(() => RaiseMekPP(year, month, progress));
         }
 
         public void CreateActMekPP(int year, int month, Progress<string> progress)
@@ -633,7 +633,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
 
         public Task CreateActMekPPAsync(int year, int month, Progress<string> progress)
         {
-            return Task.Run(() => CreateActMekPPAsync(year, month, progress));
+            return Task.Run(() => CreateActMekPP(year, month, progress));
         }
 
         public void CancelActMekPP(int year, int month, Progress<string> progress)

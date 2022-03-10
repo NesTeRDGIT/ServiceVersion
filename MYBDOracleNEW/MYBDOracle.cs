@@ -2579,18 +2579,20 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
 
         public void Commit()
         {
-            if (Tran == null) return;
+            if (!Transaction) return;
             Tran.Commit();
             con.Close();
             Transaction = false;
+            Tran = null;
         }
 
         public void Rollback()
         {
-            if (Tran == null) return;
+            if (!Transaction) return;
             Tran.Rollback();
             con.Close();
             Transaction = false;
+            Tran = null;
         }
 
 

@@ -22,7 +22,8 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         SLUCH,
         FFOMSDx,
         MEK_P_P_SMO,
-        MEK_P_P_MO
+        MEK_P_P_MO,
+        TEST_COVID
     }
 
     public class PERIOD_PARAM
@@ -65,6 +66,10 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         DataTable V_EXPORT_H_ZGLV(int zglvid, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_SCHET(int zglvid, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_ZAP(int[] zglvid, string SMO, long[] SLUCH_Z_ID, bool OnlyValidFFOMS,bool OnlyDOP, DBSource source, OracleConnection conn = null);
+
+        DataTable V_EXPORT_H_USL(int[] zglvid, string SMO, long[] SLUCH_Z_ID, bool OnlyValidFFOMS, bool OnlyDOP,bool TestCovid, DBSource source, OracleConnection conn = null);
+        DataTable V_EXPORT_H_ZAP(IEnumerable<long> SLUCH_Z_ID, DBSource source, OracleConnection conn = null);
+        DataTable V_EXPORT_H_SLUCH_BY_SLUCH_ID(IEnumerable<long> SLUCH_ID, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_SLUCH(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_SANK(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_NAZR(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
@@ -73,6 +78,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         DataTable V_EXPORT_H_USL(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_ONK_USL(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_LEK_PR(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
+        DataTable V_EXPORT_LEK_PR_SL(IEnumerable<long> us, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_NAPR(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_B_PROT(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_B_DIAG(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
@@ -84,6 +90,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
         DataTable V_EXPORT_L_PERS(IEnumerable<long> pers_id, bool IsNewComment, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_EXPERTIZE(IEnumerable<long> sl, DBSource source, OracleConnection conn = null);
         DataTable V_EXPORT_H_MR_USL(IEnumerable<long> us, DBSource source, OracleConnection conn = null);
+        DataTable V_EXPORT_H_MED_DEV(IEnumerable<long> us, DBSource source, OracleConnection conn = null);
 
         OracleConnection CreateConnection();
         List<F002> GetF002();
@@ -126,6 +133,10 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     if (periodParam == null)
                         throw new Exception("Не указаны параметры периода");
                     return V_EXPORT_H_DOP_MO(periodParam);
+                case TypeFileCreate.TEST_COVID:
+                    if (periodParam == null)
+                        throw new Exception("Не указаны параметры периода");
+                    return V_EXPORT_H_ZGLV_COVID(source, periodParam);
 
                 default:
                     throw new ArgumentOutOfRangeException(nameof(tfc), tfc, null);
@@ -163,6 +174,23 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 using (var oda = new OracleDataAdapter($"select distinct hz.* from V_EXPORT_H_ZGLV{source.ToPrefixBD()} hz " +
                                                        $"inner join  V_EXPORT_H_ZAP{source.ToPrefixBD()} z on z.schet_id = hz.schet_id " +
                                                        $"where z.SLUCH_Z_ID in ({string.Join(",",sluchParam.SLUCH_Z_ID)})", con))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl.Select().Select(V_EXPORT_H_ZGLVRow.Get).ToList();
+                }
+            }
+        }
+
+        private List<V_EXPORT_H_ZGLVRow> V_EXPORT_H_ZGLV_COVID(DBSource source, PERIOD_PARAM periodParam)
+        {
+            using (var con = new OracleConnection(ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($"select distinct hz.* from V_EXPORT_H_ZGLV{source.ToPrefixBD()} hz " +
+                                                       $"inner join  V_EXPORT_H_ZAP{source.ToPrefixBD()} z on z.schet_id = hz.schet_id " +
+                                                       $"inner join  V_EXPORT_H_SLUCH{source.ToPrefixBD()} sl on z.sluch_z_id = sl.sluch_z_id " +
+                                                       $"inner join  V_EXPORT_H_USL{source.ToPrefixBD()} us on us.sluch_id = sl.sluch_id " +
+                                                       $"where hz.month = {periodParam.Month}  and  hz.year = {periodParam.Year} and us.IsTestCovid = 1", con))
                 {
                     var tbl = new DataTable();
                     oda.Fill(tbl);
@@ -240,9 +268,12 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 throw;
             }
         }
+
+
+
+
         public DataTable V_EXPORT_H_ZAP(int[] zglvid, string SMO, long[] SLUCH_Z_ID, bool OnlyValidFFOMS, bool OnlyDOP, DBSource source, OracleConnection conn = null)
         {
-            var con = conn ?? new OracleConnection(ConnectionString);
             return OnlyDOP ? V_EXPORT_H_ZAP_ONLY_DOP(zglvid, SMO, conn) : V_EXPORT_H_ZAP_MAIN(zglvid, SMO, SLUCH_Z_ID, OnlyValidFFOMS, source, conn);
         }
 
@@ -266,7 +297,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             }
         }
 
-        public DataTable V_EXPORT_H_ZAP_ONLY_DOP(int[] S_ZGLV_ID, string SMO, OracleConnection conn = null)
+        private DataTable V_EXPORT_H_ZAP_ONLY_DOP(int[] S_ZGLV_ID, string SMO, OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
             try
@@ -289,6 +320,79 @@ where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(
             }
         }
 
+        public DataTable V_EXPORT_H_ZAP(IEnumerable<long> SLUCH_Z_ID, DBSource source, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            try
+            {
+                using (var oda = new OracleDataAdapter($"select * from V_EXPORT_H_ZAP{source.ToPrefixBD()} t where SLUCH_Z_ID in ({string.Join(",", SLUCH_Z_ID)})", conn))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+            catch (Exception)
+            {
+                if (conn == null)
+                    con.Dispose();
+                throw;
+            }
+        }
+
+        public DataTable V_EXPORT_H_USL(int[] zglvid, string SMO, long[] SLUCH_Z_ID, bool OnlyValidFFOMS, bool OnlyDOP, bool TestCovid, DBSource source, OracleConnection conn = null)
+        {
+            return OnlyDOP ? V_EXPORT_H_USL_ONLY_DOP(zglvid, SMO, conn) : V_EXPORT_H_USL_MAIN(zglvid, SMO, SLUCH_Z_ID, OnlyValidFFOMS, TestCovid, source, conn);
+        }
+
+
+        private DataTable V_EXPORT_H_USL_MAIN(int[] zglvid, string SMO, long[] SLUCH_Z_ID, bool OnlyValidFFOMS, bool TestCovid, DBSource source, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            try
+            {
+                using (var oda = new OracleDataAdapter($@"select * from V_EXPORT_H_USL{source.ToPrefixBD()} t where zglv_id in ({string.Join(",", zglvid)}) and {(!string.IsNullOrEmpty(SMO) ? $"SMO = '{SMO}'" : "IsZK = 1")}  {(SLUCH_Z_ID?.Length > 0 ? $"and SLUCH_Z_ID in ({string.Join(",", SLUCH_Z_ID)})" : "")} {(OnlyValidFFOMS ? "and ValidFFOMS = 1" : "")} {(TestCovid ? "and IsTestCovid = 1" : "")}", conn))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+            catch (Exception)
+            {
+                if (conn == null)
+                    con.Dispose();
+                throw;
+            }
+        }
+
+
+        private DataTable V_EXPORT_H_USL_ONLY_DOP(int[] S_ZGLV_ID, string SMO, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            try
+            {
+                using (var oda = new OracleDataAdapter($@"select distinct us.* from xml_h_sank_zglv_v3 sz
+inner join xml_h_sank_v3 san on san.s_zglv_id = sz.zglv_id
+inner join V_EXPORT_H_SLUCH sl on sl.sluch_z_id = san.sluch_z_id
+inner join V_EXPORT_H_USL us on us.sluch_id = sl.sluch_id
+where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(SMO) ? $"us.SMO = '{SMO}'" : "us.IsZK = 1")}", conn))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+            catch (Exception)
+            {
+                if (conn == null)
+                    con.Dispose();
+                throw;
+            }
+        }
+
+
+
         public DataTable V_EXPORT_H_SLUCH(IEnumerable<long> sl, DBSource source,  OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
@@ -308,6 +412,30 @@ where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(
                 throw;
             }
         }
+        public DataTable V_EXPORT_H_SLUCH_BY_SLUCH_ID(IEnumerable<long> SLUCH_ID, DBSource source, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            try
+            {
+                using (var oda = new OracleDataAdapter($"select * from V_EXPORT_H_SLUCH{source.ToPrefixBD()} t where SLUCH_ID in ({string.Join(",", SLUCH_ID)})", conn))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+            catch (Exception)
+            {
+                if (conn == null)
+                    con.Dispose();
+                throw;
+            }
+        }
+
+      
+
+       
+
         public DataTable V_EXPORT_H_SANK(IEnumerable<long> sl, DBSource source,  OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
@@ -353,6 +481,26 @@ where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(
             try
             {
                 using (var oda = new OracleDataAdapter($"select * from V_EXPORT_H_MR_USL{source.ToPrefixBD()}  t where USL_ID in ({string.Join(",", us)})", conn))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+            catch (Exception)
+            {
+                if (conn == null)
+                    con.Dispose();
+                throw;
+            }
+        }
+
+        public DataTable V_EXPORT_H_MED_DEV(IEnumerable<long> us, DBSource source, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            try
+            {
+                using (var oda = new OracleDataAdapter($"select * from V_EXPORT_H_MED_DEV{source.ToPrefixBD()}  t where USL_ID in ({string.Join(",", us)})", conn))
                 {
                     var tbl = new DataTable();
                     oda.Fill(tbl);
@@ -424,6 +572,9 @@ where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(
                 throw;
             }
         }
+
+       
+
         public DataTable V_EXPORT_H_USL(IEnumerable<long> sl, DBSource source, OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
@@ -481,6 +632,29 @@ where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(
                 throw;
             }
         }
+
+
+        public DataTable V_EXPORT_LEK_PR_SL(IEnumerable<long> sl, DBSource source, OracleConnection conn = null)
+        {
+            var con = conn ?? new OracleConnection(ConnectionString);
+            try
+            {
+                using (var oda = new OracleDataAdapter($"select * from V_EXPORT_LEK_PR_SL{source.ToPrefixBD()}  t where SLUCH_ID in ({string.Join(",", sl)})", conn))
+                {
+                    var tbl = new DataTable();
+                    oda.Fill(tbl);
+                    return tbl;
+                }
+            }
+            catch (Exception)
+            {
+                if (conn == null)
+                    con.Dispose();
+                throw;
+            }
+        }
+
+
         public DataTable V_EXPORT_H_NAPR(IEnumerable<long> sl, DBSource source, OracleConnection conn = null)
         {
             var con = conn ?? new OracleConnection(ConnectionString);
@@ -707,7 +881,6 @@ where sz.zglv_id in ({string.Join(",", S_ZGLV_ID)}) and {(!string.IsNullOrEmpty(
         }
 
        
-    
     }
 
 

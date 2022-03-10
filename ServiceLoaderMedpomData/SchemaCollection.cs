@@ -500,16 +500,15 @@ namespace ServiceLoaderMedpomData
                                 validate = new MyValidatorV3(ErrorAction);
                                 break;
                             case VersionMP.V3_1:
-                                validate = new MyValidatorV31(ErrorAction, CXV.IsValidateRef,CXV.P_INFO);
+                                validate = new MyValidatorV31(ErrorAction, CXV.IsValidateRef, CXV.P_INFO);
                                 break;
                             default:
                                 validate = new MyValidatorV31(ErrorAction, CXV.IsValidateRef, CXV.P_INFO);
                                 break;
                         }
                     }
+                    this.P_INFO = CXV.P_INFO;
                 }
-                this.P_INFO = CXV.P_INFO;
-
                 var currdep = -1;
              
                 using (var r = new XmlTextReader(st))
@@ -1270,6 +1269,7 @@ namespace ServiceLoaderMedpomData
         private readonly DateTime DT_03_2021 = new DateTime(2021, 03, 01);
         private readonly DateTime DT_08_2021 = new DateTime(2021, 08, 01);
         private readonly DateTime DT_01_2022 = new DateTime(2022, 01, 01);
+        private readonly DateTime DT_02_2022 = new DateTime(2022, 02, 01);
         private XML_SCHET_item SCHET { get;  }= new XML_SCHET_item();
         private XML_Z_SL_item Z_SL { get;  } = new XML_Z_SL_item();
         private XML_SL_item SL { get;  } = new XML_SL_item();
@@ -1278,7 +1278,7 @@ namespace ServiceLoaderMedpomData
         private XML_Pacient_item PACIENT { get;  } = new XML_Pacient_item();
         private XML_MR_USL_N_item MR_USL_N { get; } = new XML_MR_USL_N_item();
         public event ErrorActionEvent Error;
-        public Dictionary<string, PacientInfo> P_INFO { get; set; } = new Dictionary<string, PacientInfo>();
+        public Dictionary<string, PacientInfo> P_INFO { get; set;}
 
         #region Helper
         private XML_Element<string> CreateStringXML_Element(XmlReader r)
@@ -1321,7 +1321,8 @@ namespace ServiceLoaderMedpomData
         {
             Error = err;
             this.IsValidateRef = IsValidateRef;
-            this.P_INFO = P_INFO;
+           
+            this.P_INFO = P_INFO ?? new Dictionary<string, PacientInfo>();
         }
         public void Check(XmlReader reader)
         {
@@ -1566,7 +1567,7 @@ namespace ServiceLoaderMedpomData
         }
         private void CheckSL()
         {
-            if (SCHET.TypeFile == XML_FileType.H && SCHET.DateFile >= DT_01_2022)
+            if (SCHET.TypeFile == XML_FileType.H && SCHET.DateFile >= DT_02_2022)
             {
                 var vzr = GetAge();
                 var isDs2O = SL.DS2.Count(x => x.value.StartsWith("O")) != 0;
@@ -1574,7 +1575,7 @@ namespace ServiceLoaderMedpomData
 
                 if (vzr.HasValue)
                 {
-                    if (!SL.IsWEI && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
+                    if (!SL.IsWEI && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && Z_SL.USL_OK.value.In("1") && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
                         Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле WEI обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5  и USL_OK=1 и DS2 <> (O00-O99, Z34-Z35) и возраст больше 18 лет", "WEI", "ERR_SL_WEI_1");
 
                     if (!SL.IsLEK_PR && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && Z_SL.USL_OK.value.In("1") && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
@@ -1582,6 +1583,9 @@ namespace ServiceLoaderMedpomData
 
                 }
             }
+           
+
+                
         }
 
         private int? GetAge()

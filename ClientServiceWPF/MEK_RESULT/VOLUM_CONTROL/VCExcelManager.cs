@@ -35,6 +35,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
                 case "3.7.2":
                     return new PRIL5_Row { CODE = 2, NAME = "Амбулаторная МП" };
                 case "3.5.3":
+                case "3.7.3":
                     return new PRIL5_Row { CODE = 3, NAME = "Диспансеризация 2 этап" };
                 case "3.8.1":
                     return new PRIL5_Row { CODE = 4, NAME = "Углубленная диспансеризация" };
@@ -64,18 +65,19 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
                 case "3.2.1":
                 case "3.2.2":
                     return new PRIL5_Row { CODE = 15, NAME = "Неотложная МП" };
-
-
-                case "1.1": return new PRIL5_Row { CODE = 16, NAME = "Стационар без онкологии" };
-                case "1.4": return new PRIL5_Row { CODE = 17, NAME = "Стационар без онкологии(МБТ ПП РФ 1213)" };
-                case "1.5": return new PRIL5_Row { CODE = 18, NAME = "Стационар без онкологии(МБТ ПП РФ 1997-р)" };
-                case "1.2": return new PRIL5_Row { CODE = 19, NAME = "Стационар онкология" };
-                case "5.1": return new PRIL5_Row { CODE = 20, NAME = "Стационар диализ" };
-                case "1.3": return new PRIL5_Row { CODE = 21, NAME = "ВМП" };
-                case "2.1": return new PRIL5_Row { CODE = 22, NAME = "Дневной стационар без онкологии" };
-                case "2.2": return new PRIL5_Row { CODE = 23, NAME = "Дневной стационар онкология" };
-                case "2.3": return new PRIL5_Row { CODE = 24, NAME = "Дневной стационар ЭКО" };
-                case "-": return new PRIL5_Row { CODE = 25, NAME = "Прочее" };
+                case "3.10": 
+                    return new PRIL5_Row { CODE = 16, NAME = "Амбулаторная помощь(МБТ)" };
+                case "1.1": return new PRIL5_Row { CODE = 17, NAME = "Стационар без онкологии" };
+                case "1.4": return new PRIL5_Row { CODE = 18, NAME = "Стационар без онкологии(МБТ ПП РФ 1213)" };
+                case "1.5": return new PRIL5_Row { CODE = 19, NAME = "Стационар без онкологии(МБТ ПП РФ 1997-р)" };
+                case "1.2": return new PRIL5_Row { CODE = 20, NAME = "Стационар онкология" };
+                case "5.1": return new PRIL5_Row { CODE = 21, NAME = "Стационар диализ" };
+                case "1.3": return new PRIL5_Row { CODE = 22, NAME = "ВМП" };
+                case "2.1": return new PRIL5_Row { CODE = 23, NAME = "Дневной стационар без онкологии" };
+                case "2.2": return new PRIL5_Row { CODE = 24, NAME = "Дневной стационар онкология" };
+                case "2.3": return new PRIL5_Row { CODE = 25, NAME = "Дневной стационар ЭКО" };
+             
+                case "-": return new PRIL5_Row { CODE = 26, NAME = "Прочее" };
             }
             throw new Exception($"Не найдена строка в приложении 5 для: {CODE}");
         }

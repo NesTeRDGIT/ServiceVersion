@@ -59,8 +59,9 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
         public MEK_ITEM PROF_VZR_FOND { get; set; } = new MEK_ITEM();
         public MEK_ITEM DISP_DET_FOND { get; set; } = new MEK_ITEM();
         public MEK_ITEM DISP_VZR_FOND { get; set; } = new MEK_ITEM();
+        public MEK_ITEM DISP2_FOND { get; set; } = new MEK_ITEM();
 
-        public MEK_ITEM FOND => OBR_FOND + POS_FOND + PROF_DET_FOND + PROF_VZR_FOND + DISP_DET_FOND + DISP_VZR_FOND;
+        public MEK_ITEM FOND => OBR_FOND + POS_FOND + PROF_DET_FOND + PROF_VZR_FOND + DISP_DET_FOND + DISP_VZR_FOND+ DISP2_FOND;
         public MEK_ITEM POS_FAP { get; set; } = new MEK_ITEM();
         public MEK_ITEM OBR_FAP { get; set; } = new MEK_ITEM();
         public MEK_ITEM FAP => POS_FAP + OBR_FAP;
@@ -159,7 +160,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 PROF_VZR_FOND = x1.PROF_VZR_FOND + x2.PROF_VZR_FOND,
                 DISP_DET_FOND = x1.DISP_DET_FOND + x2.DISP_DET_FOND,
                 DISP_VZR_FOND = x1.DISP_VZR_FOND + x2.DISP_VZR_FOND,
-
+                DISP2_FOND = x1.DISP2_FOND + x2.DISP2_FOND
             };
         }
     }
@@ -383,7 +384,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);
             efm.PrintCell(7, 1, item.NAME_MOK, null);
             efm.PrintCell(9, 14, item.NAME_SMOK, null);
-            efm.PrintCell(11, 6, (new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
+            efm.PrintCell(11, 6, new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1).ToString("MMMMMMMMMMMM yyyy"), null);
 
 
 
@@ -395,6 +396,10 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
 
             //Медицинская помощь, оказанная прикрепленным гражданам:
             if (PrintVolume(efm, rowindex, null, FOND_INFO.FOND_SUM, null, FOND_INFO.MUR, null, FOND_INFO.FOND_SUMP, null, FOND_INFO.MUR_RETURN * -1, null, FOND_INFO.FOND_SUMP_ON_MEK_P))
+                rowindex++;
+
+            //Амбулаторная помощь (МБТ)
+            if (PrintVolume(efm, rowindex, null, FOND_INFO.FIN_S_AMB_MBT, null, null, null, FOND_INFO.FIN_S_AMB_MBT, null,null, null, FOND_INFO.FIN_S_AMB_MBT))
                 rowindex++;
 
             //Амбулаторная помощь по дифференцированному подушевому нормативу
@@ -440,6 +445,9 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                 rowindex++;
             //диспансеризация взрослого населения 1 этап
             if (PrintVolume(efm, rowindex, par.DISP_VZR_FOND.KOL, null, par.DISP_VZR_FOND.KOL_MEK, null, par.DISP_VZR_FOND.KOL_P, null, par.DISP_VZR_FOND.KOL_MEK_P, null, par.DISP_VZR_FOND.KOL_P_ON_MEK_P, null))
+                rowindex++;
+            //диспансеризация 2 этап
+            if (PrintVolume(efm, rowindex, par.DISP2_FOND.KOL, null, par.DISP2_FOND.KOL_MEK, null, par.DISP2_FOND.KOL_P, null, par.DISP2_FOND.KOL_MEK_P, null, par.DISP2_FOND.KOL_P_ON_MEK_P, null))
                 rowindex++;
 
             //Медицинская помощь, оказанная прикрепленным гражданам в других МО
@@ -601,7 +609,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
 
             rowindex += 4;
 
-            var GDEFECT = DEFECT.GroupBy(x => new { x.OSN, x.NAME }).OrderBy(x => x.Key.OSN).ToList();
+            var GDEFECT = DEFECT.GroupBy(x => new { x.OSN, x.NAME }).OrderBy(x => x.Key.OSN, separatorComparer).ToList();
 
             if (!GDEFECT.Any())
             {
@@ -649,7 +657,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);
             efm.PrintCell(7, 1, item.NAME_MOK, null);
             efm.PrintCell(10, 14, item.NAME_SMOK, null);
-            efm.PrintCell(11, 6, (new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
+            efm.PrintCell(11, 6, new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1).ToString("MMMMMMMMMMMM yyyy"), null);
 
             const uint KOD_INDEX = 14;
             const uint ZGLV_INDEX = 15;
@@ -668,7 +676,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             }
             else
             {
-                var GDEFECT = DEFECT.GroupBy(x => new { x.OSN, x.NAME, x.COMM }).OrderBy(x => x.Key.OSN).ToList();
+                var GDEFECT = DEFECT.GroupBy(x => new { x.OSN, x.NAME, x.COMM }).OrderBy(x => x.Key.OSN, separatorComparer).ToList();
                 var first = GDEFECT.First();
                 var last = GDEFECT.Last();
                 foreach (var def in GDEFECT)
@@ -759,7 +767,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             }
             else
             {
-                var GDEFECT = DEFECT.GroupBy(x => new { x.OSN, x.NAME, x.COMM }).OrderBy(x => x.Key.OSN).ToList();
+                var GDEFECT = DEFECT.GroupBy(x => new { x.OSN, x.NAME, x.COMM }).OrderBy(x => x.Key.OSN, separatorComparer).ToList();
                 var first = GDEFECT.First();
                 var last = GDEFECT.Last();
                 foreach (var def in GDEFECT)
@@ -844,6 +852,10 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             //Медицинская помощь, оказанная прикрепленным гражданам:
             if (PrintVolume(efm, rowIndex, null, FOND_INFO.FOND_SUM, null, FOND_INFO.MUR, null, FOND_INFO.FOND_SUMP, null, FOND_INFO.MUR_RETURN*-1, null, FOND_INFO.FOND_SUMP_ON_MEK_P))
                 rowIndex++;
+            //Амбулаторная помощь (МБТ)
+            if (PrintVolume(efm, rowIndex, null, FOND_INFO.FIN_S_AMB_MBT, null, null, null, FOND_INFO.FIN_S_AMB_MBT, null, null, null, FOND_INFO.FIN_S_AMB_MBT))
+                rowIndex++;
+
             //Амбулаторная помощь по дифференцированному подушевому нормативу
             if (PrintVolume(efm, rowIndex, null, FOND_INFO.AMB_S, null, FOND_INFO.MUR, null, FOND_INFO.AMB_S_P, null, FOND_INFO.MUR_RETURN*-1, null, FOND_INFO.AMB_S_P_ON_MEK_P))
                 rowIndex++;
@@ -998,17 +1010,18 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             efm.PrintCell(rowIndex, 20, $"/{item.D_ACT:dd.MM.yyyy}", null);
 
         }
+        private SeparatorComparer separatorComparer = new SeparatorComparer();
         private void CreateReestrAct(ExcelOpenXML efm, MO_ITEM item, MO_FOND_INFO FOND_INFO, MEK_PARAM par, List<MP_DEFECT_ITEM> DEFECT, PODPISANT ISP)
         {
             efm.SetCurrentSchet(4);
             efm.PrintCell(2, 1, $"№ {item.N_ACT} от {item.D_ACT:dd.MM.yyyy}", null);
             efm.PrintCell(4, 14, item.NAME_SMOK, null);
-            efm.PrintCell(5, 6, (new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1)).ToString("MMMMMMMMMMMM yyyy"), null);
+            efm.PrintCell(5, 6, new DateTime(item.YEAR_SANK, item.MONTH_SANK, 1).ToString("MMMMMMMMMMMM yyyy"), null);
             efm.PrintCell(11, 1, $"{item.CODE_MO} {item.NAME_MOK}", null);
             uint RowIndex = 14;
 
             //Всего предоставлено счетов на сумму(руб.):
-            efm.PrintCell(RowIndex, 10, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S + par.ALL_PRED.SUM, null);
+            efm.PrintCell(RowIndex, 10, FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.SCOR_S + FOND_INFO.FIN_S_AMB_MBT + par.ALL_PRED.SUM, null);
             efm.PrintCell(RowIndex, 27, par.ALL_PRED.KOL, null);
             RowIndex += 4;
             //За медицинскую помощь, оказанную стационарно:
@@ -1016,7 +1029,7 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             //За медицинскую помощь, оказанную в дневном стационаре:
             efm.PrintCell(RowIndex, 10, par.DSTAC.SUM, null); efm.PrintCell(RowIndex, 27, par.DSTAC.KOL, null); RowIndex += 2;
             //За медицинскую помощь, оказанную амбулаторно
-            efm.PrintCell(RowIndex, 10, par.FULL_AMB.SUM + FOND_INFO.AMB_S + FOND_INFO.FAP_S, null); efm.PrintCell(RowIndex, 27, par.FULL_AMB.KOL, null); RowIndex += 2;
+            efm.PrintCell(RowIndex, 10, par.FULL_AMB.SUM + FOND_INFO.AMB_S + FOND_INFO.FAP_S + FOND_INFO.FIN_S_AMB_MBT, null); efm.PrintCell(RowIndex, 27, par.FULL_AMB.KOL, null); RowIndex += 2;
             //За медицинскую помощь, оказанную вне медицинской организации
             efm.PrintCell(RowIndex, 10, FOND_INFO.SCOR_S + par.TROMB.SUM, null); efm.PrintCell(RowIndex, 27, par.FULL_SCOR.KOL, null);
 
@@ -1029,16 +1042,16 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
             //За медицинскую помощь, оказанную в дневном стационаре:
             efm.PrintCell(RowIndex, 10, par.DSTAC.SUM_P_ON_MEK_P, null); efm.PrintCell(RowIndex, 27, par.DSTAC.KOL_P, null); RowIndex += 2;
             //За медицинскую помощь, оказанную амбулаторно
-            efm.PrintCell(RowIndex, 10, par.FULL_AMB.SUM_P_ON_MEK_P + FOND_INFO.AMB_S_P_ON_MEK_P + FOND_INFO.FAP_S, null); efm.PrintCell(RowIndex, 27, par.FULL_AMB.KOL_P, null); RowIndex += 2;
+            efm.PrintCell(RowIndex, 10, par.FULL_AMB.SUM_P_ON_MEK_P + FOND_INFO.AMB_S_P_ON_MEK_P + FOND_INFO.FAP_S+ FOND_INFO.FIN_S_AMB_MBT, null); efm.PrintCell(RowIndex, 27, par.FULL_AMB.KOL_P, null); RowIndex += 2;
             //За медицинскую помощь, оказанную вне медицинской организации
             efm.PrintCell(RowIndex, 10, par.FULL_SCOR.SUM_P_ON_MEK_P + FOND_INFO.SCOR_S, null); efm.PrintCell(RowIndex, 27, par.FULL_SCOR.KOL_P, null); RowIndex += 3;
 
-            var sankSTAC = DEFECT.Where(x => x.USL_OK == 1 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
-            var sankDSTAC = DEFECT.Where(x => x.USL_OK == 2 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
-            var sankAMB = DEFECT.Where(x => x.USL_OK == 3 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
-            var sankSCOR = DEFECT.Where(x => x.USL_OK == 4 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
-            var sankVOLUME = DEFECT.Where(x => x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
-            var sankDOP = DEFECT.Where(x => x.IsDOP).OrderBy(x => x.OSN).ThenBy(x => x.S_SUM).ToList();
+            var sankSTAC = DEFECT.Where(x => x.USL_OK == 1 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN, separatorComparer).ThenBy(x => x.S_SUM).ToList();
+            var sankDSTAC = DEFECT.Where(x => x.USL_OK == 2 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN, separatorComparer).ThenBy(x => x.S_SUM).ToList();
+            var sankAMB = DEFECT.Where(x => x.USL_OK == 3 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN, separatorComparer).ThenBy(x => x.S_SUM).ToList();
+            var sankSCOR = DEFECT.Where(x => x.USL_OK == 4 && !x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN, separatorComparer).ThenBy(x => x.S_SUM).ToList();
+            var sankVOLUME = DEFECT.Where(x => x.isPVOL && !x.IsDOP).OrderBy(x => x.OSN, separatorComparer).ThenBy(x => x.S_SUM).ToList();
+            var sankDOP = DEFECT.Where(x => x.IsDOP).OrderBy(x => x.OSN, separatorComparer).ThenBy(x => x.S_SUM).ToList();
 
 
             //2. Не согласовано к оплате реестров: 
@@ -1470,6 +1483,10 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
                     case "3.7.2.1":
                         par.DISP_VZR_FOND.AddKOL(vol);
                         break;
+                    //диспансеризация 2 этап(Фондодержание)
+                    case "3.7.3.1":
+                        par.DISP2_FOND.AddKOL(vol);
+                        break;
                     //Углубленная диспансеризация 1 этап
                     case "3.8.1.1":
                         par.UG_DISP1.Add(vol);
@@ -1606,7 +1623,28 @@ namespace ClientServiceWPF.MEK_RESULT.ACTMEK
     }
 
 
-    
+    public class SeparatorComparer : IComparer<string>
+    {
+        public int Compare(string x, string y)
+        {
+            var result = 0;
+            var x_arr = x.Split('.').Where(z => !string.IsNullOrEmpty(z)).ToArray();
+            var y_arr = y.Split('.').Where(z => !string.IsNullOrEmpty(z)).ToArray(); ;
+
+            for (var i = 0; i < x_arr.Length; i++)
+            {
+                if (i >= y_arr.Length) break;
+                var a = Convert.ToInt32(x_arr[i]);
+                var b = Convert.ToInt32(y_arr[i]);
+                result = a.CompareTo(b);
+                if (result != 0)
+                    return result;
+            }
+            return x.Length.CompareTo(y.Length);
+        }
+    }
+
+
 
 
 

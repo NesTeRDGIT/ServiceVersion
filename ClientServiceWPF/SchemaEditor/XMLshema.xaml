@@ -19,7 +19,7 @@
     <Window.DataContext>
         <Binding Source="{StaticResource VM}"></Binding>
     </Window.DataContext>
-   
+
     <Window.InputBindings>
         <KeyBinding Gesture="CTRL+S" Command="{Binding Save }" />
         <KeyBinding Gesture="CTRL+G" Command="{Binding Compile}" />
@@ -40,7 +40,7 @@
         <GroupBox Header="Схема" Margin="0,23,326,0">
             <Grid>
                 <TextBox Name="TextBoxPath" Height="20" VerticalAlignment="Top" Text="{Binding CurrentPath, Mode=OneWay}" IsReadOnly="True" Foreground="Gray" ></TextBox>
-                <TreeView Margin="0,20,30,29" ItemsSource="{Binding Mode=OneWay, Path=Elements}"  Name="TreeViewSchema"   >
+                <TreeView Margin="0,20,30,62" ItemsSource="{Binding Mode=OneWay, Path=Elements}"  Name="TreeViewSchema"   >
                     <TreeView.ItemTemplate>
                         <HierarchicalDataTemplate ItemsSource="{Binding Path=Elements}">
                             <StackPanel Orientation="Horizontal">
@@ -100,7 +100,7 @@
                                     </TextBlock.Style>
                                 </TextBlock>
                                 <TextBlock  Margin="0,0,5,0" Text="{Binding formatStr}" Foreground="Gray" FontSize="14" VerticalAlignment="Center">
-                                    
+
                                 </TextBlock>
 
                             </StackPanel>
@@ -136,6 +136,8 @@
                 <Button x:Name="buttonUp" HorizontalAlignment="Right" VerticalAlignment="Top" Width="26" Height="24" Margin="0,22,-1,0" Style="{DynamicResource ButtonArrowUp}" Command="{Binding MoveUpCommand}" />
                 <Button x:Name="buttonDown" HorizontalAlignment="Right" VerticalAlignment="Top" Width="26" Height="24" Margin="0,51,-1,0" Style="{DynamicResource ButtonArrowDown}" Command="{Binding MoveDownCommand}"/>
                 <TextBlock  Margin="241,0,31,0" TextWrapping="Wrap" Text="{Binding StatusOperation, Mode=OneWay}" VerticalAlignment="Bottom" Height="24" TextAlignment="Center" />
+                <TextBox Height="23" Margin="31,0,31,33" TextWrapping="Wrap" Text="{Binding targetNamespace, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Bottom"/>
+                <Label Content="NS:" HorizontalAlignment="Left" Margin="0,0,0,34" VerticalAlignment="Bottom"/>
             </Grid>
         </GroupBox>
         <GroupBox HorizontalAlignment="Right" Width="321" Header="Действия" Margin="0,23,0,0">

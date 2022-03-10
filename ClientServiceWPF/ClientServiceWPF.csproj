@@ -111,6 +111,7 @@
     <Compile Include="Class\OracleCMDWatcher.cs" />
     <Compile Include="Class\ProgressItem.cs" />
     <Compile Include="Class\ProtectStr.cs" />
+    <Compile Include="Class\ReadOnlyService.cs" />
     <Compile Include="Class\RusNumber.cs" />
     <Compile Include="Class\ServerRef.cs" />
     <Compile Include="Class\ShowSelectedInExplorer.cs" />

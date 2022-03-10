@@ -118,7 +118,7 @@ namespace MedpomService
                                         }
                                         catch (Exception ex)
                                         {
-                                            Logger.AddLog($"Ошибка при переносе в БД {fi.FileName}: {ex.Message}", LogType.Error);
+                                            Logger.AddLog($"Ошибка при переносе в БД {fi.FileName}: {ex.FullError()} StackTrace:{ex.StackTrace}", LogType.Error);
                                         }
                                     }
 
@@ -432,6 +432,7 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
+                Logger.AddLog($"Ошибка при переносе в БД {fi.FileName}: {ex.FullError()} StackTrace:{ex.StackTrace}", LogType.Error);
                 mybd.Rollback();
                 return new BoolResult { Result = false, Exception = $"Ошибка при переносе в БД:{ex.Message}"};
             }

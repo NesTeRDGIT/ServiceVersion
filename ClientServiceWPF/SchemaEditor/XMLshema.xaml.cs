@@ -59,13 +59,25 @@ namespace ClientServiceWPF.SchemaEditor
 
     public class XMLSchemaVM:INotifyPropertyChanged
     {
+        private string _targetNamespace{ get; set; }
+
+        public string targetNamespace
+        {
+            get => _targetNamespace;
+            set
+            {
+                _targetNamespace = value;
+                OnPropertyChanged();
+            }
+        }
+
         private XMLSchemaFile XMLSchema { get; set; }= new XMLSchemaFile();
 
         string _StatusOperation;
 
         public string StatusOperation
         {
-            get { return _StatusOperation; }
+            get => _StatusOperation;
             set { _StatusOperation = value; OnPropertyChanged();}
         }
 
@@ -184,7 +196,7 @@ namespace ClientServiceWPF.SchemaEditor
         private string _CurrentPath = "";
         public string CurrentPath
         {
-            get { return _CurrentPath; }
+            get => _CurrentPath;
             set { _CurrentPath = value;OnPropertyChanged(); }
         }
 
@@ -225,9 +237,9 @@ namespace ClientServiceWPF.SchemaEditor
         {
             try
             {
-                var sfd = new SaveFileDialog {Filter = "Файлы схемы(*.xsd)|*.xsd", FileName = !string.IsNullOrEmpty(CurrentPath) ? System.IO.Path.GetFileNameWithoutExtension(CurrentPath) : ""};
+                var sfd = new SaveFileDialog {Filter = "Файлы схемы(*.xsd)|*.xsd", FileName = !string.IsNullOrEmpty(CurrentPath) ? Path.GetFileNameWithoutExtension(CurrentPath) : ""};
                 if (sfd.ShowDialog() == true)
-                    if (XMLSchema.Compile(sfd.FileName))
+                    if (XMLSchema.Compile(sfd.FileName, targetNamespace))
                     {
                         MessageBox.Show(@"Создание схемы успешно!");
                     }
@@ -577,7 +589,7 @@ namespace ClientServiceWPF.SchemaEditor
 
         public SchemaElementVM CurrentElement
         {
-            get { return _CurrentElement;}
+            get => _CurrentElement;
             set { _CurrentElement?.Rollback(); _CurrentElement = value; OnPropertyChanged(); }
         }
 
@@ -709,33 +721,33 @@ namespace ClientServiceWPF.SchemaEditor
         private bool _IsExpanded;
         public bool IsExpanded
         {
-            get { return _IsExpanded; }
+            get => _IsExpanded;
             set { _IsExpanded = value; OnPropertyChanged(); }
         }
 
         private bool _IsSelected;
         public bool IsSelected
         {
-            get { return _IsSelected;}
+            get => _IsSelected;
             set { _IsSelected = value;OnPropertyChanged(); }
         }
         public ObservableCollection<SchemaElementVM> Elements { get; set; } = new ObservableCollection<SchemaElementVM>();
         private TypeElement _TypeEdit;
         public  TypeElement TypeEdit
         {
-            get { return _TypeEdit; }
+            get => _TypeEdit;
             set { _TypeEdit = value;OnPropertyChanged(); }
         }
         private string _nameEdit;
         public  string nameEdit
         {
-            get { return _nameEdit; }
+            get => _nameEdit;
             set { _nameEdit = value; OnPropertyChanged(); }
         }
         private TypeS _formatEdit;
         public  TypeS formatEdit
         {
-            get { return _formatEdit; }
+            get => _formatEdit;
             set { _formatEdit = value; OnPropertyChanged();OnPropertyChanged("format_type"); }
         }
         public formatEnum format_type
@@ -781,13 +793,13 @@ namespace ClientServiceWPF.SchemaEditor
         private bool _UniqueEdit;
         public  bool UniqueEdit
         {
-            get { return _UniqueEdit; }
+            get => _UniqueEdit;
             set { _UniqueEdit = value; OnPropertyChanged(); }
         }
         private bool _UniqueGlobalEdit;
         public  bool UniqueGlobalEdit
         {
-            get { return _UniqueGlobalEdit; }
+            get => _UniqueGlobalEdit;
             set { _UniqueGlobalEdit = value; OnPropertyChanged(); }
         }
 
