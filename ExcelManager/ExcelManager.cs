@@ -1491,7 +1491,6 @@ namespace ExcelManager
         /// <param name="styleid">Стиль</param>
         public void PrintCellFormula(MRow Row, string Cell, string Formula, uint? styleid)
         {
-
             var cell = InsertCellInWorksheet(Row.r, Cell + Row.r.RowIndex);
             cell.DataType = CellValues.Number;
             if (styleid.HasValue)

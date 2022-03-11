@@ -459,10 +459,11 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                     break;
                 case TypeFileCreate.TEST_COVID:
                     ChangeUslTestCovid(file);
-                    file.ZGLV.DATA = DateTime.Now.Date;
                     file.ClearForFFOMS_DATA();
                     file.ClearSUMP();
                     file.ReCalcSUMV();
+                    file.ZGLV.DATA = DateTime.Now.Date;
+                    file.SCHET.PLAT = null;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(typeFileCreate), typeFileCreate, null);

@@ -808,7 +808,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified, DataType = "date")]
         public DateTime DSCHET { get; set; }
 
-        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
+        [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string PLAT { get; set; }
         [DecimalFormat(FORMAT = "0.00")]
         [XmlElement(Form = XmlSchemaForm.Unqualified)]

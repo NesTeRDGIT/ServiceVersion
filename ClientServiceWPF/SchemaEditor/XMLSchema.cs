@@ -924,7 +924,7 @@ namespace ClientServiceWPF.SchemaEditor
         /// <returns>true - компиляция удачна false - ошибка компиляции</returns>
         public bool Compile(string path, string targetNamespace)
         {
-            targetNamespace = targetNamespace ?? "";
+            targetNamespace = targetNamespace == "" ? null : targetNamespace;
             schema = new XmlSchema();
             schema.Namespaces.Add("msdata", "urn:schemas-microsoft-com:xml-msdata");
             schema.Namespaces.Add("msprop", "urn:schemas-microsoft-com:xml-msprop");
