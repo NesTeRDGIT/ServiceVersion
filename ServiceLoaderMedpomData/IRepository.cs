@@ -349,7 +349,7 @@ namespace ServiceLoaderMedpomData
         int AddSankZGLV(string FILENAME, int CODE, int CODE_MO, int FLAG_MEE, int YEAR, int MONTH, int YEAR_SANK, int MONTH_SANK, int ZGLV_ID_BASE, string SMO, bool DOP_FLAG, bool isNotFinish);
         int UpdateSLUCH_Z_SANK_ZGLV_ID(IEnumerable<Z_SL> Items, decimal SANK_ZGLV_ID, bool isRewrite = false);
         void UpdateSankZGLV(int ZGLV_ID, int ZGLV_ID_BASE);
-        bool LoadSANK(FileItem fi, ZL_LIST ZL, decimal? S_ZGLV_ID, bool setSUMP, bool isRewrite, Dispatcher dispatcher = null, List<FindSluchItem> IdentInfo = null);
+        bool LoadSANK(FileItem fi, ZL_LIST ZL, long? S_ZGLV_ID, bool setSUMP, bool isRewrite, Dispatcher dispatcher = null, List<FindSluchItem> IdentInfo = null);
     }
 
    

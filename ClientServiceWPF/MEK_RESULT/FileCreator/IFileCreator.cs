@@ -435,6 +435,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
                 case TypeFileCreate.SMO:
                 case TypeFileCreate.MEK_P_P_SMO:
                     file.SCHET.PLAT = SMO;
+                    file.ClearSUMP_SMO();
                     break;
                 case TypeFileCreate.MO:
                 case TypeFileCreate.MEK_P_P_MO:

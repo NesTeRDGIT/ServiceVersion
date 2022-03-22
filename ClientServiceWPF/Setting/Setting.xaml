@@ -11,14 +11,13 @@
         Title="Параметры" Height="594.99" Width="1124.699" Loaded="Window_Loaded" Style="{DynamicResource StyleWindow}" >
     <Window.Resources>
         <class:BoolInverterConverter x:Key="BoolInverterConverter"></class:BoolInverterConverter>
-        <class:BindingProxy x:Key="SelectedServerVersionZGLV" Data="{Binding ElementName=this, Path=SelectedServerVersionZGLV}"></class:BindingProxy>
-        <class:BindingProxy x:Key="SelectedServerServerFileType" Data="{Binding ElementName=this, Path=SelectedServerServerFileType}"></class:BindingProxy>
+       
+      
         <class:BindingProxy x:Key="SelectCheck" Data="{Binding ElementName=this, Path=SelectCheck}"></class:BindingProxy>
 
-        <class:BindingProxy x:Key="SelectedLocalVersionZGLV" Data="{Binding ElementName=this, Path=SelectedLocalVersionZGLV}"></class:BindingProxy>
+        
 
 
-    
         <CollectionViewSource x:Key="CVSTableItemsTRANS" Source="{Binding TableTransferParam.TableItems}"  d:DesignSource="{d:DesignInstance {x:Type local:TableItem}, CreateList=True}"></CollectionViewSource>
         <CollectionViewSource x:Key="CVSCheckTableName" Source="{Binding CheckParam.CheckTableName}"  d:DesignSource="{d:DesignInstance {x:Type medpom:TableName}, CreateList=True}"></CollectionViewSource>
         <CollectionViewSource x:Key="CVSOrclProcedure"  Source="{Binding CheckParam.Procedures}"  d:DesignSource="{d:DesignInstance {x:Type medpom:OrclProcedure}, CreateList=True}"></CollectionViewSource>
@@ -60,7 +59,7 @@
                     <ListBox x:Name="ListBoxServerVersionZGLV" ItemsSource="{Binding SchemaServerParam.VersionZGLV}" HorizontalAlignment="Left" Height="60" Margin="223,10,0,0" VerticalAlignment="Top" Width="141" SelectionChanged="ListBoxServerVersionZGLV_OnSelectionChanged"  >
                         <ListBox.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Удалить"  CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerVersionZGLV}}" Command="{Binding SchemaServerParam.RemoveVersionZglvCommand}"></MenuItem>
+                                <MenuItem Header="Удалить"  Command="{Binding SchemaServerParam.RemoveVersionZglvCommand}"></MenuItem>
                             </ContextMenu>
                         </ListBox.ContextMenu>
                     </ListBox>
@@ -72,8 +71,8 @@
                             <ListBox Name="ListBoxServerFileType" HorizontalAlignment="Left" Margin="6,6,0,10" Width="182" SelectionMode="Extended" ItemsSource="{Binding SchemaServerParam.FileTypes}" SelectedItem="{Binding SchemaServerParam.CurrentFileType}" SelectionChanged="ListBoxServerFileType_OnSelectionChanged" >
                                 <ListBox.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementAllCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
-                                        <MenuItem Header="Удалить все схемы" Command="{Binding SchemaServerParam.ClearSchemaElementAllCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementAllCommand}" ></MenuItem>
+                                        <MenuItem Header="Удалить все схемы" Command="{Binding SchemaServerParam.ClearSchemaElementAllCommand}" ></MenuItem>
                                     </ContextMenu>
                                 </ListBox.ContextMenu>
                             </ListBox>
@@ -85,9 +84,9 @@
                                 </DataGrid.Columns>
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
-                                        <MenuItem Header="Редактировать" Command="{Binding SchemaServerParam.EditSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
-                                        <MenuItem Header="Удалить" Command="{Binding SchemaServerParam.RemoveSchemaElementCommand}" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedServerServerFileType}}"></MenuItem>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementCommand}" ></MenuItem>
+                                        <MenuItem Header="Редактировать" Command="{Binding SchemaServerParam.EditSchemaElementCommand}" ></MenuItem>
+                                        <MenuItem Header="Удалить" Command="{Binding SchemaServerParam.RemoveSchemaElementCommand}" ></MenuItem>
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
                             </DataGrid>
@@ -103,7 +102,7 @@
                     <ListBox x:Name="ListBoxLocalVersionZGLV" ItemsSource="{Binding SchemaLocalParam.VersionZGLV}" HorizontalAlignment="Left" Height="60" Margin="223,10,0,0" VerticalAlignment="Top" Width="141" SelectionChanged="ListBoxLocalVersionZGLV_OnSelectionChanged">
                         <ListBox.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Удалить" CommandParameter="{Binding Path=Data, Source={StaticResource SelectedLocalVersionZGLV}}" Command="{Binding SchemaLocalParam.RemoveVersionZglvCommand}" ></MenuItem>
+                                <MenuItem Header="Удалить"  Command="{Binding SchemaLocalParam.RemoveVersionZglvCommand}" ></MenuItem>
                             </ContextMenu>
                         </ListBox.ContextMenu>
                     </ListBox>
@@ -114,7 +113,7 @@
                             <ListBox  Name="ListBoxLocalFileType" HorizontalAlignment="Left" Margin="6,6,0,10" Width="182" SelectionMode="Extended" ItemsSource="{Binding SchemaLocalParam.FileTypes}" SelectedItem="{Binding SchemaLocalParam.CurrentFileType}" SelectionChanged="ListBoxLocalFileType_OnSelectionChanged">
                                 <ListBox.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaLocalParam.AddSchemaElementLocalAllCommand}" ></MenuItem>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaLocalParam.AddSchemaElementAllCommand}" ></MenuItem>
                                         <MenuItem Header="Удалить все схемы"  Command="{Binding SchemaLocalParam.ClearSchemaElementAllCommand}" ></MenuItem>
                                     </ContextMenu>
                                 </ListBox.ContextMenu>
@@ -127,9 +126,9 @@
                                 </DataGrid.Columns>
                                 <DataGrid.ContextMenu>
                                     <ContextMenu>
-                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaServerParam.AddSchemaElementLocalCommand}" ></MenuItem>
-                                        <MenuItem Header="Редактировать" Command="{Binding SchemaServerParam.EditSchemaElementLocalCommand}" ></MenuItem>
-                                        <MenuItem Header="Удалить" Command="{Binding SchemaServerParam.RemoveSchemaElementCommand}"></MenuItem>
+                                        <MenuItem Header="Добавить новую" Command="{Binding SchemaLocalParam.AddSchemaElementCommand}"  ></MenuItem>
+                                        <MenuItem Header="Редактировать" Command="{Binding SchemaLocalParam.EditSchemaElementCommand}"></MenuItem>
+                                        <MenuItem Header="Удалить" Command="{Binding SchemaLocalParam.RemoveSchemaElementCommand}" ></MenuItem>
                                     </ContextMenu>
                                 </DataGrid.ContextMenu>
                             </DataGrid>

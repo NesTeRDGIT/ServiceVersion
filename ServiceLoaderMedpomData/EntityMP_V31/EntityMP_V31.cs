@@ -85,6 +85,26 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
 
+        public void ClearSUMP_SMO()
+        {
+            foreach (var z in ZAP)
+            {
+                foreach (var z_sl in z.Z_SL_list)
+                {
+                    foreach (var sl in z_sl.SL)
+                    {
+                        sl.SUM_MP = null;
+                        foreach (var us in sl.USL)
+                        {
+                            us.SUMP_USL = null;
+                        }
+                    }
+                }
+            }
+        }
+
+
+
         /// <summary>
         /// Очистить сумму принятую
         /// </summary>
@@ -265,7 +285,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             ZGLV.DATA = zl2.ZGLV.DATA;
             ZGLV.FILENAME = zl2.ZGLV.FILENAME;
             ZGLV.SD_Z = zl2.ZGLV.SD_Z;
-            ZGLV.ZGLV_ID = zl2.ZGLV.ZGLV_ID;
+            if(zl2.ZGLV.ZGLV_ID.HasValue)
+                ZGLV.ZGLV_ID = Convert.ToInt64(zl2.ZGLV.ZGLV_ID.Value);
 
             SCHET.CODE = zl2.SCHET.CODE;
             SCHET.CODE_MO = zl2.SCHET.CODE_MO;
@@ -282,7 +303,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             SCHET.SUMMAV = zl2.SCHET.SUMMAV;
             SCHET.YEAR = zl2.SCHET.YEAR;
             SCHET.DOP_FLAG = zl2.SCHET.DOP_FLAG;
-            SCHET.SCHET_ID = zl2.SCHET.SCHET_ID;
+            if (zl2.SCHET.SCHET_ID.HasValue)
+                SCHET.SCHET_ID = Convert.ToInt64(zl2.SCHET.SCHET_ID.Value);
             SCHET.ZGLV_ID = zl2.SCHET.ZGLV_ID;
 
 
@@ -291,8 +313,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 var z = new ZAP();
                 ZAP.Add(z);
 
-                z.N_ZAP = z2.N_ZAP;
-                z.PR_NOV = z2.PR_NOV;
+                z.N_ZAP = Convert.ToInt64(z2.N_ZAP);
+                z.PR_NOV = Convert.ToInt32(z2.PR_NOV);
                 z.PACIENT = new PACIENT();
                 z.PACIENT.ID_PAC = z2.PACIENT.ID_PAC;
                 z.PACIENT.MSE = z2.PACIENT.MSE;
@@ -307,8 +329,11 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 z.PACIENT.VNOV_D = z2.PACIENT.VNOV_D;
                 z.PACIENT.VPOLIS = z2.PACIENT.VPOLIS;
                 z.PACIENT.INV = z2.PACIENT.INV;
-                z.PACIENT.PACIENT_ID = z2.PACIENT.PACIENT_ID;
-                z.PACIENT.ZAP_ID = z2.PACIENT.ZAP_ID;
+                if (z2.PACIENT.PACIENT_ID.HasValue)
+                    z.PACIENT.PACIENT_ID = Convert.ToInt64(z2.PACIENT.PACIENT_ID.Value);
+                if (z2.PACIENT.ZAP_ID.HasValue)
+                    z.PACIENT.ZAP_ID = Convert.ToInt64(z2.PACIENT.ZAP_ID.Value);
+
                 z.PACIENT.SMO_TFOMS = z2.PACIENT.SMO_TFOMS;
 
 
@@ -319,7 +344,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     Z_SL.DATE_Z_1 = z_sl_2.DATE_Z_1;
                    Z_SL.DATE_Z_2 = z_sl_2.DATE_Z_2;
                    Z_SL.FOR_POM = z_sl_2.FOR_POM;
-                    Z_SL.IDCASE = z_sl_2.IDCASE;
+                    Z_SL.IDCASE = Convert.ToInt64(z_sl_2.IDCASE);
                     Z_SL.IDSP = z_sl_2.IDSP;
                     Z_SL.ISHOD = z_sl_2.ISHOD;
                     Z_SL.KD_Z = z_sl_2.KD_Z;
@@ -341,7 +366,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     Z_SL.VB_P = z_sl_2.VB_P;
                     Z_SL.VIDPOM = z_sl_2.VIDPOM;
                     Z_SL.VNOV_M = z_sl_2.VNOV_M;
-                    Z_SL.ZAP_ID = z_sl_2.ZAP_ID;
+                    if (z_sl_2.ZAP_ID.HasValue)
+                        Z_SL.ZAP_ID = Convert.ToInt64(z_sl_2.ZAP_ID.Value);
 
                     foreach (var sl2 in z_sl_2.SL)
                     {
@@ -367,7 +393,8 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                         SL.LPU_1 = sl2.LPU_1;
                         SL.METOD_HMP = sl2.METOD_HMP;
                         SL.NHISTORY = sl2.NHISTORY;
-                        SL.PACIENT_ID = sl2.PACIENT_ID;
+                        if (sl2.PACIENT_ID.HasValue)
+                            SL.PACIENT_ID = Convert.ToInt64(sl2.PACIENT_ID.Value);
                         SL.PODR = sl2.PODR;
                         SL.PROFIL = sl2.PROFIL;
                         SL.PROFIL_K = sl2.PROFIL_K;
@@ -376,9 +403,11 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                         SL.P_CEL = sl2.P_CEL;
                         SL.P_PER = sl2.P_PER;
                         SL.REAB = sl2.REAB;
-                        SL.SLUCH_ID = sl2.SLUCH_ID;
-                        SL.SLUCH_Z_ID = sl2.SLUCH_Z_ID;
-                        SL.SL_ID = sl2.SL_ID.ToString();
+                        if (sl2.SLUCH_ID.HasValue)
+                            SL.SLUCH_ID = Convert.ToInt64(sl2.SLUCH_ID.Value);
+                        if (sl2.SLUCH_Z_ID.HasValue)
+                            SL.SLUCH_Z_ID = Convert.ToInt64(sl2.SLUCH_Z_ID.Value);
+                        SL.SL_ID = sl2.SL_ID;
                         SL.SUM_M = sl2.SUM_M;
                         SL.SUM_MP = sl2.SUM_MP;
                         SL.TAL_D = sl2.TAL_D;
@@ -393,9 +422,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                         {
                             SL.KSG_KPG = new KSG_KPG();
                             SL.KSG_KPG.BZTSZ = sl2.KSG_KPG.BZTSZ;
-                            if (sl2.KSG_KPG.DKK1 != "" && sl2.KSG_KPG.DKK1 != null)
+                            if (!string.IsNullOrEmpty(sl2.KSG_KPG.DKK1))
                                 SL.KSG_KPG.CRIT.Add(sl2.KSG_KPG.DKK1);
-                            if (sl2.KSG_KPG.DKK2 != "" && sl2.KSG_KPG.DKK2 != null)
+                            if (!string.IsNullOrEmpty(sl2.KSG_KPG.DKK2))
                                 SL.KSG_KPG.CRIT.Add(sl2.KSG_KPG.DKK2);
 
                             SL.KSG_KPG.IT_SL = sl2.KSG_KPG.IT_SL;
@@ -408,13 +437,13 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                             SL.KSG_KPG.SL_K = sl2.KSG_KPG.SL_K;
                             foreach (var k in sl2.KSG_KPG.SL_KOEF)
                             {
-                                SL.KSG_KPG.SL_KOEF.Add(new SL_KOEF() { IDSL = k.IDSL, SLUCH_ID = k.SLUCH_ID, Z_SL = k.Z_SL });
+                                SL.KSG_KPG.SL_KOEF.Add(new SL_KOEF() { IDSL = k.IDSL, SLUCH_ID = k.SLUCH_ID.HasValue? Convert.ToInt64(k.SLUCH_ID): (long?)null, Z_SL = k.Z_SL });
                             }
                             SL.KSG_KPG.VER_KSG = sl2.KSG_KPG.VER_KSG;
                         }
                         foreach (var ds2_n in sl2.DS2_N)
                         {
-                            SL.DS2_N.Add(new DS2_N() { DS2 = ds2_n.DS2, DS2_PR = ds2_n.DS2_PR, PR_DS2_N = ds2_n.PR_DS2_N, SLUCH_ID = ds2_n.SLUCH_ID });
+                            SL.DS2_N.Add(new DS2_N() { DS2 = ds2_n.DS2, DS2_PR = ds2_n.DS2_PR, PR_DS2_N = ds2_n.PR_DS2_N, SLUCH_ID = ds2_n.SLUCH_ID.HasValue ? Convert.ToInt64(ds2_n.SLUCH_ID) : (long?)null  });
                         }
                         var PR_CONS = sl2.USL.Where(x => x.ONK_USL != null).Where(x => x.ONK_USL.PR_CONS.HasValue);
                         foreach (var cons in PR_CONS)
@@ -436,7 +465,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                             SL.ONK_SL = new ONK_SL();
                             SL.ONK_SL.SOD = sl2.ONK_SL.SOD;
                             SL.ONK_SL.STAD = sl2.ONK_SL.STAD;
-                            SL.ONK_SL.SLUCH_ID = sl2.ONK_SL.SLUCH_ID;
+                            SL.ONK_SL.SLUCH_ID = sl2.ONK_SL.SLUCH_ID.HasValue ? Convert.ToInt64(sl2.ONK_SL.SLUCH_ID) : (long?)null;
                             foreach (var onk_us in sl2.USL.Where(x => x.ONK_USL != null))
                             {
                                 SL.ONK_SL.ONK_USL.Add(new ONK_USL()
@@ -457,22 +486,20 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
                             foreach (var d in sl2.ONK_SL.B_DIAG)
                             {
-                                SL.ONK_SL.B_DIAG.Add(new B_DIAG() { DIAG_CODE = d.DIAG_CODE, DIAG_RSLT = d.DIAG_RSLT, DIAG_TIP = d.DIAG_TIP, SLUCH_ID = d.SLUCH_ID });
+                                SL.ONK_SL.B_DIAG.Add(new B_DIAG() { DIAG_CODE = d.DIAG_CODE, DIAG_RSLT = d.DIAG_RSLT, DIAG_TIP = d.DIAG_TIP, SLUCH_ID = d.SLUCH_ID.HasValue ? Convert.ToInt64(d.SLUCH_ID) : (long?)null});
                             }
 
                             foreach (var d in sl2.ONK_SL.B_PROT)
                             {
-                                SL.ONK_SL.B_PROT.Add(new B_PROT() { D_PROT = d.D_PROT, PROT = d.PROT });
+                                SL.ONK_SL.B_PROT.Add(new B_PROT() { D_PROT = d.D_PROT, PROT = Convert.ToInt32(d.PROT) });
                             }
-
-
                         }
 
 
                         foreach (var san2 in sl2.SANK)
                         {
                             san2.SL_ID.Clear();
-                            san2.SL_ID.Add(sl2.SL_ID.ToString());
+                            san2.SL_ID.Add(sl2.SL_ID);
                             Z_SL.SANK.Add(san2);
                         }
 
@@ -688,13 +715,38 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     }
     [Serializable]   
     public class ZGLV
-    {    
+    {
+        public static IEnumerable<ZGLV> GetCollection(IDataReader reader)
+        {
+            while (reader.Read())
+            {
+                yield return Get(reader);
+            }
+        }
+        public static ZGLV Get(IDataReader row)
+        {
+            try
+            {
+                var item = new ZGLV();
+                item.ZGLV_ID = Convert.ToInt64(row[nameof(ZGLV_ID)]);
+                item.DATA = Convert.ToDateTime(row[nameof(DATA)]);
+                item.FILENAME = row[nameof(FILENAME)].ToString();
+                item.SD_Z = Convert.ToDecimal(row[nameof(SD_Z)]);
+                item.VERSION = row[nameof(VERSION)].ToString();
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения ZGLV: {ex.Message}");
+            }
+        }
 
         public static ZGLV Get(DataRow row)
         {
             try
             {
                 var item = new ZGLV();
+                item.ZGLV_ID = Convert.ToInt64(row[nameof(ZGLV_ID)]);
                 item.DATA = Convert.ToDateTime(row[nameof(DATA)]);
                 item.FILENAME = row[nameof(FILENAME)].ToString();
                 item.SD_Z =Convert.ToDecimal(row[nameof(SD_Z)]);
@@ -707,16 +759,10 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? ZGLV_ID { get; set; }
+        public long? ZGLV_ID { get; set; }
 
         [XmlIgnore]
-        public decimal Vers
-        {
-            get
-            {
-                return Convert.ToDecimal(VERSION, CultureInfo.InvariantCulture);
-            }
-        }
+        public decimal Vers => Convert.ToDecimal(VERSION, CultureInfo.InvariantCulture);
 
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
@@ -734,6 +780,57 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [Serializable]   
     public class SCHET
     {
+        public static IEnumerable<SCHET> GetCollection(IDataReader reader)
+        {
+            while (reader.Read())
+            {
+                yield return Get(reader);
+            }
+        }
+        public static SCHET Get(IDataReader row)
+        {
+            try
+            {
+                var item = new SCHET();
+                item.CODE = Convert.ToDecimal(row[nameof(CODE)]);
+                item.CODE_MO = row[nameof(CODE_MO)].ToString();
+                if (row[nameof(COMENTS)] != DBNull.Value)
+                    item.COMENTS = row[nameof(COMENTS)].ToString();
+                if (row[nameof(DISP)] != DBNull.Value)
+                    item.DISP = row[nameof(DISP)].ToString();
+                if (row[nameof(DOP_FLAG)] != DBNull.Value)
+                    item.DOP_FLAG = Convert.ToInt32(row[nameof(DOP_FLAG)]);
+                item.DSCHET = Convert.ToDateTime(row[nameof(DSCHET)]);
+                item.MONTH = Convert.ToDecimal(row[nameof(MONTH)]);
+                item.NSCHET = row[nameof(NSCHET)].ToString();
+                item.PLAT = row[nameof(PLAT)].ToString();
+                if (row[nameof(SANK_EKMP)] != DBNull.Value)
+                    item.SANK_EKMP = Convert.ToDecimal(row[nameof(SANK_EKMP)]);
+                if (row[nameof(SANK_MEE)] != DBNull.Value)
+                    item.SANK_MEE = Convert.ToDecimal(row[nameof(SANK_MEE)]);
+                if (row[nameof(SANK_MEK)] != DBNull.Value)
+                    item.SANK_MEK = Convert.ToDecimal(row[nameof(SANK_MEK)]);
+                if (row[nameof(SCHET_ID)] != DBNull.Value)
+                    item.SCHET_ID = Convert.ToInt64(row[nameof(SCHET_ID)]);
+                if (row[nameof(SUMMAP)] != DBNull.Value)
+                    item.SUMMAP = Convert.ToDecimal(row[nameof(SUMMAP)]);
+                if (row[nameof(SUMMAV)] != DBNull.Value)
+                    item.SUMMAV = Convert.ToDecimal(row[nameof(SUMMAV)]);
+                item.YEAR = Convert.ToDecimal(row[nameof(YEAR)]);
+                if (row[nameof(ZGLV_ID)] != DBNull.Value)
+                    item.ZGLV_ID = Convert.ToDecimal(row[nameof(ZGLV_ID)]);
+
+                if (row[nameof(EntityMP_V31.REF.FIRST_CODE)] != DBNull.Value)
+                {
+                    item.REF = new REF { FIRST_CODE = Convert.ToInt64(row[nameof(EntityMP_V31.REF.FIRST_CODE)]), FIRST_MONTH = Convert.ToInt32(row[nameof(EntityMP_V31.REF.FIRST_MONTH)]), FIRST_YEAR = Convert.ToInt32(row[nameof(EntityMP_V31.REF.FIRST_YEAR)]) };
+                }
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения SCHET: {ex.Message}");
+            }
+        }
         public static SCHET Get(DataRow row)
         {
             try
@@ -758,7 +855,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(SANK_MEK)] != DBNull.Value)
                     item.SANK_MEK = Convert.ToDecimal(row[nameof(SANK_MEK)]);
                 if (row[nameof(SCHET_ID)] != DBNull.Value)
-                    item.SCHET_ID = Convert.ToDecimal(row[nameof(SCHET_ID)]);
+                    item.SCHET_ID = Convert.ToInt64(row[nameof(SCHET_ID)]);
                 if (row[nameof(SUMMAP)] != DBNull.Value)
                     item.SUMMAP = Convert.ToDecimal(row[nameof(SUMMAP)]);
                 if (row[nameof(SUMMAV)] != DBNull.Value)
@@ -779,7 +876,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? SCHET_ID { get; set; }
+        public long? SCHET_ID { get; set; }
         [XmlIgnore]
         public int? DOP_FLAG { get; set; }
         [XmlIgnore]
@@ -871,18 +968,37 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [Serializable]
     public class ZAP
     {
+        public static ZAP Get(IDataReader row)
+        {
+            try
+            {
+                var item = new ZAP();
+                item.N_ZAP = Convert.ToInt64(row[nameof(N_ZAP)]);
+                if (row[nameof(SCHET_ID)] != DBNull.Value)
+                    item.SCHET_ID = Convert.ToInt64(row[nameof(SCHET_ID)]);
+                if (row[nameof(ZAP_ID)] != DBNull.Value)
+                    item.ZAP_ID = Convert.ToInt64(row[nameof(ZAP_ID)]);
+                if (row[nameof(PR_NOV)] != DBNull.Value)
+                    item.PR_NOV = Convert.ToInt32(row[nameof(PR_NOV)]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения ZAP:{ex.Message}");
+            }
+        }
         public static ZAP Get(DataRow row)
         {
             try
             {
                 var item = new ZAP();
-                item.N_ZAP = Convert.ToDecimal(row[nameof(N_ZAP)]);
+                item.N_ZAP = Convert.ToInt64(row[nameof(N_ZAP)]);
                 if (row[nameof(SCHET_ID)] != DBNull.Value)
-                    item.SCHET_ID = Convert.ToDecimal(row[nameof(SCHET_ID)]);
+                    item.SCHET_ID = Convert.ToInt64(row[nameof(SCHET_ID)]);
                 if (row[nameof(ZAP_ID)] != DBNull.Value)
-                    item.ZAP_ID = Convert.ToDecimal(row[nameof(ZAP_ID)]);
+                    item.ZAP_ID = Convert.ToInt64(row[nameof(ZAP_ID)]);
                 if (row[nameof(PR_NOV)] != DBNull.Value)
-                    item.PR_NOV = Convert.ToDecimal(row[nameof(PR_NOV)]);
+                    item.PR_NOV = Convert.ToInt32(row[nameof(PR_NOV)]);
                 return item;
             }
             catch (Exception ex)
@@ -892,9 +1008,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         }
 
         [XmlIgnore]
-        public decimal? ZAP_ID { get; set; }
+        public long? ZAP_ID { get; set; }
         [XmlIgnore]
-        public decimal? SCHET_ID { get; set; }
+        public long? SCHET_ID { get; set; }
 
         public ZAP()
         {
@@ -903,10 +1019,10 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
-        public decimal N_ZAP { get; set; }
+        public long N_ZAP { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
-        public decimal PR_NOV { get; set; }
+        public int PR_NOV { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public PACIENT PACIENT { get; set; }
@@ -927,7 +1043,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [Serializable]
     public class PACIENT
     {
-        public static PACIENT Get(DataRow row)
+        public static PACIENT Get(IDataReader row)
         {
             try
             {
@@ -943,7 +1059,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(NPOLIS)] != DBNull.Value)
                     item.NPOLIS = row[nameof(NPOLIS)].ToString();
                 if (row[nameof(PACIENT_ID)] != DBNull.Value)
-                    item.PACIENT_ID = Convert.ToDecimal(row[nameof(PACIENT_ID)]);
+                    item.PACIENT_ID = Convert.ToInt64(row[nameof(PACIENT_ID)]);
                 if (row[nameof(SMO)] != DBNull.Value)
                     item.SMO = row[nameof(SMO)].ToString();
                 if (row[nameof(SMO_NAM)] != DBNull.Value)
@@ -963,7 +1079,58 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(VPOLIS)] != DBNull.Value)
                     item.VPOLIS = Convert.ToDecimal(row[nameof(VPOLIS)]);
                 if (row[nameof(ZAP_ID)] != DBNull.Value)
-                    item.ZAP_ID = Convert.ToDecimal(row[nameof(ZAP_ID)]);
+                    item.ZAP_ID = Convert.ToInt64(row[nameof(ZAP_ID)]);
+                if (row[nameof(LPU_REG)] != DBNull.Value)
+                    item.LPU_REG = Convert.ToString(row[nameof(LPU_REG)]);
+                if (row[nameof(ENP)] != DBNull.Value)
+                    item.ENP = Convert.ToString(row[nameof(ENP)]);
+                if (row[nameof(ENP_REG)] != DBNull.Value)
+                    item.ENP_REG = Convert.ToString(row[nameof(ENP_REG)]);
+
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения PACIENT:{ex.Message}");
+            }
+        }
+        public static PACIENT Get(DataRow row)
+        {
+            try
+            {
+                var item = new PACIENT();
+                if (row[nameof(ID_PAC)] != DBNull.Value)
+                    item.ID_PAC = row[nameof(ID_PAC)].ToString();
+                if (row[nameof(INV)] != DBNull.Value)
+                    item.INV = Convert.ToDecimal(row[nameof(INV)]);
+                if (row[nameof(MSE)] != DBNull.Value)
+                    item.MSE = Convert.ToDecimal(row[nameof(MSE)]);
+                if (row[nameof(NOVOR)] != DBNull.Value)
+                    item.NOVOR = row[nameof(NOVOR)].ToString();
+                if (row[nameof(NPOLIS)] != DBNull.Value)
+                    item.NPOLIS = row[nameof(NPOLIS)].ToString();
+                if (row[nameof(PACIENT_ID)] != DBNull.Value)
+                    item.PACIENT_ID = Convert.ToInt64(row[nameof(PACIENT_ID)]);
+                if (row[nameof(SMO)] != DBNull.Value)
+                    item.SMO = row[nameof(SMO)].ToString();
+                if (row[nameof(SMO_NAM)] != DBNull.Value)
+                    item.SMO_NAM = row[nameof(SMO_NAM)].ToString();
+                if (row[nameof(SMO_OGRN)] != DBNull.Value)
+                    item.SMO_OGRN = row[nameof(SMO_OGRN)].ToString();
+                if (row[nameof(SMO_OK)] != DBNull.Value)
+                    item.SMO_OK = row[nameof(SMO_OK)].ToString();
+                if (row[nameof(SMO_TFOMS)] != DBNull.Value)
+                    item.SMO_TFOMS = row[nameof(SMO_TFOMS)].ToString();
+                if (row[nameof(SPOLIS)] != DBNull.Value)
+                    item.SPOLIS = row[nameof(SPOLIS)].ToString();
+                if (row[nameof(ST_OKATO)] != DBNull.Value)
+                    item.ST_OKATO = row[nameof(ST_OKATO)].ToString();
+                if (row[nameof(VNOV_D)] != DBNull.Value)
+                    item.VNOV_D = Convert.ToDecimal(row[nameof(VNOV_D)]);
+                if (row[nameof(VPOLIS)] != DBNull.Value)
+                    item.VPOLIS = Convert.ToDecimal(row[nameof(VPOLIS)]);
+                if (row[nameof(ZAP_ID)] != DBNull.Value)
+                    item.ZAP_ID = Convert.ToInt64(row[nameof(ZAP_ID)]);
                 if (row[nameof(LPU_REG)] != DBNull.Value)
                     item.LPU_REG = Convert.ToString(row[nameof(LPU_REG)]);
                 if (row[nameof(ENP)] != DBNull.Value)
@@ -981,11 +1148,11 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlIgnore]
         public string SMO_TFOMS { get; set; }
         [XmlIgnore]
-        public decimal? PACIENT_ID { get; set; }
+        public long? PACIENT_ID { get; set; }
         [XmlIgnore]
-        public decimal? PERS_ID { get; set; }
+        public long? PERS_ID { get; set; }
         [XmlIgnore]
-        public decimal? ZAP_ID { get; set; }
+        public long? ZAP_ID { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public string ID_PAC { get; set; }
@@ -1047,67 +1214,136 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [Serializable]
     public  class Z_SL
     {
+        public static Z_SL Get(IDataReader row)
+        {
+            try
+            {
+                var item = new Z_SL();
+                if (row[nameof(DATE_Z_1)] != DBNull.Value)
+                    item.DATE_Z_1 = Convert.ToDateTime(row[nameof(DATE_Z_1)]);
+                if (row[nameof(DATE_Z_2)] != DBNull.Value)
+                    item.DATE_Z_2 = Convert.ToDateTime(row[nameof(DATE_Z_2)]);
+                if (row[nameof(FOR_POM)] != DBNull.Value)
+                    item.FOR_POM = Convert.ToDecimal(row[nameof(FOR_POM)]);
+                if (row[nameof(IDCASE)] != DBNull.Value)
+                    item.IDCASE = Convert.ToInt64(row[nameof(IDCASE)]);
+                if (row[nameof(IDSP)] != DBNull.Value)
+                    item.IDSP = Convert.ToDecimal(row[nameof(IDSP)]);
+                if (row[nameof(ISHOD)] != DBNull.Value)
+                    item.ISHOD = Convert.ToDecimal(row[nameof(ISHOD)]);
+                if (row[nameof(KD_Z)] != DBNull.Value)
+                    item.KD_Z = Convert.ToDecimal(row[nameof(KD_Z)]);
+                if (row[nameof(LPU)] != DBNull.Value)
+                    item.LPU = row[nameof(LPU)].ToString();
+                if (row[nameof(NPR_DATE)] != DBNull.Value)
+                    item.NPR_DATE = Convert.ToDateTime(row[nameof(NPR_DATE)]);
+                if (row[nameof(NPR_MO)] != DBNull.Value)
+                    item.NPR_MO = row[nameof(NPR_MO)].ToString();
+                if (row[nameof(OPLATA)] != DBNull.Value)
+                    item.OPLATA = Convert.ToDecimal(row[nameof(OPLATA)]);
+                if (row[nameof(OS_SLUCH)] != DBNull.Value)
+                    item.setOS_SLUCH(row[nameof(OS_SLUCH)].ToString());
+                if (row[nameof(PACIENT_ID)] != DBNull.Value)
+                    item.PACIENT_ID = Convert.ToDecimal(row[nameof(PACIENT_ID)]);
+                if (row[nameof(P_OTK)] != DBNull.Value)
+                    item.P_OTK = Convert.ToDecimal(row[nameof(P_OTK)]);
+                if (row[nameof(RSLT)] != DBNull.Value)
+                    item.RSLT = Convert.ToDecimal(row[nameof(RSLT)]);
+                if (row[nameof(RSLT_D)] != DBNull.Value)
+                    item.RSLT_D = Convert.ToDecimal(row[nameof(RSLT_D)]);
+                if (row[nameof(SANK_IT)] != DBNull.Value)
+                    item.SANK_IT = Convert.ToDecimal(row[nameof(SANK_IT)]);
+                if (row[nameof(SLUCH_Z_ID)] != DBNull.Value)
+                    item.SLUCH_Z_ID = Convert.ToInt64(row[nameof(SLUCH_Z_ID)]);
+                if (row[nameof(SLUCH_Z_ID_MAIN)] != DBNull.Value)
+                    item.SLUCH_Z_ID_MAIN = Convert.ToInt64(row[nameof(SLUCH_Z_ID_MAIN)]);
+                if (row[nameof(SUMP)] != DBNull.Value)
+                    item.SUMP = Convert.ToDecimal(row[nameof(SUMP)]);
+                if (row[nameof(SUMV)] != DBNull.Value)
+                    item.SUMV = Convert.ToDecimal(row[nameof(SUMV)]);
+                if (row[nameof(USL_OK)] != DBNull.Value)
+                    item.USL_OK = Convert.ToDecimal(row[nameof(USL_OK)]);
+                if (row[nameof(VBR)] != DBNull.Value)
+                    item.VBR = Convert.ToDecimal(row[nameof(VBR)]);
+                if (row[nameof(VB_P)] != DBNull.Value)
+                    item.VB_P = Convert.ToDecimal(row[nameof(VB_P)]);
+                if (row[nameof(VIDPOM)] != DBNull.Value)
+                    item.VIDPOM = Convert.ToDecimal(row[nameof(VIDPOM)]);
+                if (row[nameof(VNOV_M)] != DBNull.Value)
+                    item.setVNOV_M(row[nameof(VNOV_M)].ToString());
+                if (row[nameof(ZAP_ID)] != DBNull.Value)
+                    item.ZAP_ID = Convert.ToInt64(row[nameof(ZAP_ID)]);
+                if (row[nameof(FIRST_IDCASE)] != DBNull.Value)
+                    item.FIRST_IDCASE = Convert.ToInt64(row[nameof(FIRST_IDCASE)]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Ошибка получения Z_SL:" + ex.Message);
+            }
+        }
+
         public static Z_SL Get(DataRow row)
         {
             try
             {
                 var item = new Z_SL();
-                if(row["DATE_Z_1"] !=DBNull.Value)
-                    item.DATE_Z_1 = Convert.ToDateTime(row["DATE_Z_1"]);
-                if (row["DATE_Z_2"] != DBNull.Value)
-                    item.DATE_Z_2 = Convert.ToDateTime(row["DATE_Z_2"]);
-                if (row["FOR_POM"] != DBNull.Value)
-                    item.FOR_POM = Convert.ToDecimal(row["FOR_POM"]);
-                if (row["IDCASE"] != DBNull.Value)
-                    item.IDCASE = Convert.ToDecimal(row["IDCASE"]);
-                if (row["IDSP"] != DBNull.Value)
-                    item.IDSP = Convert.ToDecimal(row["IDSP"]);
-                if (row["ISHOD"] != DBNull.Value)
-                    item.ISHOD = Convert.ToDecimal(row["ISHOD"]);
-                if (row["KD_Z"] != DBNull.Value)
-                    item.KD_Z = Convert.ToDecimal(row["KD_Z"]);
-                if (row["LPU"] != DBNull.Value)
-                    item.LPU = row["LPU"].ToString();
-                if (row["NPR_DATE"] != DBNull.Value)
-                    item.NPR_DATE = Convert.ToDateTime(row["NPR_DATE"]);
-                if (row["NPR_MO"] != DBNull.Value)
-                    item.NPR_MO = row["NPR_MO"].ToString();
-                if (row["OPLATA"] != DBNull.Value)
-                    item.OPLATA = Convert.ToDecimal(row["OPLATA"]);
-                if (row["OS_SLUCH"] != DBNull.Value)
-                    item.setOS_SLUCH(row["OS_SLUCH"].ToString());
-                if (row["PACIENT_ID"] != DBNull.Value)
-                    item.PACIENT_ID = Convert.ToDecimal(row["PACIENT_ID"]);
-                if (row["P_OTK"] != DBNull.Value)
-                    item.P_OTK = Convert.ToDecimal(row["P_OTK"]);
-                if (row["RSLT"] != DBNull.Value)
-                    item.RSLT = Convert.ToDecimal(row["RSLT"]);
-                if (row["RSLT_D"] != DBNull.Value)
-                    item.RSLT_D = Convert.ToDecimal(row["RSLT_D"]);
-                if (row["SANK_IT"] != DBNull.Value)
-                    item.SANK_IT = Convert.ToDecimal(row["SANK_IT"]);
-                if (row["SLUCH_Z_ID"] != DBNull.Value)
-                    item.SLUCH_Z_ID = Convert.ToInt64(row["SLUCH_Z_ID"]);
-                if (row["SLUCH_Z_ID_MAIN"] != DBNull.Value)
-                    item.SLUCH_Z_ID_MAIN = Convert.ToInt64(row["SLUCH_Z_ID_MAIN"]);
-                if (row["SUMP"] != DBNull.Value)
-                    item.SUMP = Convert.ToDecimal(row["SUMP"]);
-                if (row["SUMV"] != DBNull.Value)
-                    item.SUMV = Convert.ToDecimal(row["SUMV"]);
-                if (row["USL_OK"] != DBNull.Value)
-                    item.USL_OK = Convert.ToDecimal(row["USL_OK"]);
-                if (row["VBR"] != DBNull.Value)
-                    item.VBR = Convert.ToDecimal(row["VBR"]);
-                if (row["VB_P"] != DBNull.Value)
-                    item.VB_P = Convert.ToDecimal(row["VB_P"]);
-                if (row["VIDPOM"] != DBNull.Value)
-                    item.VIDPOM = Convert.ToDecimal(row["VIDPOM"]);
-                if (row["VNOV_M"] != DBNull.Value)
-                    item.setVNOV_M(row["VNOV_M"].ToString());
-                if (row["ZAP_ID"] != DBNull.Value)
-                    item.ZAP_ID = Convert.ToDecimal(row["ZAP_ID"]);
-                if (row["FIRST_IDCASE"]!=DBNull.Value)
-                    item.FIRST_IDCASE = Convert.ToInt64(row["FIRST_IDCASE"]);
+                if(row[nameof(DATE_Z_1)] !=DBNull.Value)
+                    item.DATE_Z_1 = Convert.ToDateTime(row[nameof(DATE_Z_1)]);
+                if (row[nameof(DATE_Z_2)] != DBNull.Value)
+                    item.DATE_Z_2 = Convert.ToDateTime(row[nameof(DATE_Z_2)]);
+                if (row[nameof(FOR_POM)] != DBNull.Value)
+                    item.FOR_POM = Convert.ToDecimal(row[nameof(FOR_POM)]);
+                if (row[nameof(IDCASE)] != DBNull.Value)
+                    item.IDCASE = Convert.ToInt64(row[nameof(IDCASE)]);
+                if (row[nameof(IDSP)] != DBNull.Value)
+                    item.IDSP = Convert.ToDecimal(row[nameof(IDSP)]);
+                if (row[nameof(ISHOD)] != DBNull.Value)
+                    item.ISHOD = Convert.ToDecimal(row[nameof(ISHOD)]);
+                if (row[nameof(KD_Z)] != DBNull.Value)
+                    item.KD_Z = Convert.ToDecimal(row[nameof(KD_Z)]);
+                if (row[nameof(LPU)] != DBNull.Value)
+                    item.LPU = row[nameof(LPU)].ToString();
+                if (row[nameof(NPR_DATE)] != DBNull.Value)
+                    item.NPR_DATE = Convert.ToDateTime(row[nameof(NPR_DATE)]);
+                if (row[nameof(NPR_MO)] != DBNull.Value)
+                    item.NPR_MO = row[nameof(NPR_MO)].ToString();
+                if (row[nameof(OPLATA)] != DBNull.Value)
+                    item.OPLATA = Convert.ToDecimal(row[nameof(OPLATA)]);
+                if (row[nameof(OS_SLUCH)] != DBNull.Value)
+                    item.setOS_SLUCH(row[nameof(OS_SLUCH)].ToString());
+                if (row[nameof(PACIENT_ID)] != DBNull.Value)
+                    item.PACIENT_ID = Convert.ToDecimal(row[nameof(PACIENT_ID)]);
+                if (row[nameof(P_OTK)] != DBNull.Value)
+                    item.P_OTK = Convert.ToDecimal(row[nameof(P_OTK)]);
+                if (row[nameof(RSLT)] != DBNull.Value)
+                    item.RSLT = Convert.ToDecimal(row[nameof(RSLT)]);
+                if (row[nameof(RSLT_D)] != DBNull.Value)
+                    item.RSLT_D = Convert.ToDecimal(row[nameof(RSLT_D)]);
+                if (row[nameof(SANK_IT)] != DBNull.Value)
+                    item.SANK_IT = Convert.ToDecimal(row[nameof(SANK_IT)]);
+                if (row[nameof(SLUCH_Z_ID)] != DBNull.Value)
+                    item.SLUCH_Z_ID = Convert.ToInt64(row[nameof(SLUCH_Z_ID)]);
+                if (row[nameof(SLUCH_Z_ID_MAIN)] != DBNull.Value)
+                    item.SLUCH_Z_ID_MAIN = Convert.ToInt64(row[nameof(SLUCH_Z_ID_MAIN)]);
+                if (row[nameof(SUMP)] != DBNull.Value)
+                    item.SUMP = Convert.ToDecimal(row[nameof(SUMP)]);
+                if (row[nameof(SUMV)] != DBNull.Value)
+                    item.SUMV = Convert.ToDecimal(row[nameof(SUMV)]);
+                if (row[nameof(USL_OK)] != DBNull.Value)
+                    item.USL_OK = Convert.ToDecimal(row[nameof(USL_OK)]);
+                if (row[nameof(VBR)] != DBNull.Value)
+                    item.VBR = Convert.ToDecimal(row[nameof(VBR)]);
+                if (row[nameof(VB_P)] != DBNull.Value)
+                    item.VB_P = Convert.ToDecimal(row[nameof(VB_P)]);
+                if (row[nameof(VIDPOM)] != DBNull.Value)
+                    item.VIDPOM = Convert.ToDecimal(row[nameof(VIDPOM)]);
+                if (row[nameof(VNOV_M)] != DBNull.Value)
+                    item.setVNOV_M(row[nameof(VNOV_M)].ToString());
+                if (row[nameof(ZAP_ID)] != DBNull.Value)
+                    item.ZAP_ID = Convert.ToInt64(row[nameof(ZAP_ID)]);
+                if (row[nameof(FIRST_IDCASE)]!=DBNull.Value)
+                    item.FIRST_IDCASE = Convert.ToInt64(row[nameof(FIRST_IDCASE)]);
                 return item;
             }
             catch (Exception ex)
@@ -1120,7 +1356,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlIgnore]
         public string TagComment { get; set; } = "";
         [XmlIgnore]
-        public decimal? ZAP_ID { get; set; }
+        public Int64? ZAP_ID { get; set; }
       
         public Z_SL()
         {
@@ -1132,7 +1368,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
-        public decimal IDCASE { get; set; }
+        public Int64 IDCASE { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
         public long? FIRST_IDCASE { get; set; }
@@ -1299,17 +1535,134 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     public class DS_SLUCH_ID
     {
         public string DS { get; set; }
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
     }
     public class CRIT_SLUCH_ID
     {
-        public decimal? ORD { get; set; }
+        public int? ORD { get; set; }
         public string CRIT { get; set; }
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
     }
     [Serializable]
     public  class SL
     {
+        public static IEnumerable<SL> GetCollection(IDataReader reader)
+        {
+            while (reader.Read())
+            {
+                yield return Get(reader);
+            }
+        }
+
+        public static SL Get(IDataReader row)
+        {
+            try
+            {
+                var item = new SL();
+                if (row[nameof(CODE_MES1)] != DBNull.Value)
+                    item.setCODE_MES1(row[nameof(CODE_MES1)].ToString());
+                if (row[nameof(CODE_MES2)] != DBNull.Value)
+                    item.CODE_MES2 = row[nameof(CODE_MES2)].ToString();
+                if (row[nameof(COMENTSL)] != DBNull.Value)
+                    item.COMENTSL = row[nameof(COMENTSL)].ToString();
+                if (row[nameof(DATE_1)] != DBNull.Value)
+                    item.DATE_1 = Convert.ToDateTime(row[nameof(DATE_1)]);
+                if (row[nameof(DATE_2)] != DBNull.Value)
+                    item.DATE_2 = Convert.ToDateTime(row[nameof(DATE_2)]);
+                if (row[nameof(DET)] != DBNull.Value)
+                    item.DET = Convert.ToDecimal(row[nameof(DET)]);
+                if (row[nameof(DN)] != DBNull.Value)
+                    item.DN = Convert.ToDecimal(row[nameof(DN)]);
+                if (row[nameof(DS0)] != DBNull.Value)
+                    item.DS0 = row[nameof(DS0)].ToString();
+                if (row[nameof(DS1)] != DBNull.Value)
+                    item.DS1 = row[nameof(DS1)].ToString();
+                if (row[nameof(DS1_PR)] != DBNull.Value)
+                    item.DS1_PR = Convert.ToDecimal(row[nameof(DS1_PR)]);
+                if (row[nameof(DS_ONK)] != DBNull.Value)
+                    item.DS_ONK = Convert.ToDecimal(row[nameof(DS_ONK)]);
+                if (row[nameof(ED_COL)] != DBNull.Value)
+                    item.ED_COL = Convert.ToDecimal(row[nameof(ED_COL)]);
+                if (row[nameof(EXTR)] != DBNull.Value)
+                    item.EXTR = Convert.ToDecimal(row[nameof(EXTR)]);
+                if (row[nameof(IDDOKT)] != DBNull.Value)
+                    item.IDDOKT = row[nameof(IDDOKT)].ToString();
+                if (row[nameof(KD)] != DBNull.Value)
+                    item.KD = Convert.ToDecimal(row[nameof(KD)]);
+
+                if (row[nameof(EntityMP_V31.KSG_KPG.N_KSG)] != DBNull.Value)
+                {
+                    item.KSG_KPG = KSG_KPG.Get(row);
+                }
+
+
+                if (row[nameof(LPU_1)] != DBNull.Value)
+                    item.LPU_1 = row[nameof(LPU_1)].ToString();
+                if (row[nameof(METOD_HMP)] != DBNull.Value)
+                    item.METOD_HMP = Convert.ToDecimal(row[nameof(METOD_HMP)]);
+
+                if (row[nameof(NHISTORY)] != DBNull.Value)
+                    item.NHISTORY = row[nameof(NHISTORY)].ToString();
+
+                if (row[nameof(EntityMP_V31.ONK_SL.DS1_T)] != DBNull.Value)
+                {
+                    item.ONK_SL = ONK_SL.Get(row);
+                }
+
+                if (row[nameof(PACIENT_ID)] != DBNull.Value)
+                    item.PACIENT_ID = Convert.ToInt64(row[nameof(PACIENT_ID)]);
+                if (row[nameof(PODR)] != DBNull.Value)
+                    item.PODR = Convert.ToDecimal(row[nameof(PODR)]);
+                if (row[nameof(PROFIL)] != DBNull.Value)
+                    item.PROFIL = Convert.ToDecimal(row[nameof(PROFIL)]);
+                if (row[nameof(PROFIL_K)] != DBNull.Value)
+                    item.PROFIL_K = Convert.ToDecimal(row[nameof(PROFIL_K)]);
+                if (row[nameof(PRVS)] != DBNull.Value)
+                    item.PRVS = Convert.ToDecimal(row[nameof(PRVS)]);
+                if (row[nameof(PR_D_N)] != DBNull.Value)
+                    item.PR_D_N = Convert.ToDecimal(row[nameof(PR_D_N)]);
+                if (row[nameof(P_CEL)] != DBNull.Value)
+                    item.P_CEL = row[nameof(P_CEL)].ToString();
+                if (row[nameof(P_PER)] != DBNull.Value)
+                    item.P_PER = Convert.ToDecimal(row[nameof(P_PER)]);
+                if (row[nameof(REAB)] != DBNull.Value)
+                    item.REAB = Convert.ToDecimal(row[nameof(REAB)]);
+                if (row[nameof(SLUCH_ID)] != DBNull.Value)
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
+                if (row[nameof(SLUCH_Z_ID)] != DBNull.Value)
+                    item.SLUCH_Z_ID = Convert.ToInt64(row[nameof(SLUCH_Z_ID)]);
+                if (row[nameof(SL_ID)] != DBNull.Value)
+                    item.SL_ID = Convert.ToString(row[nameof(SL_ID)]);
+                if (row[nameof(SUM_M)] != DBNull.Value)
+                    item.SUM_M = Convert.ToDecimal(row[nameof(SUM_M)]);
+                if (row[nameof(SUM_MP)] != DBNull.Value)
+                    item.SUM_MP = Convert.ToDecimal(row[nameof(SUM_MP)]);
+                if (row[nameof(TAL_D)] != DBNull.Value)
+                    item.TAL_D = Convert.ToDateTime(row[nameof(TAL_D)]);
+                if (row[nameof(TAL_NUM)] != DBNull.Value)
+                    item.TAL_NUM = row[nameof(TAL_NUM)].ToString();
+                if (row[nameof(TAL_P)] != DBNull.Value)
+                    item.TAL_P = Convert.ToDateTime(row[nameof(TAL_P)]);
+                if (row[nameof(TARIF)] != DBNull.Value)
+                    item.TARIF = Convert.ToDecimal(row[nameof(TARIF)]);
+                if (row[nameof(VERS_SPEC)] != DBNull.Value)
+                    item.VERS_SPEC = row[nameof(VERS_SPEC)].ToString();
+                if (row[nameof(VID_HMP)] != DBNull.Value)
+                    item.VID_HMP = row[nameof(VID_HMP)].ToString();
+                if (row[nameof(C_ZAB)] != DBNull.Value)
+                    item.C_ZAB = Convert.ToDecimal(row[nameof(C_ZAB)]);
+
+                if (row[nameof(WEI)] != DBNull.Value && row[nameof(EntityMP_V31.ONK_SL.DS1_T)] == DBNull.Value)
+                    item.WEI = Convert.ToDecimal(row[nameof(WEI)]);
+                
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения SL:{ex.Message}");
+            }
+        }
+
         public static SL Get(DataRow row, IEnumerable<DataRow> DS2tbl, IEnumerable<DataRow> DS3tbl, IEnumerable<DataRow> CRIT)
         {
             try
@@ -1366,7 +1719,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 }
 
                 if (row[nameof(PACIENT_ID)] != DBNull.Value)
-                    item.PACIENT_ID = Convert.ToDecimal(row[nameof(PACIENT_ID)]);
+                    item.PACIENT_ID = Convert.ToInt64(row[nameof(PACIENT_ID)]);
                 if (row[nameof(PODR)] != DBNull.Value)
                     item.PODR = Convert.ToDecimal(row[nameof(PODR)]);
                 if (row[nameof(PROFIL)] != DBNull.Value)
@@ -1384,9 +1737,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(REAB)] != DBNull.Value)
                     item.REAB = Convert.ToDecimal(row[nameof(REAB)]);
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 if (row[nameof(SLUCH_Z_ID)] != DBNull.Value)
-                    item.SLUCH_Z_ID = Convert.ToDecimal(row[nameof(SLUCH_Z_ID)]);
+                    item.SLUCH_Z_ID = Convert.ToInt64(row[nameof(SLUCH_Z_ID)]);
                 if (row[nameof(SL_ID)] != DBNull.Value)
                     item.SL_ID = Convert.ToString(row[nameof(SL_ID)]);
                 if (row[nameof(SUM_M)] != DBNull.Value)
@@ -1455,12 +1808,12 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public string TagComment { get; set; } = "";
 
         [XmlIgnore]
-        public decimal? PACIENT_ID { get; set; }
+        public long? PACIENT_ID { get; set; }
   
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
         [XmlIgnore]
-        public decimal? SLUCH_Z_ID { get; set; }
+        public long? SLUCH_Z_ID { get; set; }
         public SL()
         {
             this.USL = new List<USL>();          
@@ -1692,6 +2045,34 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [Serializable]
     public class DS2_N
     {
+        public static IEnumerable<DS2_N> GetCollection(IDataReader reader)
+        {
+            while (reader.Read())
+            {
+                yield return Get(reader);
+            }
+        }
+
+        public static DS2_N Get(IDataReader row)
+        {
+            try
+            {
+                var item = new DS2_N();
+                if (row[nameof(DS2)] != DBNull.Value)
+                    item.DS2 = row[nameof(DS2)].ToString();
+                if (row[nameof(DS2_PR)] != DBNull.Value)
+                    item.DS2_PR = Convert.ToDecimal(row[nameof(DS2_PR)]);
+                if (row[nameof(PR_DS2_N)] != DBNull.Value)
+                    item.PR_DS2_N = Convert.ToDecimal(row[nameof(PR_DS2_N)]);
+                if (row[nameof(SLUCH_ID)] != DBNull.Value)
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения DS2_N:{ex.Message}");
+            }
+        }
         public static DS2_N Get(DataRow row)
         {
             try
@@ -1704,7 +2085,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(PR_DS2_N)] != DBNull.Value)
                     item.PR_DS2_N = Convert.ToDecimal(row[nameof(PR_DS2_N)]);
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 return item;
             }
             catch (Exception ex)
@@ -1713,7 +2094,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string DS2 { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = true)]
@@ -1733,6 +2114,54 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     }
     public class NAZR
     {
+        public static IEnumerable<NAZR> GetCollection(IDataReader reader)
+        {
+            while (reader.Read())
+            {
+                yield return Get(reader);
+            }
+        }
+
+        public static NAZR Get(IDataReader row)
+        {
+            try
+            {
+                var item = new NAZR();
+                if (row[nameof(NAZ_N)] != DBNull.Value)
+                    item.NAZ_N = Convert.ToDecimal(row[nameof(NAZ_N)]);
+                if (row[nameof(NAZ_PK)] != DBNull.Value)
+                    item.NAZ_PK = Convert.ToDecimal(row[nameof(NAZ_PK)]);
+                if (row[nameof(NAZ_PMP)] != DBNull.Value)
+                    item.NAZ_PMP = Convert.ToDecimal(row[nameof(NAZ_PMP)]);
+                if (row[nameof(NAZ_R)] != DBNull.Value)
+                    item.NAZ_R = Convert.ToDecimal(row[nameof(NAZ_R)]);
+                if (row[nameof(NAZ_SP)] != DBNull.Value)
+                    item.NAZ_SP = Convert.ToDecimal(row[nameof(NAZ_SP)]);
+                if (row[nameof(NAZ_V)] != DBNull.Value)
+                    item.NAZ_V = Convert.ToDecimal(row[nameof(NAZ_V)]);
+                if (row[nameof(SLUCH_ID)] != DBNull.Value)
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
+
+
+                if (row[nameof(NAZ_USL)] != DBNull.Value)
+                    item.NAZ_USL = Convert.ToString(row[nameof(NAZ_USL)]);
+
+                if (row[nameof(NAPR_DATE)] != DBNull.Value)
+                    item.NAPR_DATE = Convert.ToDateTime(row[nameof(NAPR_DATE)]);
+
+                if (row[nameof(NAPR_MO)] != DBNull.Value)
+                    item.NAPR_MO = Convert.ToString(row[nameof(NAPR_MO)]);
+
+                if (row[nameof(NAZ_IDDOKT)] != DBNull.Value)
+                    item.NAZ_IDDOKT = Convert.ToString(row[nameof(NAZ_IDDOKT)]);
+
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения NAZR:{ex.Message}");
+            }
+        }
         public static NAZR Get(DataRow row)
         {
             try
@@ -1751,7 +2180,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(NAZ_V)] != DBNull.Value)
                     item.NAZ_V = Convert.ToDecimal(row[nameof(NAZ_V)]);
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
           
 
                 if (row[nameof(NAZ_USL)] != DBNull.Value)
@@ -1774,7 +2203,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal NAZ_N { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
@@ -1829,6 +2258,53 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [Serializable]
     public  class ONK_SL
     {
+        public static IEnumerable<ONK_SL> GetCollection(IDataReader reader)
+        {
+            while (reader.Read())
+            {
+                yield return Get(reader);
+            }
+        }
+
+        public static ONK_SL Get(IDataReader row)
+        {
+            try
+            {
+                var item = new ONK_SL();
+                if (row[nameof(DS1_T)] != DBNull.Value)
+                    item.DS1_T = Convert.ToDecimal(row[nameof(DS1_T)]);
+                if (row[nameof(MTSTZ)] != DBNull.Value)
+                    item.MTSTZ = Convert.ToDecimal(row[nameof(MTSTZ)]);
+                if (row[nameof(ONK_M)] != DBNull.Value)
+                    item.ONK_M = Convert.ToDecimal(row[nameof(ONK_M)]);
+                if (row[nameof(ONK_N)] != DBNull.Value)
+                    item.ONK_N = Convert.ToDecimal(row[nameof(ONK_N)]);
+                if (row[nameof(ONK_T)] != DBNull.Value)
+                    item.ONK_T = Convert.ToDecimal(row[nameof(ONK_T)]);
+                if (row[nameof(SLUCH_ID)] != DBNull.Value)
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
+                if (row[nameof(SOD)] != DBNull.Value)
+                    item.SOD = Convert.ToDecimal(row[nameof(SOD)]);
+                if (row[nameof(STAD)] != DBNull.Value)
+                    item.STAD = Convert.ToDecimal(row[nameof(STAD)]);
+
+                if (row[nameof(K_FR)] != DBNull.Value)
+                    item.K_FR = Convert.ToDecimal(row[nameof(K_FR)]);
+                if (row[nameof(WEI)] != DBNull.Value)
+                    item.WEI = Convert.ToDecimal(row[nameof(WEI)]);
+                if (row[nameof(HEI)] != DBNull.Value)
+                    item.HEI = Convert.ToDecimal(row[nameof(HEI)]);
+                if (row[nameof(BSA)] != DBNull.Value)
+                    item.BSA = Convert.ToDecimal(row[nameof(BSA)]);
+
+
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения ONK_SL:{ex.Message}");
+            }
+        }
         public static ONK_SL Get(DataRow row)
         {
             try
@@ -1845,7 +2321,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(ONK_T)] != DBNull.Value)
                     item.ONK_T = Convert.ToDecimal(row[nameof(ONK_T)]);
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 if (row[nameof(SOD)] != DBNull.Value)
                     item.SOD = Convert.ToDecimal(row[nameof(SOD)]);
                 if (row[nameof(STAD)] != DBNull.Value)
@@ -1869,7 +2345,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
     
 
         public ONK_SL()
@@ -1972,6 +2448,35 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     [Serializable]
     public  class B_DIAG
     {
+        public static IEnumerable<B_DIAG> GetCollection(IDataReader reader)
+        {
+            while (reader.Read())
+            {
+                yield return Get(reader);
+            }
+        }
+        public static B_DIAG Get(IDataReader row)
+        {
+            try
+            {
+                var item = new B_DIAG();
+                item.DIAG_CODE = Convert.ToDecimal(row[nameof(DIAG_CODE)]);
+                if (row[nameof(DIAG_RSLT)] != DBNull.Value)
+                    item.DIAG_RSLT = Convert.ToDecimal(row[nameof(DIAG_RSLT)]);
+                item.DIAG_TIP = Convert.ToDecimal(row[nameof(DIAG_TIP)]);
+                item.DIAG_DATE = Convert.ToDateTime(row[nameof(DIAG_DATE)]);
+                if (row[nameof(REC_RSLT)] != DBNull.Value)
+                    item.REC_RSLT = Convert.ToDecimal(row[nameof(REC_RSLT)]);
+                if (row[nameof(SLUCH_ID)] != DBNull.Value)
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения B_DIAG:{ex.Message}");
+            }
+        }
+
         public static B_DIAG Get(DataRow row)
         {
             try
@@ -1985,7 +2490,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(REC_RSLT)] != DBNull.Value)
                     item.REC_RSLT = Convert.ToDecimal(row[nameof(REC_RSLT)]);
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 return item;
             }
             catch (Exception ex)
@@ -1994,7 +2499,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified, DataType = "date")]
         public DateTime DIAG_DATE { get; set; }
@@ -2028,10 +2533,10 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             try
             {
                 var item = new B_PROT();
-                item.PROT = Convert.ToDecimal(row[nameof(PROT)]);
+                item.PROT = Convert.ToInt32(row[nameof(PROT)]);
                 item.D_PROT = Convert.ToDateTime(row[nameof(D_PROT)]);               
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 return item;
             }
             catch (Exception ex)
@@ -2040,15 +2545,41 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
-        public decimal PROT { get; set; }
+        public int PROT { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, DataType = "date")]
         public DateTime D_PROT { get; set; }
     }
     [Serializable]
     public class KSG_KPG
     {
+        
+        public static KSG_KPG Get(IDataReader row)
+        {
+            try
+            {
+                var item = new KSG_KPG();
+                item.BZTSZ = Convert.ToDecimal(row[nameof(BZTSZ)]);
+                
+                if (row[nameof(IT_SL)] != DBNull.Value)
+                    item.IT_SL = Convert.ToDecimal(row[nameof(IT_SL)]);
+                item.KOEF_D = Convert.ToDecimal(row[nameof(KOEF_D)]);
+                item.KOEF_U = Convert.ToDecimal(row[nameof(KOEF_U)]);
+                item.KOEF_UP = Convert.ToDecimal(row[nameof(KOEF_UP)]);
+                item.KOEF_Z = Convert.ToDecimal(row[nameof(KOEF_Z)]);
+                item.KSG_PG = Convert.ToDecimal(row[nameof(KSG_PG)]);
+                item.N_KSG = row[nameof(N_KSG)].ToString();
+                item.SL_K = Convert.ToDecimal(row[nameof(SL_K)]);
+                item.VER_KSG = Convert.ToDecimal(row[nameof(VER_KSG)]);
+
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения KSG_KPG:{ex.Message}");
+            }
+        }
         public static KSG_KPG Get(DataRow row, IEnumerable<DataRow> CRIT)
         {
             try
@@ -2078,7 +2609,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
 
-        public List<CRIT_SLUCH_ID> GetCRIT_SLUCH_ID(decimal? sluch_id)
+        public List<CRIT_SLUCH_ID> GetCRIT_SLUCH_ID(long? sluch_id)
         {
             var rez = new List<CRIT_SLUCH_ID>();
             var i = 0;
@@ -2122,9 +2653,6 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public List<string> CRIT { get; set; }
 
-      //  [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
-       // public string DKK2 { get; set; }
-
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal SL_K { get; set; }
 
@@ -2150,7 +2678,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 item.IDSL = Convert.ToDecimal(row[nameof(IDSL)]);
                 item.Z_SL = Convert.ToDecimal(row[nameof(Z_SL)]);
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 return item;
             }
             catch (Exception ex)
@@ -2159,10 +2687,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
-
-       
-
+        public long? SLUCH_ID { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal IDSL { get; set; }
 
@@ -2177,15 +2702,23 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             CODE_EXP = new List<CODE_EXP>();
             SL_ID = new List<string>();
         }
-        public static SANK Get(DataRow row)
+
+        public static IEnumerable<SANK> GetCollection(IDataReader reader)
+        {
+            while (reader.Read())
+            {
+                yield return Get(reader);
+            }
+        }
+        public static SANK Get(IDataReader row)
         {
             try
             {
                 var item = new SANK();
                 if (row[nameof(SANK_ID)] != DBNull.Value)
-                    item.SANK_ID = Convert.ToDecimal(row[nameof(SANK_ID)]);
+                    item.SANK_ID = Convert.ToInt64(row[nameof(SANK_ID)]);
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 if (row[nameof(S_CODE)] != DBNull.Value)
                     item.S_CODE = row[nameof(S_CODE)].ToString();
                 if (row[nameof(S_COM)] != DBNull.Value)
@@ -2211,7 +2744,69 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(S_YEAR)] != DBNull.Value)
                     item.S_YEAR = Convert.ToDecimal(row[nameof(S_YEAR)]);
                 if (row[nameof(S_ZGLV_ID)] != DBNull.Value)
-                    item.S_ZGLV_ID = Convert.ToDecimal(row[nameof(S_ZGLV_ID)]);
+                    item.S_ZGLV_ID = Convert.ToInt64(row[nameof(S_ZGLV_ID)]);
+                if (row[nameof(DATE_ACT)] != DBNull.Value)
+                    item.DATE_ACT = Convert.ToDateTime(row[nameof(DATE_ACT)]);
+                if (row[nameof(NUM_ACT)] != DBNull.Value)
+                    item.NUM_ACT = Convert.ToString(row[nameof(NUM_ACT)]);
+                if (row[nameof(S_OSN_TFOMS)] != DBNull.Value)
+                    item.S_OSN_TFOMS = Convert.ToString(row[nameof(S_OSN_TFOMS)]);
+                foreach (var exp in row[nameof(SL_ID)].ToString().Split(','))
+                {
+                    if (!string.IsNullOrEmpty(exp))
+                    {
+                        item.SL_ID.Add(exp);
+                    }
+                }
+                foreach (var exp in row[nameof(CODE_EXP)].ToString().Split(','))
+                {
+                    if (!string.IsNullOrEmpty(exp))
+                    {
+                        item.CODE_EXP.Add(new EntityMP_V31.CODE_EXP() { SANK_ID = item.SANK_ID, VALUE = exp });
+                    }
+                }
+                return item;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Ошибка получения SANK:{ex.Message}");
+            }
+        }
+        public static SANK Get(DataRow row)
+        {
+            try
+            {
+                var item = new SANK();
+                if (row[nameof(SANK_ID)] != DBNull.Value)
+                    item.SANK_ID = Convert.ToInt64(row[nameof(SANK_ID)]);
+                if (row[nameof(SLUCH_ID)] != DBNull.Value)
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
+                if (row[nameof(S_CODE)] != DBNull.Value)
+                    item.S_CODE = row[nameof(S_CODE)].ToString();
+                if (row[nameof(S_COM)] != DBNull.Value)
+                    item.S_COM = row[nameof(S_COM)].ToString();
+                if (row[nameof(S_FINE)] != DBNull.Value)
+                    item.S_FINE = Convert.ToDecimal(row[nameof(S_FINE)]);
+                if (row[nameof(S_IDSERV)] != DBNull.Value)
+                    item.S_IDSERV = row[nameof(S_IDSERV)].ToString();
+                if (row[nameof(S_IST)] != DBNull.Value)
+                    item.S_IST = Convert.ToDecimal(row[nameof(S_IST)]);
+                if (row[nameof(S_MONTH)] != DBNull.Value)
+                    item.S_MONTH = Convert.ToDecimal(row[nameof(S_MONTH)]);
+                if (row[nameof(S_OSN)] != DBNull.Value)
+                    item.S_OSN = Convert.ToDecimal(row[nameof(S_OSN)]);
+                if (row[nameof(S_PLAN)] != DBNull.Value)
+                    item.S_PLAN = Convert.ToDecimal(row[nameof(S_PLAN)]);
+                if (row[nameof(S_SUM)] != DBNull.Value)
+                    item.S_SUM = Convert.ToDecimal(row[nameof(S_SUM)]);
+                if (row[nameof(S_TEM)] != DBNull.Value)
+                    item.S_TEM = Convert.ToDecimal(row[nameof(S_TEM)]);
+                if (row[nameof(S_TIP)] != DBNull.Value)
+                    item.S_TIP = Convert.ToInt32(row[nameof(S_TIP)]);
+                if (row[nameof(S_YEAR)] != DBNull.Value)
+                    item.S_YEAR = Convert.ToDecimal(row[nameof(S_YEAR)]);
+                if (row[nameof(S_ZGLV_ID)] != DBNull.Value)
+                    item.S_ZGLV_ID = Convert.ToInt64(row[nameof(S_ZGLV_ID)]);
                 if (row[nameof(DATE_ACT)] != DBNull.Value)
                     item.DATE_ACT = Convert.ToDateTime(row[nameof(DATE_ACT)]);
                 if (row[nameof(NUM_ACT)] != DBNull.Value)
@@ -2240,13 +2835,13 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? S_ZGLV_ID { get; set; }
+        public long? S_ZGLV_ID { get; set; }
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
         [XmlIgnore]
-        public decimal? SLUCH_Z_ID { get; set; }
+        public long? SLUCH_Z_ID { get; set; }
         [XmlIgnore]
-        public decimal? SANK_ID { get; set; }
+        public long? SANK_ID { get; set; }
      
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
@@ -2365,7 +2960,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     public class CODE_EXP
     {
         [XmlIgnore]
-        public decimal? SANK_ID { get; set; }
+        public long? SANK_ID { get; set; }
         [XmlText]
         public string VALUE { get; set; }
     }
@@ -2685,11 +3280,11 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     item.NAPR_MO = row[nameof(NAPR_MO)].ToString();
                 item.NAPR_V = Convert.ToDecimal(row[nameof(NAPR_V)]);
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 if (row[nameof(IDSERV)] != DBNull.Value)
                     item.IDSERV = Convert.ToString(row[nameof(IDSERV)]);
                 if (row[nameof(USL_ID)] != DBNull.Value)
-                    item.USL_ID = Convert.ToDecimal(row[nameof(USL_ID)]);
+                    item.USL_ID = Convert.ToInt64(row[nameof(USL_ID)]);
                 return item;
             }
             catch (Exception ex)
@@ -2698,10 +3293,10 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? USL_ID { get; set; }
+        public long? USL_ID { get; set; }
 
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
         [XmlIgnore]
         public string IDSERV { get; set; }
 
@@ -2734,7 +3329,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             {
                 var item = new CONS();
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 if (row[nameof(PR_CONS)] != DBNull.Value)
                     item.PR_CONS = Convert.ToDecimal(row[nameof(PR_CONS)]);
                 if (row[nameof(DT_CONS)] != DBNull.Value)
@@ -2749,7 +3344,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
             }
         }
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
 
         [XmlIgnore]
         public string IDSERV { get; set; }
@@ -2776,7 +3371,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         }
 
         [XmlIgnore]
-        public decimal? USL_ID { get; set; }
+        public long? USL_ID { get; set; }
         public static ONK_USL Get(DataRow row)
         {
             try
@@ -2795,11 +3390,11 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                     item.IDSERV = Convert.ToString(row[nameof(IDSERV)]);
 
                 if (row[nameof(SLUCH_ID)] != DBNull.Value)
-                    item.SLUCH_ID = Convert.ToDecimal(row[nameof(SLUCH_ID)]);
+                    item.SLUCH_ID = Convert.ToInt64(row[nameof(SLUCH_ID)]);
                 if (row[nameof(ONK_USL_ID)] != DBNull.Value)
-                    item.ONK_USL_ID = Convert.ToDecimal(row[nameof(ONK_USL_ID)]);
+                    item.ONK_USL_ID = Convert.ToInt64(row[nameof(ONK_USL_ID)]);
                 if (row[nameof(USL_ID)] != DBNull.Value)
-                    item.USL_ID = Convert.ToDecimal(row[nameof(USL_ID)]);
+                    item.USL_ID = Convert.ToInt64(row[nameof(USL_ID)]);
                 if (row[nameof(PPTR)] != DBNull.Value)
                     item.PPTR = Convert.ToDecimal(row[nameof(PPTR)]);
                 
@@ -2814,9 +3409,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public string IDSERV { get; set; }
 
         [XmlIgnore]
-        public decimal? SLUCH_ID { get; set; }
+        public long? SLUCH_ID { get; set; }
         [XmlIgnore]
-        public decimal? ONK_USL_ID { get; set; }
+        public long? ONK_USL_ID { get; set; }
 
         [XmlElement(Form = XmlSchemaForm.Unqualified)]
         public decimal USL_TIP { get; set; }
@@ -2872,12 +3467,13 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(CODE_SH)] != DBNull.Value)
                     item.CODE_SH = row[nameof(CODE_SH)].ToString();
                 if (row[nameof(ONK_USL_ID)] != DBNull.Value)
-                    item.ONK_USL_ID = Convert.ToDecimal( row[nameof(ONK_USL_ID)]);
-
+                    item.ONK_USL_ID = Convert.ToInt64( row[nameof(ONK_USL_ID)]);
+                if (row[nameof(LEK_PR_ID)] != DBNull.Value)
+                    item.LEK_PR_ID = Convert.ToInt64(row[nameof(LEK_PR_ID)]);
 
                 foreach (var t in row[nameof(DATE_INJ)].ToString().Split(',').Where(x=>!string.IsNullOrEmpty(x)).Select(Convert.ToDateTime).ToList())
                 {
-                    item.DATE_INJ.Add(new EntityMP_V31.DATE_INJ() { VALUE = t });
+                    item.DATE_INJ.Add(new EntityMP_V31.DATE_INJ() { VALUE = t, LEK_PR_ID = item.LEK_PR_ID });
                 };
                 return item;
             }
@@ -2889,9 +3485,9 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     
 
         [XmlIgnore]
-        public decimal? ONK_USL_ID { get; set; }
+        public long? ONK_USL_ID { get; set; }
         [XmlIgnore]
-        public decimal? LEK_PR_ID { get; set; }
+        public long? LEK_PR_ID { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
         public string REGNUM { get; set; }
         [XmlElement(Form = XmlSchemaForm.Unqualified, IsNullable = false)]
@@ -2903,7 +3499,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
     public class DATE_INJ
     {
         [XmlIgnore]
-        public decimal? LEK_PR_ID { get; set; }
+        public long? LEK_PR_ID { get; set; }
         [XmlText(DataType = "date")]
         public DateTime VALUE { get; set; }
 
@@ -2947,7 +3543,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
         public List<PERS> PERS { get; set; }
 
 
-        public void SetID(decimal ZGLV_ID, decimal PERS_ID)
+        public void SetID(long ZGLV_ID, long PERS_ID)
         {
             ZGLV.ZGLV_ID = ZGLV_ID;
             foreach(var p in PERS)
@@ -3041,7 +3637,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(OT_P)] != DBNull.Value)
                     item.OT_P = row[nameof(OT_P)].ToString();
                 if (row[nameof(PERS_ID)] != DBNull.Value)
-                    item.PERS_ID = Convert.ToDecimal(row[nameof(PERS_ID)]);
+                    item.PERS_ID = Convert.ToInt64(row[nameof(PERS_ID)]);
                 if (row[nameof(SNILS)] != DBNull.Value)
                     item.SNILS = row[nameof(SNILS)].ToString();
                 if (row[nameof(TEL)] != DBNull.Value)
@@ -3051,7 +3647,7 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
                 if (row[nameof(W_P)] != DBNull.Value)
                     item.W_P = Convert.ToDecimal(row[nameof(W_P)]);
                 if (row[nameof(ZGLV_ID)] != DBNull.Value)
-                    item.ZGLV_ID = Convert.ToDecimal(row[nameof(ZGLV_ID)]);
+                    item.ZGLV_ID = Convert.ToInt64(row[nameof(ZGLV_ID)]);
                 if (row[nameof(DOCNUM)] != DBNull.Value)
                     item.DOCNUM = Convert.ToString(row[nameof(DOCNUM)]);
                 if (row[nameof(DOCDATE)] != DBNull.Value)
@@ -3066,10 +3662,10 @@ namespace ServiceLoaderMedpomData.EntityMP_V31
 
 
         [XmlIgnore]
-        public decimal? ZGLV_ID { get; set; }
+        public long? ZGLV_ID { get; set; }
 
         [XmlIgnore]
-        public decimal? PERS_ID { get; set; }
+        public long? PERS_ID { get; set; }
 
         public PERS()
         {

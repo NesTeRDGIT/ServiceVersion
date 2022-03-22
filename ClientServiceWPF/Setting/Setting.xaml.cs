@@ -75,42 +75,26 @@ namespace ClientServiceWPF
         }
 
      
-        private List<string> _SelectedServerVersionZGLV = new List<string>();
-        public List<string> SelectedServerVersionZGLV
-        {
-            get => _SelectedServerVersionZGLV;
-            set
-            {
-                _SelectedServerVersionZGLV = value;
-                RaisePropertyChanged();
-            }
-        }
+     
         private void ListBoxServerVersionZGLV_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            SelectedServerVersionZGLV = ListBoxServerVersionZGLV.SelectedItems.Cast<string>().ToList();
+            VM.SchemaServerParam.SelectedVersionZGLV = ListBoxServerVersionZGLV.SelectedItems.Cast<string>().ToList();
         }
+        private void ListBoxLocalVersionZGLV_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            VM.SchemaLocalParam.SelectedVersionZGLV = ListBoxLocalVersionZGLV.SelectedItems.Cast<string>().ToList();
+        }
+
+
         private void ListBoxServerFileType_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             VM.SchemaServerParam.SelectedFileType = ListBoxServerFileType.SelectedItems.Cast<FileType>().ToList();
         }
-        private List<string> _SelectedLocalVersionZGLV = new List<string>();
-        public List<string> SelectedLocalVersionZGLV
-        {
-            get => _SelectedLocalVersionZGLV;
-            set
-            {
-                _SelectedLocalVersionZGLV = value;
-                RaisePropertyChanged();
-            }
-        }
-        private void ListBoxLocalVersionZGLV_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
-        {
-            SelectedLocalVersionZGLV = ListBoxLocalVersionZGLV.SelectedItems.Cast<string>().ToList();
-        }
-
+     
+      
         private void ListBoxLocalFileType_OnSelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            VM.SelectedLocalFileType = ListBoxLocalFileType.SelectedItems.Cast<FileType>().ToList();
+            VM.SchemaLocalParam.SelectedFileType = ListBoxLocalFileType.SelectedItems.Cast<FileType>().ToList(); 
         }
         private List<OrclProcedure> _SelectCheck = new List<OrclProcedure>();
         public List<OrclProcedure> SelectCheck
@@ -441,8 +425,8 @@ namespace ClientServiceWPF
 
         #endregion
 
-        public SchemaParamVM SchemaServerParam { get; } = new SchemaParamVM();
-        public SchemaParamVM SchemaLocalParam { get; } = new SchemaParamVM();
+        public SchemaParamVM SchemaServerParam { get; } = new SchemaParamVM(false);
+        public SchemaParamVM SchemaLocalParam { get; } = new SchemaParamVM(true);
 
         #region ConnectionParam
         public ConnectionParamVM ConnectionLocal { get; } = new ConnectionParamVM();
@@ -1062,6 +1046,11 @@ namespace ClientServiceWPF
     }
     public class SchemaParamVM:INotifyPropertyChanged
     {
+        private bool isLocalFind{ get; set; }
+        public SchemaParamVM(bool isLocalFind)
+        {
+            this.isLocalFind = isLocalFind;
+        }
         public void SetSchemaCollection(SchemaCollection sc)
         {
             this.sc = sc;
@@ -1070,6 +1059,8 @@ namespace ClientServiceWPF
             RaisePropertyChanged(nameof(VersionZGLV));
         }
         public List<FileType> SelectedFileType { get; set; } = new List<FileType>();
+
+        public List<string> SelectedVersionZGLV = new List<string>();
         public List<SchemaElementValue> SelectedSchemaElement { get; set; } = new List<SchemaElementValue>();
 
 
@@ -1142,12 +1133,14 @@ namespace ClientServiceWPF
         {
             try
             {
-                var value = (IEnumerable<string>)o;
-                foreach (var item in value)
+                if (SelectedVersionZGLV.Count != 0)
                 {
-                    sc[CurrentVersion].VersionsZGLV.Remove(item);
+                    foreach (var item in SelectedVersionZGLV)
+                    {
+                        sc[CurrentVersion].VersionsZGLV.Remove(item);
+                    }
+                    RaisePropertyChanged(nameof(VersionZGLV));
                 }
-                RaisePropertyChanged(nameof(VersionZGLV));
             }
             catch (Exception e)
             {
@@ -1161,7 +1154,7 @@ namespace ClientServiceWPF
             {
                 if (SelectedFileType.Count != 0)
                 {
-                    var win = new NewSchemaItem(false);
+                    var win = new NewSchemaItem(isLocalFind);
                     if (win.ShowDialog() == true)
                     {
                         foreach (var item in SelectedFileType)
@@ -1192,7 +1185,7 @@ namespace ClientServiceWPF
             {
                 if (SelectedFileType.Count != 0)
                 {
-                    var win = new NewSchemaItem(false);
+                    var win = new NewSchemaItem(isLocalFind);
                     if (win.ShowDialog() == true)
                     {
                         var item = SelectedFileType.First();
@@ -1214,7 +1207,7 @@ namespace ClientServiceWPF
                 var item = SelectedSchemaElement.FirstOrDefault();
                 if (item!=null)
                 {
-                    var win = new NewSchemaItem(false, item);
+                    var win = new NewSchemaItem(isLocalFind, item);
                     if (win.ShowDialog() == true)
                     {
                         item.DATE_B = win.DATE_B;
@@ -1254,84 +1247,7 @@ namespace ClientServiceWPF
 
 
         private string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
-        public ICommand AddSchemaElementLocalAllCommand => new Command(o =>
-        {
-            try
-            {
-                if (SelectedFileType.Count != 0)
-                {
-                    var win = new NewSchemaItem(true);
-                    if (win.ShowDialog() == true)
-                    {
-                        if (!win.PATH.ToUpper().Contains(LocalFolder.ToUpper()))
-                        {
-                            MessageBox.Show("Выбранный файл вне каталога программы!");
-                        }
-                        var path = win.PATH.ToUpper().Replace(LocalFolder.ToUpper(), "");
-                        foreach (var item in SelectedFileType)
-                        {
-                            try
-                            {
-                                sc[CurrentVersion].AddAndCheck(item, new SchemaElementValue { DATE_B = win.DATE_B, DATE_E = win.DATE_E, Value = path });
-                            }
-                            catch (Exception ex)
-                            {
-                                MessageBox.Show($@"Не удалось добавить схему к файлу {item} версии {CurrentVersion} по причине: {ex.Message}");
-                            }
-                        }
-                        RaisePropertyChanged(nameof(Elements));
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
 
-        });
-        public ICommand AddSchemaElementLocalCommand => new Command(o =>
-        {
-            try
-            {
-                if (SelectedFileType.Count != 0)
-                {
-                    var win = new NewSchemaItem(true);
-                    if (win.ShowDialog() == true)
-                    {
-                        var item = SelectedFileType.First();
-                        sc[CurrentVersion].AddAndCheck(item, new SchemaElementValue { DATE_B = win.DATE_B, DATE_E = win.DATE_E, Value = win.PATH });
-                        RaisePropertyChanged(nameof(Elements));
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-        });
-
-        public ICommand EditSchemaElementLocalCommand => new Command(o =>
-        {
-            try
-            {
-                var item = SelectedSchemaElement.FirstOrDefault();
-                if (item != null)
-                {
-                    var win = new NewSchemaItem(true, item);
-                    if (win.ShowDialog() == true)
-                    {
-                        item.DATE_B = win.DATE_B;
-                        item.DATE_E = win.DATE_E;
-                        item.Value = win.PATH;
-                        RaisePropertyChanged(nameof(Elements));
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show(e.Message);
-            }
-        });
         public ICommand ClearSchemaElementAllCommand => new Command(o =>
         {
             try

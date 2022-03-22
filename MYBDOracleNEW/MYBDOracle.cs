@@ -219,7 +219,7 @@ returning  zglv_id into :id", con);
         }
         public void InsertFile(ZL_LIST zl, PERS_LIST pe)
         {
-            Dictionary<string, decimal?> per;
+            Dictionary<string, long?> per;
             try
             {
                 per = Insert(pe);
@@ -301,7 +301,7 @@ returning  zglv_id into :id", con);
             InsertMED_DEV(usl.SelectMany(x=>x.MED_DEV).ToList());
             InsertLEK_PR_H(sluch.SelectMany(x => x.LEK_PR).ToList());
         }
-        Dictionary<string, decimal?> Insert(PERS_LIST pe)
+        Dictionary<string, long?> Insert(PERS_LIST pe)
         {
             pe.SetID(GetSec(L_ZGLV.SeqName, 1), GetSec(L_PERS.SeqName, pe.PERS.Count));
             InsertL_ZGLV(pe.ZGLV);
@@ -1944,7 +1944,7 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
             return true;
         }
         */
-        public bool LoadSANK(FileItem fi, ZL_LIST ZL, decimal? S_ZGLV_ID, bool setSUMP, bool isRewrite, Dispatcher dispatcher = null, List<FindSluchItem> IdentInfo = null)
+        public bool LoadSANK(FileItem fi, ZL_LIST ZL, long? S_ZGLV_ID, bool setSUMP, bool isRewrite, Dispatcher dispatcher = null, List<FindSluchItem> IdentInfo = null)
         {
             fi.FileLog.WriteLn("Чтение файла " + fi.FileName);
             fi.FileLog.WriteLn("Подготовка к переносу в БД " + fi.FileName);
@@ -2058,7 +2058,7 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
                 {
                     foreach (var rowS in row.SANK)
                     {
-                        decimal? fSLUCH_ID = null;
+                        long? fSLUCH_ID = null;
                         if (rowS.SL_ID.Count == 1)
                         {
                             var sls = row.SL.FirstOrDefault(x => x.SL_ID.ToString() == rowS.SL_ID[0]);
