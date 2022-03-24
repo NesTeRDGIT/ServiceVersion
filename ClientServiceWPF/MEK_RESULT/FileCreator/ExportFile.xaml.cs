@@ -357,6 +357,7 @@ namespace ClientServiceWPF.MEK_RESULT.FileCreator
             var index = 0;
             var count = Items.Count;
             dispatcher.Invoke(() => { progress1.SetValues(count,0, ""); });
+            
             var parallelManager = new ParallelManager<V_EXPORT_H_ZGLVRowVM>(Items, PARAM.CountTask, item =>
             {
                 try

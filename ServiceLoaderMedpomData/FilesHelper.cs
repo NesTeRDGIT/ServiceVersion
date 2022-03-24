@@ -355,12 +355,13 @@ namespace ServiceLoaderMedpomData
         }
         public static void CreateMessageArchive(string filePath, string message, IEnumerable<ZipArchiverEntry> files, IProgress<ZipArchiverProgress> progress = null)
         {
-            var progressItem = new ZipArchiverProgress { Count = files.Count(), Current = 0 };
+            var zipArchiverEntries = files.ToList();
+            var progressItem = new ZipArchiverProgress { Count = zipArchiverEntries.Count, Current = 0 };
             using (var st = File.Create(filePath))
             {
                 using (var zipArchive = new ZipArchive(st, ZipArchiveMode.Create, true, Encoding.GetEncoding("cp866")))
                 {
-                    foreach (var file in files)
+                    foreach (var file in zipArchiverEntries)
                     {
                         progressItem.FileName = Path.GetFileName(file.FilePath);
                         zipArchive.CreateEntryFromAny(file.FilePath, file.EntryName);

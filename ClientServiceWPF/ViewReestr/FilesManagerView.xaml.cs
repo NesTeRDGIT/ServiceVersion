@@ -310,7 +310,7 @@ namespace ClientServiceWPF
             {
                 wcf.SaveProcessArch();
                 var form = new ProgressForm();
-                form.ShowDialog();
+                form.Show();
             }
             catch (Exception e)
             {

@@ -247,10 +247,10 @@ namespace MedpomService
             {
                 if (progress.Active)
                 {
-                    throw new FaultException("Операция уже выполняется!!!");
+                    return;
                 }
             }
-            Task.Run(() => { SaveProgressFolder(); });
+            Task.Run(SaveProgressFolder);
         }
 
         private void SaveProgressFolder()
@@ -269,7 +269,8 @@ namespace MedpomService
                     path = Path.Combine(pathDir, $"PROCESS{num}.zip");
                 }
 
-                FilesHelper.CreateArchive(path, new Progress<ZipArchiverProgress>(zf_SaveProgress), new ZipArchiverEntry(AppConfig.Property.ProcessDir));
+                var listEntry = Directory.GetDirectories(AppConfig.Property.ProcessDir).Select(x => new ZipArchiverEntry(x)).ToArray();
+                FilesHelper.CreateArchive(path, new Progress<ZipArchiverProgress>(zf_SaveProgress), listEntry);
                 progress.TXT = "Завершено";
             }
             catch (Exception ex)
@@ -279,7 +280,7 @@ namespace MedpomService
             }
             finally
             {
-                progress.Max = 0;
+                progress.Max = 1;
                 progress.Value = 0;
                 progress.Active = false;
             }
