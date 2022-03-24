@@ -241,9 +241,14 @@ namespace ClientServiceWPF
 
         private void CreateChannel()
         {
-            var addr = $@"net.tcp://{HOST}:12344/TFOMSMEDPOM.svc"; // Адрес сервиса
+            var arr = HOST.Split(':');
+            var host = arr[0];
+            var dns = arr.Length > 1 ? arr[1] : "MSERVICE";
+
+            var addr = $@"net.tcp://{host}:12344/TFOMSMEDPOM.svc"; // Адрес сервиса
             var tcpUri = new Uri(addr);
-            var address = new EndpointAddress(tcpUri, EndpointIdentity.CreateDnsIdentity("localhost"));
+            var address = new EndpointAddress(tcpUri, EndpointIdentity.CreateDnsIdentity(dns));
+            
             var netTcpBinding = new NetTcpBinding(SecurityMode.None)
             {
                 ReaderQuotas = {MaxArrayLength = int.MaxValue, MaxBytesPerRead = int.MaxValue, MaxStringContentLength = int.MaxValue},

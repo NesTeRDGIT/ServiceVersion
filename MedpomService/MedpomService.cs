@@ -178,7 +178,7 @@ namespace MedpomService
                 wi = new WcfInterface(ProcessReestr, SchemaCheck, FileInviter, PacketQuery, Logger);
                 WcfConection = new ServiceHost(wi, new Uri(uri),new Uri(mex));
                 wi.RaiseRegisterNewFileManager += Wi_RaiseRegisterNewFileManager;
-                var myEndpointAdd =new EndpointAddress(new Uri(uri), EndpointIdentity.CreateDnsIdentity("NESTER"));
+                var myEndpointAdd =new EndpointAddress(new Uri(uri), EndpointIdentity.CreateDnsIdentity("MSERVICE"));
                 var ep = WcfConection.AddServiceEndpoint(typeof(IWcfInterface), netTcpBinding, "");
                 ep.Address = myEndpointAdd;
 
