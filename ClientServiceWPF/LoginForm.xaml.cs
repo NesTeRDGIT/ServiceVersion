@@ -243,7 +243,7 @@ namespace ClientServiceWPF
         {
             var addr = $@"net.tcp://{HOST}:12344/TFOMSMEDPOM.svc"; // Адрес сервиса
             var tcpUri = new Uri(addr);
-            var address = new EndpointAddress(tcpUri, EndpointIdentity.CreateDnsIdentity("MSERVICE"));
+            var address = new EndpointAddress(tcpUri, EndpointIdentity.CreateDnsIdentity("localhost"));
             var netTcpBinding = new NetTcpBinding(SecurityMode.None)
             {
                 ReaderQuotas = {MaxArrayLength = int.MaxValue, MaxBytesPerRead = int.MaxValue, MaxStringContentLength = int.MaxValue},

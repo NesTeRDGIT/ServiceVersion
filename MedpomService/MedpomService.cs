@@ -100,7 +100,7 @@ namespace MedpomService
                 Logger.AddLog($"Чтение конфигурации XML-схем:{localDir}\\schemaset.dat", LogType.Information);
                 SchemaCheck.LoadSchemaCollection($"{localDir}\\schemaset.dat");
 
-
+                
 
                 //////////////////////////////////////////////////////
 
@@ -198,9 +198,11 @@ namespace MedpomService
                 WcfConection.Credentials.WindowsAuthentication.AllowAnonymousLogons = true;
                 WcfConection.Credentials.WindowsAuthentication.IncludeWindowsGroups = false;
 
-            
 
-                WcfConection.Credentials.ServiceCertificate.SetCertificate(StoreLocation.LocalMachine, StoreName.My, X509FindType.FindBySubjectName, "NESTER");
+               
+                WcfConection.Credentials.ServiceCertificate.Certificate =  GetCertificate(AppConfig.Property.SubjectName);
+
+                //WcfConection.Credentials.ServiceCertificate.SetCertificate(StoreLocation.LocalMachine, StoreName.My, X509FindType.FindBySubjectName, "NESTER");
               
                 #region МЕТАДАННЫЕ
                 var smb = WcfConection.Description.Behaviors.Find<ServiceMetadataBehavior>() ?? new ServiceMetadataBehavior();
@@ -216,7 +218,7 @@ namespace MedpomService
                 var list = new System.Collections.ObjectModel.ReadOnlyCollection<System.IdentityModel.Policy.IAuthorizationPolicy>(list1);
                 WcfConection.Authorization.ExternalAuthorizationPolicies = list;
                 WcfConection.Authorization.PrincipalPermissionMode = PrincipalPermissionMode.Custom;
-
+               
 
 
                 WcfConection.Open();
@@ -226,13 +228,33 @@ namespace MedpomService
             }
             catch (Exception ex)
             {
-                Logger.AddLog($"Ошибка при запуске WCF: {ex.Message}", LogType.Error);
+                Logger.AddLog($"Ошибка при запуске WCF: {ex.FullError()}", LogType.Error);
                 return false;
             }
         }
 
-    
 
+        public X509Certificate2 GetCertificate(string subName)
+        {
+            var certificateStore = new X509Store(StoreName.My, StoreLocation.LocalMachine);
+
+            certificateStore.Open(OpenFlags.ReadOnly);
+            X509Certificate2 findCer = null;
+            
+            foreach(var cer in certificateStore.Certificates)
+            {
+                if (cer.Subject.StartsWith($"CN={subName}"))
+                {
+                    findCer = cer;
+                    break;
+                }
+                    
+            }
+            certificateStore.Close();
+            if (findCer== null)
+                throw new Exception($"Не найден сертификат: {subName}");
+            return findCer;
+        }
         MYBDOracle.MYBDOracle CreateMyBD()
         {
             return new MYBDOracle.MYBDOracle(

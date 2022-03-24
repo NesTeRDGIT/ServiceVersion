@@ -54,6 +54,10 @@ namespace ClientServiceWPF
             
         }
 
+
+
+        
+
         private void CreateNotifiIcon()
         {
             ni.Text = @"Управление службой MedpomService";

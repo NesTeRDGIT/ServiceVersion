@@ -97,7 +97,7 @@ namespace MedpomService
         public string xml_h_med_dev { get; set; } = "xml_h_med_dev_v3_temp99";
         public string xml_h_med_dev_transfer { get; set; } = "xml_h_med_dev_v3_temp100";
 
-
+        public string SubjectName { get; set; } = "MyCert";
     }
 
 
