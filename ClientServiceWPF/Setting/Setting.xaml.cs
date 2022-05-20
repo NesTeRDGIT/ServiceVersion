@@ -1188,8 +1188,17 @@ namespace ClientServiceWPF
                     var win = new NewSchemaItem(isLocalFind);
                     if (win.ShowDialog() == true)
                     {
+                        var path = win.PATH;
+                        if (isLocalFind)
+                        {
+                            if (!win.PATH.ToUpper().StartsWith(LocalFolder.ToUpper()))
+                                throw new Exception("Не верный каталог");
+                            path = win.PATH.ToUpper().Replace(LocalFolder.ToUpper(), "");
+                        }
                         var item = SelectedFileType.First();
-                        sc[CurrentVersion].AddAndCheck(item, new SchemaElementValue { DATE_B = win.DATE_B, DATE_E = win.DATE_E, Value = win.PATH });
+                       
+                        
+                        sc[CurrentVersion].AddAndCheck(item, new SchemaElementValue { DATE_B = win.DATE_B, DATE_E = win.DATE_E, Value = path });
                         RaisePropertyChanged(nameof(Elements));
                     }
                 }
@@ -1210,9 +1219,16 @@ namespace ClientServiceWPF
                     var win = new NewSchemaItem(isLocalFind, item);
                     if (win.ShowDialog() == true)
                     {
+                        var path = win.PATH;
+                        if (isLocalFind)
+                        {
+                            if (!win.PATH.ToUpper().StartsWith(LocalFolder.ToUpper()))
+                                throw new Exception("Не верный каталог");
+                            path = win.PATH.ToUpper().Replace(LocalFolder.ToUpper(), "");
+                        }
                         item.DATE_B = win.DATE_B;
                         item.DATE_E = win.DATE_E;
-                        item.Value = win.PATH;
+                        item.Value =  path;
                         RaisePropertyChanged(nameof(Elements));
                     }
                 }

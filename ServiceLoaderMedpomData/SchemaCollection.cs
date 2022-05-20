@@ -1323,7 +1323,7 @@ namespace ServiceLoaderMedpomData
             Error = err;
             this.IsValidateRef = IsValidateRef;
            
-            this.P_INFO = P_INFO ?? new Dictionary<string, PacientInfo>();
+            this.P_INFO = P_INFO;
         }
         public void Check(XmlReader reader)
         {

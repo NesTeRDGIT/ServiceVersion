@@ -70,38 +70,15 @@ namespace ClientServiceWPF.SANK_INVITER
                     }
                 });
                 var sc = new SchemaChecking();
-                //проверка основного файла
-                if (item.Version != VersionMP.NONE)
-                {
-                    var res = sc.CheckSchema(item, Path.Combine(LocalFolder, sc_file.Value.Value), false);
-                    var protot = sc.GetProtokol;
-                    if(protot.Count(x=>string.IsNullOrEmpty(x.ERR_CODE) || x.ERR_CODE!= "C_ZAB_EMPTY")==0)
-                    {
-                        res = true;
-                    }
-                    dispatcher.Invoke(() =>
-                    {
-                        if (res)
-                        {
-                            item.Process = StepsProcess.XMLxsd;
-                            item.CommentAndLog = "Схема правильная";
-                        }
-                        else
-                        {
-                            item.Process = StepsProcess.ErrorXMLxsd;
-                            item.CommentAndLog = "Схема ошибочна";
-                            result = false;
-                        }
-                    });
-                }
 
+                Dictionary<string, PacientInfo> PInfo = null;
                 //Проверка файла перс
                 if (item.filel != null)
                 {
                     if (item.filel.Version != VersionMP.NONE)
                     {
                         var res = sc.CheckSchema(item.filel, Path.Combine(LocalFolder, sc_filel.Value.Value));
-                        
+                        PInfo = sc.P_INFO;
                         dispatcher.Invoke(() =>
                         {
                             if (res)
@@ -127,6 +104,31 @@ namespace ClientServiceWPF.SANK_INVITER
                             }
                         });
                     }
+                }
+
+                //проверка основного файла
+                if (item.Version != VersionMP.NONE)
+                {
+                    var res = sc.CheckSchema(item, Path.Combine(LocalFolder, sc_file.Value.Value), false, PInfo);
+                    var protot = sc.GetProtokol;
+                    if (protot.Count(x => string.IsNullOrEmpty(x.ERR_CODE) || x.ERR_CODE != "C_ZAB_EMPTY") == 0)
+                    {
+                        res = true;
+                    }
+                    dispatcher.Invoke(() =>
+                    {
+                        if (res)
+                        {
+                            item.Process = StepsProcess.XMLxsd;
+                            item.CommentAndLog = "Схема правильная";
+                        }
+                        else
+                        {
+                            item.Process = StepsProcess.ErrorXMLxsd;
+                            item.CommentAndLog = "Схема ошибочна";
+                            result = false;
+                        }
+                    });
                 }
 
                 return result;
