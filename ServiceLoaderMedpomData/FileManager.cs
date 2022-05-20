@@ -2,22 +2,18 @@
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using System.Text;
 using System.IO;
 using System.ComponentModel;
 using System.Runtime.Serialization;
-using System.IO.Compression;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 
 using System.Windows.Threading;
 using System.Xml.Serialization;
-using Ionic.Zip;
-using ServiceLoaderMedpomData.Annotations;
 
 namespace ServiceLoaderMedpomData
 {
-   
+
 
     #region Структуры для Парсера
     /// <summary>
