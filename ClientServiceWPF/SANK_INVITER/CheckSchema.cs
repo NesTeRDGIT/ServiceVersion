@@ -105,7 +105,7 @@ namespace ClientServiceWPF.SANK_INVITER
                         });
                     }
                 }
-
+                sc = new SchemaChecking();
                 //проверка основного файла
                 if (item.Version != VersionMP.NONE)
                 {

@@ -295,7 +295,7 @@ namespace ServiceLoaderMedpomData
             this.IsMTRProtocol = IsMTRProtocol;
             Version = v;
             this.IsValidateRef = IsValidateRef;
-            this.P_INFO = P_INFO;
+            this.P_INFO = P_INFO ?? new Dictionary<string, PacientInfo>();
         }
         public Dictionary<string, PacientInfo> P_INFO { get; set; }
         public VersionMP Version { get; set; }
@@ -1140,7 +1140,8 @@ namespace ServiceLoaderMedpomData
     }
     class XML_Z_SL_item
     {
-        
+        public XML_Element<string> FOR_POM { get; set; } = new XML_Element<string>();
+        public XML_Element<string> IDSP { get; set; } = new XML_Element<string>();
         public XML_Element<string> FIRST_IDCASE { get; set; } = new XML_Element<string>();
         public XML_Element<string> PR_NOV { get; set; } = new XML_Element<string>();
         public XML_Element<string> P_OTK { get;  set; } = new XML_Element<string>();
@@ -1162,6 +1163,8 @@ namespace ServiceLoaderMedpomData
             PR_NOV.Clear();
             FIRST_IDCASE.Clear();
             DATE_Z_1.Clear();
+            FOR_POM.Clear();
+            IDSP.Clear();
         }
     }
     class XML_Pacient_item
@@ -1197,6 +1200,7 @@ namespace ServiceLoaderMedpomData
     }
     class XML_SL_item
     {
+        public XML_Element<string> P_CEL { get; set; } = new XML_Element<string>();
         public XML_Element<string> DS1 { get; set; } = new XML_Element<string>();
         public XML_Element<string> TARIF { get; set; } = new XML_Element<string>();
         public List<XML_Element<string>> DS2 { get; set; } = new List<XML_Element<string>>();
@@ -1222,6 +1226,7 @@ namespace ServiceLoaderMedpomData
             C_ZAB.Clear();
             PR_D_N.Clear();
             CRIT.Clear();
+            P_CEL.Clear();
             IsCONS = false;
             IsONK_SL = false;
             IsWEI = false;
@@ -1273,7 +1278,8 @@ namespace ServiceLoaderMedpomData
         private readonly DateTime DT_03_2022 = new DateTime(2022, 03, 01);
         private XML_SCHET_item SCHET { get;  }= new XML_SCHET_item();
         private XML_Z_SL_item Z_SL { get;  } = new XML_Z_SL_item();
-        private XML_SL_item SL { get;  } = new XML_SL_item();
+        private XML_SL_item SL { get; set; } = new XML_SL_item();
+        private List<XML_SL_item> SL_LIST { get; } = new List<XML_SL_item>();
         private XML_USL_item USL { get;  } = new XML_USL_item();
         private XML_SANK_item SANK { get;  } = new XML_SANK_item();
         private XML_Pacient_item PACIENT { get;  } = new XML_Pacient_item();
@@ -1379,6 +1385,12 @@ namespace ServiceLoaderMedpomData
                         case "ZL_LIST/ZAP/Z_SL/DATE_Z_1":
                             Z_SL.DATE_Z_1 = CreateDateTimeXML_Element(reader);
                             break;
+                        case "ZL_LIST/ZAP/Z_SL/FOR_POM":
+                            Z_SL.FOR_POM = CreateStringXML_Element(reader);
+                            break;
+                        case "ZL_LIST/ZAP/Z_SL/IDSP":
+                            Z_SL.IDSP = CreateStringXML_Element(reader);
+                            break;
                         case "ZL_LIST/ZAP/Z_SL/SL/SUM_M":
                                 SL.SUM_M = CreateDecimalXML_Element(reader);
                                 Z_SL.SUM_M_SUM += SL.SUM_M.value;
@@ -1416,7 +1428,10 @@ namespace ServiceLoaderMedpomData
                         case "ZL_LIST/ZAP/Z_SL/SL/C_ZAB":
                                 SL.C_ZAB = CreateStringXML_Element(reader);
                             break;
-                       
+                        case "ZL_LIST/ZAP/Z_SL/SL/P_CEL":
+                            SL.P_CEL = CreateStringXML_Element(reader);
+                            break;
+
                         case "ZL_LIST/ZAP/Z_SL/RSLT_D":
                                 Z_SL.RSLT_D = CreateStringXML_Element(reader); 
                             break;
@@ -1491,34 +1506,38 @@ namespace ServiceLoaderMedpomData
                     switch (depthXml.Path)
                     {
                         case "ZL_LIST/ZAP/Z_SL/SL/USL":
-                                CheckUSL();
-                                USL.Clear();
+                            CheckUSL();
+                            USL.Clear();
+                            break;
+                        case "ZL_LIST/ZAP":
+                            PACIENT.Clear();
                             break;
                         case "ZL_LIST/ZAP/Z_SL":
-                                CheckZ_SL();
-                                Z_SL.Clear();
-                                PACIENT.Clear();
+                            CheckZ_SL();
+                            Z_SL.Clear();                          
+                            SL_LIST.Clear();
                             break;
+
                         case "ZL_LIST/ZAP/Z_SL/SANK":
-                                CheckSANK();
-                                SANK.Clear();
+                            CheckSANK();
+                            SANK.Clear();
                             break;
-                        case "ZL_LIST/ZAP/Z_SL/SL":
-                                CheckSL();
-                                CheckONK();
-                                SL.Clear();
+                        case "ZL_LIST/ZAP/Z_SL/SL":                            
+                            CheckONK();
+                            SL_LIST.Add(SL);
+                            SL = new XML_SL_item();
                             break;
                         case "ZL_LIST/ZAP/PACIENT":
                             CheckPACIENT();
-                          
+                            
                             break;
                         case "PERS_LIST/PERS":
-                            if(P_INFO!=null)
+                            if (P_INFO != null)
                             {
-                                if(!string.IsNullOrEmpty(PACIENT.ID_PAC.value) && !P_INFO.ContainsKey(PACIENT.ID_PAC.value))
-                                    P_INFO?.Add(PACIENT.ID_PAC.value, new PacientInfo { DR = PACIENT.DR.value, ID_PAC= PACIENT.ID_PAC.value });
+                                if (!string.IsNullOrEmpty(PACIENT.ID_PAC.value) && !P_INFO.ContainsKey(PACIENT.ID_PAC.value))
+                                    P_INFO?.Add(PACIENT.ID_PAC.value, new PacientInfo { DR = PACIENT.DR.value, ID_PAC = PACIENT.ID_PAC.value });
                             }
-                          
+
                             PACIENT.Clear();
                             break;
                         case "ZL_LIST/ZAP/Z_SL/SL/USL/MR_USL_N":
@@ -1565,29 +1584,38 @@ namespace ServiceLoaderMedpomData
 
 
             }
+            foreach (var sl in SL_LIST)
+            {
+                CheckSLInnerZ_SL(sl);
+            }
         }
-        private void CheckSL()
+        //Проверка внутри CheckZ_SL
+        private void CheckSLInnerZ_SL(XML_SL_item item)
         {
             if (SCHET.TypeFile == XML_FileType.H && SCHET.DateFile >= DT_02_2022)
             {
                 var vzr = GetAge();
-                var isDs2O = SL.DS2.Count(x => x.value.StartsWith("O")) != 0;
-                var isDs2Z34_Z35 = SL.DS2.Count(x => x.value.Substring(0, 3).Between("Z34", "Z35")) != 0;
+                var isDs2O = item.DS2.Count(x => x.value.StartsWith("O")) != 0;
+                var isDs2Z34_Z35 = item.DS2.Count(x => x.value.Substring(0, 3).Between("Z34", "Z35")) != 0;
+                
+
 
                 if (vzr.HasValue)
                 {
                     if (SCHET.DateFile >= DT_03_2022)
                     {
-                        if (!SL.IsLEK_PR && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && (Z_SL.USL_OK.value.In("1") && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 || Z_SL.USL_OK.value.In("3")) && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
-                            Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и (CRIT <> stt5 и USL_OK=1 или USL_OK=3) и DS2 <> (O00-O99, Z34-Z35) и возраст больше 18 лет", "LEK_PR", "ERR_SL_LEK_PR_1");
+                        var st = item.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && Z_SL.USL_OK.value.In("1");
+                        var amb = Z_SL.USL_OK.value.In("3") && ((Z_SL.IDSP.value == "29" && Z_SL.FOR_POM.value == "3") || item.P_CEL.value.In("1.0","3.0"));
+                        if (!item.IsLEK_PR && item.DS1.value.In("U07.1", "U07.2") && item.REAB.value != "1" && Z_SL.IDSP.value != "28" && (st || amb) && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
+                            Error(XmlSeverityType.Error, item.DS1.POS.LINE, item.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и (CRIT <> stt5 и USL_OK=1 или USL_OK=3) и DS2 <> (O00-O99, Z34-Z35) и возраст больше 18 лет", "LEK_PR", "ERR_SL_LEK_PR_1");
                     }
                     else
                     {
-                        if (!SL.IsLEK_PR && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && Z_SL.USL_OK.value.In("1") && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
-                            Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5 и USL_OK=1 и DS2 <> (O00-O99, Z34-Z35) и возраст больше 18 лет", "LEK_PR", "ERR_SL_LEK_PR_1");
+                        if (!item.IsLEK_PR && item.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && Z_SL.USL_OK.value.In("1") && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
+                            Error(XmlSeverityType.Error, item.DS1.POS.LINE, item.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5 и USL_OK=1 и DS2 <> (O00-O99, Z34-Z35) и возраст больше 18 лет", "LEK_PR", "ERR_SL_LEK_PR_1");
                     }
-                    if (!SL.IsWEI && SL.DS1.value.In("U07.1", "U07.2") && SL.REAB.value != "1" && Z_SL.USL_OK.value.In("1") && SL.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
-                        Error(XmlSeverityType.Error, SL.DS1.POS.LINE, SL.DS1.POS.POS, "Поле WEI обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5  и USL_OK=1 и DS2 <> (O00-O99, Z34-Z35) и возраст больше 18 лет", "WEI", "ERR_SL_WEI_1");
+                    if (!item.IsWEI && item.DS1.value.In("U07.1", "U07.2") && item.REAB.value != "1" && Z_SL.USL_OK.value.In("1") && item.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
+                        Error(XmlSeverityType.Error, item.DS1.POS.LINE, item.DS1.POS.POS, "Поле WEI обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и CRIT <> stt5  и USL_OK=1 и DS2 <> (O00-O99, Z34-Z35) и возраст больше 18 лет", "WEI", "ERR_SL_WEI_1");
                     
                 }
             }

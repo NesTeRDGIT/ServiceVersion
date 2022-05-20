@@ -14,10 +14,10 @@ namespace ServiceLoaderMedpomDataTests
     [TestClass()]
     public class SchemaCheckingTests
     {
-        const string H_VALID = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\H_VALID.XML";
-        const string H_VALID_32 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\H_VALID_3.2.XML";
-        const string PATH_XSD_H31 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\МП 3.1.xsd";
-        const string PATH_XSD_H32 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\МП 3.2.xsd";
+        const string H_VALID = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\H_VALID.XML";
+        const string H_VALID_32 = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\H_VALID_3.2.XML";
+        const string PATH_XSD_H31 = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\МП 3.1.xsd";
+        const string PATH_XSD_H32 = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\МП 3.2.xsd";
 
         /// <summary>
         /// Тестирование проверки схемы файлов H
@@ -65,18 +65,28 @@ namespace ServiceLoaderMedpomDataTests
         public void CheckERR_SL_WEI_1_ERR()
         {
             var file = ZL_LIST.ReadFromFile(H_VALID_32);
-            file.ZAP.Select(x => x.Z_SL).SelectMany(x => x.SL).ToList()
-                .ForEach(x =>
+            file.SCHET.YEAR = 2022;
+            file.SCHET.MONTH = 12;
+
+            file.ZAP.ForEach(z =>
+            {
+                z.Z_SL.USL_OK = 1;
+                z.Z_SL.SL.ForEach(sl =>
                 {
-                    x.DS1 = "U07.1";
-                    x.WEI = null;
+
+                    sl.DS1 = "U07.1";
+                    sl.WEI = null;
                 });
+            });
+
+
+
             using (var ms = new MemoryStream())
             {
                 file.WriteXml(ms);
                 ms.Seek(0, SeekOrigin.Begin);
                 var sc = new SchemaChecking();
-                var res = sc.CheckXML(ms, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1));
+                var res = sc.CheckXML(ms, PATH_XSD_H32, new CheckXMLValidator(VersionMP.V3_1,false, true, GetPacientInfo(file)));
                 Assert.IsTrue(res.Count(x => x.ERR_CODE == "ERR_SL_WEI_1") == file.ZAP.SelectMany(x=>x.Z_SL_list).Select(x=>x.SL).Count(), $"Не видит ошибку");
             }
         }
@@ -120,6 +130,8 @@ namespace ServiceLoaderMedpomDataTests
         public void CheckERR_SL_LEK_PR_1_ERR()
         {
             var file = ZL_LIST.ReadFromFile(H_VALID_32);
+            file.SCHET.YEAR = 2022;
+            file.SCHET.MONTH = 12;
             file.ZAP.ForEach(z =>
             {
                 z.Z_SL.USL_OK = 1;
@@ -153,8 +165,8 @@ namespace ServiceLoaderMedpomDataTests
         }
 
 
-        const string C_VALID = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\C_VALID.XML";
-        const string PATH_XSD_C31 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\ЗНО 3.1.xsd";
+        const string C_VALID = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\C_VALID.XML";
+        const string PATH_XSD_C31 = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\ЗНО 3.1.xsd";
 
         /// <summary>
         /// Тестирование проверки схемы файлов H
@@ -166,8 +178,8 @@ namespace ServiceLoaderMedpomDataTests
             var res = sc.CheckXML(C_VALID, PATH_XSD_C31, new CheckXMLValidator(VersionMP.V3_1));
             Assert.IsTrue(res.Count == 0, $"Для правильной XML не верную схему пишет: {string.Join(";", res.Select(x => x.Comment))}");
         }
-        const string D_VALID = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\D_VALID.XML";
-        const string PATH_XSD_D31 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\ДИСП 3.1_2 c 01.04.2020.xsd";
+        const string D_VALID = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\D_VALID.XML";
+        const string PATH_XSD_D31 = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\ДИСП 3.1_2 c 01.04.2020.xsd";
 
         /// <summary>
         /// Тестирование проверки схемы файлов H
@@ -180,8 +192,8 @@ namespace ServiceLoaderMedpomDataTests
             Assert.IsTrue(res.Count == 0, $"Для правильной XML не верную схему пишет: {string.Join(";", res.Select(x => x.Comment))}");
         }
 
-        const string T_VALID = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\T_VALID.XML";
-        const string PATH_XSD_T31 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\ВМП 3.1.xsd";
+        const string T_VALID = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\T_VALID.XML";
+        const string PATH_XSD_T31 = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\ВМП 3.1.xsd";
        
         [TestMethod(), Description("Проверка файлов T на схему - правильное выполнение")]
         public void CheckXML_T_VALID_31()
@@ -209,7 +221,7 @@ namespace ServiceLoaderMedpomDataTests
           
         }
 
-        private string C_EMPTY_ELEMENT = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\C_EMPTY_ELEMENT.XML";
+        private string C_EMPTY_ELEMENT = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\C_EMPTY_ELEMENT.XML";
         [TestMethod(), Description("Проверка файлов C на схему - пустой элемент <SMO/>")]
         public void CheckXML_C_EMPTY_ELEMENT()
         {
@@ -421,8 +433,8 @@ namespace ServiceLoaderMedpomDataTests
         }
     
      
-        const string D_31_WITH_08_2021_VALID = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\D_VALID_08_2021.XML";
-        const string PATH_XSD_D31_WITH_08_2021 = @"E:\XML Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\ДИСП 3.1 c 01.08.2021.xsd";
+        const string D_31_WITH_08_2021_VALID = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\V3.1\D_VALID_08_2021.XML";
+        const string PATH_XSD_D31_WITH_08_2021 = @"D:\Project\ServiceVersion\ServiceLoaderMedpomDataTests\XMLSource\Valid\SCHEMA\FROM_MO_V31\ДИСП 3.1 c 01.08.2021.xsd";
         [TestMethod(), Description("Проверка файлов на схему D c 01.08.2021 правильная XML")]
         public void CheckXML_D_31_WITH_08_2021()
         {
@@ -562,7 +574,6 @@ namespace ServiceLoaderMedpomDataTests
             using (var st = File.Create(p))
             {
                 item.WriteXmlCustom(st);
-              
             }
             ExtZLLIST.ChangeNamespace(p);
         }
