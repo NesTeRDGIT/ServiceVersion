@@ -2000,11 +2000,11 @@ namespace ServiceLoaderMedpomData
         }
         public static bool IsMEE(this int val)
         {
-            return val.ToString().StartsWith("2") || val.ToString().StartsWith("5");
+            return val.ToString().StartsWith("2") || val.ToString().StartsWith("5") || val.ToString() == "88" || val.ToString().StartsWith("9");
         }
         public static bool IsEKMP(this int val)
         {
-            return val.ToString().StartsWith("3") || val.ToString().StartsWith("4") || val.ToString().StartsWith("7") || val.ToString().StartsWith("8");
+            return val.ToString().StartsWith("3") || val.ToString().StartsWith("4") || val.ToString().StartsWith("7") || (val.ToString().StartsWith("8") && val.ToString() != "88") ;
         }
         public static bool In(this int val, params int[] values)
         {
