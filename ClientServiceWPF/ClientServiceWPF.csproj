@@ -161,6 +161,7 @@
     <Compile Include="SANK_INVITER\ICheckFLK.cs" />
     <Compile Include="SANK_INVITER\ISANK_INVITERRepository.cs" />
     <Compile Include="SANK_INVITER\IToBaseFile.cs" />
+    <Compile Include="SchetFacture\ExportSchetFactureFileWindow.xaml.cs" />
     <Compile Include="Setting\EdditProc.xaml.cs">
       <DependentUpon>EdditProc.xaml</DependentUpon>
     </Compile>
@@ -229,6 +230,10 @@
       <DependentUpon>VOLUM_CONTROL.xaml</DependentUpon>
     </Compile>
     <Compile Include="wpf\Behaviours.cs" />
+    <Page Include="ExportSchetFactureFile\ExportSchetFactureFileWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
     <Page Include="MEK_RESULT\ACTMEK\ACT_MEK.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

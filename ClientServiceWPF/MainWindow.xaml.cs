@@ -34,6 +34,7 @@ using ClientServiceWPF.ORDERS.ORD23;
 using ClientServiceWPF.ORDERS.ORD260;
 using ClientServiceWPF.ORDERS.SchetPalat;
 using ServiceLoaderMedpomData.Annotations;
+using ClientServiceWPF.SchetFacture;
 
 namespace ClientServiceWPF
 {
@@ -475,6 +476,20 @@ namespace ClientServiceWPF
                 MessageBox.Show(ex.Message);
             }
         });
+
+        public ICommand ExportSchetFactureFileNavigateCommand => new Command(o =>
+        {
+            try
+            {
+                var win = new ExportSchetFactureFileWindow();
+                win.Show();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        });
+
         public ICommand VOLUM_CONTROLNavigateCommand => new Command(o =>
         {
             try
