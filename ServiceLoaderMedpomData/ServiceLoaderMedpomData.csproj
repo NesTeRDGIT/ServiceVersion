@@ -69,6 +69,7 @@
     <Compile Include="Extension.cs" />
     <Compile Include="FileManager.cs" />
     <Compile Include="FilesHelper.cs" />
+    <Compile Include="Interface\IValidatorXML.cs" />
     <Compile Include="IRepository.cs" />
     <Compile Include="Launcher.cs" />
     <Compile Include="LogFiles.cs" />

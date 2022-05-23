@@ -765,11 +765,11 @@ namespace ClientServiceWPF.SANK_INVITER
         }
         public static bool IsMEE(this int val)
         {
-            return val.ToString().StartsWith("2") || val.ToString().StartsWith("5");
+            return val.ToString().StartsWith("2") || val.ToString().StartsWith("5") || val.ToString() == "88" || val.ToString().StartsWith("9");
         }
         public static bool IsEKMP(this int val)
         {
-            return val.ToString().StartsWith("3") || val.ToString().StartsWith("4") || val.ToString().StartsWith("7") || val.ToString().StartsWith("8"); 
+            return val.ToString().StartsWith("3") || val.ToString().StartsWith("4") || val.ToString().StartsWith("7") || val.ToString().StartsWith("8") || (val.ToString().StartsWith("8") && val.ToString() != "88");
         }
         public static bool IsMultiDisp(this int val)
         {
@@ -781,10 +781,9 @@ namespace ClientServiceWPF.SANK_INVITER
             return val.In(43, 242);
         }
 
-
         public static bool IsOnlyTFOMS(this int val)
         {
-            return val.In(10, 11, 12, 24, 25, 26, 39, 40, 41,59,86);
+            return val.In(10, 11, 12, 24, 25, 26, 39, 40, 41, 59, 86);
         }
     }
 }

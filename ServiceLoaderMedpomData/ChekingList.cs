@@ -191,15 +191,11 @@ namespace ServiceLoaderMedpomData
                 }
         }
 
-
         public OrclProcedure()
         {
             listParam = new List<OrclParam>();
             Excist = StateExistProcedure.Unknow; 
         }
-     
-
-  
     }
     [DataContract]
     public class CheckingList

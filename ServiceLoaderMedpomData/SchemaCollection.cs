@@ -8,6 +8,7 @@ using System.Xml.Schema;
 using System.Xml.Serialization;
 using System.Runtime.Serialization;
 using System.Globalization;
+using ServiceLoaderMedpomData.Interface;
 
 namespace ServiceLoaderMedpomData
 {
@@ -705,16 +706,8 @@ namespace ServiceLoaderMedpomData
 
     delegate void ErrorActionEvent(XmlSeverityType Severity, int LineNumber, int LinePosition, string Message, string NamePol, string ERR_CODE = "");
 
-    interface IValidatorXML
+    class MyValidatorV2 :  IValidatorXML
     {
-        event ErrorActionEvent Error;
-        void Close();
-        void Check(XmlReader reader);
-    }
-
-    class MyValidatorV2 : IValidatorXML
-    {
-
         class NAZR
         {
             public int NAZR_C1 { get; set; }

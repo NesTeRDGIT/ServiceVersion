@@ -10,7 +10,7 @@ namespace ServiceLoaderMedpomData
     /// <summary>
     /// Интерфейс WCF. Для взаимодействия клиента со службой
     /// </summary>
-    [ServiceContract(CallbackContract = typeof(IWcfInterfaceCallback),SessionMode = SessionMode.Required)]
+    [ServiceContract(CallbackContract = typeof(IWcfInterfaceCallback), SessionMode = SessionMode.Required)]
     public interface IWcfInterface
     {
         #region  Управление обработкой
@@ -342,10 +342,6 @@ namespace ServiceLoaderMedpomData
         #endregion
     }
 
-
-
-
-
     [ServiceContract]
     public interface IWcfInterfaceCallback
     {
@@ -357,8 +353,8 @@ namespace ServiceLoaderMedpomData
         void NewFileManager();
         [OperationContract(IsOneWay = true)]
         void PING();
-
     }
+    
     public class ProgressClass
     {
         public bool Active = false;
