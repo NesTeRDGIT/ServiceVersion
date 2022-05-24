@@ -166,7 +166,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                     BAS_EL = "SLUCH",
                                     IDCASE = z_sl.IDCASE.ToString(),
                                     N_ZAP = N_ZAP,
-                                    Comment = "Для санкций ЭКМП поле CODE_EXP обязательно к заполнению, кроме S_OSN=43,242",
+                                    Comment = "Для санкций ЭКМП поле CODE_EXP обязательно к заполнению, кроме S_OSN = 43, 242, 279",
                                     IM_POL = "CODE_EXP",
                                     OSHIB = 41
                                 });
@@ -180,7 +180,7 @@ namespace ClientServiceWPF.SANK_INVITER
                                     BAS_EL = "SLUCH",
                                     IDCASE = z_sl.IDCASE.ToString(),
                                     N_ZAP = N_ZAP,
-                                    Comment = "Для санкций мультидисциплинарных экспертиз количество CODE_EXP должно быть более 1, кроме S_OSN=43,242",
+                                    Comment = "Для санкций мультидисциплинарных экспертиз количество CODE_EXP должно быть более 1, кроме S_OSN = 43, 242, 279",
                                     IM_POL = "CODE_EXP",
                                     OSHIB = 41
                                 });
@@ -778,7 +778,7 @@ namespace ClientServiceWPF.SANK_INVITER
 
         public static bool IsNotDOC(this decimal val)
         {
-            return val.In(43, 242);
+            return val.In(43, 242, 279);
         }
 
         public static bool IsOnlyTFOMS(this int val)

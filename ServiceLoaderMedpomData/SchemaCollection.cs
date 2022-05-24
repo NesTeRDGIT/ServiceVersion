@@ -1549,7 +1549,7 @@ namespace ServiceLoaderMedpomData
         {
             if (SANK.S_SUM.value != 0 && SANK.SL_ID.Count == 0)
                 Error(XmlSeverityType.Error, SANK.S_SUM.POS.LINE, SANK.S_SUM.POS.POS, "Для S_SUM<>0 SL_ID обязательно к заполнению", "SANK");
-            if (SANK.S_TIP.value.IsEKMP() && SANK.CODE_EXP.Count == 0 && !SANK.S_OSN.value.In(43,242))
+            if (SANK.S_TIP.value.IsEKMP() && SANK.CODE_EXP.Count == 0 && !SANK.S_OSN.value.IsNotDOC())
                 Error(XmlSeverityType.Error, SANK.S_OSN.POS.LINE, SANK.S_OSN.POS.POS, @"Для санкций ЭКМП CODE_EXP обязательно к заполнению", "SANK");
          
         }
@@ -2002,6 +2002,19 @@ namespace ServiceLoaderMedpomData
         public static bool In(this int val, params int[] values)
         {
             return values.Contains(val);
+        }
+        public static bool In(this decimal value, params decimal[] valuesArray)
+        {
+            return valuesArray.Contains(value);
+        }
+        public static bool In(this int value, params decimal[] valuesArray)
+        {
+            return valuesArray.Contains(value);
+        } 
+
+        public static bool IsNotDOC(this int val)
+        {
+            return val.In(43, 242, 279);
         }
 
         public static bool In(this string val, params string[] values)
