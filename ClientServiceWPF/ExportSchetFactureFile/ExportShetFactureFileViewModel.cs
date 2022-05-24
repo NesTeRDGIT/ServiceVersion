@@ -16,6 +16,8 @@ using System.Windows.Threading;
 using MessageBox = System.Windows.MessageBox;
 using LogType = ClientServiceWPF.Class.LogType;
 using System.Collections.ObjectModel;
+using System.Data;
+using Oracle.ManagedDataAccess.Client;
 
 namespace ClientServiceWPF.ExportSchetFactureFile
 {
@@ -74,14 +76,14 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                 if (fbd.ShowDialog() == DialogResult.OK)
                 {
                     IsOperationRun = true;
-                    //Logs.Clear();
+                    Logs.Clear();
                     Progress1.IsIndeterminate = true;
                     cts = new CancellationTokenSource();
-                    //var files = await GetFileAsync(fbd.SelectedPath, PARAM.DATE_B, PARAM.DATE_E, cts.Token);
+                    var files = await GetFileAsync(fbd.SelectedPath, CurrentDate, cts.Token);
 
                     if (MessageBox.Show(@"Завершено. Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
-                        // ShowSelectedInExplorer.FilesOrFolders(files);
+                        ShowSelectedInExplorer.FilesOrFolders(files);
                     }
                 }
             }
@@ -96,6 +98,35 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                 IsOperationRun = false;
             }
         }, o => !IsOperationRun);
+
+        private Task<List<string>> GetFileAsync(string selectedPath, DateTime currentDate, CancellationToken token)
+        {
+            try
+            {
+                AddLogs(LogType.Info, "Запрос случаев");
+                var tbl = new DataTable();
+                using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+                {
+                    using (var oda = new OracleDataAdapter($"select * from FACTURA_2021 t where t.month = {currentDate.Month}", conn))
+                    {
+                        oda.Fill(tbl);
+                    }
+                }
+                var i = 1;
+                AddLogs(LogType.Info, "Формирование случаев");
+                foreach (DataRow row in tbl.Rows)
+                {
+
+                    AddLogs(LogType.Info,)
+                }
+
+            }
+            catch (Exception ex)
+            {
+                AddLogs(LogType.Error, ex.FullMessage());
+                MessageBox.Show(ex.Message);
+            }
+        }
 
         public ICommand BreakCommand => new Command(o =>
         {

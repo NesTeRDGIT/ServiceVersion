@@ -778,7 +778,7 @@ namespace ClientServiceWPF.SANK_INVITER
 
         public static bool IsNotDOC(this decimal val)
         {
-            return val.In(43, 242);
+            return val.In(43, 242, 279);
         }
 
         public static bool IsOnlyTFOMS(this int val)
