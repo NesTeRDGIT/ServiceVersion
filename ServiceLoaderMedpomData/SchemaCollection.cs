@@ -1623,7 +1623,7 @@ namespace ServiceLoaderMedpomData
             {
                 Error(XmlSeverityType.Error, PACIENT.ID_PAC.POS.LINE, PACIENT.ID_PAC.POS.POS, "Не удалось найти возраст пациента, нет данных о файле L", "PACIENT", "ERR_PACIENT_DR_1");
                 return null;
-            }       
+            }
             if(string.IsNullOrEmpty(PACIENT.ID_PAC.value))
             {
                 Error(XmlSeverityType.Error, PACIENT.ID_PAC.POS.LINE, PACIENT.ID_PAC.POS.POS, "Не удалось найти ID_PAC в файле", "PACIENT", "ERR_PACIENT_DR_1");

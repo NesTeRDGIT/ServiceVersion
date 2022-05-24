@@ -317,7 +317,7 @@ namespace ClientServiceWPF.SANK_INVITER
                             BAS_EL = "SLUCH",
                             IDCASE = z_sl.IDCASE.ToString(),
                             N_ZAP = N_ZAP,
-                            Comment = $"Дублирование санкции по полям(S_OSN,S_SUM,S_TIP) S_CODE = {string.Join(",", san.Select(x => x.S_CODE))}",
+                            Comment = $"Дублирование санкции по полям (S_OSN, S_SUM, S_TIP) S_CODE = {string.Join(",", san.Select(x => x.S_CODE))}",
                             IM_POL = "SANK",
                             OSHIB = 41
                         }));
@@ -328,7 +328,7 @@ namespace ClientServiceWPF.SANK_INVITER
                             BAS_EL = "SLUCH",
                             IDCASE = z_sl.IDCASE.ToString(),
                             N_ZAP = N_ZAP,
-                            Comment = $"Конфликт S_OSN = 0 и S_OSN!=0 для одного S_TIP для S_CODE = {san.S_CODE}",
+                            Comment = $"Конфликт S_OSN = 0 и S_OSN != 0 для одного S_TIP для S_CODE = {san.S_CODE}",
                             IM_POL = "SANK",
                             OSHIB = 41
                         }));
