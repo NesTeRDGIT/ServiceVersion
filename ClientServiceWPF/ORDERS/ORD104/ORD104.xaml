@@ -56,6 +56,7 @@
                 <Label  Content="{Binding Count, Mode=OneWay, Source={StaticResource CollectionViewSourceFilesLOG}}" HorizontalAlignment="Right" Margin="0,0,0,1" VerticalAlignment="Bottom" Width="126" HorizontalContentAlignment="Right"/>
             </Grid>
         </GroupBox>
+        
         <GroupBox  Header="Файл" HorizontalAlignment="Left" Height="230" VerticalAlignment="Top" Width="324" Margin="0,65,0,0" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}">
             <Grid>
                 <DatePicker Margin="177,11,0,0" VerticalAlignment="Top" SelectedDate="{Binding PARAM.DATE}" IsEnabled="{Binding IsOperationRun, Converter={StaticResource BoolInverterConverter}}" HorizontalAlignment="Left" Width="125"/>

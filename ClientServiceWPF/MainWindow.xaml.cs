@@ -34,7 +34,7 @@ using ClientServiceWPF.ORDERS.ORD23;
 using ClientServiceWPF.ORDERS.ORD260;
 using ClientServiceWPF.ORDERS.SchetPalat;
 using ServiceLoaderMedpomData.Annotations;
-using ClientServiceWPF.SchetFacture;
+using ClientServiceWPF.ExportSchetFactureFile;
 
 namespace ClientServiceWPF
 {
@@ -481,7 +481,7 @@ namespace ClientServiceWPF
         {
             try
             {
-                var win = new ExportSchetFactureFileWindow();
+                var win = new ExportSchetFactureFileView();
                 win.Show();
             }
             catch (Exception ex)

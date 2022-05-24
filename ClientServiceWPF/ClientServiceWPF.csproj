@@ -115,6 +115,10 @@
     <Compile Include="Class\RusNumber.cs" />
     <Compile Include="Class\ServerRef.cs" />
     <Compile Include="Class\ShowSelectedInExplorer.cs" />
+    <Compile Include="ExportSchetFactureFile\ExportSchetFactureFileView.xaml.cs">
+      <DependentUpon>ExportSchetFactureFileView.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="ExportSchetFactureFile\ExportShetFactureFileViewModel.cs" />
     <Compile Include="MEK_RESULT\ACTMEK\ActMEKCreator.cs" />
     <Compile Include="MEK_RESULT\ACTMEK\IMEKRepository.cs" />
     <Compile Include="MEK_RESULT\FileCreator\IExportFileRepository.cs" />
@@ -230,7 +234,7 @@
       <DependentUpon>VOLUM_CONTROL.xaml</DependentUpon>
     </Compile>
     <Compile Include="wpf\Behaviours.cs" />
-    <Page Include="ExportSchetFactureFile\ExportSchetFactureFileWindow.xaml">
+    <Page Include="ExportSchetFactureFile\ExportSchetFactureFileView.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>

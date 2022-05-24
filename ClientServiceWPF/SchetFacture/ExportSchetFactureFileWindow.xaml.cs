@@ -21,7 +21,7 @@ namespace ClientServiceWPF.SchetFacture
     {
         public ExportSchetFactureFileWindow()
         {
-            InitializeComponent();
+           
         }
     }
 }
