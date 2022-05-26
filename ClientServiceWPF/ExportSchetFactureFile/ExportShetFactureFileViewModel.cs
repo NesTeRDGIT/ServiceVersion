@@ -18,32 +18,34 @@ using LogType = ClientServiceWPF.Class.LogType;
 using System.Collections.ObjectModel;
 using System.Data;
 using Oracle.ManagedDataAccess.Client;
+using System.IO;
+using ExcelManager;
 
 namespace ClientServiceWPF.ExportSchetFactureFile
 {
     internal class ExportShetFactureFileViewModel : INotifyPropertyChanged
     {
-        private readonly Dispatcher dispatcher;
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
 
         public ExportShetFactureFileViewModel()
         {
             CurrentDate = DateTime.Now;
         }
-
         public ExportShetFactureFileViewModel(Dispatcher dispatcher)
         {
             CurrentDate = DateTime.Now;
             this.dispatcher = dispatcher;
         }
-
-        private CancellationTokenSource cts;
-        private FolderBrowserDialog fbd = new FolderBrowserDialog();
-        private string connStr = AppConfig.Property.ConnectionString;
         public ObservableCollection<LogItem> Logs { get; set; } = new ObservableCollection<LogItem>();
         public ProgressItem Progress1 { get; } = new ProgressItem();
-        public ProgressItem Progress2 { get; } = new ProgressItem();
-
-        private DateTime _currentDate;
         public DateTime CurrentDate
         {
             get
@@ -56,8 +58,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                 RaisePropertyChanged();
             }
         }
-
-        private bool _IsOperationRun;
         public bool IsOperationRun
         {
             get => _IsOperationRun;
@@ -68,7 +68,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                 //CommandManager.InvalidateRequerySuggested();
             }
         }
-
         public ICommand ExportSchetFactureFileComand => new Command(async o =>
         {
             try
@@ -79,12 +78,24 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                     Logs.Clear();
                     Progress1.IsIndeterminate = true;
                     cts = new CancellationTokenSource();
-                    var files = await GetFileAsync(fbd.SelectedPath, CurrentDate, cts.Token);
+                    //var files = await GetFileAsync(fbd.SelectedPath, CurrentDate, cts.Token); 
 
+                    var tasks = new List<Task>
+                    {
+                        Task.Run(() =>
+                        {
+                            GetFile(fbd.SelectedPath, CurrentDate, cts.Token);
+                        }
+                    )
+                    };
+                    await Task.WhenAll(tasks);
                     if (MessageBox.Show(@"Завершено. Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
-                        ShowSelectedInExplorer.FilesOrFolders(files);
+                        ShowSelectedInExplorer.FilesOrFolders(fbd.SelectedPath);
                     }
+
+                    Progress1.IsIndeterminate = false;
+                    Progress1.Text = "";
                 }
             }
             catch (Exception e)
@@ -94,40 +105,9 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             finally
             {
                 Progress1.Clear("");
-                Progress2.Clear("");
                 IsOperationRun = false;
             }
         }, o => !IsOperationRun);
-
-        private Task<List<string>> GetFileAsync(string selectedPath, DateTime currentDate, CancellationToken token)
-        {
-            try
-            {
-                AddLogs(LogType.Info, "Запрос случаев");
-                var tbl = new DataTable();
-                using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
-                {
-                    using (var oda = new OracleDataAdapter($"select * from FACTURA_2021 t where t.month = {currentDate.Month}", conn))
-                    {
-                        oda.Fill(tbl);
-                    }
-                }
-                var i = 1;
-                AddLogs(LogType.Info, "Формирование случаев");
-                foreach (DataRow row in tbl.Rows)
-                {
-
-                    AddLogs(LogType.Info,)
-                }
-
-            }
-            catch (Exception ex)
-            {
-                AddLogs(LogType.Error, ex.FullMessage());
-                MessageBox.Show(ex.Message);
-            }
-        }
-
         public ICommand BreakCommand => new Command(o =>
         {
             try
@@ -140,6 +120,101 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             }
         }, o => IsOperationRun);
 
+        private async void GetFile(string selectedPath, DateTime currentDate, CancellationToken token)
+        {
+            try
+            {
+                AddLogs(LogType.Info, "Формирование файлов");
+                var dtSMO = new DataTable();
+                using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+                {
+                    using (var oda = new OracleDataAdapter($"select * from nsi.f002 t where t.tf_okato = 76000 and t.d_end is null", conn))
+                    {
+                        dispatcher.Invoke(() => { Progress1.Text = "Запрос данных f002"; Progress1.IsIndeterminate = true; });
+                        oda.Fill(dtSMO);
+                    }
+                }
+
+                foreach (DataRow row in dtSMO.Rows)
+                {
+                    var smoName = row["smocod"].ToString();
+                    AddLogs(LogType.Info, $"Формирование случаев CMO {smoName}");
+
+                    var path = Path.Combine(fbd.SelectedPath, smoName);
+                    if (!Directory.Exists(path))
+                        Directory.CreateDirectory(path);
+
+                    var tasks = new List<Task>();
+
+                    tasks.Add(Task.Run(() =>
+                    {
+                        AddLogs(LogType.Info, $"Формирование итоговых реестров");
+                        ItogReestrXls(path, smoName, CurrentDate, cts.Token);
+                    }));
+
+                    tasks.Add(Task.Run(() =>
+                    {
+                        AddLogs(LogType.Info, $"Формирование счетов фактур");
+                        SchetFactureXls(path, smoName, CurrentDate, cts.Token);
+                    }));
+
+                    await Task.WhenAll(tasks);
+                }
+
+                AddLogs(LogType.Info, $"Формирование файлов завершено");
+            }
+            catch (Exception ex)
+            {
+                AddLogs(LogType.Error, ex.FullMessage());
+                MessageBox.Show(ex.Message);
+            }
+        }
+
+        private void SchetFactureXls(string path, string smoName, DateTime currentDate, CancellationToken token)
+        {
+            var dtSMO = new DataTable();
+            using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($"select * from FAKTURA_2021 t where smo = {smoName}", conn))
+                {
+                    dispatcher.Invoke(() => { Progress1.Text = "Запрос данных FAKTURA_2021"; Progress1.IsIndeterminate = true; });
+                    oda.Fill(dtSMO);
+                }
+            }
+
+            ExcelOpenXML efm = null;
+            try
+            {
+                File.Copy(SHET_FACTURE_TEMPLATE, path, true);
+                efm = new ExcelOpenXML();
+                efm.OpenFile(path, 0);
+
+
+                efm.MarkAsFinal(true);
+                efm.Save();
+            }
+            finally
+            {
+                efm?.Dispose();
+            }
+            
+        }
+
+        private void ItogReestrXls(string path, string smoName, DateTime currentDate, CancellationToken token)
+        {
+            var dtSMO = new DataTable();
+            using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($"select * from v_lpu_sum_2021 t where smo = {smoName}", conn))
+                {
+                    dispatcher.Invoke(() => { Progress1.Text = "Запрос данных v_lpu_sum_2021"; Progress1.IsIndeterminate = true; });
+                    oda.Fill(dtSMO);
+                }
+            }
+
+
+        }
+
         private void AddLogs(LogType type, params string[] Message)
         {
             dispatcher.Invoke(() =>
@@ -151,16 +226,15 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             }
             );
         }
-
-
-        #region INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        #endregion
+        
+        private static string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
+        private string SHET_FACTURE_TEMPLATE { get; set; } = System.IO.Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR.xlsx");
+        private string SHET_FACTURE_TEMPLATE2 { get; set; } = System.IO.Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR2.xlsx");
+        private readonly Dispatcher dispatcher;
+        private CancellationTokenSource cts;
+        private FolderBrowserDialog fbd = new FolderBrowserDialog();
+        private string connStr = AppConfig.Property.ConnectionString;
+        private DateTime _currentDate;
+        private bool _IsOperationRun;
     }
 }
