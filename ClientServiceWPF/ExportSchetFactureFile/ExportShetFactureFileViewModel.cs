@@ -130,7 +130,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                 {
                     using (var oda = new OracleDataAdapter($"select * from nsi.f002 t where t.tf_okato = 76000 and t.d_end is null", conn))
                     {
-                        dispatcher.Invoke(() => { Progress1.Text = "Запрос данных f002"; Progress1.IsIndeterminate = true; });
+                        dispatcher.Invoke(() => { Progress1.Text = "Запрос данных f002"; });
                         oda.Fill(dtSMO);
                     }
                 }
@@ -172,47 +172,53 @@ namespace ClientServiceWPF.ExportSchetFactureFile
 
         private void SchetFactureXls(string path, string smoName, DateTime currentDate, CancellationToken token)
         {
-            var dtSMO = new DataTable();
+            var dtFakture = new DataTable();
             using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
             {
                 using (var oda = new OracleDataAdapter($"select * from FAKTURA_2021 t where smo = {smoName}", conn))
                 {
-                    dispatcher.Invoke(() => { Progress1.Text = "Запрос данных FAKTURA_2021"; Progress1.IsIndeterminate = true; });
-                    oda.Fill(dtSMO);
+                    dispatcher.Invoke(() => { Progress1.Text = "Запрос данных FAKTURA_2021"; });
+                    oda.Fill(dtFakture);
                 }
             }
 
-            ExcelOpenXML efm = null;
-            try
-            {
-                File.Copy(SHET_FACTURE_TEMPLATE, path, true);
-                efm = new ExcelOpenXML();
-                efm.OpenFile(path, 0);
-
-
-                efm.MarkAsFinal(true);
-                efm.Save();
-            }
-            finally
-            {
-                efm?.Dispose();
-            }
-            
         }
 
         private void ItogReestrXls(string path, string smoName, DateTime currentDate, CancellationToken token)
         {
-            var dtSMO = new DataTable();
+            var dtReestr = new DataTable();
             using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
             {
                 using (var oda = new OracleDataAdapter($"select * from v_lpu_sum_2021 t where smo = {smoName}", conn))
                 {
-                    dispatcher.Invoke(() => { Progress1.Text = "Запрос данных v_lpu_sum_2021"; Progress1.IsIndeterminate = true; });
-                    oda.Fill(dtSMO);
+                    dispatcher.Invoke(() => { Progress1.Text = "Запрос данных v_lpu_sum_2021"; });
+                    oda.Fill(dtReestr);
                 }
             }
 
 
+            foreach (DataRow row in dtReestr.Rows)
+            {
+                try
+                {
+                    var moCode = row["code_mo"];
+                    var fileName = $@"{path}\{smoName} Итоговый реестр {moCode} за {currentDate.ToString("MMMM yyyy")}.xlsx";
+
+                    File.Copy(ITOG_REESTR_TEMPLATE, fileName, true);
+                    using (var efm = new ExcelOpenXML())
+                    {
+                        efm.OpenFile(fileName, 0);
+
+                        efm.MarkAsFinal(true);
+                        efm.Save();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AddLogs(LogType.Error, ex.FullMessage());
+                    MessageBox.Show(ex.Message);
+                }
+            }
         }
 
         private void AddLogs(LogType type, params string[] Message)
@@ -226,10 +232,10 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             }
             );
         }
-        
+
         private static string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
-        private string SHET_FACTURE_TEMPLATE { get; set; } = System.IO.Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR.xlsx");
-        private string SHET_FACTURE_TEMPLATE2 { get; set; } = System.IO.Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR2.xlsx");
+        private string ITOG_REESTR_TEMPLATE { get; set; } = Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR.xlsx");
+        private string ITOG_REESTR_MBT__TEMPLATE { get; set; } = Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR_MBT.xlsx");
         private readonly Dispatcher dispatcher;
         private CancellationTokenSource cts;
         private FolderBrowserDialog fbd = new FolderBrowserDialog();

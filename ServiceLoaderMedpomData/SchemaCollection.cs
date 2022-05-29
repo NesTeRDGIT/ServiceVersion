@@ -1591,8 +1591,6 @@ namespace ServiceLoaderMedpomData
                 var isDs2O = item.DS2.Count(x => x.value.StartsWith("O")) != 0;
                 var isDs2Z34_Z35 = item.DS2.Count(x => x.value.Substring(0, 3).Between("Z34", "Z35")) != 0;
                 
-
-
                 if (vzr.HasValue)
                 {
                     if (SCHET.DateFile >= DT_03_2022)
@@ -1678,7 +1676,7 @@ namespace ServiceLoaderMedpomData
                             Error(XmlSeverityType.Error, PACIENT.VPOLIS.POS.LINE, PACIENT.VPOLIS.POS.POS, "Поле ENP обязательно к заполнению при VPOLIS = 3", "ENP", "ERR_PAC_3");
                         break;
                     case 2:
-                        if (!string.IsNullOrEmpty(PACIENT.SPOLIS.value))
+                        if (!string.IsNullOrEmpty(PACIENT.SPOLIS.value)) 
                             Error(XmlSeverityType.Error, PACIENT.SPOLIS.POS.LINE, PACIENT.SPOLIS.POS.POS, "Поле SPOLIS не подлежит заполнению при VPOLIS = 2", "SPOLIS", "ERR_PAC_4");
                         if (string.IsNullOrEmpty(PACIENT.NPOLIS.value))
                             Error(XmlSeverityType.Error, PACIENT.VPOLIS.POS.LINE, PACIENT.VPOLIS.POS.POS, "Поле NPOLIS обязательно к заполнению при VPOLIS = 2", "NPOLIS", "ERR_PAC_5");
