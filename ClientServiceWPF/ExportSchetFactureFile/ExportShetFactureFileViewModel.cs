@@ -80,15 +80,11 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                     cts = new CancellationTokenSource();
                     //var files = await GetFileAsync(fbd.SelectedPath, CurrentDate, cts.Token); 
 
-                    var tasks = new List<Task>
+                    await Task.Run(() =>
                     {
-                        Task.Run(() =>
-                        {
-                            GetFile(fbd.SelectedPath, CurrentDate, cts.Token);
-                        }
-                    )
-                    };
-                    await Task.WhenAll(tasks);
+                        GetFile(fbd.SelectedPath, CurrentDate, cts.Token);
+                    });
+                   
                     if (MessageBox.Show(@"Завершено. Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
                         ShowSelectedInExplorer.FilesOrFolders(fbd.SelectedPath);
@@ -120,7 +116,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             }
         }, o => IsOperationRun);
 
-        private async void GetFile(string selectedPath, DateTime currentDate, CancellationToken token)
+        private void GetFile(string selectedPath, DateTime currentDate, CancellationToken token)
         {
             try
             {
@@ -146,21 +142,12 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                     if (!Directory.Exists(path))
                         Directory.CreateDirectory(path);
 
-                    var tasks = new List<Task>();
 
-                    tasks.Add(Task.Run(() =>
-                    {
-                        AddLogs(LogType.Info, $"Формирование итоговых реестров");
-                        ItogReestrXls(path, $"{smoCode}-{smoName}", CurrentDate, cts.Token);
-                    }));
+                    AddLogs(LogType.Info, $"Формирование итоговых реестров");
+                    ItogReestrXls(path, $"{smoCode}-{smoName}", CurrentDate, cts.Token);
 
-                    tasks.Add(Task.Run(() =>
-                    {
-                        AddLogs(LogType.Info, $"Формирование счетов фактур");
-                        SchetFactureXls(path, $"{smoCode}-{smoName}", CurrentDate, cts.Token);
-                    }));
-
-                    await Task.WhenAll(tasks);
+                    AddLogs(LogType.Info, $"Формирование счетов фактур");
+                    SchetFactureXls(path, $"{smoCode}-{smoName}", CurrentDate, cts.Token);
                 }
 
                 AddLogs(LogType.Info, $"Формирование файлов завершено");
@@ -203,7 +190,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                 }
             }
 
-
             foreach (DataRow row in dtReestr.Rows)
             {
                 try
@@ -211,7 +197,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                     var moCode = row["code_mo"];
                     var fileName = $@"{path}\{smoCode} Итоговый реестр {moCode} за {currentDate.ToString("MMMM yyyy")}.xlsx";
 
-                    moCode = "750001";
                     var dtMo = new DataTable();
                     using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
                     {
@@ -221,20 +206,20 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                             oda.Fill(dtMo);
                         }
                     }
-                    
+
                     int rIndexDtMo = dtMo.Rows.IndexOf(dtMo.Select($" mcod = {moCode}")[0]);
                     string moName = Convert.ToString(dtMo.Rows[rIndexDtMo]["nam_mok"]);
-                    
+
                     File.Copy(ITOG_REESTR_TEMPLATE, fileName, true);
                     using (var efm = new ExcelOpenXML())
                     {
                         efm.OpenFile(fileName, 0);
-                        
+
                         uint rowIndex = 3;
                         efm.PrintCell(rowIndex, 1, $"медицинских услуг, оказанных {moName}", null);
                         rowIndex += 2;
                         efm.PrintCell(rowIndex, 1, $"гражданам, застрахованным в  {smoName}", null);
-                        rowIndex += 2; 
+                        rowIndex += 2;
                         efm.PrintCell(rowIndex, 1, $"Согласно прилагаемым реестрам, за {currentDate.ToString("MMMM")} оказаны медицинские услуги на сумму:", null);
                         rowIndex += 2;
 
@@ -245,7 +230,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                         efm.PrintCell(rowIndex, 2, row["fap_sum"].ToString(), null);
                         rowIndex++;
                         efm.PrintCell(rowIndex, 2, row["smp_sum"].ToString(), null);
-                        rowIndex++; 
+                        rowIndex++;
                         efm.PrintCell(rowIndex, 2, row["tromb"].ToString(), null);
                         rowIndex += 2;
 
@@ -259,22 +244,22 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                         rowIndex++;
                         efm.PrintCell(rowIndex, 2, row["neot"].ToString(), null);
                         rowIndex += 2;
-                        
+
                         efm.PrintCell(rowIndex, 2, row["stac"].ToString(), null);
                         rowIndex++;
                         efm.PrintCell(rowIndex, 2, row["dializ_c"].ToString(), null);
                         rowIndex += 2;
-                        
+
                         efm.PrintCell(rowIndex, 2, row["ds"].ToString(), null);
                         rowIndex++;
                         efm.PrintCell(rowIndex, 2, row["eko"].ToString(), null);
-                        rowIndex += 2;  
-                        
+                        rowIndex += 2;
+
                         efm.PrintCell(rowIndex, 2, row["hmp"].ToString(), null);
                         rowIndex += 2;
 
                         efm.PrintCell(rowIndex, 2, row["disp"].ToString(), null);
-                        rowIndex++; 
+                        rowIndex++;
                         efm.PrintCell(rowIndex, 2, row["ud"].ToString(), null);
                         rowIndex++;
                         efm.PrintCell(rowIndex, 2, row["other"].ToString(), null);
