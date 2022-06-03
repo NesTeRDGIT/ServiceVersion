@@ -38,12 +38,19 @@ namespace ClientServiceWPF.ExportSchetFactureFile
         public ExportShetFactureFileViewModel()
         {
             CurrentDate = DateTime.Now;
+            Task.Run(() => { InitF002(); }); // Smo
+            Task.Run(() => { InitF003(); }); // Mo
         }
+
         public ExportShetFactureFileViewModel(Dispatcher dispatcher)
         {
             CurrentDate = DateTime.Now;
             this.dispatcher = dispatcher;
+            Task.Run(() => { InitF002(); });
+            Task.Run(() => { InitF003(); });
         }
+
+
         public ObservableCollection<LogItem> Logs { get; set; } = new ObservableCollection<LogItem>();
         public ProgressItem Progress1 { get; } = new ProgressItem();
         public DateTime CurrentDate
@@ -84,7 +91,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                     {
                         GetFile(fbd.SelectedPath, CurrentDate, cts.Token);
                     });
-                   
+
                     if (MessageBox.Show(@"Завершено. Показать файл?", "", MessageBoxButton.YesNo) == MessageBoxResult.Yes)
                     {
                         ShowSelectedInExplorer.FilesOrFolders(fbd.SelectedPath);
@@ -121,17 +128,8 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             try
             {
                 AddLogs(LogType.Info, "Формирование файлов");
-                var dtSMO = new DataTable();
-                using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
-                {
-                    using (var oda = new OracleDataAdapter($"select * from nsi.f002 t where t.tf_okato = 76000 and t.d_end is null", conn))
-                    {
-                        dispatcher.Invoke(() => { Progress1.Text = "Запрос данных f002"; });
-                        oda.Fill(dtSMO);
-                    }
-                }
 
-                foreach (DataRow row in dtSMO.Rows)
+                foreach (DataRow row in _dtF002.Rows)
                 {
                     var smoCode = row["smocod"].ToString();
                     var smoName = row["nam_smok"].ToString();
@@ -173,6 +171,44 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                 }
             }
 
+            foreach (DataRow row in dtFakture.Rows)
+            {
+                try
+                {
+                    var moCode = row["code_mo"].ToString();
+                    var moName = GetNameMoByCodeMo(moCode);
+
+                    var fileName = $@"{path}\{moCode} Счет-фактура за {currentDate.ToString("MMMM yyyy")}.xlsx";
+
+                    File.Copy(SCHET_FACTURE_TEMPLATE, fileName, true);
+                    using (var efm = new ExcelOpenXML())
+                    {
+                        efm.OpenFile(fileName, 0);
+
+                        uint rowIndex = 1;
+                        efm.PrintCell(rowIndex, 1, $"{moName.ToUpper()}", null);
+                        rowIndex += 2;
+
+                        efm.PrintCell(rowIndex, 1, $"за оказанные медицинские услуги по территориальной программе ОМС пациентам застрахованным в {smoName}", null);
+                        rowIndex++;
+                        
+                        efm.PrintCell(rowIndex, 1, $"{currentDate.ToString("MMMM")}", null);
+                        rowIndex++;
+
+                        efm.PrintCell(rowIndex, 2, $"{smoName}", null);
+
+
+
+                        efm.MarkAsFinal(true);
+                        efm.Save();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    AddLogs(LogType.Error, ex.FullMessage());
+                    MessageBox.Show(ex.Message);
+                }
+            }
         }
 
         private void ItogReestrXls(string path, string smoData, DateTime currentDate, CancellationToken token)
@@ -194,21 +230,9 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             {
                 try
                 {
-                    var moCode = row["code_mo"];
-                    var fileName = $@"{path}\{smoCode} Итоговый реестр {moCode} за {currentDate.ToString("MMMM yyyy")}.xlsx";
-
-                    var dtMo = new DataTable();
-                    using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
-                    {
-                        using (var oda = new OracleDataAdapter($"select * from nsi.f003 t where mcod = '{moCode}'", conn))
-                        {
-                            dispatcher.Invoke(() => { Progress1.Text = "Запрос данных nsi.f003"; });
-                            oda.Fill(dtMo);
-                        }
-                    }
-
-                    int rIndexDtMo = dtMo.Rows.IndexOf(dtMo.Select($" mcod = {moCode}")[0]);
-                    string moName = Convert.ToString(dtMo.Rows[rIndexDtMo]["nam_mok"]);
+                    var moCode = row["code_mo"].ToString();
+                    var moName = GetNameMoByCodeMo(moCode);
+                    var fileName = $@"{path}\{moCode} Итоговый реестр {smoCode} за {currentDate.ToString("MMMM yyyy")}.xlsx";
 
                     File.Copy(ITOG_REESTR_TEMPLATE, fileName, true);
                     using (var efm = new ExcelOpenXML())
@@ -279,6 +303,33 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             }
         }
 
+        private string GetNameMoByCodeMo(string moCode)
+        {
+            int rIndexDtMo = _dtF003.Rows.IndexOf(_dtF003.Select($" mcod = {moCode}")[0]);
+            return Convert.ToString(_dtF003.Rows[rIndexDtMo]["nam_mok"]);
+        }
+        private void InitF002()
+        {
+            using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($"select * from nsi.f002 t where t.tf_okato = '76000' and t.d_end is null", conn))
+                {
+                    dispatcher.Invoke(() => { Progress1.Text = "Запрос данных f002"; });
+                    oda.Fill(_dtF002);
+                }
+            }
+        }
+        private void InitF003()
+        {
+            using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+            {
+                using (var oda = new OracleDataAdapter($"select * from nsi.f003 t  where t.tf_okato = 76000 and t.d_end is null", conn))
+                {
+                    dispatcher.Invoke(() => { Progress1.Text = "Запрос данных nsi.f003"; });
+                    oda.Fill(_dtF003);
+                }
+            }
+        }
         private void AddLogs(LogType type, params string[] Message)
         {
             dispatcher.Invoke(() =>
@@ -291,9 +342,13 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             );
         }
 
+        private DataTable _dtF002 = new DataTable();
+        private DataTable _dtF003 = new DataTable();
         private static string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
+        private string SCHET_FACTURE_TEMPLATE { get; set; } = Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_SCHET_FACTURE.xlsx");
         private string ITOG_REESTR_TEMPLATE { get; set; } = Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR.xlsx");
-        private string ITOG_REESTR_MBT__TEMPLATE { get; set; } = Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR_MBT.xlsx");
+        //private string SCHET_FACTURE_MBT_TEMPLATE { get; set; } = Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_SCHET_FACTURE_MBT.xlsx");
+        //private string ITOG_REESTR_MBT__TEMPLATE { get; set; } = Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR_MBT.xlsx");
         private readonly Dispatcher dispatcher;
         private CancellationTokenSource cts;
         private FolderBrowserDialog fbd = new FolderBrowserDialog();
