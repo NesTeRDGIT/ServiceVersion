@@ -165,7 +165,6 @@
     <Compile Include="SANK_INVITER\ICheckFLK.cs" />
     <Compile Include="SANK_INVITER\ISANK_INVITERRepository.cs" />
     <Compile Include="SANK_INVITER\IToBaseFile.cs" />
-    <Compile Include="SchetFacture\ExportSchetFactureFileWindow.xaml.cs" />
     <Compile Include="Setting\EdditProc.xaml.cs">
       <DependentUpon>EdditProc.xaml</DependentUpon>
     </Compile>
