@@ -13,7 +13,7 @@
     <Window.Resources>
         <class:BoolInverterConverter x:Key="BoolInverterConverter"/>
         <CollectionViewSource x:Key="CollectionViewSourceFiles" Source="{Binding ZGLV_LIST}" d:DesignSource="{d:DesignInstance {x:Type fileCreator:V_EXPORT_H_ZGLVRowVM}, CreateList=True}" />
-        <CollectionViewSource x:Key="CollectionViewSourceFilesLOG" Source="{Binding /Logs, Source={StaticResource CollectionViewSourceFiles}}" d:DesignSource="{d:DesignInstance {x:Type class:LogItem}, CreateList=True}" />
+        <CollectionViewSource x:Key="CollectionViewSourceFilesLOG" Source="{Binding Logs, Source={StaticResource CollectionViewSourceFiles}}" d:DesignSource="{d:DesignInstance {x:Type class:LogItem}, CreateList=True}" />
     </Window.Resources>
     <Window.DataContext>
         <Binding ElementName="this" Path="VM"></Binding>

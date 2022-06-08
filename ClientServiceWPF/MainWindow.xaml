@@ -71,6 +71,7 @@
                 <Separator></Separator>
                 <MenuItem Header="Выгрузка актов МЭК" x:Name="MenuItemActMEK" Command="{Binding ACT_MEKNavigateCommand}" />
                 <MenuItem Header="Выгрузка файлов МЭК" x:Name="MenuExportFileMEK" Command="{Binding ExportFileNavigateCommand}"/>
+                <MenuItem Header="Выгрузка счетов фактур" x:Name="MenuExportSchetFacture" Command="{Binding ExportSchetFactureFileNavigateCommand}"/>
                 <Separator></Separator>
                 <MenuItem Header="Контроль объемов" x:Name="MenuVolumeControl" Command="{Binding VOLUM_CONTROLNavigateCommand}" />
             </MenuItem>

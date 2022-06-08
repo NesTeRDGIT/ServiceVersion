@@ -1,0 +1,13 @@
+﻿<UserControl x:Class="TFOMSCustomControl.MultiRowHeader.MultiRowHeader"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             Name="this"
+             mc:Ignorable="d" d:DesignWidth="800" Height="55">
+  <Border x:Name="Border">
+        <ScrollViewer x:Name="scrollViewer" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Hidden" Width="{Binding ElementName=this, Path=DataGrid.ActualWidth}" HorizontalAlignment="Left"  >
+            <Grid ShowGridLines="False"  x:Name="Grid" VerticalAlignment="Bottom"  />
+        </ScrollViewer>
+  </Border>
+</UserControl>

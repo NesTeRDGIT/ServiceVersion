@@ -227,7 +227,7 @@ namespace ClientServiceWPF.MEK_RESULT.VOLUM_CONTROL
         public ICommand SincBDCommand => new Command(async obj =>
         {
             try
-            {               
+            {
                 ProgressMain.IsIndeterminate = ProgressMain.IsOperationRun = true;
                 ProgressMain.Text = "Синхронизация БД";
                 await repository.SyncBDAsync(new Progress<string>(mes =>

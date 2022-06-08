@@ -1591,8 +1591,6 @@ namespace ServiceLoaderMedpomData
                 var isDs2O = item.DS2.Count(x => x.value.StartsWith("O")) != 0;
                 var isDs2Z34_Z35 = item.DS2.Count(x => x.value.Substring(0, 3).Between("Z34", "Z35")) != 0;
                 
-
-
                 if (vzr.HasValue)
                 {
                     if (SCHET.DateFile >= DT_03_2022)
@@ -1600,7 +1598,7 @@ namespace ServiceLoaderMedpomData
                         var st = item.CRIT.Select(x => x.value).Count(x => x == "stt5") == 0 && Z_SL.USL_OK.value.In("1");
                         var amb = Z_SL.USL_OK.value.In("3") && ((Z_SL.IDSP.value == "29" && Z_SL.FOR_POM.value == "3") || item.P_CEL.value.In("1.0","3.0"));
                         if (!item.IsLEK_PR && item.DS1.value.In("U07.1", "U07.2") && item.REAB.value != "1" && Z_SL.IDSP.value != "28" && (st || amb) && !isDs2O && !isDs2Z34_Z35 && vzr.Value >= 18)
-                            Error(XmlSeverityType.Error, item.DS1.POS.LINE, item.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и (CRIT <> stt5 и USL_OK=1 или USL_OK=3) и DS2 <> (O00-O99, Z34-Z35) и возраст больше 18 лет", "LEK_PR", "ERR_SL_LEK_PR_1");
+                            Error(XmlSeverityType.Error, item.DS1.POS.LINE, item.DS1.POS.POS, "Поле SL\\LEK_PR обязательно к заполнению, если в DS1 указано значение заболевания (U07.1 или U07.2) и REAB <> 1 и (IDSP <> 28) и ((CRIT <> STT5 и USL_OK = 1) или (USL_OK = 3 и (((IDSP = 29) и FOR_POM = 3) или (P_CEL = 1.0 или P_CEL = 3.0)))) и DS2 <> IN (O00-O99, Z34-Z35) и возраст больше 18 лет", "LEK_PR", "ERR_SL_LEK_PR_1");
                     }
                     else
                     {
@@ -1678,7 +1676,7 @@ namespace ServiceLoaderMedpomData
                             Error(XmlSeverityType.Error, PACIENT.VPOLIS.POS.LINE, PACIENT.VPOLIS.POS.POS, "Поле ENP обязательно к заполнению при VPOLIS = 3", "ENP", "ERR_PAC_3");
                         break;
                     case 2:
-                        if (!string.IsNullOrEmpty(PACIENT.SPOLIS.value))
+                        if (!string.IsNullOrEmpty(PACIENT.SPOLIS.value)) 
                             Error(XmlSeverityType.Error, PACIENT.SPOLIS.POS.LINE, PACIENT.SPOLIS.POS.POS, "Поле SPOLIS не подлежит заполнению при VPOLIS = 2", "SPOLIS", "ERR_PAC_4");
                         if (string.IsNullOrEmpty(PACIENT.NPOLIS.value))
                             Error(XmlSeverityType.Error, PACIENT.VPOLIS.POS.LINE, PACIENT.VPOLIS.POS.POS, "Поле NPOLIS обязательно к заполнению при VPOLIS = 2", "NPOLIS", "ERR_PAC_5");

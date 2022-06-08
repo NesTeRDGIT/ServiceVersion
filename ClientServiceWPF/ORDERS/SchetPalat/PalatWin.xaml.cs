@@ -93,7 +93,6 @@ namespace ClientServiceWPF.ORDERS.SchetPalat
         {
             try
             {
-
                 if (fbd.ShowDialog() == DialogResult.OK)
                 {
                     IsOperationRun = true;

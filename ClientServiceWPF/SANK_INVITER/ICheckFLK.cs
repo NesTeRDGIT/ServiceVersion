@@ -27,7 +27,7 @@ namespace ClientServiceWPF.SANK_INVITER
         {
             this.dispatcher = dispatcher;
             this.repository = repository;
-        }
+        } 
 
         public List<ErrorProtocolXML> CheckFLK(FileItem item, ZL_LIST zl, int YEAR, int MONTH, bool FLAG_MEE, bool EXT_FLK, string SMO, List<F006Row> F006, List<F014Row> F014, List<ExpertRow> Experts, List<FindSluchItem> IDENT_INFO)
         {
@@ -143,7 +143,6 @@ namespace ClientServiceWPF.SANK_INVITER
                             var ce_count = 0;
                             foreach (var exp in ce.Where(x => !string.IsNullOrEmpty(x.VALUE)))
                             {
-                                
                                 ce_count++;
                                 if (Experts.Count(x => x.N_EXPERT == exp.VALUE) == 0)
                                 {
@@ -504,7 +503,6 @@ namespace ClientServiceWPF.SANK_INVITER
                 {
                     fi.InvokeComm("Обработка пакета: Запрос санкций", dispatcher);
                     var SANK = repository.GetSank(zl, fi, dispatcher);
-
 
                     foreach (var zs_sl in zl.ZAP.SelectMany(x => x.Z_SL_list))
                     {
