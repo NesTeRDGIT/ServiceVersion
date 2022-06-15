@@ -1999,7 +1999,6 @@ where zs.idcase  in ({string.Join(",", idcase)}) and s.zglv_id = :zglv_id", con)
                     c.SANK_ID = san.SANK_ID;
                 }
                 SANK_ID++;
-
             }
             fi.FileLog.WriteLn("Загрузка санкций");
             InsertSANK(SANK);

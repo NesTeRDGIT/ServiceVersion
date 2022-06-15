@@ -25,16 +25,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
 {
     internal class ExportShetFactureFileViewModel : INotifyPropertyChanged
     {
-        #region INotifyPropertyChanged
-        public event PropertyChangedEventHandler PropertyChanged;
-
-        [NotifyPropertyChangedInvocator]
-        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-        #endregion
-
         public ExportShetFactureFileViewModel()
         {
             CurrentDate = DateTime.Now;
@@ -42,7 +32,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             Task.Run(() => { InitF003(); }); // Mo
             Task.Run(() => { InitVolumRubric(); }); // VolumRubric
         }
-
         public ExportShetFactureFileViewModel(Dispatcher dispatcher)
         {
             CurrentDate = DateTime.Now;
@@ -52,6 +41,15 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             Task.Run(() => { InitVolumRubric(); });
         }
 
+        #region INotifyPropertyChanged
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        [NotifyPropertyChangedInvocator]
+        protected virtual void RaisePropertyChanged([CallerMemberName] string propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+        #endregion
 
         public ObservableCollection<LogItem> Logs { get; set; } = new ObservableCollection<LogItem>();
         public ProgressItem Progress1 { get; } = new ProgressItem();
@@ -158,14 +156,13 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                 MessageBox.Show(ex.Message);
             }
         }
-
         private void SchetFactureXls(string path, string smoData, DateTime currentDate, CancellationToken token)
         {
             var smoCode = smoData.Split('-')[0];
             var smoName = smoData.Split('-')[1];
             var dtFakture = new DataTable();
             var dtMurFin = new DataTable();
-            using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+            using (var conn = new OracleConnection(connStr))
             {
                 var command = $"select * " +
                     $"from FAKTURA_2021 t" +
@@ -175,6 +172,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                     dispatcher.Invoke(() => { Progress1.Text = "Запрос данных FAKTURA_2021"; });
                     oda.Fill(dtFakture);
                 }
+
                 command = $"select * from nsi.mur_fin t" +
                           $" where smo = {smoCode} and year = {currentDate.Year} and month = {currentDate.Month}";
                 using (var oda = new OracleDataAdapter(command, conn))
@@ -207,7 +205,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                             HorizontalAlignment = HorizontalAlignmentV.Left,
                             wordwrap = true
                         }, new BorderOpenXML(), null);
-
                         var StyleCenterText = efm.CreateType(new FontOpenXML()
                         {
                             size = 11,
@@ -215,7 +212,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                             HorizontalAlignment = HorizontalAlignmentV.Center,
                             wordwrap = true,
                         }, new BorderOpenXML(), null);
-
                         var StyleLeftTextBorderNone = efm.CreateType(new FontOpenXML()
                         {
                             size = 11,
@@ -223,7 +219,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                             HorizontalAlignment = HorizontalAlignmentV.Left,
                             wordwrap = true,
                         }, null, null); ;
-
                         var StyleCenterBoldText = efm.CreateType(new FontOpenXML()
                         {
                             size = 11,
@@ -231,7 +226,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                             HorizontalAlignment = HorizontalAlignmentV.Center,
                             Bold = true
                         }, new BorderOpenXML(), null);
-
                         var StyleCenterBoldNumeric = efm.CreateType(new FontOpenXML()
                         {
                             size = 11,
@@ -240,15 +234,13 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                             Bold = true,
                             Format = (uint)DefaultNumFormat.F4
                         }, new BorderOpenXML(), null);
-
                         var StyleCenterNumeric = efm.CreateType(new FontOpenXML()
                         {
                             size = 11,
                             fontname = "Times New Roman",
                             HorizontalAlignment = HorizontalAlignmentV.Center,
                             Format = (uint)DefaultNumFormat.F4
-                        }, new BorderOpenXML(), null);                        
-                        
+                        }, new BorderOpenXML(), null);                         
                         var StyleCenterNumericBorderNone = efm.CreateType(new FontOpenXML()
                         {
                             size = 11,
@@ -528,7 +520,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                     }
                     finally
                     {
-                        efm.MarkAsFinal(true);
                         efm.Save();
                     }
                 }
@@ -536,15 +527,13 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             }
 
         }
-
-
         private void ItogReestrXls(string path, string smoData, DateTime currentDate, CancellationToken token)
         {
             var smoCode = smoData.Split('-')[0];
             var smoName = smoData.Split('-')[1];
 
             var dtReestr = new DataTable();
-            using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+            using (var conn = new OracleConnection(connStr))
             {
                 using (var oda = new OracleDataAdapter($"select * from v_lpu_sum_2021 t where smo = {smoCode}", conn))
                 {
@@ -621,7 +610,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
 
                         efm.PrintCell(rowIndex, 2, row["s_all"].ToString(), null);
 
-                        efm.MarkAsFinal(true);
                         efm.Save();
                     }
                 }
@@ -632,7 +620,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                 }
             }
         }
-
         private string GetNameMoByCodeMo(string moCode)
         {
             try
@@ -647,7 +634,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
         }
         private void InitF002()
         {
-            using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+            using (var conn = new OracleConnection(connStr))
             {
                 using (var oda = new OracleDataAdapter($"select * from nsi.f002 t where t.tf_okato = '76000' and t.d_end is null", conn))
                 {
@@ -658,7 +645,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
         }
         private void InitF003()
         {
-            using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+            using (var conn = new OracleConnection(connStr))
             {
                 using (var oda = new OracleDataAdapter($"select * from nsi.f003 t  where t.mcod like '750%' and t.d_end is null", conn))
                 {
@@ -669,7 +656,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
         }
         private void InitVolumRubric()
         {
-            using (var conn = new OracleConnection(AppConfig.Property.ConnectionString))
+            using (var conn = new OracleConnection(connStr))
             {
                 using (var oda = new OracleDataAdapter($"select * from nsi.volum_rubric t", conn))
                 {
@@ -701,9 +688,9 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             }
         }
 
-        private DataTable _dtF002 = new DataTable();
-        private DataTable _dtF003 = new DataTable();
-        private DataTable _dtVolumRubric = new DataTable();
+        private readonly DataTable _dtF002 = new DataTable();
+        private readonly DataTable _dtF003 = new DataTable();
+        private readonly DataTable _dtVolumRubric = new DataTable();
         private readonly int[] _listExistingFond = new int[] { 1, 2, 4 };
         private static string LocalFolder => AppDomain.CurrentDomain.BaseDirectory;
         private string SCHET_FACTURE_TEMPLATE { get; set; } = Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_SCHET_FACTURE.xlsx");
@@ -712,8 +699,8 @@ namespace ClientServiceWPF.ExportSchetFactureFile
         //private string ITOG_REESTR_MBT__TEMPLATE { get; set; } = Path.Combine(LocalFolder, "TEMPLATE", "TEMPLATE_ITOG_REESTR_MBT.xlsx");
         private readonly Dispatcher dispatcher;
         private CancellationTokenSource cts;
-        private FolderBrowserDialog fbd = new FolderBrowserDialog();
-        private string connStr = AppConfig.Property.ConnectionString;
+        private readonly FolderBrowserDialog fbd = new FolderBrowserDialog();
+        private readonly string connStr = AppConfig.Property.ConnectionString;
         private DateTime _currentDate;
         private bool _IsOperationRun;
     }
