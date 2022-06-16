@@ -767,7 +767,7 @@ namespace ClientServiceWPF.SANK_INVITER
         }
         public static bool IsEKMP(this int val)
         {
-            return val.ToString().StartsWith("3") || val.ToString().StartsWith("4") || val.ToString().StartsWith("7") || val.ToString().StartsWith("8") || (val.ToString().StartsWith("8") && val.ToString() != "88");
+            return val.ToString().StartsWith("3") || val.ToString().StartsWith("4") || val.ToString().StartsWith("7") || (val.ToString().StartsWith("8") && val.ToString() != "88");
         }
         public static bool IsMultiDisp(this int val)
         {

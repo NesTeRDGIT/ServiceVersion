@@ -187,17 +187,24 @@ namespace ClientServiceWPF.ExportSchetFactureFile
             {
 
                 var moCode = mo["mcod"].ToString();
+                var data = dtFakture.Select($"code_mo = '{moCode}' ");
+                if (data.Length == 0)
+                {
+                    continue;
+                }
+
                 var moName = GetNameMoByCodeMo(moCode);
                 decimal amountByCompany = 0;
                 var fileName = $@"{path}\{moCode} Счет-фактура за {currentDate:MMMM.yyyy}.xlsx";
+                
                 bool isFirstPassFile = true;
                 File.Copy(SCHET_FACTURE_TEMPLATE, fileName, true);
                 using (var efm = new ExcelOpenXML())
-                {
+                { 
                     try
                     {
                         efm.OpenFile(fileName, 0);
-
+                       
                         var StyleLeftText = efm.CreateType(new FontOpenXML()
                         {
                             size = 11,
@@ -240,7 +247,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                             fontname = "Times New Roman",
                             HorizontalAlignment = HorizontalAlignmentV.Center,
                             Format = (uint)DefaultNumFormat.F4
-                        }, new BorderOpenXML(), null);                         
+                        }, new BorderOpenXML(), null);
                         var StyleCenterNumericBorderNone = efm.CreateType(new FontOpenXML()
                         {
                             size = 11,
@@ -259,19 +266,21 @@ namespace ClientServiceWPF.ExportSchetFactureFile
 
                         rowIndex = 5;
                         efm.PrintCell(rowIndex, 2, $"{smoName}", null);
-
+                     
                         foreach (var fond in _listExistingFond)
                         {
                             bool isFirstPassFond = true;
+                           
                             foreach (DataRow volumRubric in _dtVolumRubric.Rows)
                             {
                                 bool isFirstPassRubric = true;
-
                                 var listVolumRubric = dtFakture.Select($"code_mo = '{moCode}' " +
                                     $"and tip = '{volumRubric["volum_rubric_id"]}'" +
                                     $"and fond = {fond}");
                                 if (listVolumRubric.Length == 0)
+                                {
                                     continue;
+                                }
 
                                 decimal sumSluch = 0;
                                 decimal sumKU = 0;
@@ -501,6 +510,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
 
                             }
                         }
+
                         rowIndex++;
                         efm.PrintCell(rowIndex, 2, $"Итого по компании", StyleLeftTextBorderNone);
                         efm.PrintCell(rowIndex, 5, Round(amountByCompany.ToString()), StyleCenterNumericBorderNone);
@@ -511,7 +521,6 @@ namespace ClientServiceWPF.ExportSchetFactureFile
                         efm.PrintCell(rowIndex, 3, $"МП", null);
                         rowIndex++;
                         efm.PrintCell(rowIndex, 2, $"Главный бухгалтер медицинского учреждения", null);
-
                     }
                     catch (Exception ex)
                     {
@@ -552,7 +561,7 @@ namespace ClientServiceWPF.ExportSchetFactureFile
 
                     var moName = GetNameMoByCodeMo(moCode);
                     var fileName = $@"{path}\{moCode} Итоговый реестр {smoCode} за {currentDate:MMMM.yyyy}.xlsx";
-
+                   
                     File.Copy(ITOG_REESTR_TEMPLATE, fileName, true);
                     using (var efm = new ExcelOpenXML())
                     {
